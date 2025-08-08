@@ -65,6 +65,30 @@ export default function Home() {
   const seconds = timeLeft % 60;
   const timeDisplay = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 
+  // Update document title based on timer state
+  useEffect(() => {
+    const getModeTitle = (currentMode: TimerMode) => {
+      switch (currentMode) {
+        case "work":
+          return "Focus";
+        case "shortBreak":
+          return "Break";
+        case "longBreak":
+          return "Long Break";
+      }
+    };
+
+    if (state === "running") {
+      const modeTitle = getModeTitle(mode);
+      document.title = `(${timeDisplay}) ${modeTitle} - Pomodoro Timer`;
+    } else if (state === "paused") {
+      const modeTitle = getModeTitle(mode);
+      document.title = `⏸️ (${timeDisplay}) ${modeTitle} - Pomodoro Timer`;
+    } else {
+      document.title = "Pomodoro Timer";
+    }
+  }, [timeDisplay, mode, state]);
+
   // Get mode display info
   const getModeInfo = (currentMode: TimerMode) => {
     switch (currentMode) {
