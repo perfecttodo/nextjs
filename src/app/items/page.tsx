@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import PomodoroWidget from "../components/PomodoroWidget";
 
 type TestingItemStatus = "todo" | "in-progress" | "done";
 
@@ -76,10 +77,13 @@ export default function ItemsPage() {
     <div className="font-sans max-w-3xl mx-auto py-10 px-4 sm:px-6 space-y-10">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Testing Items</h1>
-        <Link href="/" className="underline">Home</Link>
+        <div className="flex gap-4">
+          <Link href="/pomodoro" className="underline">Pomodoro Timer</Link>
+          <Link href="/" className="underline">Home</Link>
+        </div>
       </div>
 
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="rounded-lg border p-4">
           <div className="text-sm text-gray-500">Total</div>
           <div className="text-2xl font-bold">{stats.total}</div>
@@ -91,6 +95,9 @@ export default function ItemsPage() {
         <div className="rounded-lg border p-4">
           <div className="text-sm text-gray-500">Done</div>
           <div className="text-2xl font-bold">{stats.byStatus.done}</div>
+        </div>
+        <div className="sm:col-span-1">
+          <PomodoroWidget compact={true} />
         </div>
       </section>
 
