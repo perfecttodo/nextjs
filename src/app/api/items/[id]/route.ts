@@ -29,7 +29,7 @@ export async function PUT(
     if (!updated) return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json(updated);
   } catch (e) {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid JSON"+e }, { status: 400 });
   }
 }
 
