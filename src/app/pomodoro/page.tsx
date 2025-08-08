@@ -318,7 +318,7 @@ export default function PomodoroPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-lg border p-4 text-center">
           <div className="text-sm text-gray-500 flex items-center justify-center gap-1 mb-1">
             <CheckCircle className="w-4 h-4" />
@@ -332,13 +332,6 @@ export default function PomodoroPage() {
             Total Work Time
           </div>
           <div className="text-2xl font-bold text-green-600">{totalWorkTime} min</div>
-        </div>
-        <div className="rounded-lg border p-4 text-center">
-          <div className="text-sm text-gray-500 flex items-center justify-center gap-1 mb-1">
-            <Timer className="w-4 h-4" />
-            Current Mode
-          </div>
-          <div className="text-lg font-semibold capitalize">{mode.replace(/([A-Z])/g, ' $1')}</div>
         </div>
         <div className="rounded-lg border p-4 text-center">
           <div className="text-sm text-gray-500 flex items-center justify-center gap-1 mb-1">
@@ -409,19 +402,6 @@ export default function PomodoroPage() {
               onChange={(e) => updateSettings({ longBreakInterval: parseInt(e.target.value) || 4 })}
               className="w-full rounded border px-3 py-2"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Auto-start Next Session
-            </label>
-            <select
-              value={settings.autoStart ? "true" : "false"}
-              onChange={(e) => updateSettings({ autoStart: e.target.value === "true" })}
-              className="w-full rounded border px-3 py-2"
-            >
-              <option value="true">Yes</option>
-              <option value="false">No</option>
-            </select>
           </div>
         </div>
       </div>
