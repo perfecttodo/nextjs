@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { OAuth2Client } from "google-auth-library";
 import { SignJWT } from "jose";
+import { prisma } from "@/lib/prisma";
 
 const client = new OAuth2Client();
 
@@ -22,6 +23,20 @@ export async function POST(req: NextRequest) {
       .setExpirationTime("7d")
       .setIssuedAt()
       .sign(secret);
+
+    // ensure user exists
+    await prisma.user.upsert({
+      where: { id: payload.sub! },
+      create: {
+        id: payload.sub!,
+        email: payload.email,
+        name: payload.name || null,
+      },
+      update: {
+        email: payload.email,
+        name: payload.name || null,
+      },
+    });
 
     const res = NextResponse.json({ ok: true });
     res.cookies.set("app_session", token, {

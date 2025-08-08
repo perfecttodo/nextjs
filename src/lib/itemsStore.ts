@@ -11,15 +11,18 @@ export interface TestingItem {
   updatedAt: string; // ISO
 }
 
-export async function getAllItems(): Promise<TestingItem[]> {
+export async function getAllItems(ownerId?: string): Promise<TestingItem[]> {
+  if (!ownerId) return [];
   const rows = await prisma.testingItem.findMany({
+    where: { ownerId },
     orderBy: { createdAt: "desc" },
   });
   return rows.map(mapRowToItem);
 }
 
-export async function getItemById(id: string): Promise<TestingItem | undefined> {
-  const row = await prisma.testingItem.findUnique({ where: { id } });
+export async function getItemById(id: string, ownerId?: string): Promise<TestingItem | undefined> {
+  if (!ownerId) return undefined;
+  const row = await prisma.testingItem.findFirst({ where: { id, ownerId } });
   return row ? mapRowToItem(row) : undefined;
 }
 
@@ -27,12 +30,14 @@ export async function createItem(input: {
   name: string;
   description?: string;
   status?: TestingItemStatus;
+  ownerId?: string;
 }): Promise<TestingItem> {
   const row = await prisma.testingItem.create({
     data: {
       name: input.name,
       description: input.description?.trim() || null,
       status: mapStatusToEnum(input.status ?? "todo"),
+      ownerId: input.ownerId ?? null,
     },
   });
   return mapRowToItem(row);
@@ -40,11 +45,13 @@ export async function createItem(input: {
 
 export async function updateItem(
   id: string,
-  updates: Partial<Pick<TestingItem, "name" | "description" | "status">>
+  updates: Partial<Pick<TestingItem, "name" | "description" | "status">>,
+  ownerId?: string
 ): Promise<TestingItem | undefined> {
   try {
-    const row = await prisma.testingItem.update({
-      where: { id },
+    if (!ownerId) return undefined;
+    const result = await prisma.testingItem.updateMany({
+      where: { id, ownerId },
       data: {
         name: updates.name,
         description:
@@ -52,16 +59,19 @@ export async function updateItem(
         status: updates.status ? mapStatusToEnum(updates.status) : undefined,
       },
     });
-    return mapRowToItem(row);
+    if (result.count === 0) return undefined;
+    const after = await prisma.testingItem.findFirst({ where: { id, ownerId } });
+    return after ? mapRowToItem(after) : undefined;
   } catch {
     return undefined;
   }
 }
 
-export async function deleteItem(id: string): Promise<boolean> {
+export async function deleteItem(id: string, ownerId?: string): Promise<boolean> {
   try {
-    await prisma.testingItem.delete({ where: { id } });
-    return true;
+    if (!ownerId) return false;
+    const result = await prisma.testingItem.deleteMany({ where: { id, ownerId } });
+    return result.count > 0;
   } catch {
     return false;
   }
