@@ -12,6 +12,7 @@ interface TimerSettings {
   shortBreakDuration: number;
   longBreakDuration: number;
   longBreakInterval: number; // after how many work sessions
+  autoStart: boolean; // whether to auto-start next session
 }
 
 export default function PomodoroPage() {
@@ -20,6 +21,7 @@ export default function PomodoroPage() {
     shortBreakDuration: 5,
     longBreakDuration: 15,
     longBreakInterval: 4,
+    autoStart: false, // Default to manual start for better user control
   });
 
   const [mode, setMode] = useState<TimerMode>("work");
@@ -125,10 +127,17 @@ export default function PomodoroPage() {
           setMode("work");
           setTimeLeft(settingsRef.current.workDuration * 60);
         }
+        
+        // Auto-start next session if enabled
+        if (settingsRef.current.autoStart) {
+          setState("running");
+        } else {
+          setState("idle");
+        }
       } catch (error) {
         console.error("Error in timer completion:", error);
+        setState("idle");
       }
-      setState("idle");
     }
   }, [state]);
 
@@ -209,12 +218,19 @@ export default function PomodoroPage() {
         {/* Timer Controls */}
         <div className="flex items-center justify-center gap-4 mb-6">
           {state === "idle" && (
-            <button
-              onClick={startTimer}
-              className={`px-6 py-3 rounded-lg text-white font-medium ${modeInfo.color} hover:opacity-90 transition-opacity`}
-            >
-              Start
-            </button>
+            <>
+              <button
+                onClick={startTimer}
+                className={`px-6 py-3 rounded-lg text-white font-medium ${modeInfo.color} hover:opacity-90 transition-opacity`}
+              >
+                Start
+              </button>
+              {!settings.autoStart && (
+                <div className="text-sm text-gray-500 italic">
+                  Click Start when ready to begin
+                </div>
+              )}
+            </>
           )}
           
           {state === "running" && (
@@ -288,7 +304,7 @@ export default function PomodoroPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="rounded-lg border p-4 text-center">
           <div className="text-sm text-gray-500">Completed Sessions</div>
           <div className="text-2xl font-bold text-red-600">{completedSessions}</div>
@@ -301,12 +317,18 @@ export default function PomodoroPage() {
           <div className="text-sm text-gray-500">Current Mode</div>
           <div className="text-lg font-semibold capitalize">{mode.replace(/([A-Z])/g, ' $1')}</div>
         </div>
+        <div className="rounded-lg border p-4 text-center">
+          <div className="text-sm text-gray-500">Auto-start</div>
+          <div className={`text-lg font-semibold ${settings.autoStart ? 'text-green-600' : 'text-gray-600'}`}>
+            {settings.autoStart ? 'ON' : 'OFF'}
+          </div>
+        </div>
       </div>
 
       {/* Settings */}
       <div className="border rounded-lg p-6">
         <h3 className="text-lg font-semibold mb-4">Timer Settings</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Work Duration (min)
@@ -359,6 +381,32 @@ export default function PomodoroPage() {
               className="w-full rounded border px-3 py-2"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Auto-start Next Session
+            </label>
+            <select
+              value={settings.autoStart ? "true" : "false"}
+              onChange={(e) => updateSettings({ autoStart: e.target.value === "true" })}
+              className="w-full rounded border px-3 py-2"
+            >
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Auto-start Info */}
+      <div className="border rounded-lg p-6 bg-purple-50">
+        <h3 className="text-lg font-semibold mb-3 text-purple-800">Auto-start Feature</h3>
+        <p className="text-sm text-purple-700 mb-3">
+          When enabled, the timer will automatically start the next session (work or break) when the current session completes. 
+          When disabled, you'll need to manually click "Start" to begin each session.
+        </p>
+        <div className="text-sm text-purple-600">
+          <strong>Tip:</strong> Use manual mode if you want more control over when to start each session, 
+          or auto mode for a more hands-off experience.
         </div>
       </div>
 

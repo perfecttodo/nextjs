@@ -97,7 +97,7 @@ export default function ItemsPage() {
           <div className="text-2xl font-bold">{stats.byStatus.done}</div>
         </div>
         <div className="sm:col-span-1">
-          <PomodoroWidget compact={true} />
+          <PomodoroWidget compact={true} autoStart={false} />
         </div>
       </section>
 

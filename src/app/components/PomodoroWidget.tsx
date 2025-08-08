@@ -9,9 +9,10 @@ type TimerState = "idle" | "running" | "paused" | "completed";
 
 interface PomodoroWidgetProps {
   compact?: boolean;
+  autoStart?: boolean; // whether to auto-start next session
 }
 
-export default function PomodoroWidget({ compact = false }: PomodoroWidgetProps) {
+export default function PomodoroWidget({ compact = false, autoStart = false }: PomodoroWidgetProps) {
   const [mode, setMode] = useState<TimerMode>("work");
   const [state, setState] = useState<TimerState>("idle");
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
@@ -106,12 +107,19 @@ export default function PomodoroWidget({ compact = false }: PomodoroWidgetProps)
           setMode("work");
           setTimeLeft(25 * 60); // 25 minutes
         }
+        
+        // Auto-start next session if enabled
+        if (autoStart) {
+          setState("running");
+        } else {
+          setState("idle");
+        }
       } catch (error) {
         console.error("Error in timer completion:", error);
+        setState("idle");
       }
-      setState("idle");
     }
-  }, [state]);
+  }, [state, autoStart]);
 
   // Timer controls
   const startTimer = useCallback(() => {
