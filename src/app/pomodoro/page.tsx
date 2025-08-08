@@ -333,7 +333,7 @@ export default function PomodoroPage() {
           </div>
           <div className="text-2xl font-bold text-green-600">{totalWorkTime} min</div>
         </div>
-        <div className="rounded-lg border p-4 text-center">
+        <div className="rounded-lg border p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => updateSettings({ autoStart: !settings.autoStart })}>
           <div className="text-sm text-gray-500 flex items-center justify-center gap-1 mb-1">
             <Zap className="w-4 h-4" />
             Auto-start
