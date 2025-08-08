@@ -3,6 +3,13 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { playNotificationSound, playBreakSound } from "@/lib/audio";
+import { 
+  Play, 
+  Pause, 
+  RotateCcw, 
+  Clock,
+  ExternalLink
+} from "lucide-react";
 
 type TimerMode = "work" | "shortBreak" | "longBreak";
 type TimerState = "idle" | "running" | "paused" | "completed";
@@ -156,8 +163,9 @@ export default function PomodoroWidget({ compact = false, autoStart = false }: P
           {state === "idle" && (
             <button
               onClick={startTimer}
-              className={`px-3 py-1 rounded text-white text-sm font-medium ${modeInfo.color} hover:opacity-90 transition-opacity`}
+              className={`px-3 py-1 rounded text-white text-sm font-medium ${modeInfo.color} hover:opacity-90 transition-opacity flex items-center gap-1`}
             >
+              <Play className="w-3 h-3" />
               Start
             </button>
           )}
@@ -166,14 +174,16 @@ export default function PomodoroWidget({ compact = false, autoStart = false }: P
             <>
               <button
                 onClick={pauseTimer}
-                className="px-3 py-1 rounded bg-gray-500 text-white text-sm font-medium hover:bg-gray-600 transition-colors"
+                className="px-3 py-1 rounded bg-gray-500 text-white text-sm font-medium hover:bg-gray-600 transition-colors flex items-center gap-1"
               >
+                <Pause className="w-3 h-3" />
                 Pause
               </button>
               <button
                 onClick={resetTimer}
-                className="px-2 py-1 rounded border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+                className="px-2 py-1 rounded border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-1"
               >
+                <RotateCcw className="w-3 h-3" />
                 Reset
               </button>
             </>
@@ -183,14 +193,16 @@ export default function PomodoroWidget({ compact = false, autoStart = false }: P
             <>
               <button
                 onClick={startTimer}
-                className={`px-3 py-1 rounded text-white text-sm font-medium ${modeInfo.color} hover:opacity-90 transition-opacity`}
+                className={`px-3 py-1 rounded text-white text-sm font-medium ${modeInfo.color} hover:opacity-90 transition-opacity flex items-center gap-1`}
               >
+                <Play className="w-3 h-3" />
                 Resume
               </button>
               <button
                 onClick={resetTimer}
-                className="px-2 py-1 rounded border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+                className="px-2 py-1 rounded border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-1"
               >
+                <RotateCcw className="w-3 h-3" />
                 Reset
               </button>
             </>
@@ -198,8 +210,9 @@ export default function PomodoroWidget({ compact = false, autoStart = false }: P
           
           <Link
             href="/pomodoro"
-            className="px-2 py-1 rounded border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+            className="px-2 py-1 rounded border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-1"
           >
+            <ExternalLink className="w-3 h-3" />
             Full
           </Link>
         </div>

@@ -3,6 +3,19 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { playNotificationSound, playBreakSound, showNotification, requestNotificationPermission } from "@/lib/audio";
+import { 
+  Play, 
+  Pause, 
+  RotateCcw, 
+  SkipForward, 
+  Timer, 
+  Settings, 
+  Bell, 
+  Home,
+  CheckCircle,
+  Clock,
+  Zap
+} from "lucide-react";
 
 type TimerMode = "work" | "shortBreak" | "longBreak";
 type TimerState = "idle" | "running" | "paused" | "completed";
@@ -197,7 +210,10 @@ export default function PomodoroPage() {
     <div className="font-sans max-w-4xl mx-auto py-10 px-4 sm:px-6 space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-3xl font-bold">Pomodoro Timer</h1>
-        <Link href="/" className="underline">Home</Link>
+        <Link href="/" className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors">
+          <Home className="w-4 h-4" />
+          <span>Home</span>
+        </Link>
       </div>
 
       {/* Timer Display */}
@@ -218,33 +234,29 @@ export default function PomodoroPage() {
         {/* Timer Controls */}
         <div className="flex items-center justify-center gap-4 mb-6">
           {state === "idle" && (
-            <>
-              <button
-                onClick={startTimer}
-                className={`px-6 py-3 rounded-lg text-white font-medium ${modeInfo.color} hover:opacity-90 transition-opacity`}
-              >
-                Start
-              </button>
-              {!settings.autoStart && (
-                <div className="text-sm text-gray-500 italic">
-                  Click Start when ready to begin
-                </div>
-              )}
-            </>
+            <button
+              onClick={startTimer}
+              className={`px-6 py-3 rounded-lg text-white font-medium ${modeInfo.color} hover:opacity-90 transition-opacity flex items-center gap-2`}
+            >
+              <Play className="w-4 h-4" />
+              Start
+            </button>
           )}
           
           {state === "running" && (
             <>
               <button
                 onClick={pauseTimer}
-                className="px-6 py-3 rounded-lg bg-gray-500 text-white font-medium hover:bg-gray-600 transition-colors"
+                className="px-6 py-3 rounded-lg bg-gray-500 text-white font-medium hover:bg-gray-600 transition-colors flex items-center gap-2"
               >
+                <Pause className="w-4 h-4" />
                 Pause
               </button>
               <button
                 onClick={skipTimer}
-                className="px-4 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                className="px-4 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
               >
+                <SkipForward className="w-4 h-4" />
                 Skip
               </button>
             </>
@@ -254,14 +266,16 @@ export default function PomodoroPage() {
             <>
               <button
                 onClick={startTimer}
-                className={`px-6 py-3 rounded-lg text-white font-medium ${modeInfo.color} hover:opacity-90 transition-opacity`}
+                className={`px-6 py-3 rounded-lg text-white font-medium ${modeInfo.color} hover:opacity-90 transition-opacity flex items-center gap-2`}
               >
+                <Play className="w-4 h-4" />
                 Resume
               </button>
               <button
                 onClick={resetTimer}
-                className="px-4 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                className="px-4 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
               >
+                <RotateCcw className="w-4 h-4" />
                 Reset
               </button>
             </>
@@ -306,19 +320,31 @@ export default function PomodoroPage() {
       {/* Statistics */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="rounded-lg border p-4 text-center">
-          <div className="text-sm text-gray-500">Completed Sessions</div>
+          <div className="text-sm text-gray-500 flex items-center justify-center gap-1 mb-1">
+            <CheckCircle className="w-4 h-4" />
+            Completed Sessions
+          </div>
           <div className="text-2xl font-bold text-red-600">{completedSessions}</div>
         </div>
         <div className="rounded-lg border p-4 text-center">
-          <div className="text-sm text-gray-500">Total Work Time</div>
+          <div className="text-sm text-gray-500 flex items-center justify-center gap-1 mb-1">
+            <Clock className="w-4 h-4" />
+            Total Work Time
+          </div>
           <div className="text-2xl font-bold text-green-600">{totalWorkTime} min</div>
         </div>
         <div className="rounded-lg border p-4 text-center">
-          <div className="text-sm text-gray-500">Current Mode</div>
+          <div className="text-sm text-gray-500 flex items-center justify-center gap-1 mb-1">
+            <Timer className="w-4 h-4" />
+            Current Mode
+          </div>
           <div className="text-lg font-semibold capitalize">{mode.replace(/([A-Z])/g, ' $1')}</div>
         </div>
         <div className="rounded-lg border p-4 text-center">
-          <div className="text-sm text-gray-500">Auto-start</div>
+          <div className="text-sm text-gray-500 flex items-center justify-center gap-1 mb-1">
+            <Zap className="w-4 h-4" />
+            Auto-start
+          </div>
           <div className={`text-lg font-semibold ${settings.autoStart ? 'text-green-600' : 'text-gray-600'}`}>
             {settings.autoStart ? 'ON' : 'OFF'}
           </div>
@@ -327,7 +353,10 @@ export default function PomodoroPage() {
 
       {/* Settings */}
       <div className="border rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-4">Timer Settings</h3>
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <Settings className="w-5 h-5" />
+          Timer Settings
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -399,7 +428,10 @@ export default function PomodoroPage() {
 
       {/* Auto-start Info */}
       <div className="border rounded-lg p-6 bg-purple-50">
-        <h3 className="text-lg font-semibold mb-3 text-purple-800">Auto-start Feature</h3>
+        <h3 className="text-lg font-semibold mb-3 text-purple-800 flex items-center gap-2">
+          <Zap className="w-5 h-5" />
+          Auto-start Feature
+        </h3>
         <p className="text-sm text-purple-700 mb-3">
           When enabled, the timer will automatically start the next session (work or break) when the current session completes. 
           When disabled, you'll need to manually click "Start" to begin each session.
@@ -412,7 +444,10 @@ export default function PomodoroPage() {
 
       {/* Notification Settings */}
       <div className="border rounded-lg p-6 bg-yellow-50">
-        <h3 className="text-lg font-semibold mb-3 text-yellow-800">Notifications</h3>
+        <h3 className="text-lg font-semibold mb-3 text-yellow-800 flex items-center gap-2">
+          <Bell className="w-5 h-5" />
+          Notifications
+        </h3>
         <p className="text-sm text-yellow-700 mb-3">
           Enable browser notifications to get alerted when your timer completes, even when the tab is not active.
         </p>
