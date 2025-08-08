@@ -1,0 +1,27 @@
+// Datasource
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Generator
+generator client {
+  provider = "prisma-client-js"
+}
+
+model TestingItem {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  status      Status   @default(todo)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum Status {
+  todo
+  in_progress
+  done
+}
+
+

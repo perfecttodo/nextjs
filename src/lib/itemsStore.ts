@@ -1,5 +1,4 @@
-import { promises as fs } from "fs";
-import path from "path";
+import { prisma } from "@/lib/prisma";
 
 export type TestingItemStatus = "todo" | "in-progress" | "done";
 
@@ -12,43 +11,16 @@ export interface TestingItem {
   updatedAt: string; // ISO
 }
 
-const dataDir = path.join(process.cwd(), "data");
-const dataFilePath = path.join(dataDir, "items.json");
-
-async function ensureDataFile(): Promise<void> {
-  await fs.mkdir(dataDir, { recursive: true });
-  try {
-    await fs.access(dataFilePath);
-  } catch {
-    await fs.writeFile(dataFilePath, JSON.stringify([], null, 2), "utf-8");
-  }
-}
-
-async function readAll(): Promise<TestingItem[]> {
-  await ensureDataFile();
-  const json = await fs.readFile(dataFilePath, "utf-8");
-  try {
-    const items: TestingItem[] = JSON.parse(json);
-    return Array.isArray(items) ? items : [];
-  } catch {
-    return [];
-  }
-}
-
-async function writeAll(items: TestingItem[]): Promise<void> {
-  await ensureDataFile();
-  await fs.writeFile(dataFilePath, JSON.stringify(items, null, 2), "utf-8");
-}
-
 export async function getAllItems(): Promise<TestingItem[]> {
-  const items = await readAll();
-  // Sort newest first
-  return items.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  const rows = await prisma.testingItem.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+  return rows.map(mapRowToItem);
 }
 
 export async function getItemById(id: string): Promise<TestingItem | undefined> {
-  const items = await readAll();
-  return items.find((i) => i.id === id);
+  const row = await prisma.testingItem.findUnique({ where: { id } });
+  return row ? mapRowToItem(row) : undefined;
 }
 
 export async function createItem(input: {
@@ -56,47 +28,66 @@ export async function createItem(input: {
   description?: string;
   status?: TestingItemStatus;
 }): Promise<TestingItem> {
-  const items = await readAll();
-  const now = new Date().toISOString();
-  const item: TestingItem = {
-    id: crypto.randomUUID(),
-    name: input.name,
-    description: input.description?.trim() || undefined,
-    status: input.status ?? "todo",
-    createdAt: now,
-    updatedAt: now,
-  };
-  items.push(item);
-  await writeAll(items);
-  return item;
+  const row = await prisma.testingItem.create({
+    data: {
+      name: input.name,
+      description: input.description?.trim() || null,
+      status: mapStatusToEnum(input.status ?? "todo"),
+    },
+  });
+  return mapRowToItem(row);
 }
 
 export async function updateItem(
   id: string,
   updates: Partial<Pick<TestingItem, "name" | "description" | "status">>
 ): Promise<TestingItem | undefined> {
-  const items = await readAll();
-  const index = items.findIndex((i) => i.id === id);
-  if (index === -1) return undefined;
-  const next: TestingItem = {
-    ...items[index],
-    ...updates,
-    description: updates.description?.trim() ?? items[index].description,
-    updatedAt: new Date().toISOString(),
-  };
-  items[index] = next;
-  await writeAll(items);
-  return next;
+  try {
+    const row = await prisma.testingItem.update({
+      where: { id },
+      data: {
+        name: updates.name,
+        description:
+          updates.description !== undefined ? updates.description?.trim() || null : undefined,
+        status: updates.status ? mapStatusToEnum(updates.status) : undefined,
+      },
+    });
+    return mapRowToItem(row);
+  } catch {
+    return undefined;
+  }
 }
 
 export async function deleteItem(id: string): Promise<boolean> {
-  const items = await readAll();
-  const next = items.filter((i) => i.id !== id);
-  const changed = next.length !== items.length;
-  if (changed) {
-    await writeAll(next);
+  try {
+    await prisma.testingItem.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
   }
-  return changed;
+}
+
+// Helpers
+function mapStatusToEnum(status: TestingItemStatus) {
+  if (status === "in-progress") return "in_progress" as const;
+  if (status === "done") return "done" as const;
+  return "todo" as const;
+}
+
+function mapEnumToStatus(status: "todo" | "in_progress" | "done"): TestingItemStatus {
+  if (status === "in_progress") return "in-progress";
+  return status;
+}
+
+function mapRowToItem(row: any): TestingItem {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description ?? undefined,
+    status: mapEnumToStatus(row.status),
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
 }
 
 
