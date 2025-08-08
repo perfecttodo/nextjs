@@ -4,18 +4,17 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { playNotificationSound, playBreakSound, showNotification, requestNotificationPermission } from "@/lib/audio";
 import { 
-  Play, 
-  Pause, 
-  RotateCcw, 
-  SkipForward, 
-  Timer, 
-  Settings, 
-  Bell, 
-  Home as HomeIcon,
-  CheckCircle,
-  Clock,
-  Zap
-} from "lucide-react";
+  FaPlay, 
+  FaPause, 
+  FaRedo, 
+  FaForward, 
+  FaCog, 
+  FaBell, 
+  FaHome,
+  FaCheckCircle,
+  FaClock,
+  FaBolt
+} from "react-icons/fa";
 
 type TimerMode = "work" | "shortBreak" | "longBreak";
 type TimerState = "idle" | "running" | "paused" | "completed";
@@ -211,7 +210,7 @@ export default function Home() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-3xl font-bold">Pomodoro Timer</h1>
         <Link href="/items" className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors">
-          <HomeIcon className="w-4 h-4" />
+          <FaHome className="w-4 h-4" />
           <span>Items</span>
         </Link>
       </div>
@@ -238,7 +237,7 @@ export default function Home() {
               onClick={startTimer}
               className={`px-6 py-3 rounded-lg text-white font-medium ${modeInfo.color} hover:opacity-90 transition-opacity flex items-center gap-2`}
             >
-              <Play className="w-4 h-4" />
+              <FaPlay className="w-4 h-4" />
               Start
             </button>
           )}
@@ -249,14 +248,14 @@ export default function Home() {
                 onClick={pauseTimer}
                 className="px-6 py-3 rounded-lg bg-gray-500 text-white font-medium hover:bg-gray-600 transition-colors flex items-center gap-2"
               >
-                <Pause className="w-4 h-4" />
+                <FaPause className="w-4 h-4" />
                 Pause
               </button>
               <button
                 onClick={skipTimer}
                 className="px-4 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
               >
-                <SkipForward className="w-4 h-4" />
+                <FaForward className="w-4 h-4" />
                 Skip
               </button>
             </>
@@ -268,14 +267,14 @@ export default function Home() {
                 onClick={startTimer}
                 className={`px-6 py-3 rounded-lg text-white font-medium ${modeInfo.color} hover:opacity-90 transition-opacity flex items-center gap-2`}
               >
-                <Play className="w-4 h-4" />
+                <FaPlay className="w-4 h-4" />
                 Resume
               </button>
               <button
                 onClick={resetTimer}
                 className="px-4 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
               >
-                <RotateCcw className="w-4 h-4" />
+                <FaRedo className="w-4 h-4" />
                 Reset
               </button>
             </>
@@ -321,21 +320,21 @@ export default function Home() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-lg border p-4 text-center">
           <div className="text-sm text-gray-500 flex items-center justify-center gap-1 mb-1">
-            <CheckCircle className="w-4 h-4" />
+            <FaCheckCircle className="w-4 h-4" />
             Completed Sessions
           </div>
           <div className="text-2xl font-bold text-red-600">{completedSessions}</div>
         </div>
         <div className="rounded-lg border p-4 text-center">
           <div className="text-sm text-gray-500 flex items-center justify-center gap-1 mb-1">
-            <Clock className="w-4 h-4" />
+            <FaClock className="w-4 h-4" />
             Total Work Time
           </div>
           <div className="text-2xl font-bold text-green-600">{totalWorkTime} min</div>
         </div>
         <div className="rounded-lg border p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => updateSettings({ autoStart: !settings.autoStart })}>
           <div className="text-sm text-gray-500 flex items-center justify-center gap-1 mb-1">
-            <Zap className="w-4 h-4" />
+            <FaBolt className="w-4 h-4" />
             Auto-start
           </div>
           <div className={`text-lg font-semibold ${settings.autoStart ? 'text-green-600' : 'text-gray-600'}`}>
@@ -347,7 +346,7 @@ export default function Home() {
       {/* Settings */}
       <div className="border rounded-lg p-6">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Settings className="w-5 h-5" />
+          <FaCog className="w-5 h-5" />
           Timer Settings
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -409,7 +408,7 @@ export default function Home() {
       {/* Auto-start Info */}
       <div className="border rounded-lg p-6 bg-purple-50">
         <h3 className="text-lg font-semibold mb-3 text-purple-800 flex items-center gap-2">
-          <Zap className="w-5 h-5" />
+          <FaBolt className="w-5 h-5" />
           Auto-start Feature
         </h3>
         <p className="text-sm text-purple-700 mb-3">
@@ -425,7 +424,7 @@ export default function Home() {
       {/* Notification Settings */}
       <div className="border rounded-lg p-6 bg-yellow-50">
         <h3 className="text-lg font-semibold mb-3 text-yellow-800 flex items-center gap-2">
-          <Bell className="w-5 h-5" />
+          <FaBell className="w-5 h-5" />
           Notifications
         </h3>
         <p className="text-sm text-yellow-700 mb-3">
