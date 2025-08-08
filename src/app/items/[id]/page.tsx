@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
 type TestingItemStatus = "todo" | "in-progress" | "done";
 
@@ -14,8 +15,9 @@ interface TestingItem {
   updatedAt: string;
 }
 
-export default function EditItemPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function EditItemPage() {
+  const params = useParams();
+  const id = (params as { id: string }).id;
   const [item, setItem] = useState<TestingItem | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
