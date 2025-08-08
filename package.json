@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@prisma/client": "^6.13.0",
+    "google-auth-library": "^10.2.1",
+    "jose": "^6.0.12",
     "next": "15.4.5",
     "react": "19.1.0",
     "react-dom": "19.1.0"

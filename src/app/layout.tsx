@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import GoogleLoginButton from "./components/GoogleLoginButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <header className="px-4 py-3 flex items-center justify-end gap-3">
+          <GoogleLoginButton />
+          <form action="/api/auth/logout" method="post">
+            <button className="text-sm underline" type="submit">Logout</button>
+          </form>
+        </header>
         {children}
       </body>
     </html>
