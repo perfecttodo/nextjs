@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import GoogleLoginButton from "./components/GoogleLoginButton";
+import { getSessionUser } from "@/lib/session";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,21 +24,28 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getSessionUser();
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <header className="px-4 py-3 flex items-center justify-end gap-3">
-          <GoogleLoginButton />
-          <form action="/api/auth/logout" method="post">
-            <button className="text-sm underline" type="submit">Logout</button>
-          </form>
+          {user ? (
+            <>
+              <span className="text-sm text-gray-600">{user.name || user.email}</span>
+              <form action="/api/auth/logout" method="post">
+                <button className="text-sm underline" type="submit">Logout</button>
+              </form>
+            </>
+          ) : (
+            <GoogleLoginButton />
+          )}
         </header>
         {children}
       </body>
