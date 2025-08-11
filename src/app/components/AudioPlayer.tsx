@@ -80,8 +80,8 @@ export default function AudioPlayer({
   useEffect(() => {
     if (playerRef.current && audio) {
       playerRef.current.src({
-        src: audio.url,
-        type: audio.format === 'x-m4a' ? 'audio/mp4' : `audio/${audio.format}`
+        src: audio.blobUrl,
+        type: audio.format === 'm4a' ? 'audio/mp4' : `audio/${audio.format}`
       });
       
       if (isPlaying) {
@@ -172,10 +172,10 @@ export default function AudioPlayer({
         <h3 className="text-xl font-semibold text-gray-800 mb-2">{audio.title}</h3>
         <div className="flex items-center justify-between text-sm text-gray-500">
           <span>Format: {audio.format.toUpperCase()}</span>
-          <span>Duration: {formatTime(audio.duration)}</span>
+          <span>Duration: {audio.duration ? formatTime(audio.duration) : 'Unknown'}</span>
         </div>
         <div className="text-sm text-gray-500 mt-1">
-          Uploaded: {audio.uploadDate.toLocaleDateString()}
+          Uploaded: {audio.createdAt.toLocaleDateString()}
         </div>
       </div>
 

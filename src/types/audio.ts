@@ -1,10 +1,20 @@
+export type AudioFormat = 'mp3' | 'm4a' | 'wav' | 'ogg';
+
+export type AudioStatus = 'draft' | 'published';
+
 export interface AudioFile {
   id: string;
   title: string;
-  url: string;
-  duration: number; // in seconds
-  uploadDate: Date;
-  format: 'mp3' | 'x-m4a' | 'wav' | 'ogg';
+  originalName: string;
+  blobUrl: string;
+  blobId: string;
+  format: AudioFormat;
+  duration?: number; // in seconds
+  fileSize: number; // in bytes
+  status: AudioStatus;
+  ownerId: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type PlayMode = 'sequence' | 'loop' | 'random';

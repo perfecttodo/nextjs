@@ -26,10 +26,16 @@ export default function AudioPlayerPage() {
               allFiles.push({
                 id: audio.id,
                 title: audio.title,
-                url: audio.blobUrl,
-                duration: audio.duration || 0,
-                uploadDate: new Date(audio.createdAt),
-                format: audio.format
+                originalName: audio.originalName,
+                blobUrl: audio.blobUrl,
+                blobId: audio.blobId,
+                format: audio.format,
+                duration: audio.duration,
+                fileSize: audio.fileSize,
+                status: audio.status,
+                ownerId: audio.ownerId,
+                createdAt: new Date(audio.createdAt),
+                updatedAt: new Date(audio.updatedAt)
               });
             });
           });

@@ -89,11 +89,11 @@ export default function AudioList({
                 <div className="flex items-center space-x-4 text-sm text-gray-500">
                   <span className="flex items-center space-x-1">
                     <span>📅</span>
-                    <span>{formatDate(audio.uploadDate)}</span>
+                    <span>{formatDate(audio.createdAt)}</span>
                   </span>
                   <span className="flex items-center space-x-1">
                     <span>⏱️</span>
-                    <span>{formatTime(audio.duration)}</span>
+                    <span>{audio.duration ? formatTime(audio.duration) : 'Unknown'}</span>
                   </span>
                   <span className="flex items-center space-x-1">
                     <span>📁</span>
