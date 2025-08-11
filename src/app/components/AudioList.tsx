@@ -50,7 +50,7 @@ export default function AudioList({
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-gray-800">Audio Library</h3>
+        <h3 className="text-xl font-semibold text-gray-800">Latest Audio</h3>
         <div className="text-sm text-gray-500">
           {audioFiles.length} file{audioFiles.length !== 1 ? 's' : ''}
         </div>

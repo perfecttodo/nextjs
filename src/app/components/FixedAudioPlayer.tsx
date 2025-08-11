@@ -199,7 +199,7 @@ export default function FixedAudioPlayer({
                 />
             </div>
 
-            {/* Fixed Bottom Audio Player */}
+            {/* Fixed Bottom Audio */}
             <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
                 {/* Collapsed View - TingFM Style */}
                 <div className="space-y-2 absolute -top-1 left-0 right-0">

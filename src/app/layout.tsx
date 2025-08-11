@@ -44,7 +44,7 @@ export default async function RootLayout({
               Pomodoro
             </a>
             <a href="/audio-player" className="text-gray-600 hover:text-gray-800 transition-colors">
-              Audio Player
+              Audio
             </a>
           </nav>
           

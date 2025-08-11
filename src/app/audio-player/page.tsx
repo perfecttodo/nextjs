@@ -121,10 +121,9 @@ export default function AudioPlayerPage() {
   return (
     <div className="min-h-screen bg-gray-100 p-6 pb-32">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">Audio Player</h1>
         
         <div className="grid grid-cols-1">
-          {/* Audio Player Section */}
+          {/* Audio Section */}
 
           
           {/* Audio List Section */}
