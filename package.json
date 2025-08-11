@@ -12,13 +12,17 @@
   },
   "dependencies": {
     "@prisma/client": "^6.13.0",
+    "@types/video.js": "^7.3.58",
+    "@vercel/blob": "^1.1.1",
+    "@vercel/postgres": "^0.10.0",
     "google-auth-library": "^10.2.1",
     "jose": "^6.0.12",
     "lucide-react": "^0.539.0",
     "next": "15.4.5",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "react-icons": "^5.5.0"
+    "react-icons": "^5.5.0",
+    "video.js": "^8.23.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

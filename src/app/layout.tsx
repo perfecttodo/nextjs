@@ -35,17 +35,31 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <header className="px-4 py-3 flex items-center justify-end gap-3">
-          {user ? (
-            <>
-              <span className="text-sm text-gray-600">{user.name || user.email}</span>
-              <form action="/api/auth/logout" method="post">
-                <button className="text-sm underline" type="submit">Logout</button>
-              </form>
-            </>
-          ) : (
-            <GoogleLoginButton />
-          )}
+        <header className="px-4 py-3 flex items-center justify-between">
+          <nav className="flex items-center space-x-6">
+            <a href="/" className="text-lg font-semibold text-gray-800 hover:text-gray-600 transition-colors">
+              Home
+            </a>
+            <a href="/pomodoro" className="text-gray-600 hover:text-gray-800 transition-colors">
+              Pomodoro
+            </a>
+            <a href="/audio-player" className="text-gray-600 hover:text-gray-800 transition-colors">
+              Audio Player
+            </a>
+          </nav>
+          
+          <div className="flex items-center gap-3">
+            {user ? (
+              <>
+                <span className="text-sm text-gray-600">{user.name || user.email}</span>
+                <form action="/api/auth/logout" method="post">
+                  <button className="text-sm underline" type="submit">Logout</button>
+                </form>
+              </>
+            ) : (
+              <GoogleLoginButton />
+            )}
+          </div>
         </header>
         {children}
       </body>

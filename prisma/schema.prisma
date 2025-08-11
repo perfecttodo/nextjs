@@ -32,6 +32,38 @@ model User {
   name      String?
   createdAt DateTime      @default(now())
   items     TestingItem[]
+  audioFiles AudioFile[]
+}
+
+model AudioFile {
+  id          String      @id @default(uuid())
+  title       String
+  originalName String
+  blobUrl     String      @unique
+  blobId      String      @unique
+  format      AudioFormat
+  duration    Int?        // in seconds
+  fileSize    Int         // in bytes
+  status      AudioStatus @default(draft)
+  ownerId     String
+  owner       User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([status, createdAt])
+  @@index([ownerId])
+}
+
+enum AudioFormat {
+  mp3
+  x-m4a
+  wav
+  ogg
+}
+
+enum AudioStatus {
+  draft
+  published
 }
 
 
