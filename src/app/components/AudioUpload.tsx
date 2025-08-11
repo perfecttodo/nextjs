@@ -146,6 +146,9 @@ export default function AudioUpload({ onUploadSuccess }: AudioUploadProps) {
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()} // Add click handler to the whole drop zone
+            role="button" // Indicate this div is clickable
+            tabIndex={0} // Make it focusable
           >
             <input
               ref={fileInputRef}
@@ -164,7 +167,8 @@ export default function AudioUpload({ onUploadSuccess }: AudioUploadProps) {
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the parent's click event
                     setSelectedFile(null);
                     if (fileInputRef.current) {
                       fileInputRef.current.value = '';
@@ -179,7 +183,13 @@ export default function AudioUpload({ onUploadSuccess }: AudioUploadProps) {
               <div className="space-y-2">
                 <div className="text-gray-400 text-4xl">🎵</div>
                 <div className="text-gray-600">
-                  <span className="font-medium text-blue-600 hover:text-blue-500 cursor-pointer">
+                  <span 
+                    className="font-medium text-blue-600 hover:text-blue-500 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the parent's click event
+                      fileInputRef.current?.click();
+                    }}
+                  >
                     Click to upload
                   </span>{' '}
                   or drag and drop
