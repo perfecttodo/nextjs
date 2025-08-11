@@ -22,36 +22,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file type
-    const allowedTypes = ['audio/mp3', 'audio/mp4', 'audio/x-m4a', 'audio/wav', 'audio/ogg'];
-    if (!allowedTypes.includes(file.type)) {
+    // Normalize mime type (strip codecs params)
+    const rawType = file.type || '';
+    const baseType = rawType.split(';')[0].trim();
+
+    // Validate file type (include common MediaRecorder outputs)
+    const allowedTypes = new Set([
+      'audio/mp3',
+      'audio/mp4', // Safari MediaRecorder
+      'audio/m4a',
+      'audio/x-m4a',
+      'audio/wav',
+      'audio/ogg', // Chrome/Firefox MediaRecorder with opus
+    ]);
+    if (!allowedTypes.has(baseType)) {
       return NextResponse.json(
-        { error: 'Invalid file type. Only MP3, x-m4a, WAV, and OGG files are allowed.' },
+        { error: 'Invalid file type. Only MP3, M4A/MP4, WAV, and OGG files are allowed.' },
         { status: 400 }
       );
     }
 
-    // Validate file size (max 50MB)
-    const maxSize = 50 * 1024 * 1024; // 50MB
-    if (file.size > maxSize) {
-      return NextResponse.json(
-        { error: 'File size too large. Maximum size is 50MB.' },
-        { status: 400 }
-      );
-    }
-
-    // Determine format from file type
+    // Determine format from mime type
     let format: 'mp3' | 'm4a' | 'wav' | 'ogg';
-    switch (file.type) {
+    switch (baseType) {
       case 'audio/mp3':
         format = 'mp3';
         break;
-        case 'audio/x-m4a':
-          format = 'm4a';
-          break;
-        case 'audio/m4a':
-            format = 'm4a';
-            break;
+      case 'audio/x-m4a':
+      case 'audio/m4a':
+      case 'audio/mp4':
+        format = 'm4a';
+        break;
       case 'audio/wav':
         format = 'wav';
         break;
@@ -59,12 +60,14 @@ export async function POST(request: NextRequest) {
         format = 'ogg';
         break;
       default:
+        // Fallback to mp3 naming, though we should never reach here due to validation
         format = 'mp3';
     }
 
     // Generate unique filename
     const timestamp = Date.now();
-    const filename = `audio/${user.sub}/${timestamp}-${file.name}`;
+    const safeName = (file.name || `recording.${format}`).replace(/\s+/g, '_');
+    const filename = `audio/${user.sub}/${timestamp}-${safeName}`;
 
     // Upload to Vercel Blob
     const blobResult = await uploadAudioFile(file, filename);
@@ -73,7 +76,7 @@ export async function POST(request: NextRequest) {
     const audioFile = await prisma.audioFile.create({
       data: {
         title: title.trim(),
-        originalName: file.name,
+        originalName: file.name || safeName,
         blobUrl: blobResult.url,
         blobId: blobResult.blobId,
         format,

@@ -1,0 +1,179 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { AudioStatus } from '@/types/audio';
+
+interface AudioRecorderProps {
+  defaultTitle?: string;
+  defaultStatus?: AudioStatus;
+  onUploaded?: () => void;
+}
+
+export default function AudioRecorder({
+  defaultTitle = 'New recording',
+  defaultStatus = 'draft',
+  onUploaded,
+}: AudioRecorderProps) {
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
+  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
+  const [title, setTitle] = useState(defaultTitle);
+  const [status, setStatus] = useState<AudioStatus>(defaultStatus);
+  const [error, setError] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      // Cleanup
+      if (recordingUrl) URL.revokeObjectURL(recordingUrl);
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      }
+    };
+  }, [recordingUrl]);
+
+  const getSupportedMimeType = () => {
+    const candidates = [
+      'audio/webm;codecs=opus',
+      'audio/ogg;codecs=opus',
+      'audio/mp4', // Safari
+      'audio/webm',
+      'audio/ogg',
+    ];
+    for (const type of candidates) {
+      if (MediaRecorder.isTypeSupported(type)) return type;
+    }
+    return '';
+  };
+
+  const startRecording = async () => {
+    try {
+      setError('');
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+
+      const mimeType = getSupportedMimeType();
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      recorderRef.current = recorder;
+      chunksRef.current = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          chunksRef.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: recorder.mimeType });
+        const url = URL.createObjectURL(blob);
+        setRecordingBlob(blob);
+        setRecordingUrl(url);
+        setIsRecording(false);
+        // stop tracks
+        if (mediaStreamRef.current) {
+          mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+          mediaStreamRef.current = null;
+        }
+      };
+
+      recorder.start();
+      setIsRecording(true);
+    } catch (e) {
+      setError('Microphone permission denied or unsupported.');
+    }
+  };
+
+  const stopRecording = () => {
+    if (recorderRef.current && isRecording) {
+      recorderRef.current.stop();
+    }
+  };
+
+  const uploadRecording = async () => {
+    if (!recordingBlob) return;
+    try {
+      setIsUploading(true);
+      setError('');
+      const form = new FormData();
+      // Name file according to mime
+      const ext = recordingBlob.type.includes('ogg')
+        ? 'ogg'
+        : recordingBlob.type.includes('mp4') || recordingBlob.type.includes('m4a')
+        ? 'm4a'
+        : recordingBlob.type.includes('wav')
+        ? 'wav'
+        : 'webm';
+      const file = new File([recordingBlob], `recording.${ext}`, { type: recordingBlob.type });
+      form.append('file', file);
+      form.append('title', title.trim() || 'New recording');
+      form.append('status', status);
+
+      const res = await fetch('/api/audio/upload', { method: 'POST', body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      if (onUploaded) onUploaded();
+      // reset
+      setRecordingBlob(null);
+      if (recordingUrl) URL.revokeObjectURL(recordingUrl);
+      setRecordingUrl(null);
+      setTitle('New recording');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Upload failed');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow p-4">
+      <h3 className="font-semibold text-gray-800 mb-3">Record Audio</h3>
+      {error && (
+        <div className="p-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded mb-3">{error}</div>
+      )}
+      <div className="flex items-center gap-3 mb-3">
+        {!isRecording ? (
+          <button onClick={startRecording} className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">
+            Start Recording
+          </button>
+        ) : (
+          <button onClick={stopRecording} className="px-3 py-2 rounded bg-red-600 hover:bg-red-700 text-white">
+            Stop Recording
+          </button>
+        )}
+        <input
+          className="border rounded px-2 py-1 text-sm"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <select
+          className="border rounded px-2 py-1 text-sm"
+          value={status}
+          onChange={(e) => setStatus(e.target.value as AudioStatus)}
+        >
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+        </select>
+      </div>
+
+      {recordingUrl && (
+        <div className="space-y-2 mb-3">
+          <audio controls src={recordingUrl} className="w-full" />
+          <div className="text-xs text-gray-500">Type: {recordingBlob?.type || 'unknown'}</div>
+        </div>
+      )}
+
+      <button
+        disabled={!recordingBlob || isUploading}
+        onClick={uploadRecording}
+        className={`px-3 py-2 rounded ${!recordingBlob || isUploading ? 'bg-gray-300 text-gray-600' : 'bg-green-600 hover:bg-green-700 text-white'}`}
+      >
+        {isUploading ? 'Uploading...' : 'Upload Recording'}
+      </button>
+    </div>
+  );
+}
