@@ -43,7 +43,7 @@ export default async function RootLayout({
             <a href="/pomodoro" className="text-gray-600 hover:text-gray-800 transition-colors">
               Pomodoro
             </a>
-            <a href="/audio-player" className="text-gray-600 hover:text-gray-800 transition-colors">
+            <a href="/audio" className="text-gray-600 hover:text-gray-800 transition-colors">
               Audio
             </a>
           </nav>
