@@ -56,7 +56,7 @@ model AudioFile {
 
 enum AudioFormat {
   mp3
-  x-m4a
+  m4a
   wav
   ogg
 }
