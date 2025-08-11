@@ -123,10 +123,21 @@ export default function AudioPlayerPage() {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 mb-8">Audio Player</h1>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1">
           {/* Audio Player Section */}
-          <div className="lg:col-span-1">
-            <FixedAudioPlayer
+
+          
+          {/* Audio List Section */}
+          <div className="lg:col-span-2">
+            <AudioList
+              audioFiles={audioFiles}
+              currentAudio={currentAudio}
+              onAudioSelect={handleAudioSelect}
+              currentIndex={currentIndex}
+            />
+          </div>
+        </div>
+        <FixedAudioPlayer
               audio={currentAudio}
               isPlaying={isPlaying}
               onPlay={() => setIsPlaying(true)}
@@ -140,18 +151,6 @@ export default function AudioPlayerPage() {
               audioFiles={audioFiles}
               currentIndex={currentIndex}
             />
-          </div>
-          
-          {/* Audio List Section */}
-          <div className="lg:col-span-2">
-            <AudioList
-              audioFiles={audioFiles}
-              currentAudio={currentAudio}
-              onAudioSelect={handleAudioSelect}
-              currentIndex={currentIndex}
-            />
-          </div>
-        </div>
       </div>
     </div>
   );
