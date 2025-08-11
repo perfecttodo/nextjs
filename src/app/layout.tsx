@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import GoogleLoginButton from "./components/GoogleLoginButton";
 import { getSessionUser } from "@/lib/session";
+import Nav from "./components/Nav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,14 +37,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <header className="px-4 py-3 flex items-center justify-between">
-          <nav className="flex items-center space-x-6">
-            <a href="/" className="text-gray-600 hover:text-gray-800 transition-colors">
-            Pomodoro
-            </a>
-            <a href="/audio" className="text-gray-600 hover:text-gray-800 transition-colors">
-              Audio
-            </a>
-          </nav>
+          <Nav />
           
           <div className="flex items-center gap-3">
             {user ? (
