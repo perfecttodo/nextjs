@@ -1,10 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import GoogleLoginButton from "./components/GoogleLoginButton";
 import { getSessionUser } from "@/lib/session";
-import Nav from "./components/Nav";
-import Link from 'next/link';
+import Header from "./components/Header";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,23 +36,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <header className="px-4 py-3 flex items-center justify-between">
-          <Nav />
-          
-          <div className="flex items-center gap-3">
-            {user ? (
-              <>
-              <span><Link href="/audio-manage" className="text-sm text-gray-600">Audio Manage</Link></span>
-                <span className="text-sm text-gray-600">{user.name || user.email}</span>
-                <form action="/api/auth/logout" method="post">
-                  <button className="text-sm underline" type="submit">Logout</button>
-                </form>
-              </>
-            ) : (
-              <GoogleLoginButton />
-            )}
-          </div>
-        </header>
+         <Header user={user} />
         {children}
       </body>
     </html>
