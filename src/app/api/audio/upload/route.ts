@@ -41,13 +41,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Determine format from file type
-    let format: 'mp3' | 'x-m4a' | 'wav' | 'ogg';
+    let format: 'mp3' | 'm4a' | 'wav' | 'ogg';
     switch (file.type) {
       case 'audio/mp3':
         format = 'mp3';
         break;
-      case 'audio/m4':
-        format = 'x-m4a';
+      case 'audio/x-m4a':
+        format = 'm4a';
         break;
       case 'audio/wav':
         format = 'wav';
