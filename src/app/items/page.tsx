@@ -76,7 +76,6 @@ export default function ItemsPage() {
   return (
     <div className="font-sans max-w-3xl mx-auto py-10 px-4 sm:px-6 space-y-10">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">Testing Items</h1>
         <div className="flex gap-4">
           <Link href="/pomodoro" className="underline">Pomodoro Timer</Link>
           <Link href="/" className="underline">Home</Link>

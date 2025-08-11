@@ -37,11 +37,8 @@ export default async function RootLayout({
       >
         <header className="px-4 py-3 flex items-center justify-between">
           <nav className="flex items-center space-x-6">
-            <a href="/" className="text-lg font-semibold text-gray-800 hover:text-gray-600 transition-colors">
-              Home
-            </a>
-            <a href="/pomodoro" className="text-gray-600 hover:text-gray-800 transition-colors">
-              Pomodoro
+            <a href="/" className="text-gray-600 hover:text-gray-800 transition-colors">
+            Pomodoro
             </a>
             <a href="/audio" className="text-gray-600 hover:text-gray-800 transition-colors">
               Audio

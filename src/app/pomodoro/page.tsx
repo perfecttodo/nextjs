@@ -212,7 +212,6 @@ export default function PomodoroPage() {
         <h1 className="text-3xl font-bold">Pomodoro Timer</h1>
         <Link href="/" className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors">
           <Home className="w-4 h-4" />
-          <span>Home</span>
         </Link>
       </div>
 

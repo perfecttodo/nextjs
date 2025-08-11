@@ -231,13 +231,7 @@ export default function Home() {
 
   return (
     <div className="font-sans max-w-4xl mx-auto py-10 px-4 sm:px-6 space-y-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold">Pomodoro Timer</h1>
-        <Link href="/items" className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors">
-          <FaHome className="w-4 h-4" />
-          <span>Items</span>
-        </Link>
-      </div>
+
 
       {/* Timer Display */}
       <div className={`rounded-2xl p-8 text-center ${modeInfo.bgColor}`}>
