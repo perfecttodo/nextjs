@@ -4,6 +4,7 @@ import "./globals.css";
 import GoogleLoginButton from "./components/GoogleLoginButton";
 import { getSessionUser } from "@/lib/session";
 import Nav from "./components/Nav";
+import Link from 'next/link';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +43,7 @@ export default async function RootLayout({
           <div className="flex items-center gap-3">
             {user ? (
               <>
+              <span><Link href="/audio-manage" className="text-sm text-gray-600">Audio Manage</Link></span>
                 <span className="text-sm text-gray-600">{user.name || user.email}</span>
                 <form action="/api/auth/logout" method="post">
                   <button className="text-sm underline" type="submit">Logout</button>
