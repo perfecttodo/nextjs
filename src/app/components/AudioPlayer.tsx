@@ -65,7 +65,7 @@ export default function AudioPlayer({
       });
 
       player.on('pause', () => {
-        onPause();
+       // onPause();
       });
     }
 
