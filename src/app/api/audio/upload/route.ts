@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     // Generate unique filename
     const timestamp = Date.now();
-    const filename = `audio/${user.id}/${timestamp}-${file.name}`;
+    const filename = `audio/${user.sub}/${timestamp}-${file.name}`;
 
     // Upload to Vercel Blob
     const blobResult = await uploadAudioFile(file, filename);
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
         format,
         fileSize: file.size,
         status: status || 'draft',
-        ownerId: user.id,
+        ownerId: user.sub,
       },
     });
 

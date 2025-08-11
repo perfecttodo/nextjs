@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit;
 
     const where = {
-      ownerId: user.id,
+      ownerId: user.sub,
       ...(status && { status: status as 'draft' | 'published' }),
     };
 
@@ -82,7 +82,7 @@ export async function PUT(request: NextRequest) {
 
     // Check if user owns the audio file
     const existingFile = await prisma.audioFile.findFirst({
-      where: { id, ownerId: user.id },
+      where: { id, ownerId: user.sub },
     });
 
     if (!existingFile) {
@@ -135,7 +135,7 @@ export async function DELETE(request: NextRequest) {
 
     // Check if user owns the audio file
     const existingFile = await prisma.audioFile.findFirst({
-      where: { id, ownerId: user.id },
+      where: { id, ownerId: user.sub },
     });
 
     if (!existingFile) {
