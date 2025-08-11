@@ -46,9 +46,12 @@ export async function POST(request: NextRequest) {
       case 'audio/mp3':
         format = 'mp3';
         break;
-      case 'audio/x-m4a':
-        format = 'm4a';
-        break;
+        case 'audio/x-m4a':
+          format = 'm4a';
+          break;
+        case 'audio/m4a':
+            format = 'm4a';
+            break;
       case 'audio/wav':
         format = 'wav';
         break;
