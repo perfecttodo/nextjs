@@ -59,6 +59,7 @@ enum AudioFormat {
   m4a
   wav
   ogg
+  webm
 }
 
 enum AudioStatus {

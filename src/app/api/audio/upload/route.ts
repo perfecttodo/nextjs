@@ -33,7 +33,8 @@ export async function POST(request: NextRequest) {
       'audio/m4a',
       'audio/x-m4a',
       'audio/wav',
-      'audio/ogg', // Chrome/Firefox MediaRecorder with opus
+      'audio/ogg',
+      'audio/webm' // Chrome/Firefox MediaRecorder with opus
     ]);
     if (!allowedTypes.has(baseType)) {
       return NextResponse.json(
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Determine format from mime type
-    let format: 'mp3' | 'm4a' | 'wav' | 'ogg';
+    let format: 'mp3' | 'm4a' | 'wav' | 'ogg'|'webm';
     switch (baseType) {
       case 'audio/mp3':
         format = 'mp3';
@@ -59,6 +60,9 @@ export async function POST(request: NextRequest) {
       case 'audio/ogg':
         format = 'ogg';
         break;
+      case 'audio/webm':
+        format = 'webm';
+          break;
       default:
         // Fallback to mp3 naming, though we should never reach here due to validation
         format = 'mp3';
