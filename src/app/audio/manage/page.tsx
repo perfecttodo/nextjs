@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import AudioUpload from '../components/AudioUpload';
-import AudioManagement from '../components/AudioManagement';
-import AudioRecorder from '../components/AudioRecorder';
+import AudioUpload from '../../components/AudioUpload';
+import AudioManagement from '../../components/AudioManagement';
+import AudioRecorder from '../../components/AudioRecorder';
 
 export default function AudioManagePage() {
   const [refreshKey, setRefreshKey] = useState(0);

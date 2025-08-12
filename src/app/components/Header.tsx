@@ -40,7 +40,7 @@ export default function Header({ user }: { user: any }) {
         {user ? (
           <>
             <span>
-              <Link href="/audio-manage" className="text-sm text-gray-600 underline">
+              <Link href="/audio/manage" className="text-sm text-gray-600 underline">
                 Audio Manage
               </Link>
             </span>
