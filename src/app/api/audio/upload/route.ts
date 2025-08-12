@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     ]);
     if (!allowedTypes.has(baseType)) {
       return NextResponse.json(
-        { error: 'Invalid file type. Only MP3, M4A/MP4, WAV, and OGG files are allowed.' },
+        { error: 'Invalid file type. Only MP3, M4A/MP4, WAV, and OGG files are allowed. you upload '+baseType },
         { status: 400 }
       );
     }
