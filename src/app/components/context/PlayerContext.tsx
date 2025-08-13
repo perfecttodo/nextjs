@@ -1,15 +1,15 @@
 'use client';
 
 import { createContext, useState, useContext, ReactNode } from 'react';
-import { AudioPlayerState, AudioTrack } from '@/types/audio';
+import { AudioPlayerState, AudioFile } from '@/types/audio';
 
 const PlayerContext = createContext<AudioPlayerState | undefined>(undefined);
 
 export const PlayerProvider = ({ children }: { children: ReactNode }) => {
-  const [currentTrack, setCurrentTrack] = useState<AudioTrack | null>(null);
+  const [currentTrack, setCurrentTrack] = useState<AudioFile | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
-  const playTrack = (track: AudioTrack) => {
+  const playTrack = (track: AudioFile) => {
     if (currentTrack?.id !== track.id) {
       setCurrentTrack(track);
       setIsPlaying(true);
