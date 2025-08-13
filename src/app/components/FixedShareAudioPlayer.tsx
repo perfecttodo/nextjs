@@ -50,7 +50,7 @@ export default function FixedAudioPlayer() {
         const time = player.currentTime();
         if (typeof time === 'number') {
           setCurrentTime(time);
-          if (typeof player.duration() === 'number' && time >= player.duration() - 0.1) {
+          if (typeof player.duration() === 'number' && player&&time >= player.duration() - 0.1) {
             ended();
           }
         }
