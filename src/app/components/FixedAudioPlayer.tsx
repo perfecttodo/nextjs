@@ -89,7 +89,7 @@ export default function FixedAudioPlayer({
             });
 
             player.on('pause', () => {
-                onPause();
+               // onPause();
             });
         }
 
