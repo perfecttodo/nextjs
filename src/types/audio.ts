@@ -37,3 +37,19 @@ export interface AudioListProps {
   onAudioSelect: (audio: AudioFile) => void;
   currentIndex: number;
 }
+
+// types/audio.ts
+export interface AudioTrack {
+  id: string;
+  title: string;
+  url: string;
+  // add any other track properties you need
+}
+
+export interface AudioPlayerState {
+  currentTrack: AudioTrack | null;
+  isPlaying: boolean;
+  playTrack: (track: AudioTrack) => void;
+  pause: () => void;
+  togglePlay: () => void;
+}
