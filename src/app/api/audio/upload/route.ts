@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { uploadAudioFile } from '@/lib/blob';
+import { uploadAudioFile } from '@/lib/r2';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
 

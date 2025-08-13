@@ -1,0 +1,82 @@
+import { S3Client, PutObjectCommand, DeleteObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
+import { NextRequest } from 'next/server';
+
+// Configure the S3 client for Cloudflare R2
+const s3Client = new S3Client({
+  region: 'auto',
+  endpoint: `https://${process.env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: process.env.CLOUDFLARE_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.CLOUDFLARE_SECRET_ACCESS_KEY!,
+  },
+});
+
+export interface BlobUploadResult {
+  url: string;
+  blobId: string;
+}
+
+export async function uploadAudioFile(
+  file: File,
+  filename: string
+): Promise<BlobUploadResult> {
+  try {
+    const fileBuffer = await file.arrayBuffer();
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    const key = `${filename}-${randomSuffix}`;
+
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME,
+        Key: key,
+        Body: Buffer.from(fileBuffer),
+        ContentType: file.type,
+      })
+    );
+
+    const publicUrl = `https://${process.env.CLOUDFLARE_R2_PUBLIC_DOMAIN}/${key}`;
+
+    return {
+      url: publicUrl,
+      blobId: key,
+    };
+  } catch (error) {
+    console.error('Error uploading file to R2:', error);
+    throw new Error('Failed to upload file');
+  }
+}
+
+export async function deleteAudioFile(key: string): Promise<void> {
+  try {
+    await s3Client.send(
+      new DeleteObjectCommand({
+        Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME,
+        Key: key,
+      })
+    );
+  } catch (error) {
+    console.error('Error deleting file from R2:', error);
+    throw new Error('Failed to delete file');
+  }
+}
+
+export async function listAudioFiles(prefix?: string) {
+  try {
+    const response = await s3Client.send(
+      new ListObjectsV2Command({
+        Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME,
+        Prefix: prefix,
+      })
+    );
+
+    return response.Contents?.map(item => ({
+      key: item.Key,
+      url: `https://${process.env.CLOUDFLARE_R2_PUBLIC_DOMAIN}/${item.Key}`,
+      size: item.Size,
+      lastModified: item.LastModified,
+    })) || [];
+  } catch (error) {
+    console.error('Error listing files from R2:', error);
+    throw new Error('Failed to list files');
+  }
+}

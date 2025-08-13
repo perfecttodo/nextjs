@@ -11,6 +11,8 @@
     "prisma:migrate:deploy": "prisma migrate deploy"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.864.0",
+    "@aws-sdk/s3-request-presigner": "^3.864.0",
     "@prisma/client": "^6.13.0",
     "@types/video.js": "^7.3.58",
     "@vercel/blob": "^1.1.1",
