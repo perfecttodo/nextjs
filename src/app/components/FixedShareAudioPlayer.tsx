@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
@@ -24,14 +24,14 @@ export default function FixedAudioPlayer() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<any>(null);
+  const [userInteracted, setUserInteracted] = useState(false);
+  const playerInitialized = useRef(false);
 
-  // Initialize VideoJS player
+  // Initialize VideoJS player only once
   useEffect(() => {
-    if (!videoRef.current) return;
-
-    const videoElement = videoRef.current;
-    if (!playerRef.current) {
-      const player = videojs(videoElement, {
+    // Only initialize if videoRef exists and player isn't already initialized
+    if (videoRef.current && !playerInitialized.current) {
+      const player = videojs(videoRef.current, {
         controls: false,
         autoplay: false,
         preload: 'metadata',
@@ -44,240 +44,198 @@ export default function FixedAudioPlayer() {
       });
 
       playerRef.current = player;
-
+      playerInitialized.current=true;
       // Event listeners
-      player.on('timeupdate', () => {
+      const handleTimeUpdate = () => {
         const time = player.currentTime();
         if (typeof time === 'number') {
           setCurrentTime(time);
-
-          // Check if audio has ended
-          const duration = player.duration();
-          if (typeof duration === 'number' && isFinite(duration) && duration > 0 && time >= duration - 0.1) {
+          if (typeof player.duration() === 'number' && time >= player.duration() - 0.1) {
             ended();
           }
         }
-      });
+      };
 
-      player.on('loadedmetadata', () => {
-        const duration = player.duration();
-        if (typeof duration === 'number') {
-          setDuration(duration);
+      const handleLoadedMetadata = () => {
+        const dur = player.duration();
+        if (typeof dur === 'number') setDuration(dur);
+      };
+
+      player.on('timeupdate', handleTimeUpdate);
+      player.on('loadedmetadata', handleLoadedMetadata);
+      player.on('ended', ended);
+      player.on('play', play);
+      player.on('pause', pause);
+
+      // Cleanup function
+      return () => {
+        player.off('timeupdate', handleTimeUpdate);
+        player.off('loadedmetadata', handleLoadedMetadata);
+        player.off('ended', ended);
+        player.off('play', play);
+        player.off('pause', pause);
+        
+        if (playerRef.current) {
+          playerRef.current.dispose();
+          playerRef.current = null;
         }
-      });
-
-      player.on('ended', () => {
-        ended();
-      });
-
-      player.on('play', () => {
-        play();
-      });
-
-      player.on('pause', () => {
-        pause();
-      });
+        playerInitialized.current=false;
+      };
     }
+  }, [playerInitialized, play, pause, ended, setCurrentTime, setDuration,videoRef.current]);
 
-    return () => {
-      if (playerRef.current) {
-        playerRef.current.dispose();
-        playerRef.current = null;
-      }
-    };
-  }, [play, pause, ended, setCurrentTime, setDuration]);
-
-  // Handle audio changes
+  // Handle user interaction for autoplay policies
   useEffect(() => {
-    if (playerRef.current && audio) {
-      const player = playerRef.current;
+    const handleInteraction = () => setUserInteracted(true);
+    document.addEventListener('click', handleInteraction);
+    return () => document.removeEventListener('click', handleInteraction);
+  }, []);
 
-      // Reset player state before changing source
-      player.pause();
+  // Handle audio source changes
+  useEffect(() => {
+    if (!playerRef.current || !audio || !playerInitialized) return;
+
+    const player = playerRef.current;
+
+    // Store current play state
+    const wasPlaying = isPlaying;
+    player.pause();
+
+    // Set new source
+    player.src({
+      src: audio.blobUrl,
+      type: audio.format === 'm4a' ? 'audio/mp4' : `audio/${audio.format}`
+    });
+
+    player.one('loadedmetadata', () => {
       setCurrentTime(0);
-      setDuration(0);
+      setDuration(player.duration());
+    });
 
-      // Change source
-      player.src({
-        src: audio.blobUrl,
-        type: audio.format === 'm4a' ? 'audio/mp4' : `audio/${audio.format}`
-      });
-
-      // Load the new audio
-      player.load();
-
-      // Resume playing if it was playing before
-      if (isPlaying) {
-        setTimeout(() => {
-          if (playerRef.current && isPlaying) {
-            playerRef.current.play();
-          }
-        }, 100);
+    player.one('canplay', () => {
+      if (wasPlaying && userInteracted) {
+        player.play().catch((e: Error) => {
+          console.error("Playback failed:", e);
+          pause();
+        });
       }
-    }
-  }, [audio, isPlaying, setCurrentTime, setDuration]);
+    });
+
+    player.load();
+
+  }, [audio, playerInitialized, userInteracted, pause, setCurrentTime, setDuration]);
 
   // Handle play/pause state changes
   useEffect(() => {
-    if (playerRef.current) {
-      if (isPlaying) {
-        playerRef.current.play();
-      } else {
-        playerRef.current.pause();
-      }
-    }
-  }, [isPlaying]);
+    if (!playerRef.current || !playerInitialized) return;
 
+    if (isPlaying) {
+      if (userInteracted) {
+        playerRef.current.play().catch((e: Error) => {
+          console.error("Playback failed:", e);
+          pause();
+        });
+      }
+    } else {
+      playerRef.current.pause();
+    }
+  }, [isPlaying, playerInitialized, userInteracted, pause]);
+
+  // Format time helper
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  // Seek handler
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = parseFloat(e.target.value);
     if (playerRef.current) {
       playerRef.current.currentTime(time);
-      setCurrentTime(time);
     }
   };
 
+  // Toggle play/pause
   const togglePlayPause = () => {
-    if (isPlaying) {
-      pause();
-    } else {
-      play();
+    if (!userInteracted) {
+      alert('Please click anywhere on the page first to enable audio');
+      return;
     }
+    isPlaying ? pause() : play();
   };
 
-  const getPlayModeIcon = (mode: PlayMode) => {
-    switch (mode) {
-      case 'sequence':
-        return '🔀';
-      case 'loop':
-        return '🔁';
-      case 'random':
-        return '🎲';
-      default:
-        return '🔀';
-    }
-  };
-
-  if (!audio) {
-    return null;
-  }
+  if (!audio) return null;
 
   return (
     <>
-      {/* Hidden VideoJS Player */}
-      <div className="hidden">
+      {/* Video.js player (hidden) */}
+      <div data-vjs-player style={{ display: 'none' }}>
         <video
           ref={videoRef}
           className="video-js vjs-default-skin"
-          data-setup="{}"
+          playsInline
         />
       </div>
 
-      {/* Fixed Bottom Audio */}
+      {/* Player UI */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
-        {/* Collapsed View - TingFM Style */}
-        <div className="space-y-2 absolute -top-1 left-0 right-0">
-          <div className="flex text-xs text-gray-500">
-            <span>{formatTime(currentTime)}</span>
-            <div className="flex-1">
-              <input
-                type="range"
-                min="0"
-                max={duration || 0}
-                value={currentTime}
-                onChange={handleSeek}
-                className="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer slider"
-                style={{
-                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(currentTime / (duration || 1)) * 100}%, #e5e7eb ${(currentTime / (duration || 1)) * 100}%, #e5e7eb 100%)`
-                }}
-              />
-            </div>
-            <span>{formatTime(duration)}</span>
+        {/* Progress bar */}
+        <div className="absolute -top-1 left-0 right-0">
+          <div className="flex items-center px-2 text-xs text-gray-500">
+            <span className="w-10 text-right">{formatTime(currentTime)}</span>
+            <input
+              type="range"
+              min="0"
+              max={duration || 100}
+              value={currentTime}
+              onChange={handleSeek}
+              className="flex-1 mx-2 h-1 bg-gray-200 rounded-full appearance-none cursor-pointer"
+              style={{
+                background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(currentTime / (duration || 1)) * 100}%, #e5e7eb ${(currentTime / (duration || 1)) * 100}%, #e5e7eb 100%)`
+              }}
+            />
+            <span className="w-10 text-left">{formatTime(duration)}</span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between px-4 py-2">
-          {/* Audio Info - Left Side */}
-          <div className="flex items-center space-x-3 flex-1 min-w-0">
-            <div className="text-lg text-gray-600">
-              🎵
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="font-medium text-gray-800 truncate text-sm">{audio.title}</div>
+        <div className="flex items-center justify-between px-4 py-3">
+          {/* Track info */}
+          <div className="flex items-center min-w-0 flex-1">
+            <div className="ml-2 min-w-0">
+              <div className="font-medium text-sm truncate">{audio.title}</div>
               <div className="text-xs text-gray-500">
-                {audio.duration ? formatTime(audio.duration) : '--:--'}
+                {formatTime(audio.duration || 0)}
               </div>
             </div>
           </div>
 
-          {/* Center Controls */}
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={previous}
-              className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-gray-600"
-              title="Previous"
-            >
+          {/* Controls */}
+          <div className="flex items-center space-x-4">
+            <button onClick={previous} className="p-2 text-gray-600 hover:text-gray-900">
               ⏮️
             </button>
-
-            <button
-              onClick={togglePlayPause}
-              className="p-2.5 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-colors"
-              title={isPlaying ? 'Pause' : 'Play'}
+            <button 
+              onClick={togglePlayPause} 
+              className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600"
             >
               {isPlaying ? '⏸️' : '▶️'}
             </button>
-
-            <button
-              onClick={next}
-              className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-gray-600"
-              title="Next"
-            >
+            <button onClick={next} className="p-2 text-gray-600 hover:text-gray-900">
               ⏭️
             </button>
           </div>
 
-          {/* Right Side Controls */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={cyclePlayMode}
-              className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-gray-600 text-sm"
-              title={`Mode: ${playMode}`}
-            >
-              {getPlayModeIcon(playMode)}
-            </button>
-          </div>
+          {/* Play mode */}
+          <button 
+            onClick={cyclePlayMode}
+            className="p-2 text-gray-600 hover:text-gray-900"
+            title={`Play mode: ${playMode}`}
+          >
+            {playMode === 'loop' ? '🔁' : playMode === 'random' ? '🔀' : '→'}
+          </button>
         </div>
       </div>
-
-      {/* Custom CSS for slider */}
-      <style jsx>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          height: 12px;
-          width: 12px;
-          border-radius: 50%;
-          background: #3b82f6;
-          cursor: pointer;
-          border: 2px solid #ffffff;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-        
-        .slider::-moz-range-thumb {
-          height: 12px;
-          width: 12px;
-          border-radius: 50%;
-          background: #3b82f6;
-          cursor: pointer;
-          border: 2px solid #ffffff;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-      `}</style>
     </>
   );
 }
