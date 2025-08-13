@@ -46,15 +46,17 @@ export default function FixedAudioPlayer() {
       playerRef.current = player;
       playerInitialized.current=true;
       // Event listeners
-      const handleTimeUpdate = () => {
-        const time = player.currentTime();
-        if (typeof time === 'number') {
-          setCurrentTime(time);
-          if (typeof player.duration() === 'number' && player&&time >= player.duration() - 0.1) {
-            ended();
+// Inside your useEffect initialization
+        const handleTimeUpdate = () => {
+          const time = player.currentTime();
+          if (typeof time === 'number') {
+            setCurrentTime(time);
+            const playerDuration = player.duration();
+            if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
+              ended();
+            }
           }
-        }
-      };
+        };
 
       const handleLoadedMetadata = () => {
         const dur = player.duration();
