@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import FixedAudioPlayer from '../components/FixedAudioPlayer';
-import AudioList from '../components/AudioList';
-import { AudioFile } from '../../types/audio';
+import FixedAudioPlayer from '@/app/components/FixedAudioPlayer';
+import AudioList from '@/app/components/AudioList';
+import { AudioFile } from '@/types/audio';
 
 export default function AudioPlayerPage() {
   const [audioFiles, setAudioFiles] = useState<AudioFile[]>([]);
