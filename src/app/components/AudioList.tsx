@@ -1,6 +1,6 @@
 'use client';
 
-import { AudioListProps } from '../../types/audio';
+import { AudioListProps } from '@/types/audio';
 
 export default function AudioList({
   audioFiles,

@@ -10,6 +10,8 @@ type AudioFile = {
   duration?: number;
 };
 
+type PlayerCallback = (state: AudioPlayerState) => void;
+
 interface AudioPlayerState {
   audio: AudioFile | null;
   isPlaying: boolean;
@@ -18,7 +20,11 @@ interface AudioPlayerState {
   currentIndex: number;
   currentTime: number;
   duration: number;
+  callback: PlayerCallback | null;
+  
+  // State actions
   setAudio: (audio: AudioFile) => void;
+  setAudioFiles:(audioFiles:AudioFile[])=>void;
   togglePlay: () => void;
   play: () => void;
   pause: () => void;
@@ -28,6 +34,9 @@ interface AudioPlayerState {
   cyclePlayMode: () => void;
   setCurrentTime: (time: number) => void;
   setDuration: (duration: number) => void;
+  
+  // Callback management
+  setCallback: (callback: PlayerCallback | null) => void;
 }
 
 export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => ({
@@ -38,14 +47,29 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => ({
   currentIndex: -1,
   currentTime: 0,
   duration: 0,
+  callback: null,
 
-  setAudio: (audio) => set({ audio, isPlaying: true }),
+  setAudio: (audio) => {
+    set({ audio, isPlaying: true });
+    get().callback?.(get());
+  },
+  setAudioFiles:(audioFiles)=>{
+    set({ audioFiles});
+  },
+  togglePlay: () => {
+    set((state) => ({ isPlaying: !state.isPlaying }));
+    get().callback?.(get());
+  },
   
-  togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
+  play: () => {
+    set({ isPlaying: true });
+    get().callback?.(get());
+  },
   
-  play: () => set({ isPlaying: true }),
-  
-  pause: () => set({ isPlaying: false }),
+  pause: () => {
+    set({ isPlaying: false });
+    get().callback?.(get());
+  },
   
   next: () => {
     const { audioFiles, currentIndex, playMode } = get();
@@ -64,6 +88,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => ({
       isPlaying: true,
       currentTime: 0,
     });
+    get().callback?.(get());
   },
   
   previous: () => {
@@ -77,6 +102,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => ({
       isPlaying: true,
       currentTime: 0,
     });
+    get().callback?.(get());
   },
   
   ended: () => {
@@ -86,6 +112,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => ({
     } else {
       get().next();
     }
+    get().callback?.(get());
   },
   
   cyclePlayMode: () => {
@@ -93,9 +120,21 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => ({
     const currentMode = get().playMode;
     const nextIndex = (modes.indexOf(currentMode) + 1) % modes.length;
     set({ playMode: modes[nextIndex] });
+    get().callback?.(get());
   },
   
-  setCurrentTime: (time) => set({ currentTime: time }),
+  setCurrentTime: (time) => {
+    set({ currentTime: time });
+    get().callback?.(get());
+  },
   
-  setDuration: (duration) => set({ duration }),
+  setDuration: (duration) => {
+    set({ duration });
+    get().callback?.(get());
+  },
+
+  // Single callback management
+  setCallback: (callback) => {
+    set({ callback });
+  }
 }));

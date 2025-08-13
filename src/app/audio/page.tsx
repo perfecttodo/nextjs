@@ -12,8 +12,7 @@ export default function AudioPlayerPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const { setAudio} = useAudioPlayerStore();
-
+  const { setAudio,setAudioFiles:updateAudioFiles} = useAudioPlayerStore();
   // Fetch published audio files from API
   useEffect(() => {
     const fetchAudioFiles = async () => {
@@ -56,6 +55,8 @@ export default function AudioPlayerPage() {
     setAudio(audio)
     setCurrentIndex(audioFiles.findIndex(file => file.id === audio.id));
     setIsPlaying(true);
+    updateAudioFiles(audioFiles);
+
   };
 
   const handleNext = () => {
@@ -79,6 +80,7 @@ export default function AudioPlayerPage() {
     
     setCurrentIndex(nextIndex);
     setCurrentAudio(audioFiles[nextIndex]);
+    console.log(updateAudioFiles)
     setIsPlaying(true);
   };
 
