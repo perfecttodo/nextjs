@@ -1,6 +1,6 @@
 'use client';
 
-import { PlayerProvider } from '@/app/components/context/PlayerContext';
+import FixedShareAudioPlayer from '@/app/components/FixedShareAudioPlayer';
 
 export default function AudioLayout({
   children,
@@ -8,8 +8,9 @@ export default function AudioLayout({
   children: React.ReactNode
 }) {
   return (
-    <PlayerProvider>
-      {children}
-    </PlayerProvider>
+    <>
+      <div>{children}</div>
+      <FixedShareAudioPlayer />
+    </>
   );
 }

@@ -4,13 +4,15 @@ import { useState, useEffect, useRef } from 'react';
 import FixedAudioPlayer from '@/app/components/FixedAudioPlayer';
 import AudioList from '@/app/components/AudioList';
 import { AudioFile } from '@/types/audio';
-
+import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 export default function AudioPlayerPage() {
   const [audioFiles, setAudioFiles] = useState<AudioFile[]>([]);
   const [currentAudio, setCurrentAudio] = useState<AudioFile | null>(null);
   const [playMode, setPlayMode] = useState<'sequence' | 'loop' | 'random'>('sequence');
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  const { setAudio} = useAudioPlayerStore();
 
   // Fetch published audio files from API
   useEffect(() => {
@@ -51,6 +53,7 @@ export default function AudioPlayerPage() {
 
   const handleAudioSelect = (audio: AudioFile) => {
     setCurrentAudio(audio);
+    setAudio(audio)
     setCurrentIndex(audioFiles.findIndex(file => file.id === audio.id));
     setIsPlaying(true);
   };
@@ -136,7 +139,7 @@ export default function AudioPlayerPage() {
             />
           </div>
         </div>
-       (false&& <FixedAudioPlayer
+       {false&& (<FixedAudioPlayer
               audio={currentAudio}
               isPlaying={isPlaying}
               onPlay={() => setIsPlaying(true)}
@@ -149,7 +152,7 @@ export default function AudioPlayerPage() {
               onAudioSelect={handleAudioSelect}
               audioFiles={audioFiles}
               currentIndex={currentIndex}
-            />)
+            />)}
       </div>
     </div>
   );
