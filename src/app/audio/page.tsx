@@ -136,7 +136,7 @@ export default function AudioPlayerPage() {
             />
           </div>
         </div>
-        <FixedAudioPlayer
+       (false&& <FixedAudioPlayer
               audio={currentAudio}
               isPlaying={isPlaying}
               onPlay={() => setIsPlaying(true)}
@@ -149,7 +149,7 @@ export default function AudioPlayerPage() {
               onAudioSelect={handleAudioSelect}
               audioFiles={audioFiles}
               currentIndex={currentIndex}
-            />
+            />)
       </div>
     </div>
   );
