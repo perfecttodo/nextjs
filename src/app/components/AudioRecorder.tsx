@@ -266,12 +266,7 @@ export default function AudioRecorder({
 
       {recordingUrl && (
         <div className="space-y-2 mb-3">
-          <audio 
-            controls 
-            src={recordingUrl} 
-            className="w-full"
-            onError={(e) => console.error('Audio playback error:', e)}
-          />
+         
           <div className="text-xs text-gray-500">
             Type: {mimeType} | Size: {formatFileSize(recordingBlob?.size || 0)}
           </div>
