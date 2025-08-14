@@ -78,18 +78,21 @@ export async function POST(request: NextRequest) {
     const blobResult = await uploadAudioFile(file, filename);
 
     // Save to database
+    const data = {
+      title: title.trim(),
+      originalName: file.name || safeName,
+      blobUrl: blobResult.url,
+      blobId: blobResult.blobId,
+      format,
+      fileSize: file.size,
+      status: status || 'draft',
+      ownerId: user.sub,
+      duration: duration ? parseInt(duration) : 0,
+    };
+    console.error('audioFile', data);
+
     const audioFile = await prisma.audioFile.create({
-      data: {
-        title: title.trim(),
-        originalName: file.name || safeName,
-        blobUrl: blobResult.url,
-        blobId: blobResult.blobId,
-        format,
-        fileSize: file.size,
-        status: status || 'draft',
-        ownerId: user.sub,
-        duration: duration ? parseInt(duration) : 0,
-      },
+      data:data ,
     });
 
     return NextResponse.json({
