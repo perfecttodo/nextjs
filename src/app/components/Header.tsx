@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import GoogleLoginButton from "./GoogleLoginButton";
+import SignInSignOn from "./SignInSignOn";
 import Nav from "./Nav";
 import Link from 'next/link';
 
@@ -52,7 +52,7 @@ export default function Header({ user }: { user: any }) {
             </form>
           </>
         ) : (
-          <GoogleLoginButton />
+          <SignInSignOn />
         )}
       </div>
     </header>
