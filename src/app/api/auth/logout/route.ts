@@ -7,9 +7,13 @@ export async function GET(req: NextRequest) {
   return res;
 }
 
-export async function POST() {
-  const res = NextResponse.json({ ok: true });
-  
+export async function POST(req: NextRequest) {
+
+
+  const signInUrl = new URL('/', req.url);
+
+  const res = NextResponse.redirect(signInUrl);
+
   // Clear the session cookie
   res.cookies.set('app_session', '', {
     httpOnly: true,
@@ -18,6 +22,9 @@ export async function POST() {
     sameSite: 'lax',
     maxAge: 0, // Expire immediately
   });
+
+
+
 
   return res;
 }
