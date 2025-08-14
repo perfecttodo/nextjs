@@ -1,14 +1,9 @@
 // store/audioPlayerStore.ts
 import { create } from 'zustand';
+import { AudioFile } from '@/types/audio';
 
 type PlayMode = 'sequence' | 'loop' | 'random';
-type AudioFile = {
-  id: string;
-  title: string;
-  blobUrl: string;
-  format: string;
-  duration?: number;
-};
+
 
 type PlayerCallback = (state: AudioPlayerState) => void;
 

@@ -5,8 +5,7 @@ import { AudioListProps } from '@/types/audio';
 export default function AudioList({
   audioFiles,
   currentAudio,
-  onAudioSelect,
-  currentIndex
+  onAudioSelect
 }: AudioListProps) {
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
