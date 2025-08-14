@@ -100,6 +100,30 @@ export default function FixedAudioPlayer() {
           console.log('MediaSession previous track');
           previous();
         });
+
+        if(false){
+          try {
+          navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+            const skipTime = details.seekOffset || 10;
+            if (playerRef.current) {
+              playerRef.current.currentTime(Math.max(0, playerRef.current.currentTime() - skipTime));
+            }
+          });
+      
+          navigator.mediaSession.setActionHandler('seekforward', (details) => {
+            const skipTime = details.seekOffset || 10;
+            if (playerRef.current) {
+              playerRef.current.currentTime(Math.min(
+                playerRef.current.duration(), 
+                playerRef.current.currentTime() + skipTime
+              ));
+            }
+          });
+        } catch (error) {
+          console.log('Seek actions not supported');
+        }
+      }
+
       }
 
       return () => {
@@ -216,6 +240,7 @@ export default function FixedAudioPlayer() {
           ref={videoRef}
           className="video-js vjs-default-skin"
           playsInline
+          webkit-playsinline="true"
         />
       </div>
 
