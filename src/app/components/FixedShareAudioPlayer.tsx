@@ -122,8 +122,8 @@ export default function FixedAudioPlayer() {
         });
       }
     });
-
     player.load();
+    player.play()
 
   }, [audio, playerInitialized, userInteracted, pause, setCurrentTime, setDuration]);
 
