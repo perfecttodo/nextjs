@@ -1,20 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AudioFormat, AudioStatus } from '../../types/audio';
+import { AudioFormat, AudioStatus,AudioFile } from '../../types/audio';
+import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 
-interface AudioFile {
-  id: string;
-  title: string;
-  originalName: string;
-  blobUrl: string;
-  format: AudioFormat;
-  duration: number | null;
-  fileSize: number;
-  status: AudioStatus;
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface AudioManagementProps {
   onRefresh: () => void;
@@ -28,11 +17,21 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
   const [editStatus, setEditStatus] = useState<AudioStatus>('draft');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'draft' | 'published'>('all');
+  const [currentAudio, setCurrentAudio] = useState<AudioFile | null>(null);
+  const { setAudio,setAudioFiles:updateAudioFiles} = useAudioPlayerStore();
 
   useEffect(() => {
     fetchAudioFiles();
   }, [filter]);
 
+  const onPlayAudio = (audio: AudioFile) => {
+    setCurrentAudio(audio);
+    setAudio(audio)
+    updateAudioFiles(audioFiles);
+
+  };
+
+  
   const fetchAudioFiles = async () => {
     try {
       setLoading(true);
@@ -271,6 +270,23 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
                       >
                         {deletingId === audio.id ? '🗑️' : '🗑️'}
                       </button>
+
+                                    {/* Play Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onPlayAudio(audio);
+                        }}
+                        className={`p-2 rounded-full transition-colors ${
+                          currentAudio?.id === audio.id
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                        }`}
+                        title={currentAudio?.id === audio.id ? 'Currently Playing' : 'Play Audio'}
+                      >
+                        {currentAudio?.id === audio.id ? '⏸️' : '▶️'}
+                      </button>
+
                     </div>
                   </div>
                 </div>
