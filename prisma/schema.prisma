@@ -30,9 +30,13 @@ model User {
   id        String        @id
   email     String        @unique
   name      String?
+  password  String?       // For email/password auth
+  githubId  String?       @unique // For GitHub OAuth
   createdAt DateTime      @default(now())
   items     TestingItem[]
   audioFiles AudioFile[]
+  
+  @@index([githubId])
 }
 
 model AudioFile {

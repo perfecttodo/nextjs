@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "public"."AudioFormat" AS ENUM ('mp3', 'x-m4a', 'wav', 'ogg','m4a');
+CREATE TYPE "public"."AudioFormat" AS ENUM ('mp3', 'm4a', 'wav', 'ogg', 'webm');
 
 -- CreateEnum
 CREATE TYPE "public"."AudioStatus" AS ENUM ('draft', 'published');

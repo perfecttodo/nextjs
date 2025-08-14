@@ -26,9 +26,9 @@ export async function POST(req: NextRequest) {
 
     // ensure user exists
     await prisma.user.upsert({
-      where: { id: payload.sub! },
+      where: { id: `google_${payload.sub}` },
       create: {
-        id: payload.sub!,
+        id: `google_${payload.sub}`,
         email: payload.email,
         name: payload.name || null,
       },
