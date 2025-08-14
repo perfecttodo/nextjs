@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       ownerId: user.sub,
       duration: duration ? parseInt(duration) : 0,
     };
-    console.error('audioFile', data);
+   // console.error('audioFile', data);
 
     const audioFile = await prisma.audioFile.create({
       data:data ,
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error uploading audio file:', error);
     return NextResponse.json(
-      { error: 'Failed to upload audio file'+error },
+      { error: 'Failed to upload audio file' },
       { status: 500 }
     );
   }
