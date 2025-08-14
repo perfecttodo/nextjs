@@ -25,12 +25,11 @@ export default function FixedAudioPlayer() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<any>(null);
   const [userInteracted, setUserInteracted] = useState(false);
-  const playerInitialized = useRef(false);
 
   // Initialize VideoJS player only once
   useEffect(() => {
     // Only initialize if videoRef exists and player isn't already initialized
-    if (videoRef.current && !playerInitialized.current) {
+    if (videoRef.current && !playerRef.current) {
       const player = videojs(videoRef.current, {
         controls: false,
         autoplay: false,
@@ -44,7 +43,6 @@ export default function FixedAudioPlayer() {
       });
 
       playerRef.current = player;
-      playerInitialized.current=true;
       // Event listeners
 // Inside your useEffect initialization
         const handleTimeUpdate = () => {
@@ -81,21 +79,22 @@ export default function FixedAudioPlayer() {
           playerRef.current.dispose();
           playerRef.current = null;
         }
-        playerInitialized.current=false;
       };
     }
-  }, [playerInitialized, play, pause, ended, setCurrentTime, setDuration,videoRef.current]);
+  }, [audio]);
 
   // Handle user interaction for autoplay policies
   useEffect(() => {
-    const handleInteraction = () => setUserInteracted(true);
+    const handleInteraction = () => {
+      setUserInteracted(true);
+    }
     document.addEventListener('click', handleInteraction);
     return () => document.removeEventListener('click', handleInteraction);
   }, []);
 
   // Handle audio source changes
   useEffect(() => {
-    if (!playerRef.current || !audio || !playerInitialized) return;
+    if (!playerRef.current || !audio) return;
 
     const player = playerRef.current;
 
@@ -125,11 +124,11 @@ export default function FixedAudioPlayer() {
     player.load();
     player.play()
 
-  }, [audio, playerInitialized, userInteracted, pause, setCurrentTime, setDuration]);
+  }, [audio, userInteracted, pause, setCurrentTime, setDuration]);
 
   // Handle play/pause state changes
   useEffect(() => {
-    if (!playerRef.current || !playerInitialized) return;
+    if (!playerRef.current) return;
 
     if (isPlaying) {
       if (userInteracted) {
@@ -141,7 +140,7 @@ export default function FixedAudioPlayer() {
     } else {
       playerRef.current.pause();
     }
-  }, [isPlaying, playerInitialized, userInteracted, pause]);
+  }, [isPlaying, userInteracted, pause]);
 
   // Format time helper
   const formatTime = (time: number) => {

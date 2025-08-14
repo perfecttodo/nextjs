@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AudioFormat, AudioStatus,AudioFile } from '../../types/audio';
+import { AudioStatus,AudioFile } from '../../types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 
 
@@ -17,15 +17,13 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
   const [editStatus, setEditStatus] = useState<AudioStatus>('draft');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'draft' | 'published'>('all');
-  const [currentAudio, setCurrentAudio] = useState<AudioFile | null>(null);
-  const { setAudio,setAudioFiles:updateAudioFiles} = useAudioPlayerStore();
+  const { setAudio,setAudioFiles:updateAudioFiles,audio:currentAudio} = useAudioPlayerStore();
 
   useEffect(() => {
     fetchAudioFiles();
   }, [filter]);
 
   const onPlayAudio = (audio: AudioFile) => {
-    setCurrentAudio(audio);
     setAudio(audio)
     updateAudioFiles(audioFiles);
 
