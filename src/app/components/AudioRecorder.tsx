@@ -24,6 +24,7 @@ function formatDuration(seconds: number): string {
 }
 
 const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+const MAX_CHUNK_SIZE = 4 * 1024 * 1024; // 4 MB
 
 export default function AudioRecorder({
   defaultTitle = 'New recording',
@@ -43,12 +44,13 @@ export default function AudioRecorder({
   const [status, setStatus] = useState<AudioStatus>(defaultStatus);
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [currentSize, setCurrentSize] = useState(0);
-  const [duration, setDuration] = useState(0); // Duration in seconds
+  const [duration, setDuration] = useState(0);
+  const [totalChunks, setTotalChunks] = useState(0);
 
   useEffect(() => {
     return () => {
-      // Cleanup
       if (recordingUrl) URL.revokeObjectURL(recordingUrl);
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach((t) => t.stop());
@@ -63,7 +65,7 @@ export default function AudioRecorder({
     const candidates = [
       'audio/webm;codecs=opus',
       'audio/ogg;codecs=opus',
-      'audio/mp4', // Safari
+      'audio/mp4',
       'audio/webm',
       'audio/ogg',
     ];
@@ -78,6 +80,7 @@ export default function AudioRecorder({
       setError('');
       setCurrentSize(0);
       setDuration(0);
+      setUploadProgress(0);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
@@ -105,7 +108,6 @@ export default function AudioRecorder({
         setRecordingUrl(url);
         setIsRecording(false);
         
-        // Stop duration timer
         if (durationIntervalRef.current) {
           clearInterval(durationIntervalRef.current);
           durationIntervalRef.current = null;
@@ -117,7 +119,6 @@ export default function AudioRecorder({
         }
       };
 
-      // Start duration timer
       startTimeRef.current = Date.now();
       durationIntervalRef.current = setInterval(() => {
         if (startTimeRef.current) {
@@ -138,12 +139,30 @@ export default function AudioRecorder({
     }
   };
 
+  const splitBlob = (blob: Blob, maxChunkSize: number): Blob[] => {
+    const chunks: Blob[] = [];
+    let start = 0;
+    
+    while (start < blob.size) {
+      const end = Math.min(start + maxChunkSize, blob.size);
+      chunks.push(blob.slice(start, end));
+      start = end;
+    }
+    
+    return chunks;
+  };
+
   const uploadRecording = async () => {
     if (!recordingBlob) return;
+    
     try {
       setIsUploading(true);
       setError('');
-      const form = new FormData();
+      setUploadProgress(0);
+      
+      const chunks = splitBlob(recordingBlob, MAX_CHUNK_SIZE);
+      setTotalChunks(chunks.length);
+      
       const ext = recordingBlob.type.includes('ogg')
         ? 'ogg'
         : recordingBlob.type.includes('mp4') || recordingBlob.type.includes('m4a')
@@ -151,15 +170,24 @@ export default function AudioRecorder({
         : recordingBlob.type.includes('wav')
         ? 'wav'
         : 'webm';
-      const file = new File([recordingBlob], `recording.${ext}`, { type: recordingBlob.type });
-      form.append('file', file);
-      form.append('title', title.trim() || 'New recording');
-      form.append('status', status);
-      form.append('duration', duration.toString()); // Add duration to form data
-
-      const res = await fetch('/api/audio/upload', { method: 'POST', body: form });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      
+      for (let i = 0; i < chunks.length; i++) {
+        const form = new FormData();
+        const chunk = chunks[i];
+        const filename = `recording_part_${i + 1}_of_${chunks.length}.${ext}`;
+        
+        form.append('file', new File([chunk], filename, { type: recordingBlob.type }));
+        form.append('title', `${title.trim() || 'New recording'} (Part ${i + 1}/${chunks.length})`);
+        form.append('status', status);
+        form.append('duration', duration.toString());
+        
+        const res = await fetch('/api/audio/upload', { method: 'POST', body: form });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `Upload failed for part ${i + 1}`);
+        
+        setUploadProgress(((i + 1) / chunks.length) * 100);
+      }
+      
       if (onUploaded) onUploaded();
       
       // Reset
@@ -169,6 +197,7 @@ export default function AudioRecorder({
       setTitle('New recording');
       setCurrentSize(0);
       setDuration(0);
+      setUploadProgress(0);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Upload failed');
     } finally {
@@ -184,16 +213,23 @@ export default function AudioRecorder({
       )}
       <div className="flex items-center gap-3 mb-3">
         {!isRecording ? (
-          <button onClick={startRecording} className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">
+          <button 
+            onClick={startRecording} 
+            disabled={isUploading}
+            className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400"
+          >
             Start Recording
           </button>
         ) : (
-          <button onClick={stopRecording} className="px-3 py-2 rounded bg-red-600 hover:bg-red-700 text-white">
+          <button 
+            onClick={stopRecording} 
+            className="px-3 py-2 rounded bg-red-600 hover:bg-red-700 text-white"
+          >
             Stop Recording
           </button>
         )}
         <input
-          className="border rounded px-2 py-1 text-sm"
+          className="border rounded px-2 py-1 text-sm flex-1"
           placeholder="Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -208,7 +244,6 @@ export default function AudioRecorder({
         </select>
       </div>
 
-      {/* Show current size and duration during recording */}
       {isRecording && (
         <div className="mb-3 text-sm text-gray-600">
           <div>Duration: {formatDuration(duration)}</div>
@@ -229,6 +264,20 @@ export default function AudioRecorder({
             Type: {recordingBlob?.type || 'unknown'} | 
             Size: {recordingBlob ? formatFileSize(recordingBlob.size) : 'unknown'} |
             Duration: {formatDuration(duration)}
+          </div>
+        </div>
+      )}
+
+      {isUploading && (
+        <div className="mb-3">
+          <div className="text-sm text-gray-600 mb-1">
+            Uploading {uploadProgress.toFixed(0)}% ({Math.ceil((totalChunks * uploadProgress) / 100)} of {totalChunks} parts)
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div 
+              className="bg-green-600 h-2.5 rounded-full" 
+              style={{ width: `${uploadProgress}%` }}
+            ></div>
           </div>
         </div>
       )}
