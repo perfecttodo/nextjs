@@ -48,10 +48,12 @@ export default function AudioRecorder({
   const [currentSize, setCurrentSize] = useState(0);
   const [duration, setDuration] = useState(0);
   const [totalChunks, setTotalChunks] = useState(0);
+  const [sampleChunkUrl, setSampleChunkUrl] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
       if (recordingUrl) URL.revokeObjectURL(recordingUrl);
+      if (sampleChunkUrl) URL.revokeObjectURL(sampleChunkUrl);
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach((t) => t.stop());
       }
@@ -59,11 +61,10 @@ export default function AudioRecorder({
         clearInterval(durationIntervalRef.current);
       }
     };
-  }, [recordingUrl]);
+  }, [recordingUrl, sampleChunkUrl]);
 
   const getSupportedMimeType = () => {
     const candidates = [
-      'audio/wav',
       'audio/webm;codecs=opus',
       'audio/ogg;codecs=opus',
       'audio/mp4',
@@ -82,6 +83,7 @@ export default function AudioRecorder({
       setCurrentSize(0);
       setDuration(0);
       setUploadProgress(0);
+      setSampleChunkUrl(null);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
@@ -140,13 +142,24 @@ export default function AudioRecorder({
     }
   };
 
+  const createPlayableChunk = (chunk: Blob, originalType: string): Blob => {
+    // For WebM/Opus, we can use the chunk as-is
+    if (originalType.includes('webm') || originalType.includes('ogg')) {
+      return new Blob([chunk], { type: originalType });
+    }
+    
+    // For other formats, we'd need more complex handling
+    // This simple approach works for WebM/Opus which is what most browsers record in
+    return new Blob([chunk], { type: originalType });
+  };
+
   const splitBlob = (blob: Blob, maxChunkSize: number): Blob[] => {
     const chunks: Blob[] = [];
     let start = 0;
     
     while (start < blob.size) {
       const end = Math.min(start + maxChunkSize, blob.size);
-      chunks.push(blob.slice(start, end));
+      chunks.push(blob.slice(start, end, blob.type));
       start = end;
     }
     
@@ -160,9 +173,16 @@ export default function AudioRecorder({
       setIsUploading(true);
       setError('');
       setUploadProgress(0);
+      setSampleChunkUrl(null);
       
       const chunks = splitBlob(recordingBlob, MAX_CHUNK_SIZE);
       setTotalChunks(chunks.length);
+      
+      // Create a playable sample of the first chunk
+      if (chunks.length > 0) {
+        const playableChunk = createPlayableChunk(chunks[0], recordingBlob.type);
+        setSampleChunkUrl(URL.createObjectURL(playableChunk));
+      }
       
       const ext = recordingBlob.type.includes('ogg')
         ? 'ogg'
@@ -265,6 +285,16 @@ export default function AudioRecorder({
             Type: {recordingBlob?.type || 'unknown'} | 
             Size: {recordingBlob ? formatFileSize(recordingBlob.size) : 'unknown'} |
             Duration: {formatDuration(duration)}
+          </div>
+        </div>
+      )}
+
+      {sampleChunkUrl && (
+        <div className="space-y-2 mb-3">
+          <h4 className="text-sm font-medium">Sample Chunk Preview:</h4>
+          <audio controls src={sampleChunkUrl} className="w-full" />
+          <div className="text-xs text-gray-500">
+            This is a preview of the first chunk to verify playability
           </div>
         </div>
       )}
