@@ -17,6 +17,8 @@ function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
+const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+
 export default function AudioRecorder({
   defaultTitle = 'New recording',
   defaultStatus = 'draft',
@@ -33,6 +35,7 @@ export default function AudioRecorder({
   const [status, setStatus] = useState<AudioStatus>(defaultStatus);
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [currentSize, setCurrentSize] = useState(0); // Track current recording size
 
   useEffect(() => {
     return () => {
@@ -61,6 +64,7 @@ export default function AudioRecorder({
   const startRecording = async () => {
     try {
       setError('');
+      setCurrentSize(0); // Reset size when starting new recording
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
@@ -72,6 +76,14 @@ export default function AudioRecorder({
       recorder.ondataavailable = (e) => {
         if (e.data && e.data.size > 0) {
           chunksRef.current.push(e.data);
+          // Update current size
+          const newSize = currentSize + e.data.size;
+          setCurrentSize(newSize);
+          
+          // Auto-stop if reached max size
+          if (newSize >= MAX_SIZE_BYTES) {
+            stopRecording();
+          }
         }
       };
 
@@ -88,7 +100,8 @@ export default function AudioRecorder({
         }
       };
 
-      recorder.start();
+      // Set timeslice to get regular updates (every 1 second)
+      recorder.start(1000); 
       setIsRecording(true);
     } catch (e) {
       setError('Microphone permission denied or unsupported.');
@@ -129,6 +142,7 @@ export default function AudioRecorder({
       if (recordingUrl) URL.revokeObjectURL(recordingUrl);
       setRecordingUrl(null);
       setTitle('New recording');
+      setCurrentSize(0);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Upload failed');
     } finally {
@@ -167,6 +181,19 @@ export default function AudioRecorder({
           <option value="published">Published</option>
         </select>
       </div>
+
+      {/* Show current size during recording */}
+      {isRecording && (
+        <div className="mb-3 text-sm text-gray-600">
+          Recording: {formatFileSize(currentSize)} / {formatFileSize(MAX_SIZE_BYTES)}
+          <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+            <div 
+              className="bg-blue-600 h-2.5 rounded-full" 
+              style={{ width: `${Math.min(100, (currentSize / MAX_SIZE_BYTES) * 100)}%` }}
+            ></div>
+          </div>
+        </div>
+      )}
 
       {recordingUrl && (
         <div className="space-y-2 mb-3">
