@@ -22,8 +22,8 @@ export async function uploadAudioFile(
 ): Promise<BlobUploadResult> {
   try {
     const fileBuffer = await file.arrayBuffer();
-    const randomSuffix = Math.random().toString(36).substring(2, 8);
-    const key = `${filename}-${randomSuffix}`;
+    //const randomSuffix = Math.random().toString(36).substring(2, 8);
+    const key = `${filename}`;
 
     await s3Client.send(
       new PutObjectCommand({
