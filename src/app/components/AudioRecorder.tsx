@@ -25,6 +25,7 @@ function formatDuration(seconds: number): string {
 
 const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 const MAX_CHUNK_SIZE = 4 * 1024 * 1024; // 4 MB
+const CLUSTER_DURATION_MS = 1000; // WebM clusters are typically 1 second
 
 export default function AudioRecorder({
   defaultTitle = 'New recording',
@@ -49,6 +50,7 @@ export default function AudioRecorder({
   const [duration, setDuration] = useState(0);
   const [totalChunks, setTotalChunks] = useState(0);
   const [sampleChunkUrl, setSampleChunkUrl] = useState<string | null>(null);
+  const [chunkVerificationStatus, setChunkVerificationStatus] = useState<'idle' | 'verifying' | 'success' | 'failed'>('idle');
 
   useEffect(() => {
     return () => {
@@ -64,17 +66,12 @@ export default function AudioRecorder({
   }, [recordingUrl, sampleChunkUrl]);
 
   const getSupportedMimeType = () => {
-    const candidates = [
-      'audio/webm;codecs=opus',
-      'audio/ogg;codecs=opus',
-      'audio/mp4',
-      'audio/webm',
-      'audio/ogg',
+    const types = [
+      'audio/webm;codecs=opus', // Best for chunking
+      'audio/webm',             // Fallback
+      'audio/ogg;codecs=opus',  // Alternative
     ];
-    for (const type of candidates) {
-      if (MediaRecorder.isTypeSupported(type)) return type;
-    }
-    return '';
+    return types.find(type => MediaRecorder.isTypeSupported(type)) || '';
   };
 
   const startRecording = async () => {
@@ -84,6 +81,7 @@ export default function AudioRecorder({
       setDuration(0);
       setUploadProgress(0);
       setSampleChunkUrl(null);
+      setChunkVerificationStatus('idle');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
@@ -142,28 +140,73 @@ export default function AudioRecorder({
     }
   };
 
-  const createPlayableChunk = (chunk: Blob, originalType: string): Blob => {
-    // For WebM/Opus, we can use the chunk as-is
-    if (originalType.includes('webm') || originalType.includes('ogg')) {
-      return new Blob([chunk], { type: originalType });
-    }
+  const calculateClusterBoundaries = (blob: Blob, durationMs: number): number[] => {
+    const boundaries = [];
+    const clusterCount = Math.ceil(durationMs / CLUSTER_DURATION_MS);
+    const clusterSize = blob.size / clusterCount;
     
-    // For other formats, we'd need more complex handling
-    // This simple approach works for WebM/Opus which is what most browsers record in
-    return new Blob([chunk], { type: originalType });
+    for (let i = 0; i < clusterCount; i++) {
+      boundaries.push(Math.floor(i * clusterSize));
+    }
+    boundaries.push(blob.size);
+    
+    return boundaries;
   };
 
-  const splitBlob = (blob: Blob, maxChunkSize: number): Blob[] => {
-    const chunks: Blob[] = [];
-    let start = 0;
-    
-    while (start < blob.size) {
-      const end = Math.min(start + maxChunkSize, blob.size);
-      chunks.push(blob.slice(start, end, blob.type));
-      start = end;
+  const createPlayableChunks = (originalBlob: Blob): Blob[] => {
+    if (!originalBlob.type.includes('webm') && !originalBlob.type.includes('ogg')) {
+      // For non-streamable formats, we can't properly split them
+      return [originalBlob];
     }
-    
+
+    const durationMs = duration * 1000;
+    const clusterBoundaries = calculateClusterBoundaries(originalBlob, durationMs);
+    const chunks: Blob[] = [];
+    let chunkStart = 0;
+    let currentChunkSize = 0;
+
+    for (let i = 1; i < clusterBoundaries.length; i++) {
+      const clusterEnd = clusterBoundaries[i];
+      const clusterSize = clusterEnd - chunkStart;
+      
+      if (currentChunkSize + clusterSize > MAX_CHUNK_SIZE && chunks.length > 0) {
+        // Finish current chunk
+        chunks.push(originalBlob.slice(chunkStart, clusterBoundaries[i - 1], originalBlob.type));
+        chunkStart = clusterBoundaries[i - 1];
+        currentChunkSize = 0;
+      }
+      
+      currentChunkSize += clusterSize;
+      
+      if (i === clusterBoundaries.length - 1) {
+        // Add remaining data
+        chunks.push(originalBlob.slice(chunkStart, clusterEnd, originalBlob.type));
+      }
+    }
+
     return chunks;
+  };
+
+  const verifyChunkPlayability = async (chunk: Blob): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(chunk);
+      const audio = new Audio();
+      
+      audio.src = url;
+      audio.preload = 'metadata';
+      
+      audio.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(false);
+      };
+      
+      audio.oncanplay = () => {
+        URL.revokeObjectURL(url);
+        resolve(true);
+      };
+      
+      audio.load();
+    });
   };
 
   const uploadRecording = async () => {
@@ -174,14 +217,24 @@ export default function AudioRecorder({
       setError('');
       setUploadProgress(0);
       setSampleChunkUrl(null);
+      setChunkVerificationStatus('verifying');
       
-      const chunks = splitBlob(recordingBlob, MAX_CHUNK_SIZE);
+      // Create properly segmented chunks
+      const chunks = createPlayableChunks(recordingBlob);
       setTotalChunks(chunks.length);
       
-      // Create a playable sample of the first chunk
+      // Verify first chunk is playable
       if (chunks.length > 0) {
-        const playableChunk = createPlayableChunk(chunks[0], recordingBlob.type);
-        setSampleChunkUrl(URL.createObjectURL(playableChunk));
+        const isPlayable = await verifyChunkPlayability(chunks[0]);
+        setChunkVerificationStatus(isPlayable ? 'success' : 'failed');
+        
+        if (isPlayable) {
+          const url = URL.createObjectURL(chunks[0]);
+          setSampleChunkUrl(url);
+        } else {
+          setError('Failed to create playable chunks. The recording may be corrupted.');
+          return;
+        }
       }
       
       const ext = recordingBlob.type.includes('ogg')
@@ -219,6 +272,7 @@ export default function AudioRecorder({
       setCurrentSize(0);
       setDuration(0);
       setUploadProgress(0);
+      setChunkVerificationStatus('idle');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Upload failed');
     } finally {
@@ -289,26 +343,39 @@ export default function AudioRecorder({
         </div>
       )}
 
-      {sampleChunkUrl && (
-        <div className="space-y-2 mb-3">
-          <h4 className="text-sm font-medium">Sample Chunk Preview:</h4>
-          <audio controls src={sampleChunkUrl} className="w-full" />
-          <div className="text-xs text-gray-500">
-            This is a preview of the first chunk to verify playability
+      {isUploading && (
+        <div className="space-y-3 mb-3">
+          <div>
+            <div className="text-sm text-gray-600 mb-1">
+              Uploading {uploadProgress.toFixed(0)}% ({Math.ceil((totalChunks * uploadProgress) / 100)} of {totalChunks} parts)
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div 
+                className="bg-green-600 h-2.5 rounded-full" 
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
           </div>
+
+          {chunkVerificationStatus === 'verifying' && (
+            <div className="text-sm text-blue-600">
+              Verifying chunk playability...
+            </div>
+          )}
+          {chunkVerificationStatus === 'failed' && (
+            <div className="text-sm text-red-600">
+              Chunk verification failed - audio may be corrupted
+            </div>
+          )}
         </div>
       )}
 
-      {isUploading && (
-        <div className="mb-3">
-          <div className="text-sm text-gray-600 mb-1">
-            Uploading {uploadProgress.toFixed(0)}% ({Math.ceil((totalChunks * uploadProgress) / 100)} of {totalChunks} parts)
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div 
-              className="bg-green-600 h-2.5 rounded-full" 
-              style={{ width: `${uploadProgress}%` }}
-            ></div>
+      {sampleChunkUrl && (
+        <div className="space-y-2 mb-3">
+          <h4 className="text-sm font-medium">First Chunk Preview:</h4>
+          <audio controls src={sampleChunkUrl} className="w-full" />
+          <div className="text-xs text-gray-500">
+            This is a preview of the first chunk to verify playability
           </div>
         </div>
       )}
