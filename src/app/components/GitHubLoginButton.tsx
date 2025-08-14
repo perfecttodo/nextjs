@@ -8,7 +8,7 @@ export default function GitHubLoginButton() {
   const handleGitHubLogin = async () => {
     try {
       // Redirect to GitHub OAuth
-      const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_GITHUB_REDIRECT_URI)}&scope=user:email`;
+      const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_GITHUB_REDIRECT_URI || 'http://localhost:3000/api/auth/github-callback')}&scope=user:email`;
       window.location.href = githubAuthUrl;
     } catch (error) {
       console.error('GitHub login error:', error);
