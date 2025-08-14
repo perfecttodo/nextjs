@@ -26,10 +26,44 @@ export default function FixedAudioPlayer() {
   const playerRef = useRef<any>(null);
   const [userInteracted, setUserInteracted] = useState(false);
 
-  // Initialize VideoJS player only once
+
+
+  const handleTimeUpdate = () => {
+    if(!playerRef.current)return;
+    const time = playerRef.current.currentTime();
+    if (typeof time === 'number') {
+      setCurrentTime(time);
+      const playerDuration = playerRef.current.duration();
+      if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
+        ended();
+      }
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if(!playerRef.current)return;
+    const dur = playerRef.current.duration();
+    if (typeof dur === 'number') setDuration(dur);
+  };
+
+  const handleEnded = () => {
+    console.log('end')
+    ended();
+
+  };
+
+
+  // Initialize VideoJS player and handle events
   useEffect(() => {
-    if (videoRef.current && !playerRef.current) {
-      const player = videojs(videoRef.current, {
+    if (!videoRef.current) return;
+
+    let player = playerRef.current;
+
+    if(player)return;
+
+    if (!player) {
+      // Initialize new player only if it doesn't exist
+      player = videojs(videoRef.current, {
         controls: false,
         autoplay: false,
         preload: 'metadata',
@@ -40,113 +74,102 @@ export default function FixedAudioPlayer() {
           children: []
         }
       });
-
       playerRef.current = player;
+    }
 
-      const handleTimeUpdate = () => {
-        const time = player.currentTime();
-        if (typeof time === 'number') {
-          setCurrentTime(time);
-          const playerDuration = player.duration();
-          if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
-            ended();
-          }
+
+
+    player.on('timeupdate', handleTimeUpdate);
+    player.on('loadedmetadata', handleLoadedMetadata);
+    player.on('ended', handleEnded);
+    player.on('play', play);
+    player.on('pause', pause);
+
+    // Set up Media Session API for background control
+    if ('mediaSession' in navigator && audio) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: audio.title || 'Unknown',
+        artist: 'Unknown Artist',
+        album: 'Unknown Album'
+      });
+
+      navigator.mediaSession.setActionHandler('play', () => {
+        if (playerRef.current) {
+          playerRef.current.play().catch((e: Error) => console.error('MediaSession play error:', e));
+          play();
         }
-      };
+      });
 
-      const handleLoadedMetadata = () => {
-        const dur = player.duration();
-        if (typeof dur === 'number') setDuration(dur);
-      };
-
-      const handleEnded = () => {
-        ended();
-      };
-
-      player.on('timeupdate', handleTimeUpdate);
-      player.on('loadedmetadata', handleLoadedMetadata);
-      player.on('ended', handleEnded);
-      player.on('play', play);
-      player.on('pause', pause);
-
-      // Set up Media Session API for background control
-      if ('mediaSession' in navigator && audio) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: audio.title || 'Unknown',
-          artist: 'Unknown Artist',
-          album: 'Unknown Album'
-        });
-
-        navigator.mediaSession.setActionHandler('play', () => {
-          if (playerRef.current) {
-            playerRef.current.play().catch((e: Error) => console.error('MediaSession play error:', e));
-            play();
-          }
-        });
-
-        navigator.mediaSession.setActionHandler('pause', () => {
-          if (playerRef.current) {
-            playerRef.current.pause();
-            pause();
-          }
-        });
-
-        navigator.mediaSession.setActionHandler('nexttrack', () => {
-          console.log('MediaSession next track');
-          next();
-        });
-
-        navigator.mediaSession.setActionHandler('previoustrack', () => {
-          console.log('MediaSession previous track');
-          previous();
-        });
-
-        if(false){
-          try {
-          navigator.mediaSession.setActionHandler('seekbackward', (details) => {
-            const skipTime = details.seekOffset || 10;
-            if (playerRef.current) {
-              playerRef.current.currentTime(Math.max(0, playerRef.current.currentTime() - skipTime));
-            }
-          });
-      
-          navigator.mediaSession.setActionHandler('seekforward', (details) => {
-            const skipTime = details.seekOffset || 10;
-            if (playerRef.current) {
-              playerRef.current.currentTime(Math.min(
-                playerRef.current.duration(), 
-                playerRef.current.currentTime() + skipTime
-              ));
-            }
-          });
-        } catch (error) {
-          console.log('Seek actions not supported');
+      navigator.mediaSession.setActionHandler('pause', () => {
+        if (playerRef.current) {
+          playerRef.current.pause();
+          pause();
         }
-      }
+      });
 
-      }
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        console.log('MediaSession next track');
+        next();
+      });
 
-      return () => {
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        console.log('MediaSession previous track');
+        previous();
+      });
+
+      try {
+        navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+          const skipTime = details.seekOffset || 10;
+          if (playerRef.current) {
+            playerRef.current.currentTime(Math.max(0, playerRef.current.currentTime() - skipTime));
+          }
+        });
+
+        navigator.mediaSession.setActionHandler('seekforward', (details) => {
+          const skipTime = details.seekOffset || 10;
+          if (playerRef.current) {
+            playerRef.current.currentTime(Math.min(
+              playerRef.current.duration(),
+              playerRef.current.currentTime() + skipTime
+            ));
+          }
+        });
+      } catch (error) {
+        console.log('Seek actions not supported:', error);
+      }
+    }
+
+    return () => {
+
+      // Note: Player disposal is handled in a separate useEffect
+    };
+  }, [audio]);
+
+  // Cleanup player on component unmount
+  useEffect(() => {
+    return () => {
+      if (playerRef.current) {
+        let player = playerRef.current;
         player.off('timeupdate', handleTimeUpdate);
         player.off('loadedmetadata', handleLoadedMetadata);
         player.off('ended', handleEnded);
         player.off('play', play);
         player.off('pause', pause);
-
-        if (playerRef.current) {
-          playerRef.current.dispose();
-          playerRef.current = null;
-        }
-
+  
         if ('mediaSession' in navigator) {
           navigator.mediaSession.setActionHandler('play', null);
           navigator.mediaSession.setActionHandler('pause', null);
           navigator.mediaSession.setActionHandler('nexttrack', null);
           navigator.mediaSession.setActionHandler('previoustrack', null);
+          navigator.mediaSession.setActionHandler('seekbackward', null);
+          navigator.mediaSession.setActionHandler('seekforward', null);
         }
-      };
-    }
-  }, [audio, ended, next, previous, play, pause, setCurrentTime, setDuration, userInteracted]);
+
+        playerRef.current.dispose();
+        playerRef.current = null;
+      }
+    };
+  }, []);
 
   // Handle user interaction for autoplay policies
   useEffect(() => {
@@ -188,11 +211,11 @@ export default function FixedAudioPlayer() {
     });
 
     player.load();
-      player.play().catch((e: Error) => {
-        console.error("Initial playback failed:", e);
-        pause();
-      });
-    
+    player.play().catch((e: Error) => {
+      console.error("Initial playback failed:", e);
+      pause();
+    });
+
   }, [audio, userInteracted, pause, setCurrentTime, setDuration]);
 
   // Handle play/pause state changes
@@ -226,7 +249,6 @@ export default function FixedAudioPlayer() {
 
   // Toggle play/pause
   const togglePlayPause = () => {
-  
     isPlaying ? pause() : play();
   };
 
