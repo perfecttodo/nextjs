@@ -24,20 +24,7 @@ export default function AudioPlayerPage() {
           const allFiles: AudioFile[] = [];
           Object.values(data.audioFiles).forEach((dateGroup: any) => {
             dateGroup.forEach((audio: any) => {
-              allFiles.push({
-                id: audio.id,
-                title: audio.title,
-                originalName: audio.originalName,
-                blobUrl: audio.blobUrl,
-                blobId: audio.blobId,
-                format: audio.format,
-                duration: audio.duration,
-                fileSize: audio.fileSize,
-                status: audio.status,
-                ownerId: audio.ownerId,
-                createdAt: new Date(audio.createdAt),
-                updatedAt: new Date(audio.updatedAt)
-              });
+              allFiles.push(audio);
             });
           });
           setAudioFiles(allFiles);

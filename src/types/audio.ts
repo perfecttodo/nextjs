@@ -13,8 +13,8 @@ export interface AudioFile {
   fileSize: number; // in bytes
   status: AudioStatus;
   ownerId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type PlayMode = 'sequence' | 'loop' | 'random';

@@ -14,8 +14,8 @@ export default function AudioList({
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
