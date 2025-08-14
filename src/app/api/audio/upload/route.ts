@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error uploading audio file:', error);
     return NextResponse.json(
-      { error: 'Failed to upload audio file' },
+      { error: 'Failed to upload audio file'+error },
       { status: 500 }
     );
   }
