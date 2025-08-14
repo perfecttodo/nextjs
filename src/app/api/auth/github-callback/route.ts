@@ -33,6 +33,20 @@ export async function GET(req: NextRequest) {
     });
 
     const tokenData = await tokenResponse.json();
+
+    const rese = NextResponse.json({ ok: true,tokenData,code });
+  
+    // Clear the session cookie
+    rese.cookies.set('app_session', '', {
+      httpOnly: true,
+      path: '/',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 0, // Expire immediately
+    });
+  
+    return rese;
+
     
     if (tokenData.error) {
       console.error('GitHub token error:', tokenData);
