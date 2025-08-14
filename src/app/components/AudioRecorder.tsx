@@ -9,6 +9,14 @@ interface AudioRecorderProps {
   onUploaded?: () => void;
 }
 
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
 export default function AudioRecorder({
   defaultTitle = 'New recording',
   defaultStatus = 'draft',
@@ -163,7 +171,10 @@ export default function AudioRecorder({
       {recordingUrl && (
         <div className="space-y-2 mb-3">
           <audio controls src={recordingUrl} className="w-full" />
-          <div className="text-xs text-gray-500">Type: {recordingBlob?.type || 'unknown'}</div>
+          <div className="text-xs text-gray-500">
+            Type: {recordingBlob?.type || 'unknown'} | 
+            Size: {recordingBlob ? formatFileSize(recordingBlob.size) : 'unknown'}
+          </div>
         </div>
       )}
 
