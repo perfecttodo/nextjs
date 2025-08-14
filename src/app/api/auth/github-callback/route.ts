@@ -8,7 +8,11 @@ export async function GET(req: NextRequest) {
     const code = searchParams.get('code');
 
     if (!code) {
-      return NextResponse.redirect('/auth/signin?error=GitHub authorization failed');
+
+      const signInUrl = new URL('/auth/signin', req.url);
+      signInUrl.searchParams.set('error', 'GitHub authorization failed');
+
+      return NextResponse.redirect(signInUrl);
     }
 
     // Exchange code for access token
@@ -22,7 +26,7 @@ export async function GET(req: NextRequest) {
         client_id: process.env.GITHUB_CLIENT_ID,
         client_secret: process.env.GITHUB_CLIENT_SECRET,
         code,
-        redirect_uri: process.env.GITHUB_REDIRECT_URI || 'http://localhost:3000/api/auth/github-callback',
+        redirect_uri: process.env.GITHUB_REDIRECT_URI,
       }),
     });
 
@@ -30,7 +34,11 @@ export async function GET(req: NextRequest) {
     
     if (tokenData.error) {
       console.error('GitHub token error:', tokenData);
-      return NextResponse.redirect('/auth/signin?error=GitHub authorization failed');
+
+      const signInUrl = new URL('/auth/signin', req.url);
+      signInUrl.searchParams.set('error', 'GitHub authorization failed');
+
+      return NextResponse.redirect(signInUrl);
     }
 
     const accessToken = tokenData.access_token;
@@ -57,7 +65,11 @@ export async function GET(req: NextRequest) {
     const primaryEmail = emailsData.find((email: any) => email.primary)?.email || userData.email;
 
     if (!primaryEmail) {
-      return NextResponse.redirect('/auth/signin?error=Could not get email from GitHub');
+      const signInUrl = new URL('/auth/signin', req.url);
+      signInUrl.searchParams.set('error', 'Could not get email from GitHub');
+
+      return NextResponse.redirect(signInUrl);
+
     }
 
     // Create or update user
@@ -101,6 +113,11 @@ export async function GET(req: NextRequest) {
     return res;
   } catch (error) {
     console.error('GitHub callback error:', error);
-    return NextResponse.redirect('/auth/signin?error=GitHub authorization failed');
+
+    const signInUrl = new URL('/auth/signin', req.url);
+    signInUrl.searchParams.set('error', 'GitHub authorization failed');
+
+    return NextResponse.redirect(signInUrl);
+
   }
 }
