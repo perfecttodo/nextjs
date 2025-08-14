@@ -24,7 +24,7 @@ function formatDuration(seconds: number): string {
 }
 
 const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
-const MAX_CHUNK_SIZE = 4 * 1024 * 1024; // 4 MB
+const CHUNK_INTERVAL_MS = 60000; // 4 seconds per chunk
 
 export default function AudioRecorder({
   defaultTitle = 'New recording',
@@ -81,21 +81,21 @@ export default function AudioRecorder({
       setCurrentSize(0);
       setDuration(0);
       setUploadProgress(0);
+      chunksRef.current = [];
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
       const mimeType = getSupportedMimeType();
       const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       recorderRef.current = recorder;
-      chunksRef.current = [];
 
       recorder.ondataavailable = (e) => {
         if (e.data && e.data.size > 0) {
-          chunksRef.current.push(e.data);
-          const newSize = currentSize + e.data.size;
-          setCurrentSize(newSize);
-          
-          if (newSize >= MAX_SIZE_BYTES) {
+          chunksRef.current.push(e.data); // already playable chunk
+          setCurrentSize((prev) => prev + e.data.size);
+
+          if (currentSize + e.data.size >= MAX_SIZE_BYTES) {
             stopRecording();
           }
         }
@@ -107,12 +107,12 @@ export default function AudioRecorder({
         setRecordingBlob(blob);
         setRecordingUrl(url);
         setIsRecording(false);
-        
+
         if (durationIntervalRef.current) {
           clearInterval(durationIntervalRef.current);
           durationIntervalRef.current = null;
         }
-        
+
         if (mediaStreamRef.current) {
           mediaStreamRef.current.getTracks().forEach((t) => t.stop());
           mediaStreamRef.current = null;
@@ -126,7 +126,7 @@ export default function AudioRecorder({
         }
       }, 1000);
 
-      recorder.start(1000);
+      recorder.start(CHUNK_INTERVAL_MS); // emit playable chunks every few seconds
       setIsRecording(true);
     } catch (e) {
       setError('Microphone permission denied or unsupported.');
@@ -139,58 +139,48 @@ export default function AudioRecorder({
     }
   };
 
-  const splitBlob = (blob: Blob, maxChunkSize: number): Blob[] => {
-    const chunks: Blob[] = [];
-    let start = 0;
-    
-    while (start < blob.size) {
-      const end = Math.min(start + maxChunkSize, blob.size);
-      chunks.push(blob.slice(start, end));
-      start = end;
-    }
-    
-    return chunks;
-  };
-
   const uploadRecording = async () => {
-    if (!recordingBlob) return;
-    
+    if (!chunksRef.current.length) return;
+
     try {
       setIsUploading(true);
       setError('');
       setUploadProgress(0);
-      
-      const chunks = splitBlob(recordingBlob, MAX_CHUNK_SIZE);
-      setTotalChunks(chunks.length);
-      
-      const ext = recordingBlob.type.includes('ogg')
+
+      setTotalChunks(chunksRef.current.length);
+
+      const ext = chunksRef.current[0].type.includes('ogg')
         ? 'ogg'
-        : recordingBlob.type.includes('mp4') || recordingBlob.type.includes('m4a')
+        : chunksRef.current[0].type.includes('mp4') || chunksRef.current[0].type.includes('m4a')
         ? 'm4a'
-        : recordingBlob.type.includes('wav')
+        : chunksRef.current[0].type.includes('wav')
         ? 'wav'
         : 'webm';
-      
-      for (let i = 0; i < chunks.length; i++) {
+
+      for (let i = 0; i < chunksRef.current.length; i++) {
         const form = new FormData();
-        const chunk = chunks[i];
-        const filename = `recording_part_${i + 1}_of_${chunks.length}.${ext}`;
-        
-        form.append('file', new File([chunk], filename, { type: recordingBlob.type }));
-        form.append('title', `${title.trim() || 'New recording'} (Part ${i + 1}/${chunks.length})`);
+        const chunk = chunksRef.current[i];
+        const filename = `recording_part_${i + 1}_of_${chunksRef.current.length}.${ext}`;
+
+        form.append('file', new File([chunk], filename, { type: chunk.type }));
+        form.append(
+          'title',
+          `${title.trim() || 'New recording'} (Part ${i + 1}/${chunksRef.current.length})`
+        );
         form.append('status', status);
         form.append('duration', duration.toString());
-        
+
         const res = await fetch('/api/audio/upload', { method: 'POST', body: form });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || `Upload failed for part ${i + 1}`);
-        
-        setUploadProgress(((i + 1) / chunks.length) * 100);
+
+        setUploadProgress(((i + 1) / chunksRef.current.length) * 100);
       }
-      
+
       if (onUploaded) onUploaded();
-      
+
       // Reset
+      chunksRef.current = [];
       setRecordingBlob(null);
       if (recordingUrl) URL.revokeObjectURL(recordingUrl);
       setRecordingUrl(null);
@@ -209,20 +199,22 @@ export default function AudioRecorder({
     <div className="bg-white rounded-lg shadow p-4">
       <h3 className="font-semibold text-gray-800 mb-3">Record Audio</h3>
       {error && (
-        <div className="p-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded mb-3">{error}</div>
+        <div className="p-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded mb-3">
+          {error}
+        </div>
       )}
       <div className="flex items-center gap-3 mb-3">
         {!isRecording ? (
-          <button 
-            onClick={startRecording} 
+          <button
+            onClick={startRecording}
             disabled={isUploading}
             className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400"
           >
             Start Recording
           </button>
         ) : (
-          <button 
-            onClick={stopRecording} 
+          <button
+            onClick={stopRecording}
             className="px-3 py-2 rounded bg-red-600 hover:bg-red-700 text-white"
           >
             Stop Recording
@@ -247,11 +239,15 @@ export default function AudioRecorder({
       {isRecording && (
         <div className="mb-3 text-sm text-gray-600">
           <div>Duration: {formatDuration(duration)}</div>
-          <div>Recording: {formatFileSize(currentSize)} / {formatFileSize(MAX_SIZE_BYTES)}</div>
+          <div>
+            Recording: {formatFileSize(currentSize)} / {formatFileSize(MAX_SIZE_BYTES)}
+          </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
-            <div 
-              className="bg-blue-600 h-2.5 rounded-full" 
-              style={{ width: `${Math.min(100, (currentSize / MAX_SIZE_BYTES) * 100)}%` }}
+            <div
+              className="bg-blue-600 h-2.5 rounded-full"
+              style={{
+                width: `${Math.min(100, (currentSize / MAX_SIZE_BYTES) * 100)}%`,
+              }}
             ></div>
           </div>
         </div>
@@ -261,9 +257,9 @@ export default function AudioRecorder({
         <div className="space-y-2 mb-3">
           <audio controls src={recordingUrl} className="w-full" />
           <div className="text-xs text-gray-500">
-            Type: {recordingBlob?.type || 'unknown'} | 
-            Size: {recordingBlob ? formatFileSize(recordingBlob.size) : 'unknown'} |
-            Duration: {formatDuration(duration)}
+            Type: {recordingBlob?.type || 'unknown'} | Size:{' '}
+            {recordingBlob ? formatFileSize(recordingBlob.size) : 'unknown'} | Duration:{' '}
+            {formatDuration(duration)}
           </div>
         </div>
       )}
@@ -271,11 +267,12 @@ export default function AudioRecorder({
       {isUploading && (
         <div className="mb-3">
           <div className="text-sm text-gray-600 mb-1">
-            Uploading {uploadProgress.toFixed(0)}% ({Math.ceil((totalChunks * uploadProgress) / 100)} of {totalChunks} parts)
+            Uploading {uploadProgress.toFixed(0)}% (
+            {Math.ceil((totalChunks * uploadProgress) / 100)} of {totalChunks} parts)
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div 
-              className="bg-green-600 h-2.5 rounded-full" 
+            <div
+              className="bg-green-600 h-2.5 rounded-full"
               style={{ width: `${uploadProgress}%` }}
             ></div>
           </div>
@@ -283,9 +280,13 @@ export default function AudioRecorder({
       )}
 
       <button
-        disabled={!recordingBlob || isUploading}
+        disabled={!chunksRef.current.length || isUploading}
         onClick={uploadRecording}
-        className={`px-3 py-2 rounded ${!recordingBlob || isUploading ? 'bg-gray-300 text-gray-600' : 'bg-green-600 hover:bg-green-700 text-white'}`}
+        className={`px-3 py-2 rounded ${
+          !chunksRef.current.length || isUploading
+            ? 'bg-gray-300 text-gray-600'
+            : 'bg-green-600 hover:bg-green-700 text-white'
+        }`}
       >
         {isUploading ? 'Uploading...' : 'Upload Recording'}
       </button>
