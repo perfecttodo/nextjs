@@ -17,6 +17,12 @@ function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
+function formatDuration(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+}
+
 const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 
 export default function AudioRecorder({
@@ -27,6 +33,8 @@ export default function AudioRecorder({
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const startTimeRef = useRef<number | null>(null);
+  const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [isRecording, setIsRecording] = useState(false);
   const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
@@ -35,7 +43,8 @@ export default function AudioRecorder({
   const [status, setStatus] = useState<AudioStatus>(defaultStatus);
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
-  const [currentSize, setCurrentSize] = useState(0); // Track current recording size
+  const [currentSize, setCurrentSize] = useState(0);
+  const [duration, setDuration] = useState(0); // Duration in seconds
 
   useEffect(() => {
     return () => {
@@ -43,6 +52,9 @@ export default function AudioRecorder({
       if (recordingUrl) URL.revokeObjectURL(recordingUrl);
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      }
+      if (durationIntervalRef.current) {
+        clearInterval(durationIntervalRef.current);
       }
     };
   }, [recordingUrl]);
@@ -64,7 +76,8 @@ export default function AudioRecorder({
   const startRecording = async () => {
     try {
       setError('');
-      setCurrentSize(0); // Reset size when starting new recording
+      setCurrentSize(0);
+      setDuration(0);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
@@ -76,11 +89,9 @@ export default function AudioRecorder({
       recorder.ondataavailable = (e) => {
         if (e.data && e.data.size > 0) {
           chunksRef.current.push(e.data);
-          // Update current size
           const newSize = currentSize + e.data.size;
           setCurrentSize(newSize);
           
-          // Auto-stop if reached max size
           if (newSize >= MAX_SIZE_BYTES) {
             stopRecording();
           }
@@ -93,15 +104,28 @@ export default function AudioRecorder({
         setRecordingBlob(blob);
         setRecordingUrl(url);
         setIsRecording(false);
-        // stop tracks
+        
+        // Stop duration timer
+        if (durationIntervalRef.current) {
+          clearInterval(durationIntervalRef.current);
+          durationIntervalRef.current = null;
+        }
+        
         if (mediaStreamRef.current) {
           mediaStreamRef.current.getTracks().forEach((t) => t.stop());
           mediaStreamRef.current = null;
         }
       };
 
-      // Set timeslice to get regular updates (every 1 second)
-      recorder.start(1000); 
+      // Start duration timer
+      startTimeRef.current = Date.now();
+      durationIntervalRef.current = setInterval(() => {
+        if (startTimeRef.current) {
+          setDuration(Math.floor((Date.now() - startTimeRef.current) / 1000));
+        }
+      }, 1000);
+
+      recorder.start(1000);
       setIsRecording(true);
     } catch (e) {
       setError('Microphone permission denied or unsupported.');
@@ -120,7 +144,6 @@ export default function AudioRecorder({
       setIsUploading(true);
       setError('');
       const form = new FormData();
-      // Name file according to mime
       const ext = recordingBlob.type.includes('ogg')
         ? 'ogg'
         : recordingBlob.type.includes('mp4') || recordingBlob.type.includes('m4a')
@@ -132,17 +155,20 @@ export default function AudioRecorder({
       form.append('file', file);
       form.append('title', title.trim() || 'New recording');
       form.append('status', status);
+      form.append('duration', duration.toString()); // Add duration to form data
 
       const res = await fetch('/api/audio/upload', { method: 'POST', body: form });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
       if (onUploaded) onUploaded();
-      // reset
+      
+      // Reset
       setRecordingBlob(null);
       if (recordingUrl) URL.revokeObjectURL(recordingUrl);
       setRecordingUrl(null);
       setTitle('New recording');
       setCurrentSize(0);
+      setDuration(0);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Upload failed');
     } finally {
@@ -182,10 +208,11 @@ export default function AudioRecorder({
         </select>
       </div>
 
-      {/* Show current size during recording */}
+      {/* Show current size and duration during recording */}
       {isRecording && (
         <div className="mb-3 text-sm text-gray-600">
-          Recording: {formatFileSize(currentSize)} / {formatFileSize(MAX_SIZE_BYTES)}
+          <div>Duration: {formatDuration(duration)}</div>
+          <div>Recording: {formatFileSize(currentSize)} / {formatFileSize(MAX_SIZE_BYTES)}</div>
           <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
             <div 
               className="bg-blue-600 h-2.5 rounded-full" 
@@ -200,7 +227,8 @@ export default function AudioRecorder({
           <audio controls src={recordingUrl} className="w-full" />
           <div className="text-xs text-gray-500">
             Type: {recordingBlob?.type || 'unknown'} | 
-            Size: {recordingBlob ? formatFileSize(recordingBlob.size) : 'unknown'}
+            Size: {recordingBlob ? formatFileSize(recordingBlob.size) : 'unknown'} |
+            Duration: {formatDuration(duration)}
           </div>
         </div>
       )}

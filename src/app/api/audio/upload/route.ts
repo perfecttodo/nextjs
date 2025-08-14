@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File;
     const title = formData.get('title') as string;
     const status = formData.get('status') as 'draft' | 'published';
+    const duration = formData.get('duration') as string;
 
     if (!file || !title) {
       return NextResponse.json(
@@ -87,6 +88,7 @@ export async function POST(request: NextRequest) {
         fileSize: file.size,
         status: status || 'draft',
         ownerId: user.sub,
+        duration: duration ? parseInt(duration) : 0,
       },
     });
 
