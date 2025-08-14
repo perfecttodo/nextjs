@@ -131,7 +131,9 @@ export async function GET(req: NextRequest) {
     console.error('GitHub callback error:', error);
 
     const signInUrl = new URL('/auth/signin', req.url);
-    signInUrl.searchParams.set('error', 'GitHub authorization failed');
+    signInUrl.searchParams.set('error', 'GitHub authorization failed 2 '+ error);
+
+    
 
     return NextResponse.redirect(signInUrl);
 
