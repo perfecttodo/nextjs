@@ -28,7 +28,6 @@ export default function FixedAudioPlayer() {
 
   // Initialize VideoJS player only once
   useEffect(() => {
-    // Only initialize if videoRef exists and player isn't already initialized
     if (videoRef.current && !playerRef.current) {
       const player = videojs(videoRef.current, {
         controls: false,
@@ -43,51 +42,93 @@ export default function FixedAudioPlayer() {
       });
 
       playerRef.current = player;
-      // Event listeners
-// Inside your useEffect initialization
-        const handleTimeUpdate = () => {
-          const time = player.currentTime();
-          if (typeof time === 'number') {
-            setCurrentTime(time);
-            const playerDuration = player.duration();
-            if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
-              ended();
-            }
+
+      const handleTimeUpdate = () => {
+        const time = player.currentTime();
+        if (typeof time === 'number') {
+          setCurrentTime(time);
+          const playerDuration = player.duration();
+          if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
+            ended();
           }
-        };
+        }
+      };
 
       const handleLoadedMetadata = () => {
         const dur = player.duration();
         if (typeof dur === 'number') setDuration(dur);
       };
 
+      const handleEnded = () => {
+        ended();
+      };
+
       player.on('timeupdate', handleTimeUpdate);
       player.on('loadedmetadata', handleLoadedMetadata);
-      player.on('ended', ended);
+      player.on('ended', handleEnded);
       player.on('play', play);
       player.on('pause', pause);
 
-      // Cleanup function
+      // Set up Media Session API for background control
+      if ('mediaSession' in navigator && audio) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: audio.title || 'Unknown',
+          artist: 'Unknown Artist',
+          album: 'Unknown Album'
+        });
+
+        navigator.mediaSession.setActionHandler('play', () => {
+          if (playerRef.current) {
+            playerRef.current.play().catch((e: Error) => console.error('MediaSession play error:', e));
+            play();
+          }
+        });
+
+        navigator.mediaSession.setActionHandler('pause', () => {
+          if (playerRef.current) {
+            playerRef.current.pause();
+            pause();
+          }
+        });
+
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+          console.log('MediaSession next track');
+          next();
+        });
+
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+          console.log('MediaSession previous track');
+          previous();
+        });
+      }
+
       return () => {
         player.off('timeupdate', handleTimeUpdate);
         player.off('loadedmetadata', handleLoadedMetadata);
-        player.off('ended', ended);
+        player.off('ended', handleEnded);
         player.off('play', play);
         player.off('pause', pause);
-        
+
         if (playerRef.current) {
           playerRef.current.dispose();
           playerRef.current = null;
         }
+
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.setActionHandler('play', null);
+          navigator.mediaSession.setActionHandler('pause', null);
+          navigator.mediaSession.setActionHandler('nexttrack', null);
+          navigator.mediaSession.setActionHandler('previoustrack', null);
+        }
       };
     }
-  }, [audio]);
+  }, [audio, ended, next, previous, play, pause, setCurrentTime, setDuration, userInteracted]);
 
   // Handle user interaction for autoplay policies
   useEffect(() => {
     const handleInteraction = () => {
       setUserInteracted(true);
-    }
+    };
     document.addEventListener('click', handleInteraction);
     return () => document.removeEventListener('click', handleInteraction);
   }, []);
@@ -121,22 +162,24 @@ export default function FixedAudioPlayer() {
         });
       }
     });
-    player.load();
-    player.play()
 
+    player.load();
+      player.play().catch((e: Error) => {
+        console.error("Initial playback failed:", e);
+        pause();
+      });
+    
   }, [audio, userInteracted, pause, setCurrentTime, setDuration]);
 
   // Handle play/pause state changes
   useEffect(() => {
     if (!playerRef.current) return;
 
-    if (isPlaying) {
-      if (userInteracted) {
-        playerRef.current.play().catch((e: Error) => {
-          console.error("Playback failed:", e);
-          pause();
-        });
-      }
+    if (isPlaying && userInteracted) {
+      playerRef.current.play().catch((e: Error) => {
+        console.error("Playback failed:", e);
+        pause();
+      });
     } else {
       playerRef.current.pause();
     }
@@ -159,10 +202,7 @@ export default function FixedAudioPlayer() {
 
   // Toggle play/pause
   const togglePlayPause = () => {
-    if (!userInteracted) {
-      alert('Please click anywhere on the page first to enable audio');
-      return;
-    }
+  
     isPlaying ? pause() : play();
   };
 
