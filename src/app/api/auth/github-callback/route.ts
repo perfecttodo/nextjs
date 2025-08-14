@@ -105,7 +105,9 @@ export async function GET(req: NextRequest) {
       .setIssuedAt()
       .sign(secret);
 
-    const res = NextResponse.redirect('/');
+      const signInUrl = new URL('/', req.url);
+
+    const res = NextResponse.redirect(signInUrl);
     res.cookies.set('app_session', token, {
       httpOnly: true,
       path: '/',
