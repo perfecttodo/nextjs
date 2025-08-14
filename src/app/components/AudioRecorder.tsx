@@ -27,6 +27,7 @@ export default function AudioRecorder({
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const accumulatedSizeRef = useRef(0); // Track size accurately with ref
 
   const [isRecording, setIsRecording] = useState(false);
   const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
@@ -37,7 +38,6 @@ export default function AudioRecorder({
   const [isUploading, setIsUploading] = useState(false);
   const [currentSize, setCurrentSize] = useState(0);
   const [mimeType, setMimeType] = useState('audio/webm');
-  const [isStopping, setIsStopping] = useState(false);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -71,10 +71,10 @@ export default function AudioRecorder({
   const startRecording = async () => {
     try {
       setError('');
+      accumulatedSizeRef.current = 0;
       setCurrentSize(0);
       chunksRef.current = [];
-      setIsStopping(false);
-
+      
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
@@ -87,8 +87,8 @@ export default function AudioRecorder({
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
           chunksRef.current.push(e.data);
-          const newSize = currentSize + e.data.size;
-          setCurrentSize(newSize);
+          accumulatedSizeRef.current += e.data.size;
+          setCurrentSize(accumulatedSizeRef.current);
 
           // Update the playable version
           try {
@@ -99,7 +99,8 @@ export default function AudioRecorder({
             console.error('Blob creation error:', err);
           }
 
-          if (newSize >= MAX_SIZE_BYTES && !isStopping) {
+          // Auto-stop only when reaching max size
+          if (accumulatedSizeRef.current >= MAX_SIZE_BYTES) {
             stopRecording();
           }
         }
@@ -108,7 +109,6 @@ export default function AudioRecorder({
       recorder.onstop = () => {
         finalizeRecording();
         setIsRecording(false);
-        setIsStopping(false);
         stopMediaTracks();
       };
 
@@ -116,12 +116,11 @@ export default function AudioRecorder({
         console.error('Recorder error:', e);
         setError('Recording error occurred');
         setIsRecording(false);
-        setIsStopping(false);
         stopMediaTracks();
       };
 
-      // Start with 1-second chunks for better size tracking
-      recorder.start(1000);
+      // Start with 500ms chunks for accurate size tracking
+      recorder.start(500);
       setIsRecording(true);
     } catch (e) {
       console.error('Recording start error:', e);
@@ -130,24 +129,18 @@ export default function AudioRecorder({
     }
   };
 
-  const stopRecording = async () => {
-    if (!recorderRef.current || isStopping) return;
+  const stopRecording = () => {
+    if (!recorderRef.current || !isRecording) return;
     
-    setIsStopping(true);
-    try {
-      // Request final data before stopping
-      recorderRef.current.requestData();
-      
-      // Wait briefly to ensure data is processed
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      // Now stop the recorder
-      recorderRef.current.stop();
-    } catch (e) {
-      console.error('Error stopping recording:', e);
-      setError('Failed to stop recording properly');
-      setIsStopping(false);
-    }
+    // Request final data
+    recorderRef.current.requestData();
+    
+    // Stop after a small delay to ensure data is processed
+    setTimeout(() => {
+      if (recorderRef.current?.state !== 'inactive') {
+        recorderRef.current?.stop();
+      }
+    }, 200);
   };
 
   const finalizeRecording = () => {
@@ -214,6 +207,7 @@ export default function AudioRecorder({
     setTitle(defaultTitle);
     setCurrentSize(0);
     chunksRef.current = [];
+    accumulatedSizeRef.current = 0;
   };
 
   return (
@@ -230,7 +224,6 @@ export default function AudioRecorder({
           <button 
             onClick={startRecording} 
             className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white"
-            disabled={isStopping}
           >
             Start Recording
           </button>
@@ -238,9 +231,8 @@ export default function AudioRecorder({
           <button 
             onClick={stopRecording} 
             className="px-3 py-2 rounded bg-red-600 hover:bg-red-700 text-white"
-            disabled={isStopping}
           >
-            {isStopping ? 'Stopping...' : 'Stop Recording'}
+            Stop Recording
           </button>
         )}
         <input
@@ -287,10 +279,10 @@ export default function AudioRecorder({
       )}
 
       <button
-        disabled={!recordingBlob || isUploading || isStopping}
+        disabled={!recordingBlob || isUploading || isRecording}
         onClick={uploadRecording}
         className={`px-3 py-2 rounded ${
-          !recordingBlob || isUploading || isStopping
+          !recordingBlob || isUploading || isRecording
             ? 'bg-gray-300 text-gray-600' 
             : 'bg-green-600 hover:bg-green-700 text-white'
         }`}
