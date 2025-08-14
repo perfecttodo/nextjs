@@ -36,16 +36,26 @@ export default function AudioRecorder({
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [currentSize, setCurrentSize] = useState(0);
-  const [mimeType, setMimeType] = useState('');
+  const [mimeType, setMimeType] = useState('audio/webm');
+  const [isStopping, setIsStopping] = useState(false);
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (recordingUrl) URL.revokeObjectURL(recordingUrl);
-      if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach((t) => t.stop());
-      }
+      stopMediaTracks();
     };
   }, [recordingUrl]);
+
+  const stopMediaTracks = () => {
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => {
+        track.stop();
+        track.enabled = false;
+      });
+      mediaStreamRef.current = null;
+    }
+  };
 
   const getSupportedMimeType = () => {
     const candidates = [
@@ -55,10 +65,7 @@ export default function AudioRecorder({
       'audio/webm',
       'audio/ogg',
     ];
-    for (const type of candidates) {
-      if (MediaRecorder.isTypeSupported(type)) return type;
-    }
-    return 'audio/webm'; // default fallback
+    return candidates.find(type => MediaRecorder.isTypeSupported(type)) || 'audio/webm';
   };
 
   const startRecording = async () => {
@@ -66,14 +73,15 @@ export default function AudioRecorder({
       setError('');
       setCurrentSize(0);
       chunksRef.current = [];
+      setIsStopping(false);
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
       const detectedMimeType = getSupportedMimeType();
       setMimeType(detectedMimeType);
       
-      const options = detectedMimeType ? { mimeType: detectedMimeType } : undefined;
-      const recorder = new MediaRecorder(stream, options);
+      const recorder = new MediaRecorder(stream, { mimeType: detectedMimeType });
       recorderRef.current = recorder;
 
       recorder.ondataavailable = (e) => {
@@ -82,51 +90,84 @@ export default function AudioRecorder({
           const newSize = currentSize + e.data.size;
           setCurrentSize(newSize);
 
-          // Create a playable version of the current recording
+          // Update the playable version
           try {
             const blob = new Blob([...chunksRef.current], { type: detectedMimeType });
             setRecordingBlob(blob);
             setRecordingUrl(URL.createObjectURL(blob));
           } catch (err) {
-            console.error('Error creating blob:', err);
+            console.error('Blob creation error:', err);
           }
 
-          if (newSize >= MAX_SIZE_BYTES) {
+          if (newSize >= MAX_SIZE_BYTES && !isStopping) {
             stopRecording();
           }
         }
       };
 
-      // Use larger timeslice (5 seconds) for better chunk integrity
-      recorder.start(5000);
+      recorder.onstop = () => {
+        finalizeRecording();
+        setIsRecording(false);
+        setIsStopping(false);
+        stopMediaTracks();
+      };
+
+      recorder.onerror = (e) => {
+        console.error('Recorder error:', e);
+        setError('Recording error occurred');
+        setIsRecording(false);
+        setIsStopping(false);
+        stopMediaTracks();
+      };
+
+      // Start with 1-second chunks for better size tracking
+      recorder.start(1000);
       setIsRecording(true);
     } catch (e) {
-      setError('Microphone permission denied or unsupported.');
+      console.error('Recording start error:', e);
+      setError('Microphone access denied or not available');
+      setIsRecording(false);
     }
   };
 
-  const stopRecording = () => {
-    if (recorderRef.current && isRecording) {
-      recorderRef.current.requestData(); // Request final chunk
+  const stopRecording = async () => {
+    if (!recorderRef.current || isStopping) return;
+    
+    setIsStopping(true);
+    try {
+      // Request final data before stopping
+      recorderRef.current.requestData();
+      
+      // Wait briefly to ensure data is processed
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Now stop the recorder
       recorderRef.current.stop();
+    } catch (e) {
+      console.error('Error stopping recording:', e);
+      setError('Failed to stop recording properly');
+      setIsStopping(false);
     }
   };
 
   const finalizeRecording = () => {
-    if (chunksRef.current.length === 0) return;
+    if (chunksRef.current.length === 0) {
+      setError('No recording data available');
+      return;
+    }
 
     try {
       const blob = new Blob(chunksRef.current, { type: mimeType });
       setRecordingBlob(blob);
       setRecordingUrl(URL.createObjectURL(blob));
     } catch (err) {
-      console.error('Error finalizing recording:', err);
+      console.error('Finalization error:', err);
       setError('Failed to create audio file');
     }
   };
 
   const uploadRecording = async () => {
-    if (!recordingBlob) return;
+    if (!recordingBlob || isUploading) return;
     
     try {
       setIsUploading(true);
@@ -150,13 +191,14 @@ export default function AudioRecorder({
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
+        const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || 'Upload failed');
       }
 
       if (onUploaded) onUploaded();
       resetRecorder();
     } catch (e) {
+      console.error('Upload error:', e);
       setError(e instanceof Error ? e.message : 'Upload failed');
     } finally {
       setIsUploading(false);
@@ -165,9 +207,11 @@ export default function AudioRecorder({
 
   const resetRecorder = () => {
     setRecordingBlob(null);
-    if (recordingUrl) URL.revokeObjectURL(recordingUrl);
-    setRecordingUrl(null);
-    setTitle('New recording');
+    if (recordingUrl) {
+      URL.revokeObjectURL(recordingUrl);
+      setRecordingUrl(null);
+    }
+    setTitle(defaultTitle);
     setCurrentSize(0);
     chunksRef.current = [];
   };
@@ -186,6 +230,7 @@ export default function AudioRecorder({
           <button 
             onClick={startRecording} 
             className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white"
+            disabled={isStopping}
           >
             Start Recording
           </button>
@@ -193,8 +238,9 @@ export default function AudioRecorder({
           <button 
             onClick={stopRecording} 
             className="px-3 py-2 rounded bg-red-600 hover:bg-red-700 text-white"
+            disabled={isStopping}
           >
-            Stop Recording
+            {isStopping ? 'Stopping...' : 'Stop Recording'}
           </button>
         )}
         <input
@@ -241,10 +287,10 @@ export default function AudioRecorder({
       )}
 
       <button
-        disabled={!recordingBlob || isUploading}
+        disabled={!recordingBlob || isUploading || isStopping}
         onClick={uploadRecording}
         className={`px-3 py-2 rounded ${
-          !recordingBlob || isUploading 
+          !recordingBlob || isUploading || isStopping
             ? 'bg-gray-300 text-gray-600' 
             : 'bg-green-600 hover:bg-green-700 text-white'
         }`}
