@@ -75,6 +75,8 @@ export default function AudioRecorder({
   };
 
   const startRecording = async () => {
+    if (isRecording) return; // Prevent starting a new recording if already recording
+
     try {
       setError('');
       setCurrentSize(0);
@@ -97,7 +99,7 @@ export default function AudioRecorder({
           if (curSizeRef.current >= MAX_SIZE_BYTES) {
             // Request the final chunk and stop
             recorder.requestData();
-            recorder.stop();
+            recorder.stop(); // Stop recording here to ensure it captures the final data
             return;
           }
         }
