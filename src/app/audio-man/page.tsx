@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import AudioUpload from '@/app/components/AudioUpload';
-import AudioManagement from '@/app/components/AudioManagement';
-import AudioRecorder from '@/app/components/AudioRecorder';
-import UrlAudio from '@/app/components/UrlAudio';
+import { Suspense, useState } from 'react';
+import dynamic from 'next/dynamic';
+const AudioUpload = dynamic(() => import('@/app/components/AudioUpload'), { ssr: false });
+const AudioManagement = dynamic(() => import('@/app/components/AudioManagement'), { ssr: false });
+const AudioRecorder = dynamic(() => import('@/app/components/AudioRecorder'), { ssr: false });
+const UrlAudio = dynamic(() => import('@/app/components/UrlAudio'), { ssr: false });
 
 export default function AudioManagePage() {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -21,15 +22,23 @@ export default function AudioManagePage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Recorder + Upload Section */}
           <div className="space-y-6">
-            <AudioRecorder onUploaded={handleRefresh} />
-            <AudioUpload onUploadSuccess={handleRefresh} />
-            <UrlAudio onUploadSuccess={handleRefresh}/>
+            <Suspense fallback={<div className="bg-white rounded-lg shadow p-6 h-40 animate-pulse" />}>
+              <AudioRecorder onUploaded={handleRefresh} />
+            </Suspense>
+            <Suspense fallback={<div className="bg-white rounded-lg shadow p-6 h-40 animate-pulse" />}>
+              <AudioUpload onUploadSuccess={handleRefresh} />
+            </Suspense>
+            <Suspense fallback={<div className="bg-white rounded-lg shadow p-6 h-40 animate-pulse" />}>
+              <UrlAudio onUploadSuccess={handleRefresh}/>
+            </Suspense>
 
           </div>
           
           {/* Management Section */}
           <div>
-            <AudioManagement key={refreshKey} onRefresh={handleRefresh} />
+            <Suspense fallback={<div className="bg-white rounded-lg shadow p-6 h-96 animate-pulse" />}>
+              <AudioManagement key={refreshKey} onRefresh={handleRefresh} />
+            </Suspense>
           </div>
         </div>
       </div>

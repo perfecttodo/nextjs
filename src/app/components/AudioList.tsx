@@ -1,9 +1,10 @@
 'use client';
 
+import { memo } from 'react';
 import { AudioListProps } from '@/types/audio';
 import { useRouter } from 'next/navigation';
 
-export default function AudioList({
+function AudioListComponent({
   audioFiles,
   currentAudio,
   onAudioSelect,
@@ -150,3 +151,5 @@ export default function AudioList({
     </div>
   );
 }
+
+export default memo(AudioListComponent);
