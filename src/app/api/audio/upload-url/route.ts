@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     // Optionally: You might want to verify the file exists by making a HEAD request
     // This is commented out as it might slow down the response
     
-    try {
+   /* try {
       const headResponse = await fetch(url, { method: 'HEAD' });
       if (!headResponse.ok) {
         return NextResponse.json(
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+    */
 
     // Save to database
     const audioFile = await prisma.audioFile.create({
