@@ -136,6 +136,7 @@ export default function AudioRecorder({
   const stopRecording = () => {
     if (recorderRef.current && isRecording) {
       recorderRef.current.stop();
+      curSizeRef.current = 0;
     }
   };
 
@@ -222,6 +223,7 @@ export default function AudioRecorder({
               className="bg-blue-600 h-2.5 rounded-full" 
               style={{ width: `${Math.min(100, (currentSize / MAX_SIZE_BYTES) * 100)}%` }}
             ></div>
+            <div>${Math.min(100, (currentSize / MAX_SIZE_BYTES) * 100)}%</div>
           </div>
         </div>
       )}
