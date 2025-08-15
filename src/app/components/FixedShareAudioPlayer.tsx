@@ -281,7 +281,7 @@ export default function FixedAudioPlayer() {
   if (!audio) return null;
 
   return (
-    <>
+    <div style={{marginTop:'60px'}}>
       {/* Video.js player (hidden) */}
       <div data-vjs-player style={{ display: 'none' }}>
         <video
@@ -350,6 +350,6 @@ export default function FixedAudioPlayer() {
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }

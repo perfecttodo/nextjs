@@ -39,9 +39,7 @@ export default async function RootLayout({
       >
          <Header user={user} />
         {children}
-        <div style={{marginTop:'60px'}}>
       <FixedShareAudioPlayer />
-      </div>
       </body>
     </html>
   );
