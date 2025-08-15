@@ -23,6 +23,36 @@ function formatDuration(seconds: number): string {
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
+export function playBreakSound() {
+  try {
+    // Check if Web Audio API is supported
+    if (typeof window === 'undefined' || !window.AudioContext) {
+      console.log('Web Audio API not supported');
+      return;
+    }
+
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    // Play a more pleasant sound for breaks
+    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+    oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.2); // E5
+    oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.4); // G5
+
+    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.6);
+  } catch (error) {
+    console.log('Break sound failed:', error);
+  }
+}
+
 const MAX_SIZE_BYTES = 4 * 1024 * 1024; // 4 MB
 
 export default function AudioRecorder({
@@ -100,6 +130,7 @@ export default function AudioRecorder({
             // Request the final chunk and stop
             recorder.requestData();
             recorder.stop(); // Stop recording here to ensure it captures the final data
+            setTimeout(()=>playBreakSound,10);
             return;
           }
         }
