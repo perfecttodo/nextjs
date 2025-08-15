@@ -6,8 +6,8 @@ import { AudioFile } from '@/types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 export default function AudioPlayerPage() {
   const [audioFiles, setAudioFiles] = useState<AudioFile[]>([]);
+  const { setAudio,setAudioFiles:updateAudioFiles,audio:currentAudio,togglePlay,isPlaying} = useAudioPlayerStore();
 
-  const { setAudio,setAudioFiles:updateAudioFiles,audio} = useAudioPlayerStore();
   // Fetch published audio files from API
   useEffect(() => {
     const fetchAudioFiles = async () => {
@@ -33,8 +33,13 @@ export default function AudioPlayerPage() {
   }, []);
 
   const handleAudioSelect = (audio: AudioFile) => {
-    setAudio(audio)
-    updateAudioFiles(audioFiles);
+    if(currentAudio?.id===audio.id){
+      togglePlay();
+    }else{
+      setAudio(audio)
+      updateAudioFiles(audioFiles);
+    }
+
 
   };
 
@@ -51,8 +56,9 @@ export default function AudioPlayerPage() {
           <div className="lg:col-span-2">
             <AudioList
               audioFiles={audioFiles}
-              currentAudio={audio}
+              currentAudio={currentAudio}
               onAudioSelect={handleAudioSelect}
+              isPlaying={isPlaying}
             />
           </div>
         </div>

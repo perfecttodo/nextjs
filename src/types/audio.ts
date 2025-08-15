@@ -35,6 +35,7 @@ export interface AudioListProps {
   audioFiles: AudioFile[];
   currentAudio: AudioFile | null;
   onAudioSelect: (audio: AudioFile) => void;
+  isPlaying:boolean
 }
 
 

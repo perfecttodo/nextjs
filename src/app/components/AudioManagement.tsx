@@ -17,15 +17,22 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
   const [editStatus, setEditStatus] = useState<AudioStatus>('draft');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'draft' | 'published'>('all');
-  const { setAudio,setAudioFiles:updateAudioFiles,audio:currentAudio} = useAudioPlayerStore();
+  const { setAudio,setAudioFiles:updateAudioFiles,audio:currentAudio,togglePlay,isPlaying} = useAudioPlayerStore();
 
   useEffect(() => {
     fetchAudioFiles();
   }, [filter]);
 
   const onPlayAudio = (audio: AudioFile) => {
-    setAudio(audio)
-    updateAudioFiles(audioFiles);
+
+    if(currentAudio?.id === audio.id){
+      togglePlay();
+
+    }else{
+      setAudio(audio)
+      updateAudioFiles(audioFiles);
+    }
+
 
   };
 
@@ -282,7 +289,7 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
                         }`}
                         title={currentAudio?.id === audio.id ? 'Currently Playing' : 'Play Audio'}
                       >
-                        {currentAudio?.id === audio.id ? '⏸️' : '▶️'}
+                        {currentAudio?.id === audio.id && isPlaying ? '⏸️' : '▶️'}
                       </button>
 
                     </div>

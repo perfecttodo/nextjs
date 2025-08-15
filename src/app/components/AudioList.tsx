@@ -5,7 +5,8 @@ import { AudioListProps } from '@/types/audio';
 export default function AudioList({
   audioFiles,
   currentAudio,
-  onAudioSelect
+  onAudioSelect,
+  isPlaying
 }: AudioListProps) {
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
@@ -115,7 +116,7 @@ export default function AudioList({
                   }`}
                   title={currentAudio?.id === audio.id ? 'Currently Playing' : 'Play Audio'}
                 >
-                  {currentAudio?.id === audio.id ? '⏸️' : '▶️'}
+                  {currentAudio?.id === audio.id && isPlaying ? '⏸️' : '▶️'}
                 </button>
               </div>
             </div>
