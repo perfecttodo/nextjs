@@ -49,7 +49,7 @@ export default function Header({ user }: { user: any }) {
           {user ? (
             <>
               <span>
-                <Link href="/audio/manage" className={`text-sm text-gray-600 underline ${isActive('/audio/manage') ? activeClasses : ''}`}>
+                <Link href="/audio-man" className={`text-sm text-gray-600 underline ${isActive('/audio-man') ? activeClasses : ''}`}>
                   Audio Manage
                 </Link>
               </span>

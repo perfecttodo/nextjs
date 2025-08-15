@@ -1,6 +1,7 @@
 'use client';
 
 import { AudioListProps } from '@/types/audio';
+import { useRouter } from 'next/navigation';
 
 export default function AudioList({
   audioFiles,
@@ -8,6 +9,7 @@ export default function AudioList({
   onAudioSelect,
   isPlaying
 }: AudioListProps) {
+  const router = useRouter();
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
@@ -60,8 +62,7 @@ export default function AudioList({
         {audioFiles.map((audio, index) => (
           <div
             key={audio.id}
-            onClick={() => onAudioSelect(audio)}
-            className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+            className={`p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${
               currentAudio?.id === audio.id
                 ? 'border-blue-500 bg-blue-50'
                 : 'border-gray-200 hover:border-gray-300'
@@ -74,11 +75,17 @@ export default function AudioList({
               </div>
 
               {/* Audio Info */}
-              <div className="flex-1 min-w-0">
+              <div 
+                className="flex-1 min-w-0 cursor-pointer hover:bg-blue-50 p-2 rounded transition-all duration-200 group border border-transparent hover:border-blue-200"
+                onClick={() => router.push(`/audio/${audio.id}`)}
+              >
                 <div className="flex items-center space-x-2 mb-1">
-                  <h4 className="font-medium text-gray-800 truncate">
+                  <h4 className="font-medium text-gray-800 truncate group-hover:text-blue-600 transition-colors">
                     {audio.title}
                   </h4>
+                  <span className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity text-sm">
+                    👁️ View Details
+                  </span>
                   {currentAudio?.id === audio.id && (
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       Playing
