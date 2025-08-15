@@ -104,7 +104,7 @@ export default function AudioRecorder({
     return '';
   };
 
-  const startRecording = async () => {
+  const startRecording = async (isLimited:boolean) => {
     if (isRecording) return; // Prevent starting a new recording if already recording
 
     try {
@@ -126,7 +126,7 @@ export default function AudioRecorder({
           curSizeRef.current += e.data.size;
           setCurrentSize(curSizeRef.current);
           
-          if (curSizeRef.current >= MAX_SIZE_BYTES) {
+          if (isLimited&&curSizeRef.current >= MAX_SIZE_BYTES) {
             // Request the final chunk and stop
             recorder.requestData();
             recorder.stop(); // Stop recording here to ensure it captures the final data
@@ -224,9 +224,14 @@ export default function AudioRecorder({
       )}
       <div className="flex items-center gap-3 mb-3">
         {!isRecording ? (
-          <button onClick={startRecording} className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">
-            Start Recording
+          <>
+          <button onClick={()=>startRecording(false)} className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">
+            Start unlimited Recording
           </button>
+            <button onClick={()=>startRecording(true)} className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">
+            Start 4M Recording
+          </button>
+          </>
         ) : (
           <button onClick={stopRecording} className="px-3 py-2 rounded bg-red-600 hover:bg-red-700 text-white">
             Stop Recording
