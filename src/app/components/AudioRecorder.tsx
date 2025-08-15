@@ -23,7 +23,7 @@ function formatDuration(seconds: number): string {
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
-const MAX_SIZE_BYTES = 4 * 1024 * 1024; // 50 MB
+const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 
 export default function AudioRecorder({
   defaultTitle = 'New recording',
@@ -95,7 +95,10 @@ export default function AudioRecorder({
           setCurrentSize(curSizeRef.current);
           
           if (curSizeRef.current >= MAX_SIZE_BYTES) {
-            stopRecording();
+            // Request the final chunk and stop
+            recorder.requestData();
+            recorder.stop();
+            return;
           }
         }
       };
@@ -127,7 +130,7 @@ export default function AudioRecorder({
         }
       }, 1000);
 
-      recorder.start(1000);
+      recorder.start(1000); // Collect data every second
       setIsRecording(true);
     } catch (e) {
       setError('Microphone permission denied or unsupported.');
@@ -136,6 +139,7 @@ export default function AudioRecorder({
 
   const stopRecording = () => {
     if (recorderRef.current && isRecording) {
+      recorderRef.current.requestData();
       recorderRef.current.stop();
     }
   };
@@ -157,7 +161,7 @@ export default function AudioRecorder({
       form.append('file', file);
       form.append('title', title.trim() || 'New recording');
       form.append('status', status);
-      form.append('duration', duration.toString()); // Add duration to form data
+      form.append('duration', duration.toString());
 
       const res = await fetch('/api/audio/upload', { method: 'POST', body: form });
       const data = await res.json();
@@ -196,20 +200,20 @@ export default function AudioRecorder({
           </button>
         )}
         <div className='grid gap-3'>
-        <input
-          className="border rounded px-2 py-1 text-sm"
-          placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <select
-          className="border rounded px-2 py-1 text-sm"
-          value={status}
-          onChange={(e) => setStatus(e.target.value as AudioStatus)}
-        >
-          <option value="draft">Draft</option>
-          <option value="published">Published</option>
-        </select>
+          <input
+            className="border rounded px-2 py-1 text-sm"
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <select
+            className="border rounded px-2 py-1 text-sm"
+            value={status}
+            onChange={(e) => setStatus(e.target.value as AudioStatus)}
+          >
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+          </select>
         </div>
       </div>
 
@@ -223,7 +227,6 @@ export default function AudioRecorder({
               className="bg-blue-600 h-2.5 rounded-full" 
               style={{ width: `${Math.min(100, (currentSize / MAX_SIZE_BYTES) * 100)}%` }}
             ></div>
-            <div>${Math.min(100, (currentSize / MAX_SIZE_BYTES) * 100)}%</div>
           </div>
         </div>
       )}
