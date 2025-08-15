@@ -46,9 +46,9 @@ export default function AudioUpload({ onUploadSuccess }: AudioUploadProps) {
     }
 
     // Validate file size (max 50MB)
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    const maxSize = 4 * 1024 * 1024; // 50MB
     if (file.size > maxSize) {
-      setError('File size too large. Maximum size is 50MB.');
+      setError('File size too large. Maximum size is 4MB.');
       return;
     }
 
@@ -195,7 +195,7 @@ export default function AudioUpload({ onUploadSuccess }: AudioUploadProps) {
                   or drag and drop
                 </div>
                 <div className="text-xs text-gray-500">
-                  MP3, x-m4a, WAV, OGG up to 50MB
+                  MP3, x-m4a, WAV, OGG up to 4MB
                 </div>
               </div>
             )}

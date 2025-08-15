@@ -23,7 +23,7 @@ function formatDuration(seconds: number): string {
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
-const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+const MAX_SIZE_BYTES = 4 * 1024 * 1024; // 50 MB
 
 export default function AudioRecorder({
   defaultTitle = 'New recording',
@@ -192,6 +192,7 @@ export default function AudioRecorder({
             Stop Recording
           </button>
         )}
+        <div className='grid gap-3'>
         <input
           className="border rounded px-2 py-1 text-sm"
           placeholder="Title"
@@ -206,6 +207,7 @@ export default function AudioRecorder({
           <option value="draft">Draft</option>
           <option value="published">Published</option>
         </select>
+        </div>
       </div>
 
       {/* Show current size and duration during recording */}
