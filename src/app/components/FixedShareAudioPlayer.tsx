@@ -193,7 +193,7 @@ export default function FixedAudioPlayer() {
     // Set new source
     player.src({
       src: audio.blobUrl,
-      type: audio.format === 'm4a' ? 'audio/mp4' : `audio/${audio.format}`
+      type: audio.format === 'm4a' ? 'audio/mp4' : (audio.format === 'm3u8' ? 'application/x-mpegURL': `audio/${audio.format}`)
     });
 
     player.one('loadedmetadata', () => {

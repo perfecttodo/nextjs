@@ -1,4 +1,4 @@
-export type AudioFormat = 'mp3' | 'm4a' | 'wav' | 'ogg';
+export type AudioFormat = 'mp3' | 'm4a' | 'wav' | 'ogg'|'m3u8';
 
 export type AudioStatus = 'draft' | 'published';
 

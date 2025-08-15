@@ -4,6 +4,7 @@ import { useState } from 'react';
 import AudioUpload from '../../components/AudioUpload';
 import AudioManagement from '../../components/AudioManagement';
 import AudioRecorder from '../../components/AudioRecorder';
+import UrlAudio from '../../components/UrlAudio';
 
 export default function AudioManagePage() {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -22,6 +23,8 @@ export default function AudioManagePage() {
           <div className="space-y-6">
             <AudioRecorder onUploaded={handleRefresh} />
             <AudioUpload onUploadSuccess={handleRefresh} />
+            <UrlAudio onUploadSuccess={handleRefresh}/>
+
           </div>
           
           {/* Management Section */}
