@@ -64,6 +64,14 @@ export default function FixedAudioPlayer() {
     if (!player) {
       // Initialize new player only if it doesn't exist
       player = videojs(videoRef.current, {
+        html5: {
+          vhs: {
+            // Optional VHS configuration
+            enableLowInitialPlaylist: true,
+            smoothQualityChange: true,
+            overrideNative: true
+          }
+        },
         controls: false,
         autoplay: false,
         preload: 'metadata',
@@ -191,8 +199,9 @@ export default function FixedAudioPlayer() {
     player.pause();
 
     // Set new source
+    let url=audio.blobUrl
     player.src({
-      src: audio.blobUrl,
+      src: url,
       type: audio.format === 'm4a' ? 'audio/mp4' : (audio.format === 'm3u8' ? 'application/x-mpegURL': `audio/${audio.format}`)
     });
 
