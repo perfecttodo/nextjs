@@ -23,7 +23,7 @@ function formatDuration(seconds: number): string {
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
-const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+const MAX_SIZE_BYTES = 4 * 1024 * 1024; // 4 MB
 
 export default function AudioRecorder({
   defaultTitle = 'New recording',
