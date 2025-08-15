@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
+import { AudioFile } from '@/types/audio';
 
 export default function FixedAudioPlayer() {
   const {
@@ -29,7 +30,7 @@ export default function FixedAudioPlayer() {
 
 
   const handleTimeUpdate = () => {
-    if(!playerRef.current)return;
+    if (!playerRef.current) return;
     const time = playerRef.current.currentTime();
     if (typeof time === 'number') {
       setCurrentTime(time);
@@ -41,7 +42,7 @@ export default function FixedAudioPlayer() {
   };
 
   const handleLoadedMetadata = () => {
-    if(!playerRef.current)return;
+    if (!playerRef.current) return;
     const dur = playerRef.current.duration();
     if (typeof dur === 'number') setDuration(dur);
   };
@@ -59,7 +60,7 @@ export default function FixedAudioPlayer() {
 
     let player = playerRef.current;
 
-    if(player)return;
+    if (player) return;
 
     if (!player) {
       // Initialize new player only if it doesn't exist
@@ -163,7 +164,7 @@ export default function FixedAudioPlayer() {
         player.off('ended', handleEnded);
         player.off('play', play);
         player.off('pause', pause);
-  
+
         if ('mediaSession' in navigator) {
           navigator.mediaSession.setActionHandler('play', null);
           navigator.mediaSession.setActionHandler('pause', null);
@@ -179,6 +180,20 @@ export default function FixedAudioPlayer() {
     };
   }, []);
 
+
+  function getType(audio: AudioFile) {
+    switch (audio.format) {
+      case 'm4a':
+        return 'audio/mp4';
+      case 'm3u8':
+        return 'application/x-mpegURL';
+
+      default:
+        return 'audio/mpeg';
+    }
+
+
+  }
   // Handle user interaction for autoplay policies
   useEffect(() => {
     const handleInteraction = () => {
@@ -199,10 +214,12 @@ export default function FixedAudioPlayer() {
     player.pause();
 
     // Set new source
-    let url=audio.blobUrl
+    let url = audio.blobUrl
+    let type = getType(audio);
+
     player.src({
       src: url,
-      type: audio.format === 'm4a' ? 'audio/mp4' : (audio.format === 'm3u8' ? 'application/x-mpegURL': `audio/${audio.format}`)
+      type
     });
 
     player.one('loadedmetadata', () => {
@@ -312,8 +329,8 @@ export default function FixedAudioPlayer() {
             <button onClick={previous} className="p-2 text-gray-600 hover:text-gray-900">
               ⏮️
             </button>
-            <button 
-              onClick={togglePlayPause} 
+            <button
+              onClick={togglePlayPause}
               className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600"
             >
               {isPlaying ? '⏸️' : '▶️'}
@@ -324,7 +341,7 @@ export default function FixedAudioPlayer() {
           </div>
 
           {/* Play mode */}
-          <button 
+          <button
             onClick={cyclePlayMode}
             className="p-2 text-gray-600 hover:text-gray-900"
             title={`Play mode: ${playMode}`}

@@ -17,8 +17,9 @@ export default function AudioUrlUpload({ onUploadSuccess }: AudioUrlUploadProps)
 
   const validateUrl = (url: string) => {
     try {
+      return true;
       const parsedUrl = new URL(url);
-      const allowedExtensions = ['.mp3', '.m4a', '.wav', '.ogg', '.mp4','m3u8'];
+      const allowedExtensions = ['.mp3', '.m4a', '.wav', '.ogg', '.mp4','m3u8','audio/mpeg'];
       const hasValidExtension = allowedExtensions.some(ext => 
         parsedUrl.pathname.toLowerCase().endsWith(ext)
       );

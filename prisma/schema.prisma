@@ -45,7 +45,7 @@ model AudioFile {
   originalName String
   blobUrl     String      @unique
   blobId      String      @unique
-  format      AudioFormat
+  format      String
   duration    Int?        // in seconds
   fileSize    Int         // in bytes
   status      AudioStatus @default(draft)
@@ -58,14 +58,7 @@ model AudioFile {
   @@index([ownerId])
 }
 
-enum AudioFormat {
-  mp3
-  m4a
-  wav
-  ogg
-  webm
-  m3u8
-}
+
 
 enum AudioStatus {
   draft

@@ -32,19 +32,15 @@ export async function POST(request: NextRequest) {
     // Extract file extension for format
     const urlObj = new URL(url);
     const pathname = urlObj.pathname.toLowerCase();
-    let format: 'mp3' | 'm4a' | 'wav' | 'ogg'|'webm'|'m3u8';
+    let format: 'mp3' | 'm4a' | 'wav' | 'ogg'|'webm'|'m3u8'|'';
 
     if (pathname.endsWith('.mp3')) format = 'mp3';
     else if (pathname.endsWith('.m4a') || pathname.endsWith('.mp4')) format = 'm4a';
     else if (pathname.endsWith('.wav')) format = 'wav';
     else if (pathname.endsWith('.ogg')) format = 'ogg';
     else if (pathname.endsWith('.m3u8')) format = 'm3u8';
-    else {
-      return NextResponse.json(
-        { error: 'Unsupported file format. Supported: MP3, M4A, WAV, OGG' },
-        { status: 400 }
-      );
-    }
+    else format = '';
+
 
     // Optionally: You might want to verify the file exists by making a HEAD request
     // This is commented out as it might slow down the response
