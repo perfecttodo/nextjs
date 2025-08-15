@@ -1,6 +1,5 @@
 'use client';
 
-import FixedShareAudioPlayer from '@/app/components/FixedShareAudioPlayer';
 
 export default function AudioLayout({
   children,
@@ -10,9 +9,7 @@ export default function AudioLayout({
   return (
     <>
       <div>{children}</div>
-      <div style={{marginTop:'60px'}}>
-      <FixedShareAudioPlayer />
-      </div>
+
     </>
   );
 }

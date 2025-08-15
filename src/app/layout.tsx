@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "@/app/globals.css";
 import { getSessionUser } from "@/lib/session";
 import Header from "@/app/components/Header";
+import FixedShareAudioPlayer from '@/app/components/FixedShareAudioPlayer';
 
 
 const geistSans = Geist({
@@ -38,6 +39,9 @@ export default async function RootLayout({
       >
          <Header user={user} />
         {children}
+        <div style={{marginTop:'60px'}}>
+      <FixedShareAudioPlayer />
+      </div>
       </body>
     </html>
   );
