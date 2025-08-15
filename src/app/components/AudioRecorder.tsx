@@ -24,8 +24,6 @@ function formatDuration(seconds: number): string {
 }
 
 const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
-const MAX_CHUNK_SIZE = 4 * 1024 * 1024; // 4 MB
-const CLUSTER_DURATION_MS = 1000; // WebM clusters are typically 1 second
 
 export default function AudioRecorder({
   defaultTitle = 'New recording',
@@ -39,26 +37,40 @@ export default function AudioRecorder({
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [isRecording, setIsRecording] = useState(false);
-  const [recordingUrls, setRecordingUrls] = useState<string[] >([]);
+  const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
+  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const [title, setTitle] = useState(defaultTitle);
   const [status, setStatus] = useState<AudioStatus>(defaultStatus);
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [currentSize, setCurrentSize] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [totalChunks, setTotalChunks] = useState(0);
-  const [sampleChunkUrl, setSampleChunkUrl] = useState<string | null>(null);
-  const [chunkVerificationStatus, setChunkVerificationStatus] = useState<'idle' | 'verifying' | 'success' | 'failed'>('idle');
+  const [duration, setDuration] = useState(0); // Duration in seconds
 
+  useEffect(() => {
+    return () => {
+      // Cleanup
+      if (recordingUrl) URL.revokeObjectURL(recordingUrl);
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      }
+      if (durationIntervalRef.current) {
+        clearInterval(durationIntervalRef.current);
+      }
+    };
+  }, [recordingUrl]);
 
   const getSupportedMimeType = () => {
-    const types = [
-      'audio/webm;codecs=opus', // Best for chunking
-      'audio/webm',             // Fallback
-      'audio/ogg;codecs=opus',  // Alternative
+    const candidates = [
+      'audio/webm;codecs=opus',
+      'audio/ogg;codecs=opus',
+      'audio/mp4', // Safari
+      'audio/webm',
+      'audio/ogg',
     ];
-    return types.find(type => MediaRecorder.isTypeSupported(type)) || '';
+    for (const type of candidates) {
+      if (MediaRecorder.isTypeSupported(type)) return type;
+    }
+    return '';
   };
 
   const startRecording = async () => {
@@ -66,9 +78,6 @@ export default function AudioRecorder({
       setError('');
       setCurrentSize(0);
       setDuration(0);
-      setUploadProgress(0);
-      setSampleChunkUrl(null);
-      setChunkVerificationStatus('idle');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
@@ -82,12 +91,6 @@ export default function AudioRecorder({
           chunksRef.current.push(e.data);
           const newSize = currentSize + e.data.size;
           setCurrentSize(newSize);
-
-         // if(newSize > MAX_CHUNK_SIZE) {
-            recorderRef?.current?.stop();
-            recorder.start(1000);
-            setIsRecording(true);
-        //  }
           
           if (newSize >= MAX_SIZE_BYTES) {
             stopRecording();
@@ -98,23 +101,23 @@ export default function AudioRecorder({
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType });
         const url = URL.createObjectURL(blob);
-        setRecordingUrls([...recordingUrls, url]);
-
-
-
+        setRecordingBlob(blob);
+        setRecordingUrl(url);
         setIsRecording(false);
         
+        // Stop duration timer
         if (durationIntervalRef.current) {
           clearInterval(durationIntervalRef.current);
           durationIntervalRef.current = null;
         }
-        ``
+        
         if (mediaStreamRef.current) {
           mediaStreamRef.current.getTracks().forEach((t) => t.stop());
           mediaStreamRef.current = null;
         }
       };
 
+      // Start duration timer
       startTimeRef.current = Date.now();
       durationIntervalRef.current = setInterval(() => {
         if (startTimeRef.current) {
@@ -135,77 +138,42 @@ export default function AudioRecorder({
     }
   };
 
-  const calculateClusterBoundaries = (blob: Blob, durationMs: number): number[] => {
-    const boundaries = [];
-    const clusterCount = Math.ceil(durationMs / CLUSTER_DURATION_MS);
-    const clusterSize = blob.size / clusterCount;
-    
-    for (let i = 0; i < clusterCount; i++) {
-      boundaries.push(Math.floor(i * clusterSize));
-    }
-    boundaries.push(blob.size);
-    
-    return boundaries;
-  };
-
-  const createPlayableChunks = (originalBlob: Blob): Blob[] => {
-    if (!originalBlob.type.includes('webm') && !originalBlob.type.includes('ogg')) {
-      // For non-streamable formats, we can't properly split them
-      return [originalBlob];
-    }
-
-    const durationMs = duration * 1000;
-    const clusterBoundaries = calculateClusterBoundaries(originalBlob, durationMs);
-    const chunks: Blob[] = [];
-    let chunkStart = 0;
-    let currentChunkSize = 0;
-
-    for (let i = 1; i < clusterBoundaries.length; i++) {
-      const clusterEnd = clusterBoundaries[i];
-      const clusterSize = clusterEnd - chunkStart;
-      
-      if (currentChunkSize + clusterSize > MAX_CHUNK_SIZE && chunks.length > 0) {
-        // Finish current chunk
-        chunks.push(originalBlob.slice(chunkStart, clusterBoundaries[i - 1], originalBlob.type));
-        chunkStart = clusterBoundaries[i - 1];
-        currentChunkSize = 0;
-      }
-      
-      currentChunkSize += clusterSize;
-      
-      if (i === clusterBoundaries.length - 1) {
-        // Add remaining data
-        chunks.push(originalBlob.slice(chunkStart, clusterEnd, originalBlob.type));
-      }
-    }
-
-    return chunks;
-  };
-
-  const verifyChunkPlayability = async (chunk: Blob): Promise<boolean> => {
-    return new Promise((resolve) => {
-      const url = URL.createObjectURL(chunk);
-      const audio = new Audio();
-      
-      audio.src = url;
-      audio.preload = 'metadata';
-      
-      audio.onerror = () => {
-        URL.revokeObjectURL(url);
-        resolve(false);
-      };
-      
-      audio.oncanplay = () => {
-        URL.revokeObjectURL(url);
-        resolve(true);
-      };
-      
-      audio.load();
-    });
-  };
-
   const uploadRecording = async () => {
+    if (!recordingBlob) return;
+    try {
+      setIsUploading(true);
+      setError('');
+      const form = new FormData();
+      const ext = recordingBlob.type.includes('ogg')
+        ? 'ogg'
+        : recordingBlob.type.includes('mp4') || recordingBlob.type.includes('m4a')
+        ? 'm4a'
+        : recordingBlob.type.includes('wav')
+        ? 'wav'
+        : 'webm';
+      const file = new File([recordingBlob], `recording.${ext}`, { type: recordingBlob.type });
+      form.append('file', file);
+      form.append('title', title.trim() || 'New recording');
+      form.append('status', status);
+      form.append('duration', duration.toString()); // Add duration to form data
 
+      const res = await fetch('/api/audio/upload', { method: 'POST', body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      if (onUploaded) onUploaded();
+      
+      // Reset
+      setRecordingBlob(null);
+      if (recordingUrl) URL.revokeObjectURL(recordingUrl);
+      setRecordingUrl(null);
+      setTitle('New recording');
+      setCurrentSize(0);
+      setDuration(0);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Upload failed');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -216,23 +184,16 @@ export default function AudioRecorder({
       )}
       <div className="flex items-center gap-3 mb-3">
         {!isRecording ? (
-          <button 
-            onClick={startRecording} 
-            disabled={isUploading}
-            className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400"
-          >
+          <button onClick={startRecording} className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">
             Start Recording
           </button>
         ) : (
-          <button 
-            onClick={stopRecording} 
-            className="px-3 py-2 rounded bg-red-600 hover:bg-red-700 text-white"
-          >
+          <button onClick={stopRecording} className="px-3 py-2 rounded bg-red-600 hover:bg-red-700 text-white">
             Stop Recording
           </button>
         )}
         <input
-          className="border rounded px-2 py-1 text-sm flex-1"
+          className="border rounded px-2 py-1 text-sm"
           placeholder="Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -247,6 +208,7 @@ export default function AudioRecorder({
         </select>
       </div>
 
+      {/* Show current size and duration during recording */}
       {isRecording && (
         <div className="mb-3 text-sm text-gray-600">
           <div>Duration: {formatDuration(duration)}</div>
@@ -260,46 +222,24 @@ export default function AudioRecorder({
         </div>
       )}
 
-
-
-      {isUploading && (
-        <div className="space-y-3 mb-3">
-          <div>
-            <div className="text-sm text-gray-600 mb-1">
-              Uploading {uploadProgress.toFixed(0)}% ({Math.ceil((totalChunks * uploadProgress) / 100)} of {totalChunks} parts)
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div 
-                className="bg-green-600 h-2.5 rounded-full" 
-                style={{ width: `${uploadProgress}%` }}
-              ></div>
-            </div>
-          </div>
-
-          {chunkVerificationStatus === 'verifying' && (
-            <div className="text-sm text-blue-600">
-              Verifying chunk playability...
-            </div>
-          )}
-          {chunkVerificationStatus === 'failed' && (
-            <div className="text-sm text-red-600">
-              Chunk verification failed - audio may be corrupted
-            </div>
-          )}
-        </div>
-      )}
-
-      {sampleChunkUrl && (
+      {recordingUrl && (
         <div className="space-y-2 mb-3">
-          <h4 className="text-sm font-medium">First Chunk Preview:</h4>
-          <audio controls src={sampleChunkUrl} className="w-full" />
+          <audio controls src={recordingUrl} className="w-full" />
           <div className="text-xs text-gray-500">
-            This is a preview of the first chunk to verify playability
+            Type: {recordingBlob?.type || 'unknown'} | 
+            Size: {recordingBlob ? formatFileSize(recordingBlob.size) : 'unknown'} |
+            Duration: {formatDuration(duration)}
           </div>
         </div>
       )}
 
-
+      <button
+        disabled={!recordingBlob || isUploading}
+        onClick={uploadRecording}
+        className={`px-3 py-2 rounded ${!recordingBlob || isUploading ? 'bg-gray-300 text-gray-600' : 'bg-green-600 hover:bg-green-700 text-white'}`}
+      >
+        {isUploading ? 'Uploading...' : 'Upload Recording'}
+      </button>
     </div>
   );
 }
