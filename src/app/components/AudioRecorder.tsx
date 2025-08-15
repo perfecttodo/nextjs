@@ -78,6 +78,7 @@ export default function AudioRecorder({
     try {
       setError('');
       setCurrentSize(0);
+      curSizeRef.current = 0;
       setDuration(0);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
@@ -136,7 +137,6 @@ export default function AudioRecorder({
   const stopRecording = () => {
     if (recorderRef.current && isRecording) {
       recorderRef.current.stop();
-      curSizeRef.current = 0;
     }
   };
 
