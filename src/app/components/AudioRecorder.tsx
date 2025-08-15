@@ -266,7 +266,7 @@ export default function AudioRecorder({
 
       {recordingUrl && (
         <div className="space-y-2 mb-3">
-          <audio controls src={recordingUrl} className="w-full" />
+          <audio controls src={recordingUrl} className="w-full" loop/>
           <div className="text-xs text-gray-500">
             Type: {recordingBlob?.type || 'unknown'} | 
             Size: {recordingBlob ? formatFileSize(recordingBlob.size) : 'unknown'} |
