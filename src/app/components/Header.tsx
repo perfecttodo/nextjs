@@ -4,12 +4,15 @@ import { useEffect, useState } from 'react';
 import SignInSignOn from "./SignInSignOn";
 import Nav from "./Nav";
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Header({ user }: { user: any }) {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const headerHeight = '60px'; // Set your header height here
-
+  const pathname = usePathname();
+  const activeClasses =
+    'text-blue-600 hover:text-blue-700 bg-blue-50';
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -27,6 +30,14 @@ export default function Header({ user }: { user: any }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname === href; // Match only if pathname is exactly href
+    //return pathname === href || pathname.startsWith(href + '/');
+
+};
+
+
   return (
     <>
       <header
@@ -38,7 +49,7 @@ export default function Header({ user }: { user: any }) {
           {user ? (
             <>
               <span>
-                <Link href="/audio/manage" className="text-sm text-gray-600 underline">
+                <Link href="/audio/manage" className={`text-sm text-gray-600 underline ${isActive('/audio/manage') ? activeClasses : ''}`}>
                   Audio Manage
                 </Link>
               </span>

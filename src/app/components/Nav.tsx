@@ -16,10 +16,13 @@ const navItems: NavItem[] = [
 export default function Nav() {
   const pathname = usePathname();
 
+
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
-    return pathname === href || pathname.startsWith(href + '/');
-  };
+    return pathname === href; // Match only if pathname is exactly href
+    //return pathname === href || pathname.startsWith(href + '/');
+
+};
 
   const baseClasses =
     'px-2 py-1 text-gray-600 hover:text-gray-800 transition-colors rounded-md';
