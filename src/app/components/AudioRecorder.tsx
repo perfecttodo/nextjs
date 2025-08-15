@@ -83,11 +83,11 @@ export default function AudioRecorder({
           const newSize = currentSize + e.data.size;
           setCurrentSize(newSize);
 
-          if(newSize > MAX_CHUNK_SIZE) {
+         // if(newSize > MAX_CHUNK_SIZE) {
             recorderRef?.current?.stop();
             recorder.start(1000);
             setIsRecording(true);
-          }
+        //  }
           
           if (newSize >= MAX_SIZE_BYTES) {
             stopRecording();
