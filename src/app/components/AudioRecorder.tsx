@@ -44,6 +44,7 @@ export default function AudioRecorder({
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [currentSize, setCurrentSize] = useState(0);
+  const curSizeRef = useRef(0);
   const [duration, setDuration] = useState(0); // Duration in seconds
 
   useEffect(() => {
@@ -89,10 +90,10 @@ export default function AudioRecorder({
       recorder.ondataavailable = (e) => {
         if (e.data && e.data.size > 0) {
           chunksRef.current.push(e.data);
-          const newSize = currentSize + e.data.size;
-          setCurrentSize(newSize);
+          curSizeRef.current += e.data.size;
+          setCurrentSize(curSizeRef.current);
           
-          if (newSize >= MAX_SIZE_BYTES) {
+          if (curSizeRef.current >= MAX_SIZE_BYTES) {
             stopRecording();
           }
         }
@@ -167,6 +168,7 @@ export default function AudioRecorder({
       if (recordingUrl) URL.revokeObjectURL(recordingUrl);
       setRecordingUrl(null);
       setTitle('New recording');
+      curSizeRef.current = 0;
       setCurrentSize(0);
       setDuration(0);
     } catch (e) {
