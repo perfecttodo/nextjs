@@ -72,7 +72,6 @@ export default function ProfileClient({ user }: ProfileClientProps) {
                 {user.name || 'User'}
               </h2>
               <p className="text-gray-600">{user.email}</p>
-              <p className="text-sm text-gray-500 mt-1">Member since {new Date().toLocaleDateString()}</p>
             </div>
           </div>
 
