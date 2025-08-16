@@ -2,6 +2,25 @@ export type AudioFormat = 'mp3' | 'm4a' | 'wav' | 'ogg'|'m3u8';
 
 export type AudioStatus = 'draft' | 'published';
 
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Subcategory {
+  id: string;
+  name: string;
+  description?: string;
+  categoryId: string;
+  category: Category;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AudioFile {
   id: string;
   title: string;
@@ -13,6 +32,10 @@ export interface AudioFile {
   fileSize: number; // in bytes
   status: AudioStatus;
   ownerId: string;
+  categoryId?: string;
+  category?: Category;
+  subcategoryId?: string;
+  subcategory?: Subcategory;
   createdAt: string;
   updatedAt: string;
 }

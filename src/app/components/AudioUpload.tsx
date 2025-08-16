@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { AudioFormat, AudioStatus } from '../../types/audio';
+import CategorySelector from './CategorySelector';
 
 interface AudioUploadProps {
   onUploadSuccess: () => void;
@@ -15,6 +16,8 @@ export default function AudioUpload({ onUploadSuccess }: AudioUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -76,6 +79,11 @@ export default function AudioUpload({ onUploadSuccess }: AudioUploadProps) {
       return;
     }
 
+    if (!selectedCategoryId) {
+      setError('Please select a category.');
+      return;
+    }
+
     setIsUploading(true);
     setError('');
     setSuccess('');
@@ -85,6 +93,10 @@ export default function AudioUpload({ onUploadSuccess }: AudioUploadProps) {
       formData.append('file', selectedFile);
       formData.append('title', title.trim());
       formData.append('status', status);
+      formData.append('categoryId', selectedCategoryId);
+      if (selectedSubcategoryId) {
+        formData.append('subcategoryId', selectedSubcategoryId);
+      }
 
       const response = await fetch('/api/audio/upload', {
         method: 'POST',
@@ -101,6 +113,8 @@ export default function AudioUpload({ onUploadSuccess }: AudioUploadProps) {
       setTitle('');
       setSelectedFile(null);
       setStatus('draft');
+      setSelectedCategoryId('');
+      setSelectedSubcategoryId('');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -237,6 +251,15 @@ export default function AudioUpload({ onUploadSuccess }: AudioUploadProps) {
           </p>
         </div>
 
+        {/* Category Selection */}
+        <CategorySelector
+          selectedCategoryId={selectedCategoryId}
+          selectedSubcategoryId={selectedSubcategoryId}
+          onCategoryChange={setSelectedCategoryId}
+          onSubcategoryChange={setSelectedSubcategoryId}
+          required={true}
+        />
+
         {/* Error and Success Messages */}
         {error && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-md">
@@ -253,9 +276,9 @@ export default function AudioUpload({ onUploadSuccess }: AudioUploadProps) {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isUploading || !selectedFile || !title.trim()}
+          disabled={isUploading || !selectedFile || !title.trim() || !selectedCategoryId}
           className={`w-full py-2 px-4 rounded-md font-medium transition-colors ${
-            isUploading || !selectedFile || !title.trim()
+            isUploading || !selectedFile || !title.trim() || !selectedCategoryId
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
               : 'bg-blue-600 hover:bg-blue-700 text-white'
           }`}

@@ -15,12 +15,50 @@ export async function POST(request: NextRequest) {
     const title = formData.get('title') as string;
     const status = formData.get('status') as 'draft' | 'published';
     const duration = formData.get('duration') as string;
+    const categoryId = formData.get('categoryId') as string;
+    const subcategoryId = formData.get('subcategoryId') as string;
 
     if (!file || !title) {
       return NextResponse.json(
         { error: 'File and title are required' },
         { status: 400 }
       );
+    }
+
+    if (!categoryId) {
+      return NextResponse.json(
+        { error: 'Category is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate category exists
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId }
+    });
+
+    if (!category) {
+      return NextResponse.json(
+        { error: 'Invalid category' },
+        { status: 400 }
+      );
+    }
+
+    // Validate subcategory if provided
+    if (subcategoryId) {
+      const subcategory = await prisma.subcategory.findFirst({
+        where: {
+          id: subcategoryId,
+          categoryId: categoryId
+        }
+      });
+
+      if (!subcategory) {
+        return NextResponse.json(
+          { error: 'Invalid subcategory for the selected category' },
+          { status: 400 }
+        );
+      }
     }
 
     // Normalize mime type (strip codecs params)
@@ -88,6 +126,8 @@ export async function POST(request: NextRequest) {
       status: status || 'draft',
       ownerId: user.sub,
       duration: duration ? parseInt(duration) : 0,
+      categoryId: categoryId,
+      subcategoryId: subcategoryId || null,
     };
    // console.error('audioFile', data);
 

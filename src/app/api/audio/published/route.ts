@@ -18,10 +18,36 @@ export async function GET(request: NextRequest) {
         select: {
           id: true,
           title: true,
+          originalName: true,
           blobUrl: true,
+          blobId: true,
           format: true,
           duration: true,
+          fileSize: true,
+          status: true,
+          ownerId: true,
           createdAt: true,
+          updatedAt: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              color: true,
+              createdAt: true,
+              updatedAt: true,
+            }
+          },
+          subcategory: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              categoryId: true,
+              createdAt: true,
+              updatedAt: true,
+            }
+          },
           owner: {
             select: {
               name: true,

@@ -3,7 +3,7 @@
 import { Suspense, useState } from 'react';
 import dynamic from 'next/dynamic';
 const AudioUpload = dynamic(() => import('@/app/components/AudioUpload'), { ssr: false });
-const AudioManagement = dynamic(() => import('@/app/components/AudioManagement'), { ssr: false });
+const CategorizedAudioManagement = dynamic(() => import('@/app/components/CategorizedAudioManagement'), { ssr: false });
 const AudioRecorder = dynamic(() => import('@/app/components/AudioRecorder'), { ssr: false });
 const UrlAudio = dynamic(() => import('@/app/components/UrlAudio'), { ssr: false });
 
@@ -37,7 +37,7 @@ export default function AudioManagePage() {
           {/* Management Section */}
           <div>
             <Suspense fallback={<div className="bg-white rounded-lg shadow p-6 h-96 animate-pulse" />}>
-              <AudioManagement key={refreshKey} onRefresh={handleRefresh} />
+              <CategorizedAudioManagement key={refreshKey} onRefresh={handleRefresh} />
             </Suspense>
           </div>
         </div>

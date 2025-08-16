@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-const AudioList = dynamic(() => import('@/app/components/AudioList'), { ssr: false });
+const CategorizedAudioList = dynamic(() => import('@/app/components/CategorizedAudioList'), { ssr: false });
 import { AudioFile } from '@/types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 import { PulseLoader } from 'react-spinners';
@@ -50,10 +50,7 @@ export default function AudioPlayerPage() {
       setAudio(audio)
       updateAudioFiles(audioFiles);
     }
-
-
   };
-
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 pb-32">
@@ -82,7 +79,7 @@ export default function AudioPlayerPage() {
                 </div>
               </div>
             }>
-              <AudioList
+              <CategorizedAudioList
                 audioFiles={audioFiles}
                 currentAudio={currentAudio}
                 onAudioSelect={handleAudioSelect}

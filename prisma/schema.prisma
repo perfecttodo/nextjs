@@ -39,26 +39,55 @@ model User {
   @@index([githubId])
 }
 
+model Category {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  description String?
+  color       String?      // Hex color for UI display
+  subcategories Subcategory[]
+  audioFiles  AudioFile[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Subcategory {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  categoryId  String
+  category    Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  audioFiles  AudioFile[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([name, categoryId])
+  @@index([categoryId])
+}
+
 model AudioFile {
-  id          String      @id @default(uuid())
-  title       String
-  originalName String
-  blobUrl     String      @unique
-  blobId      String      @unique
-  format      String
-  duration    Int?        // in seconds
-  fileSize    Int         // in bytes
-  status      AudioStatus @default(draft)
-  ownerId     String
-  owner       User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id            String      @id @default(uuid())
+  title         String
+  originalName  String
+  blobUrl       String      @unique
+  blobId        String      @unique
+  format        String
+  duration      Int?        // in seconds
+  fileSize      Int         // in bytes
+  status        AudioStatus @default(draft)
+  ownerId       String
+  owner         User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  categoryId    String?
+  category      Category?   @relation(fields: [categoryId], references: [id])
+  subcategoryId String?
+  subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   @@index([status, createdAt])
   @@index([ownerId])
+  @@index([categoryId])
+  @@index([subcategoryId])
 }
-
-
 
 enum AudioStatus {
   draft

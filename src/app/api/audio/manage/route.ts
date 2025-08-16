@@ -39,6 +39,26 @@ export async function GET(request: NextRequest) {
           status: true,
           createdAt: true,
           updatedAt: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              color: true,
+              createdAt: true,
+              updatedAt: true,
+            }
+          },
+          subcategory: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              categoryId: true,
+              createdAt: true,
+              updatedAt: true,
+            }
+          },
         },
       }),
       prisma.audioFile.count({ where }),
@@ -71,7 +91,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, title, status } = body;
+    const { id, title, status, categoryId, subcategoryId } = body;
 
     if (!id || !title) {
       return NextResponse.json(
@@ -92,12 +112,45 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Validate category if provided
+    if (categoryId) {
+      const category = await prisma.category.findUnique({
+        where: { id: categoryId }
+      });
+
+      if (!category) {
+        return NextResponse.json(
+          { error: 'Invalid category' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate subcategory if provided
+    if (subcategoryId && categoryId) {
+      const subcategory = await prisma.subcategory.findFirst({
+        where: {
+          id: subcategoryId,
+          categoryId: categoryId
+        }
+      });
+
+      if (!subcategory) {
+        return NextResponse.json(
+          { error: 'Invalid subcategory for the selected category' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Update the audio file
     const updatedFile = await prisma.audioFile.update({
       where: { id },
       data: {
         title: title.trim(),
         ...(status && { status }),
+        ...(categoryId && { categoryId }),
+        ...(subcategoryId && { subcategoryId }),
         updatedAt: new Date(),
       },
     });
