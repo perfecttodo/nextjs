@@ -87,9 +87,9 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                     <span className="sm:hidden">{tab.shortLabel}</span>
                     <span className="hidden sm:inline">{tab.label}</span>
                   </div>
-                  <div className="text-xs text-gray-400 hidden lg:block">
+                 {(activeTab === tab.id&&<div className="text-xs text-gray-400 hidden lg:block">
                     {tab.description}
-                  </div>
+                  </div>)}
                 </div>
               </div>
             </button>
