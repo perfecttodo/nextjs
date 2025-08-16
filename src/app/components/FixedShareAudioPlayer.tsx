@@ -288,6 +288,32 @@ export default function FixedAudioPlayer() {
 
   return (
     <div style={{marginTop:'60px'}}>
+      {/* CSS Animations */}
+      <style jsx>{`
+        @keyframes slideInBounce {
+          0% {
+            transform: translateX(-100%);
+          }
+          70% {
+            transform: translateX(5%);
+          }
+          100% {
+            transform: translateX(0%);
+          }
+        }
+        
+        @keyframes fadeInUp {
+          0% {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+      
       {/* Video.js player (hidden) */}
       <div data-vjs-player style={{ display: 'none' }}>
         <video
@@ -299,9 +325,19 @@ export default function FixedAudioPlayer() {
       </div>
 
       {/* Playlist Sidebar */}
-      {showPlaylist && (
-        <div className="fixed left-0 top-16 bottom-20 w-80 bg-white border-r border-gray-200 shadow-lg z-40 overflow-y-auto">
-          <div className="p-4 border-b border-gray-200">
+      <div 
+        className={`fixed left-0 top-16 bottom-20 w-80 bg-white border-r border-gray-200 z-40 overflow-y-auto transition-all duration-300 ease-in-out transform ${
+          showPlaylist 
+            ? 'translate-x-0 shadow-2xl' 
+            : '-translate-x-full shadow-none'
+        }`}
+        style={{
+          animation: showPlaylist ? 'slideInBounce 0.4s ease-out' : 'none'
+        }}
+      >
+          <div className={`p-4 border-b border-gray-200 transition-all duration-500 ease-in-out ${
+            showPlaylist ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+          }`}>
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">Playlist</h3>
@@ -316,7 +352,9 @@ export default function FixedAudioPlayer() {
               </button>
             </div>
           </div>
-          <div className="p-2">
+          <div className={`p-2 transition-opacity duration-500 ease-in-out ${
+            showPlaylist ? 'opacity-100' : 'opacity-0'
+          }`}>
             {audioFiles.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <div className="text-4xl mb-2">🎵</div>
@@ -327,11 +365,15 @@ export default function FixedAudioPlayer() {
                 <div
                   key={track.id}
                   onClick={() => setAudio(track)}
-                  className={`p-3 rounded-lg cursor-pointer transition-colors group ${
+                  className={`p-3 rounded-lg cursor-pointer transition-all duration-300 ease-in-out group ${
                     currentIndex === index
                       ? 'bg-blue-100 border-l-4 border-blue-500'
                       : 'hover:bg-gray-50'
                   }`}
+                  style={{
+                    animationDelay: showPlaylist ? `${index * 50}ms` : '0ms',
+                    animation: showPlaylist ? 'fadeInUp 0.5s ease-out forwards' : 'none'
+                  }}
                 >
                   <div className="flex items-center space-x-3">
                     <div className="flex-shrink-0">
@@ -375,10 +417,19 @@ export default function FixedAudioPlayer() {
               ))
             )}
           </div>
-        </div>
-      )}
+                </div>
 
-      {/* Player UI */}
+        {/* Backdrop overlay for click outside */}
+        <div 
+          className={`fixed inset-0  z-30 transition-all duration-300 ease-in-out ${
+            showPlaylist 
+              ? 'bg-opacity-25 pointer-events-auto' 
+              : 'bg-opacity-0 pointer-events-none'
+          }`}
+          onClick={() => setShowPlaylist(false)}
+        />
+
+        {/* Player UI */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
         {/* Progress bar */}
         <div className="absolute -top-1 left-0 right-0">
@@ -434,10 +485,10 @@ export default function FixedAudioPlayer() {
           {/* Playlist toggle */}
           <button
             onClick={() => setShowPlaylist(!showPlaylist)}
-            className={`p-2 rounded-md transition-colors relative ${
+            className={`p-2 rounded-md transition-all duration-200 ease-in-out relative transform ${
               showPlaylist 
-                ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' 
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                ? 'bg-blue-100 text-blue-600 hover:bg-blue-200 scale-105' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:scale-105'
             }`}
             title={showPlaylist ? 'Hide playlist' : 'Show playlist'}
           >
