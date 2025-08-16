@@ -37,8 +37,6 @@ export default function FixedAudioPlayer() {
   const playerRef = useRef<any>(null);
   const [userInteracted, setUserInteracted] = useState(false);
 
-
-
   const handleTimeUpdate = () => {
     if (!playerRef.current) return;
     const time = playerRef.current.currentTime();
@@ -73,11 +71,9 @@ export default function FixedAudioPlayer() {
     if (player) return;
 
     if (!player) {
-      // Initialize new player only if it doesn't exist
       player = videojs(videoRef.current, {
         html5: {
           vhs: {
-            // Optional VHS configuration
             enableLowInitialPlaylist: true,
             smoothQualityChange: true,
             overrideNative: true
@@ -197,12 +193,9 @@ export default function FixedAudioPlayer() {
         return 'audio/mp4';
       case 'm3u8':
         return 'application/x-mpegURL';
-
       default:
         return 'audio/mpeg';
     }
-
-
   }
   // Handle user interaction for autoplay policies
   useEffect(() => {
@@ -218,12 +211,9 @@ export default function FixedAudioPlayer() {
     if (!playerRef.current || !audio) return;
 
     const player = playerRef.current;
-
-    // Store current play state
     const wasPlaying = isPlaying;
     player.pause();
 
-    // Set new source
     let url = audio.blobUrl
     let type = getType(audio);
 
@@ -296,10 +286,10 @@ export default function FixedAudioPlayer() {
       <style jsx>{`
         @keyframes slideInBounce {
           0% {
-            transform: translateX(-100%);
+            transform: translateX(100%);
           }
           70% {
-            transform: translateX(5%);
+            transform: translateX(-5%);
           }
           100% {
             transform: translateX(0%);
@@ -328,12 +318,12 @@ export default function FixedAudioPlayer() {
         />
       </div>
 
-      {/* Playlist Sidebar */}
+      {/* Playlist Sidebar - Now slides from right */}
       <div 
-        className={`fixed left-0 top-16 bottom-20 w-80 bg-white border-r border-gray-200 z-40 overflow-y-auto transition-all duration-300 ease-in-out transform ${
+        className={`fixed right-0 top-16 bottom-20 w-80 bg-white border-l border-gray-200 z-40 overflow-y-auto transition-all duration-300 ease-in-out transform ${
           showPlaylist 
             ? 'translate-x-0 shadow-2xl' 
-            : '-translate-x-full shadow-none'
+            : 'translate-x-full shadow-none'
         }`}
         style={{
           animation: showPlaylist ? 'slideInBounce 0.4s ease-out' : 'none'
@@ -387,8 +377,7 @@ export default function FixedAudioPlayer() {
           <div className={`p-2 transition-opacity duration-500 ease-in-out ${
             showPlaylist ? 'opacity-100' : 'opacity-0'
           }`}>
-                        {viewMode === 'playlist' ? (
-              // Playlist View
+            {viewMode === 'playlist' ? (
               audioFiles.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <div className="text-4xl mb-2">🎵</div>
@@ -451,7 +440,6 @@ export default function FixedAudioPlayer() {
                 ))
               )
             ) : (
-              // History View
               playHistory.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <div className="text-4xl mb-2">⏰</div>
