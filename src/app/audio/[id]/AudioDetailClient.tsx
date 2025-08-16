@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AudioFile } from '@/types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
+import { PulseLoader } from 'react-spinners';
 
 interface AudioDetailClientProps {
   audioId: string;
@@ -18,27 +19,18 @@ export default function AudioDetailClient({ audioId }: AudioDetailClientProps) {
 
   useEffect(() => {
     if (!audioId) return;
-    
-    console.log('Audio ID:', audioId);
-    
+
     const fetchAudioDetails = async () => {
       try {
         setLoading(true);
-        console.log('Fetching audio details for ID:', audioId);
         const response = await fetch(`/api/audio/${audioId}`);
-        console.log('Response status:', response.status);
         if (response.ok) {
           const data = await response.json();
-          console.log('Audio data:', data);
           setAudioState(data.audio);
-          // Set this audio in the player store
-  
         } else {
-          console.error('Response not ok:', response.status, response.statusText);
           setError('Audio file not found');
         }
       } catch (error) {
-        console.error('Error fetching audio details:', error);
         setError('Failed to load audio file');
       } finally {
         setLoading(false);
@@ -92,7 +84,7 @@ export default function AudioDetailClient({ audioId }: AudioDetailClientProps) {
       <div className="min-h-screen bg-gray-100 p-6 pb-32">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <PulseLoader color="#3498db" loading={loading} size={15} />
             <p className="text-gray-600">Loading audio details...</p>
           </div>
         </div>
@@ -208,7 +200,6 @@ export default function AudioDetailClient({ audioId }: AudioDetailClientProps) {
           </div>
         </div>
 
-
         {/* Actions */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Actions</h3>
@@ -238,4 +229,3 @@ export default function AudioDetailClient({ audioId }: AudioDetailClientProps) {
     </div>
   );
 }
-
