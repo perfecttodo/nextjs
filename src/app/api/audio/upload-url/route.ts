@@ -10,13 +10,49 @@ export async function POST(request: NextRequest) {
     }
 
     // Changed from formData to JSON parsing since the frontend sends JSON
-    const { url, title, status = 'draft', duration = 0 } = await request.json();
+    const { url, title, status = 'draft', duration = 0, categoryId, subcategoryId } = await request.json();
 
     if (!url || !title) {
       return NextResponse.json(
         { error: 'URL and title are required' },
         { status: 400 }
       );
+    }
+
+    if (!categoryId) {
+      return NextResponse.json(
+        { error: 'Category is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate category exists
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId }
+    });
+
+    if (!category) {
+      return NextResponse.json(
+        { error: 'Invalid category' },
+        { status: 400 }
+      );
+    }
+
+    // Validate subcategory if provided
+    if (subcategoryId) {
+      const subcategory = await prisma.subcategory.findFirst({
+        where: {
+          id: subcategoryId,
+          categoryId: categoryId
+        }
+      });
+
+      if (!subcategory) {
+        return NextResponse.json(
+          { error: 'Invalid subcategory for the selected category' },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate URL format
@@ -41,26 +77,6 @@ export async function POST(request: NextRequest) {
     else if (pathname.endsWith('.m3u8')) format = 'm3u8';
     else format = '';
 
-
-    // Optionally: You might want to verify the file exists by making a HEAD request
-    // This is commented out as it might slow down the response
-    
-   /* try {
-      const headResponse = await fetch(url, { method: 'HEAD' });
-      if (!headResponse.ok) {
-        return NextResponse.json(
-          { error: 'Audio file not found at the provided URL' },
-          { status: 400 }
-        );
-      }
-    } catch (error) {
-      return NextResponse.json(
-        { error: 'Failed to verify audio file at the provided URL' },
-        { status: 400 }
-      );
-    }
-    */
-
     // Save to database
     const audioFile = await prisma.audioFile.create({
       data: {
@@ -73,6 +89,8 @@ export async function POST(request: NextRequest) {
         status,
         ownerId: user.sub,
         duration: typeof duration === 'string' ? parseInt(duration) : duration,
+        categoryId: categoryId,
+        subcategoryId: subcategoryId || null,
       },
     });
 

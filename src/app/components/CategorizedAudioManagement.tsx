@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { AudioStatus, AudioFile, Category } from '../../types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 import CategorySelector from './CategorySelector';
+import AudioFormFields from './AudioFormFields';
 
 interface CategorizedAudioManagementProps {
   onRefresh: () => void;
@@ -272,30 +273,18 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
                     {editingId === audio.id ? (
                       // Edit Mode
                       <div className="space-y-3">
-                        <div className="space-y-3">
-                          <input
-                            type="text"
-                            value={editTitle}
-                            onChange={(e) => setEditTitle(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Title"
-                          />
-                          <select
-                            value={editStatus}
-                            onChange={(e) => setEditStatus(e.target.value as AudioStatus)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          >
-                            <option value="draft">Draft</option>
-                            <option value="published">Published</option>
-                          </select>
-                          <CategorySelector
-                            selectedCategoryId={editCategoryId}
-                            selectedSubcategoryId={editSubcategoryId}
-                            onCategoryChange={setEditCategoryId}
-                            onSubcategoryChange={setEditSubcategoryId}
-                            required={false}
-                          />
-                        </div>
+                        <AudioFormFields
+                          title={editTitle}
+                          status={editStatus}
+                          selectedCategoryId={editCategoryId}
+                          selectedSubcategoryId={editSubcategoryId}
+                          onTitleChange={setEditTitle}
+                          onStatusChange={setEditStatus}
+                          onCategoryChange={setEditCategoryId}
+                          onSubcategoryChange={setEditSubcategoryId}
+                          categoryRequired={false}
+                          showStatusHelp={false}
+                        />
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={handleSave}

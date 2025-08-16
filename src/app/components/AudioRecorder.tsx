@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { AudioStatus } from '@/types/audio';
+import AudioFormFields from './AudioFormFields';
 
 interface AudioRecorderProps {
   defaultTitle?: string;
@@ -71,6 +72,8 @@ export default function AudioRecorder({
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const [title, setTitle] = useState(defaultTitle);
   const [status, setStatus] = useState<AudioStatus>(defaultStatus);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>('');
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [currentSize, setCurrentSize] = useState(0);
@@ -179,6 +182,12 @@ export default function AudioRecorder({
 
   const uploadRecording = async () => {
     if (!recordingBlob) return;
+    
+    if (!selectedCategoryId) {
+      setError('Please select a category before uploading.');
+      return;
+    }
+    
     try {
       setIsUploading(true);
       setError('');
@@ -195,6 +204,10 @@ export default function AudioRecorder({
       form.append('title', title.trim() || 'New recording');
       form.append('status', status);
       form.append('duration', duration.toString());
+      form.append('categoryId', selectedCategoryId);
+      if (selectedSubcategoryId) {
+        form.append('subcategoryId', selectedSubcategoryId);
+      }
 
       const res = await fetch('/api/audio/upload', { method: 'POST', body: form });
       const data = await res.json();
@@ -206,6 +219,8 @@ export default function AudioRecorder({
       if (recordingUrl) URL.revokeObjectURL(recordingUrl);
       setRecordingUrl(null);
       setTitle('New recording');
+      setSelectedCategoryId('');
+      setSelectedSubcategoryId('');
       curSizeRef.current = 0;
       setCurrentSize(0);
       setDuration(0);
@@ -217,78 +232,84 @@ export default function AudioRecorder({
   };
 
   return (
-<div className="bg-white rounded-lg shadow p-4">
-  <h3 className="font-semibold text-gray-800 mb-3 text-lg">Record Audio</h3>
-  {error && (
-    <div className="p-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded mb-3">{error}</div>
-  )}
-  
-  <div className="flex flex-col gap-3 mb-3">
-    {!isRecording ? (
-      <div className="flex flex-col gap-2">
-        <button onClick={() => startRecording(false)} className="w-full px-4 py-3 rounded bg-blue-600 hover:bg-blue-700 text-white">
-          Start Unlimited Recording
+    <div className="space-y-6">
+      {error && (
+        <div className="p-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded">{error}</div>
+      )}
+      
+      <div className="flex flex-col gap-3">
+        {!isRecording ? (
+          <div className="flex flex-col gap-2">
+            <button onClick={() => startRecording(false)} className="w-full px-4 py-3 rounded bg-blue-600 hover:bg-blue-700 text-white">
+              Start Unlimited Recording
+            </button>
+            <button onClick={() => startRecording(true)} className="w-full px-4 py-3 rounded bg-blue-600 hover:bg-blue-700 text-white">
+              Start 4M Recording
+            </button>
+          </div>
+        ) : (
+          <button onClick={stopRecording} className="w-full px-4 py-3 rounded bg-red-600 hover:bg-red-700 text-white">
+            Stop Recording
+          </button>
+        )}
+      </div>
+
+      {/* Show current size and duration during recording */}
+      {isRecording && (
+        <div className="text-sm text-gray-600">
+          <div>Duration: {formatDuration(duration)}</div>
+          <div>Recording: {formatFileSize(currentSize)} / {formatFileSize(MAX_SIZE_BYTES)}</div>
+          <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+            <div 
+              className="bg-blue-600 h-2.5 rounded-full" 
+              style={{ width: `${Math.min(100, (currentSize / MAX_SIZE_BYTES) * 100)}%` }}
+            ></div>
+          </div>
+        </div>
+      )}
+
+      {recordingUrl && (
+        <div className="space-y-2">
+          <audio controls src={recordingUrl} className="w-full" loop />
+          <div className="text-xs text-gray-500">
+            Type: {recordingBlob?.type || 'unknown'} | 
+            Size: {recordingBlob ? formatFileSize(recordingBlob.size) : 'unknown'} |
+            Duration: {formatDuration(duration)}
+          </div>
+        </div>
+      )}
+
+      {/* Common Form Fields - only show when there's a recording */}
+      {recordingBlob && (
+        <div>
+          <AudioFormFields
+            title={title}
+            status={status}
+            selectedCategoryId={selectedCategoryId}
+            selectedSubcategoryId={selectedSubcategoryId}
+            onTitleChange={setTitle}
+            onStatusChange={setStatus}
+            onCategoryChange={setSelectedCategoryId}
+            onSubcategoryChange={setSelectedSubcategoryId}
+            categoryRequired={true}
+            showStatusHelp={true}
+          />
+        </div>
+      )}
+
+      {recordingBlob && (
+        <button
+          disabled={isUploading || !selectedCategoryId}
+          onClick={uploadRecording}
+          className={`w-full px-4 py-3 rounded ${
+            !recordingBlob || isUploading || !selectedCategoryId 
+              ? 'bg-gray-300 text-gray-600' 
+              : 'bg-green-600 hover:bg-green-700 text-white'
+          }`}
+        >
+          {isUploading ? 'Uploading...' : 'Upload Recording'}
         </button>
-        <button onClick={() => startRecording(true)} className="w-full px-4 py-3 rounded bg-blue-600 hover:bg-blue-700 text-white">
-          Start 4M Recording
-        </button>
-      </div>
-    ) : (
-      <button onClick={stopRecording} className="w-full px-4 py-3 rounded bg-red-600 hover:bg-red-700 text-white">
-        Stop Recording
-      </button>
-    )}
-    
-    <input
-      className="border rounded px-3 py-2 text-sm"
-      placeholder="Title"
-      value={title}
-      onChange={(e) => setTitle(e.target.value)}
-    />
-    <select
-      className="border rounded px-3 py-2 text-sm"
-      value={status}
-      onChange={(e) => setStatus(e.target.value as AudioStatus)}
-    >
-      <option value="draft">Draft</option>
-      <option value="published">Published</option>
-    </select>
-  </div>
-
-  {/* Show current size and duration during recording */}
-  {isRecording && (
-    <div className="mb-3 text-sm text-gray-600">
-      <div>Duration: {formatDuration(duration)}</div>
-      <div>Recording: {formatFileSize(currentSize)} / {formatFileSize(MAX_SIZE_BYTES)}</div>
-      <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
-        <div 
-          className="bg-blue-600 h-2.5 rounded-full" 
-          style={{ width: `${Math.min(100, (currentSize / MAX_SIZE_BYTES) * 100)}%` }}
-        ></div>
-      </div>
+      )}
     </div>
-  )}
-
-  {recordingUrl && (
-    <div className="space-y-2 mb-3">
-      <audio controls src={recordingUrl} className="w-full" loop />
-      <div className="text-xs text-gray-500">
-        Type: {recordingBlob?.type || 'unknown'} | 
-        Size: {recordingBlob ? formatFileSize(recordingBlob.size) : 'unknown'} |
-        Duration: {formatDuration(duration)}
-      </div>
-    </div>
-  )}
-
-  {recordingBlob && (
-    <button
-      disabled={isUploading}
-      onClick={uploadRecording}
-      className={`w-full px-4 py-3 rounded ${!recordingBlob || isUploading ? 'bg-gray-300 text-gray-600' : 'bg-green-600 hover:bg-green-700 text-white'}`}
-    >
-      {isUploading ? 'Uploading...' : 'Upload Recording'}
-    </button>
-  )}
-</div>
   );
 }
