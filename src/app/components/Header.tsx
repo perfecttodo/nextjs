@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import SignInSignOn from "./SignInSignOn";
 import Nav from "./Nav";
+import UserDropdown from "./UserDropdown";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -47,19 +48,7 @@ export default function Header({ user }: { user: any }) {
         <Nav />
         <div className="flex items-center gap-3">
           {user ? (
-            <>
-              <span>
-                <Link href="/audio-man" className={`text-sm text-gray-600 underline ${isActive('/audio-man') ? activeClasses : ''}`}>
-                  Audio Manage
-                </Link>
-              </span>
-              <span className="text-sm text-gray-600">{user.name || user.email}</span>
-              <form action="/api/auth/logout" method="post">
-                <button className="text-sm underline" type="submit">
-                  Logout
-                </button>
-              </form>
-            </>
+            <UserDropdown user={user} />
           ) : (
             <SignInSignOn />
           )}
