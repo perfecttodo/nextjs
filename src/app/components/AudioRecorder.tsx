@@ -288,7 +288,6 @@ export default function AudioRecorder({
       )}
 
       {/* Common Form Fields - only show when there's a recording */}
-      {recordingBlob && (
         <div>
           <AudioFormFields
             title={title}
@@ -303,7 +302,6 @@ export default function AudioRecorder({
             showStatusHelp={true}
           />
         </div>
-      )}
 
       {recordingBlob && (
         <button
