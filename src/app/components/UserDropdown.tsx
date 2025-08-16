@@ -122,7 +122,7 @@ export default function UserDropdown({ user }: UserDropdownProps) {
             {/* Navigation Links */}
             <div className="py-1">
               <Link
-                href="/profile"
+                href="/user/profile"
                 className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
