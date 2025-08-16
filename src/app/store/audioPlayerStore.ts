@@ -15,6 +15,7 @@ interface AudioPlayerState {
   currentIndex: number;
   currentTime: number;
   duration: number;
+  playHistory: AudioFile[];
   callback: PlayerCallback | null;
   
   // State actions
@@ -33,24 +34,48 @@ interface AudioPlayerState {
   // Playlist management
   removeTrack: (index: number) => void;
   
+  // Play history management
+  addToHistory: (audio: AudioFile) => void;
+  clearHistory: () => void;
+  removeFromHistory: (index: number) => void;
+  
   // Callback management
   setCallback: (callback: PlayerCallback | null) => void;
 }
 
-export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => ({
-  audio: null,
-  isPlaying: false,
-  playMode: 'sequence',
-  audioFiles: [],
-  currentIndex: -1,
-  currentTime: 0,
-  duration: 0,
-  callback: null,
+export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
+  // Load play history from localStorage on initialization
+  let initialPlayHistory: AudioFile[] = [];
+  try {
+    if (typeof window !== 'undefined') {
+      const savedHistory = localStorage.getItem('audioPlayHistory');
+      if (savedHistory) {
+        initialPlayHistory = JSON.parse(savedHistory);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load play history from localStorage:', error);
+  }
+
+  return {
+    audio: null,
+    isPlaying: false,
+    playMode: 'sequence',
+    audioFiles: [],
+    currentIndex: -1,
+    currentTime: 0,
+    duration: 0,
+    playHistory: initialPlayHistory,
+    callback: null,
 
   setAudio: (audio) => {
     const { audioFiles } = get();
     const currentIndex = audioFiles.findIndex(file => file.id === audio.id);
     set({ audio, isPlaying: true, currentIndex: currentIndex >= 0 ? currentIndex : -1 });
+    
+    // Add to play history
+    get().addToHistory(audio);
+    
     get().callback?.(get());
   },
   setAudioFiles:(audioFiles)=>{
@@ -168,8 +193,59 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => ({
     get().callback?.(get());
   },
 
+  // Play history management
+  addToHistory: (audio) => {
+    const { playHistory } = get();
+    // Remove if already exists to avoid duplicates
+    const filteredHistory = playHistory.filter(item => item.id !== audio.id);
+    // Add to beginning of history
+    const newHistory = [audio, ...filteredHistory].slice(0, 50); // Keep last 50 items
+    
+    set({ playHistory: newHistory });
+    
+    // Save to localStorage
+    try {
+      localStorage.setItem('audioPlayHistory', JSON.stringify(newHistory));
+    } catch (error) {
+      console.error('Failed to save play history to localStorage:', error);
+    }
+    
+    get().callback?.(get());
+  },
+
+  clearHistory: () => {
+    set({ playHistory: [] });
+    
+    // Clear from localStorage
+    try {
+      localStorage.removeItem('audioPlayHistory');
+    } catch (error) {
+      console.error('Failed to clear play history from localStorage:', error);
+    }
+    
+    get().callback?.(get());
+  },
+
+  removeFromHistory: (index) => {
+    const { playHistory } = get();
+    if (index < 0 || index >= playHistory.length) return;
+    
+    const newHistory = playHistory.filter((_, i) => i !== index);
+    set({ playHistory: newHistory });
+    
+    // Update localStorage
+    try {
+      localStorage.setItem('audioPlayHistory', JSON.stringify(newHistory));
+    } catch (error) {
+      console.error('Failed to update play history in localStorage:', error);
+    }
+    
+    get().callback?.(get());
+  },
+
   // Single callback management
   setCallback: (callback) => {
     set({ callback });
   }
-}));
+  };
+});

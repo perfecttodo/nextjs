@@ -15,6 +15,7 @@ export default function FixedAudioPlayer() {
     duration,
     audioFiles,
     currentIndex,
+    playHistory,
     play,
     pause,
     next,
@@ -25,9 +26,12 @@ export default function FixedAudioPlayer() {
     setDuration,
     setAudio,
     removeTrack,
+    removeFromHistory,
+    clearHistory,
   } = useAudioPlayerStore();
 
   const [showPlaylist, setShowPlaylist] = useState(false);
+  const [viewMode, setViewMode] = useState<'playlist' | 'history'>('playlist');
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<any>(null);
@@ -338,10 +342,14 @@ export default function FixedAudioPlayer() {
           <div className={`p-4 border-b border-gray-200 transition-all duration-500 ease-in-out ${
             showPlaylist ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
           }`}>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <div>
-                <h3 className="text-lg font-semibold text-gray-800">Playlist</h3>
-                <p className="text-sm text-gray-500">{audioFiles.length} tracks</p>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {viewMode === 'playlist' ? 'Playlist' : 'Play History'}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {viewMode === 'playlist' ? `${audioFiles.length} tracks` : `${playHistory.length} items`}
+                </p>
               </div>
               <button
                 onClick={() => setShowPlaylist(false)}
@@ -351,57 +359,83 @@ export default function FixedAudioPlayer() {
                 ✕
               </button>
             </div>
+            
+            {/* View Mode Toggle */}
+            <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('playlist')}
+                className={`px-3 py-1 text-sm rounded-md transition-all duration-200 ${
+                  viewMode === 'playlist'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                Playlist
+              </button>
+              <button
+                onClick={() => setViewMode('history')}
+                className={`px-3 py-1 text-sm rounded-md transition-all duration-200 ${
+                  viewMode === 'history'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-blue-600 hover:text-blue-700'
+                }`}
+              >
+                History
+              </button>
+            </div>
           </div>
           <div className={`p-2 transition-opacity duration-500 ease-in-out ${
             showPlaylist ? 'opacity-100' : 'opacity-0'
           }`}>
-            {audioFiles.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <div className="text-4xl mb-2">🎵</div>
-                <p>No tracks in playlist</p>
-              </div>
-            ) : (
-              audioFiles.map((track, index) => (
-                <div
-                  key={track.id}
-                  onClick={() => setAudio(track)}
-                  className={`p-3 rounded-lg cursor-pointer transition-all duration-300 ease-in-out group ${
-                    currentIndex === index
-                      ? 'bg-blue-100 border-l-4 border-blue-500'
-                      : 'hover:bg-gray-50'
-                  }`}
-                  style={{
-                    animationDelay: showPlaylist ? `${index * 50}ms` : '0ms',
-                    animation: showPlaylist ? 'fadeInUp 0.5s ease-out forwards' : 'none'
-                  }}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="flex-shrink-0">
-                      {currentIndex === index && isPlaying ? (
-                        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                        {viewMode === 'playlist' ? (
+              // Playlist View
+              audioFiles.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <div className="text-4xl mb-2">🎵</div>
+                  <p>No tracks in playlist</p>
+                </div>
+              ) : (
+                audioFiles.map((track, index) => (
+                  <div
+                    key={track.id}
+                    onClick={() => setAudio(track)}
+                    className={`p-3 rounded-lg cursor-pointer transition-all duration-300 ease-in-out group ${
+                      currentIndex === index
+                        ? 'bg-blue-100 border-l-4 border-blue-500'
+                        : 'hover:bg-gray-50'
+                    }`}
+                    style={{
+                      animationDelay: showPlaylist ? `${index * 50}ms` : '0ms',
+                      animation: showPlaylist ? 'fadeInUp 0.5s ease-out forwards' : 'none'
+                    }}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        {currentIndex === index && isPlaying ? (
+                          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                          </div>
+                        ) : (
+                          <div className="w-6 h-6 text-gray-400 text-center text-sm">
+                            {index + 1}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className={`font-medium text-sm truncate ${
+                          currentIndex === index ? 'text-blue-700' : 'text-gray-800'
+                        }`}>
+                          {track.title}
                         </div>
-                      ) : (
-                        <div className="w-6 h-6 text-gray-400 text-center text-sm">
-                          {index + 1}
+                        <div className="text-xs text-gray-500 truncate">
+                          {track.originalName}
                         </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className={`font-medium text-sm truncate ${
-                        currentIndex === index ? 'text-blue-700' : 'text-gray-800'
-                      }`}>
-                        {track.title}
                       </div>
-                      <div className="text-xs text-gray-500 truncate">
-                        {track.originalName}
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="text-xs text-gray-400">
-                        {track.duration ? formatTime(track.duration) : '--:--'}
-                      </div>
-                                              <button
+                      <div className="flex items-center space-x-2">
+                        <div className="text-xs text-gray-400">
+                          {track.duration ? formatTime(track.duration) : '--:--'}
+                        </div>
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             removeTrack(index);
@@ -411,13 +445,78 @@ export default function FixedAudioPlayer() {
                         >
                           🗑️
                         </button>
+                      </div>
                     </div>
                   </div>
+                ))
+              )
+            ) : (
+              // History View
+              playHistory.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <div className="text-4xl mb-2">⏰</div>
+                  <p>No play history yet</p>
+                  <p className="text-xs text-gray-400 mt-1">Tracks you play will appear here</p>
                 </div>
-              ))
+              ) : (
+                <div className="space-y-2">
+                  {playHistory.map((track, index) => (
+                    <div
+                      key={track.id}
+                      onClick={() => setAudio(track)}
+                      className="p-3 rounded-lg cursor-pointer transition-all duration-300 ease-in-out group hover:bg-gray-50"
+                      style={{
+                        animationDelay: showPlaylist ? `${index * 50}ms` : '0ms',
+                        animation: showPlaylist ? 'fadeInUp 0.5s ease-out forwards' : 'none'
+                      }}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0">
+                          <div className="w-6 h-6 text-gray-400 text-center text-sm">
+                            {index + 1}
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm truncate text-gray-800">
+                            {track.title}
+                          </div>
+                          <div className="text-xs text-gray-500 truncate">
+                            {track.originalName}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="text-xs text-gray-400">
+                            {track.duration ? formatTime(track.duration) : '--:--'}
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeFromHistory(index);
+                            }}
+                            className="p-1 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                            title="Remove from history"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Clear History Button */}
+                  <div className="pt-2 border-t border-gray-100">
+                    <button
+                      onClick={clearHistory}
+                      className="w-full px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                    >
+                      🗑️ Clear All History
+                    </button>
+                  </div>
+                </div>
+              )
             )}
           </div>
-                </div>
+        </div>
 
         {/* Backdrop overlay for click outside */}
         <div 
@@ -492,10 +591,15 @@ export default function FixedAudioPlayer() {
             }`}
             title={showPlaylist ? 'Hide playlist' : 'Show playlist'}
           >
-            📋
+            {viewMode === 'history' ? '⏰' : '📋'}
             {audioFiles.length > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                 {audioFiles.length}
+              </span>
+            )}
+            {playHistory.length > 0 && (
+              <span className="absolute -top-1 -left-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {playHistory.length}
               </span>
             )}
           </button>
