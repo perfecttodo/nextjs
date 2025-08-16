@@ -30,6 +30,9 @@ interface AudioPlayerState {
   setCurrentTime: (time: number) => void;
   setDuration: (duration: number) => void;
   
+  // Playlist management
+  removeTrack: (index: number) => void;
+  
   // Callback management
   setCallback: (callback: PlayerCallback | null) => void;
 }
@@ -45,11 +48,13 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => ({
   callback: null,
 
   setAudio: (audio) => {
-    set({ audio, isPlaying: true });
+    const { audioFiles } = get();
+    const currentIndex = audioFiles.findIndex(file => file.id === audio.id);
+    set({ audio, isPlaying: true, currentIndex: currentIndex >= 0 ? currentIndex : -1 });
     get().callback?.(get());
   },
   setAudioFiles:(audioFiles)=>{
-    set({ audioFiles});
+    set({ audioFiles, currentIndex: -1 });
   },
   togglePlay: () => {
     set((state) => ({ isPlaying: !state.isPlaying }));
@@ -125,6 +130,41 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => ({
   
   setDuration: (duration) => {
     set({ duration });
+    get().callback?.(get());
+  },
+
+  // Playlist management
+  removeTrack: (index) => {
+    const { audioFiles, currentIndex, audio, isPlaying } = get();
+    if (index < 0 || index >= audioFiles.length) return;
+    
+    const newAudioFiles = audioFiles.filter((_, i) => i !== index);
+    let newCurrentIndex = currentIndex;
+    let newAudio = audio;
+    
+    // Adjust current index if needed
+    if (newAudioFiles.length === 0) {
+      // No tracks left
+      newCurrentIndex = -1;
+      newAudio = null;
+    } else if (index <= currentIndex) {
+      // Current track or track before current was removed
+      if (index === currentIndex) {
+        // Current track was removed, play next track
+        newCurrentIndex = Math.min(index, newAudioFiles.length - 1);
+        newAudio = newAudioFiles[newCurrentIndex];
+      } else {
+        // Track before current was removed, adjust index
+        newCurrentIndex = currentIndex - 1;
+      }
+    }
+    
+    set({
+      audioFiles: newAudioFiles,
+      currentIndex: newCurrentIndex,
+      audio: newAudio,
+      isPlaying: newAudio ? isPlaying : false,
+    });
     get().callback?.(get());
   },
 

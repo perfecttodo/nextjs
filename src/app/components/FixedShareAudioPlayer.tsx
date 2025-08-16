@@ -13,6 +13,8 @@ export default function FixedAudioPlayer() {
     playMode,
     currentTime,
     duration,
+    audioFiles,
+    currentIndex,
     play,
     pause,
     next,
@@ -21,7 +23,11 @@ export default function FixedAudioPlayer() {
     cyclePlayMode,
     setCurrentTime,
     setDuration,
+    setAudio,
+    removeTrack,
   } = useAudioPlayerStore();
+
+  const [showPlaylist, setShowPlaylist] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<any>(null);
@@ -292,6 +298,86 @@ export default function FixedAudioPlayer() {
         />
       </div>
 
+      {/* Playlist Sidebar */}
+      {showPlaylist && (
+        <div className="fixed left-0 top-16 bottom-20 w-80 bg-white border-r border-gray-200 shadow-lg z-40 overflow-y-auto">
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">Playlist</h3>
+                <p className="text-sm text-gray-500">{audioFiles.length} tracks</p>
+              </div>
+              <button
+                onClick={() => setShowPlaylist(false)}
+                className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                title="Close playlist"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+          <div className="p-2">
+            {audioFiles.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-2">🎵</div>
+                <p>No tracks in playlist</p>
+              </div>
+            ) : (
+              audioFiles.map((track, index) => (
+                <div
+                  key={track.id}
+                  onClick={() => setAudio(track)}
+                  className={`p-3 rounded-lg cursor-pointer transition-colors group ${
+                    currentIndex === index
+                      ? 'bg-blue-100 border-l-4 border-blue-500'
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-shrink-0">
+                      {currentIndex === index && isPlaying ? (
+                        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                        </div>
+                      ) : (
+                        <div className="w-6 h-6 text-gray-400 text-center text-sm">
+                          {index + 1}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className={`font-medium text-sm truncate ${
+                        currentIndex === index ? 'text-blue-700' : 'text-gray-800'
+                      }`}>
+                        {track.title}
+                      </div>
+                      <div className="text-xs text-gray-500 truncate">
+                        {track.originalName}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="text-xs text-gray-400">
+                        {track.duration ? formatTime(track.duration) : '--:--'}
+                      </div>
+                                              <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeTrack(index);
+                          }}
+                          className="p-1 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                          title="Remove from playlist"
+                        >
+                          🗑️
+                        </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Player UI */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
         {/* Progress bar */}
@@ -319,6 +405,11 @@ export default function FixedAudioPlayer() {
             <div className="ml-2 min-w-0">
               <div className="font-medium text-sm truncate">{audio.title}</div>
               <div className="text-xs text-gray-500">
+                {audioFiles.length > 0 && (
+                  <span className="mr-2">
+                    {currentIndex + 1} of {audioFiles.length}
+                  </span>
+                )}
                 {formatTime(audio.duration || 0)}
               </div>
             </div>
@@ -339,6 +430,24 @@ export default function FixedAudioPlayer() {
               ⏭️
             </button>
           </div>
+
+          {/* Playlist toggle */}
+          <button
+            onClick={() => setShowPlaylist(!showPlaylist)}
+            className={`p-2 rounded-md transition-colors relative ${
+              showPlaylist 
+                ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+            title={showPlaylist ? 'Hide playlist' : 'Show playlist'}
+          >
+            📋
+            {audioFiles.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {audioFiles.length}
+              </span>
+            )}
+          </button>
 
           {/* Play mode */}
           <button
