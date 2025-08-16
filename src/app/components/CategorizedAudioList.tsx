@@ -127,6 +127,19 @@ export default function CategorizedAudioList({
                             </>
                           )}
                         </div>
+                        {/* Display Labels */}
+                        {audio.labels && audio.labels.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {audio.labels.map((label) => (
+                              <span
+                                key={label.id}
+                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200"
+                              >
+                                {label.name}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

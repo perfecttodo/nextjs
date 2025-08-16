@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { AudioStatus } from '@/types/audio';
+import { AudioStatus, Label } from '@/types/audio';
 import AudioFormFields from './AudioFormFields';
 
 interface AudioRecorderProps {
@@ -9,10 +9,12 @@ interface AudioRecorderProps {
   status: AudioStatus;
   selectedCategoryId: string;
   selectedSubcategoryId: string;
+  selectedLabels: Label[]; // Added
   onTitleChange: (title: string) => void;
   onStatusChange: (status: AudioStatus) => void;
   onCategoryChange: (categoryId: string) => void;
   onSubcategoryChange: (subcategoryId: string) => void;
+  onLabelsChange: (labels: Label[]) => void; // Added
   onUploaded?: () => void;
 }
 
@@ -67,10 +69,12 @@ export default function AudioRecorder({
   status,
   selectedCategoryId,
   selectedSubcategoryId,
+  selectedLabels, // Added
   onTitleChange,
   onStatusChange,
   onCategoryChange,
   onSubcategoryChange,
+  onLabelsChange, // Added
   onUploaded
 }: AudioRecorderProps) {
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -216,6 +220,10 @@ export default function AudioRecorder({
       if (selectedSubcategoryId) {
         form.append('subcategoryId', selectedSubcategoryId);
       }
+      // Add label IDs
+      selectedLabels.forEach(label => {
+        form.append('labelIds', label.id);
+      });
 
       const res = await fetch('/api/audio/upload', { method: 'POST', body: form });
       const data = await res.json();
@@ -229,6 +237,7 @@ export default function AudioRecorder({
       onTitleChange('New recording');
       onCategoryChange('');
       onSubcategoryChange('');
+      onLabelsChange([]); // Added - reset labels
       curSizeRef.current = 0;
       setCurrentSize(0);
       setDuration(0);
@@ -294,10 +303,12 @@ export default function AudioRecorder({
             status={status}
             selectedCategoryId={selectedCategoryId}
             selectedSubcategoryId={selectedSubcategoryId}
+            selectedLabels={selectedLabels} // Added
             onTitleChange={onTitleChange}
             onStatusChange={onStatusChange}
             onCategoryChange={onCategoryChange}
             onSubcategoryChange={onSubcategoryChange}
+            onLabelsChange={onLabelsChange} // Added
             categoryRequired={true}
             showStatusHelp={true}
           />

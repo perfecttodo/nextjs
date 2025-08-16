@@ -35,6 +35,7 @@ model User {
   createdAt DateTime      @default(now())
   items     TestingItem[]
   audioFiles AudioFile[]
+  labels    Label[]       // User's custom labels
   
   @@index([githubId])
 }
@@ -64,11 +65,26 @@ model Subcategory {
   @@index([categoryId])
 }
 
+model Label {
+  id          String     @id @default(uuid())
+  name        String
+  color       String?    // Hex color for UI display
+  description String?
+  ownerId     String?    // null means system-wide label
+  owner       User?      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  audioFiles  AudioFile[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([name, ownerId]) // Allow same name for different owners
+  @@index([ownerId])
+}
+
 model AudioFile {
   id            String      @id @default(uuid())
   title         String
   originalName  String
-  blobUrl       String      
+  blobUrl       String      @unique
   blobId        String      @unique
   format        String
   duration      Int?        // in seconds
@@ -80,6 +96,7 @@ model AudioFile {
   category      Category?   @relation(fields: [categoryId], references: [id])
   subcategoryId String?
   subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
+  labels        Label[]     // Many-to-many relationship
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 

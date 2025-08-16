@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { AudioFormat, AudioStatus } from '../../types/audio';
+import { AudioFormat, AudioStatus, Label } from '../../types/audio';
 import AudioFormFields from './AudioFormFields';
 
 interface AudioUploadProps {
@@ -9,10 +9,12 @@ interface AudioUploadProps {
   status: AudioStatus;
   selectedCategoryId: string;
   selectedSubcategoryId: string;
+  selectedLabels: Label[];
   onTitleChange: (title: string) => void;
   onStatusChange: (status: AudioStatus) => void;
   onCategoryChange: (categoryId: string) => void;
   onSubcategoryChange: (subcategoryId: string) => void;
+  onLabelsChange: (labels: Label[]) => void;
   onUploadSuccess: () => void;
 }
 
@@ -21,10 +23,12 @@ export default function AudioUpload({
   status,
   selectedCategoryId,
   selectedSubcategoryId,
+  selectedLabels,
   onTitleChange,
   onStatusChange,
   onCategoryChange,
   onSubcategoryChange,
+  onLabelsChange,
   onUploadSuccess
 }: AudioUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
@@ -111,6 +115,10 @@ export default function AudioUpload({
       if (selectedSubcategoryId) {
         formData.append('subcategoryId', selectedSubcategoryId);
       }
+      // Add label IDs
+      selectedLabels.forEach(label => {
+        formData.append('labelIds', label.id);
+      });
 
       const response = await fetch('/api/audio/upload', {
         method: 'POST',
@@ -233,10 +241,12 @@ export default function AudioUpload({
         status={status}
         selectedCategoryId={selectedCategoryId}
         selectedSubcategoryId={selectedSubcategoryId}
+        selectedLabels={selectedLabels}
         onTitleChange={onTitleChange}
         onStatusChange={onStatusChange}
         onCategoryChange={onCategoryChange}
         onSubcategoryChange={onSubcategoryChange}
+        onLabelsChange={onLabelsChange}
         categoryRequired={true}
         showStatusHelp={true}
       />

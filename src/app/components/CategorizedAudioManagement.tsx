@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AudioStatus, AudioFile, Category } from '../../types/audio';
+import { AudioStatus, AudioFile, Category, Label } from '../../types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 import CategorySelector from './CategorySelector';
 import AudioFormFields from './AudioFormFields';
@@ -25,6 +25,7 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
   const [editStatus, setEditStatus] = useState<AudioStatus>('draft');
   const [editCategoryId, setEditCategoryId] = useState<string>('');
   const [editSubcategoryId, setEditSubcategoryId] = useState<string>('');
+  const [editLabels, setEditLabels] = useState<Label[]>([]); // Added
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'draft' | 'published'>('all');
   const { setAudio, setAudioFiles: updateAudioFiles, audio: currentAudio, togglePlay, isPlaying } = useAudioPlayerStore();
@@ -68,6 +69,7 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
     setEditStatus(audio.status);
     setEditCategoryId(audio.categoryId || '');
     setEditSubcategoryId(audio.subcategoryId || '');
+    setEditLabels(audio.labels || []); // Added
   };
 
   const handleSave = async () => {
@@ -83,6 +85,7 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
           status: editStatus,
           categoryId: editCategoryId || null,
           subcategoryId: editSubcategoryId || null,
+          labelIds: editLabels.map(label => label.id), // Added
         }),
       });
 
@@ -93,6 +96,7 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
       setEditStatus('draft');
       setEditCategoryId('');
       setEditSubcategoryId('');
+      setEditLabels([]); // Added - reset labels
       fetchAudioFiles();
       onRefresh();
     } catch (error) {
@@ -278,10 +282,12 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
                           status={editStatus}
                           selectedCategoryId={editCategoryId}
                           selectedSubcategoryId={editSubcategoryId}
+                          selectedLabels={editLabels} // Added
                           onTitleChange={setEditTitle}
                           onStatusChange={setEditStatus}
                           onCategoryChange={setEditCategoryId}
                           onSubcategoryChange={setEditSubcategoryId}
+                          onLabelsChange={setEditLabels} // Added
                           categoryRequired={false}
                           showStatusHelp={false}
                         />
@@ -329,6 +335,20 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
                                 )}
                               </div>
                               <div>Uploaded: {formatDate(audio.createdAt)}</div>
+                              {/* Display Labels */}
+                              {audio.labels && audio.labels.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  <span className="text-xs text-gray-400">Labels:</span>
+                                  {audio.labels.map((label) => (
+                                    <span
+                                      key={label.id}
+                                      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200"
+                                    >
+                                      {label.name}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </div>
 

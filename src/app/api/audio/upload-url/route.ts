@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Changed from formData to JSON parsing since the frontend sends JSON
-    const { url, title, status = 'draft', duration = 0, categoryId, subcategoryId } = await request.json();
+    const { url, title, status = 'draft', duration = 0, categoryId, subcategoryId, labelIds = [] } = await request.json();
 
     if (!url || !title) {
       return NextResponse.json(
@@ -77,6 +77,26 @@ export async function POST(request: NextRequest) {
     else if (pathname.endsWith('.m3u8')) format = 'm3u8';
     else format = '';
 
+    // Validate labels if provided
+    if (labelIds.length > 0) {
+      const labels = await prisma.label.findMany({
+        where: {
+          id: { in: labelIds },
+          OR: [
+            { ownerId: null }, // System labels
+            { ownerId: user.sub } // User's own labels
+          ]
+        }
+      });
+
+      if (labels.length !== labelIds.length) {
+        return NextResponse.json(
+          { error: 'One or more invalid labels' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Save to database
     const audioFile = await prisma.audioFile.create({
       data: {
@@ -91,7 +111,13 @@ export async function POST(request: NextRequest) {
         duration: typeof duration === 'string' ? parseInt(duration) : duration,
         categoryId: categoryId,
         subcategoryId: subcategoryId || null,
+        labels: labelIds.length > 0 ? {
+          connect: labelIds.map((id: string) => ({ id }))
+        } : undefined
       },
+      include: {
+        labels: true
+      }
     });
 
     return NextResponse.json({

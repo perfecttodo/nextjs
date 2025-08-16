@@ -1,19 +1,23 @@
 'use client';
 
-import { AudioStatus } from '@/types/audio';
+import { AudioStatus, Label } from '@/types/audio';
 import CategorySelector from './CategorySelector';
+import LabelSelector from './LabelSelector';
 
 interface AudioFormFieldsProps {
   title: string;
   status: AudioStatus;
   selectedCategoryId: string;
   selectedSubcategoryId: string;
+  selectedLabels: Label[];
   onTitleChange: (title: string) => void;
   onStatusChange: (status: AudioStatus) => void;
   onCategoryChange: (categoryId: string) => void;
   onSubcategoryChange: (subcategoryId: string) => void;
+  onLabelsChange: (labels: Label[]) => void;
   categoryRequired?: boolean;
   showStatusHelp?: boolean;
+  ownerId?: string;
 }
 
 export default function AudioFormFields({
@@ -21,12 +25,15 @@ export default function AudioFormFields({
   status,
   selectedCategoryId,
   selectedSubcategoryId,
+  selectedLabels,
   onTitleChange,
   onStatusChange,
   onCategoryChange,
   onSubcategoryChange,
+  onLabelsChange,
   categoryRequired = true,
-  showStatusHelp = true
+  showStatusHelp = true,
+  ownerId
 }: AudioFormFieldsProps) {
   return (
     <div className="space-y-6">
@@ -74,6 +81,13 @@ export default function AudioFormFields({
         onCategoryChange={onCategoryChange}
         onSubcategoryChange={onSubcategoryChange}
         required={categoryRequired}
+      />
+
+      {/* Label Selection */}
+      <LabelSelector
+        selectedLabels={selectedLabels}
+        onLabelsChange={onLabelsChange}
+        ownerId={ownerId}
       />
     </div>
   );

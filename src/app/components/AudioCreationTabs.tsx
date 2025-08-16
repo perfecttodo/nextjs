@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { AudioStatus } from '@/types/audio';
+import { AudioStatus, Label } from '@/types/audio';
 
 // Dynamically import components to reduce initial bundle size
 const AudioUpload = dynamic(() => import('./AudioUpload'), { ssr: false });
@@ -24,7 +24,8 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     title: '',
     status: 'draft' as AudioStatus,
     categoryId: '',
-    subcategoryId: ''
+    subcategoryId: '',
+    labels: [] as Label[]
   });
 
   const tabs = [
@@ -62,7 +63,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   };
 
   // Update shared form data
-  const updateSharedFormData = (field: keyof typeof sharedFormData, value: string | AudioStatus) => {
+  const updateSharedFormData = (field: keyof typeof sharedFormData, value: string | AudioStatus | Label[]) => {
     setSharedFormData(prev => ({
       ...prev,
       [field]: value
@@ -75,7 +76,8 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       title: '',
       status: 'draft',
       categoryId: '',
-      subcategoryId: ''
+      subcategoryId: '',
+      labels: []
     });
     onUploadSuccess();
   };
@@ -86,11 +88,14 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       status: sharedFormData.status,
       selectedCategoryId: sharedFormData.categoryId,
       selectedSubcategoryId: sharedFormData.subcategoryId,
+      selectedLabels: sharedFormData.labels,
       onTitleChange: (title: string) => updateSharedFormData('title', title),
       onStatusChange: (status: AudioStatus) => updateSharedFormData('status', status),
       onCategoryChange: (categoryId: string) => updateSharedFormData('categoryId', categoryId),
       onSubcategoryChange: (subcategoryId: string) => updateSharedFormData('subcategoryId', subcategoryId),
-      onUploadSuccess: handleUploadSuccess
+      onLabelsChange: (labels: Label[]) => updateSharedFormData('labels', labels),
+      onUploadSuccess: handleUploadSuccess,
+      ownerId: 'user-id' // This should come from user context
     };
 
     switch (activeTab) {

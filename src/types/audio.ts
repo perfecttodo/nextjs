@@ -21,6 +21,16 @@ export interface Subcategory {
   updatedAt: string;
 }
 
+export interface Label {
+  id: string;
+  name: string;
+  color?: string;
+  description?: string;
+  ownerId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AudioFile {
   id: string;
   title: string;
@@ -36,6 +46,7 @@ export interface AudioFile {
   category?: Category;
   subcategoryId?: string;
   subcategory?: Subcategory;
+  labels?: Label[];
   createdAt: string;
   updatedAt: string;
 }

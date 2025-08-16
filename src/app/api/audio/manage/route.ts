@@ -91,7 +91,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, title, status, categoryId, subcategoryId } = body;
+    const { id, title, status, categoryId, subcategoryId, labelIds = [] } = body;
 
     if (!id || !title) {
       return NextResponse.json(
@@ -143,6 +143,26 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // Validate labels if provided
+    if (labelIds.length > 0) {
+      const labels = await prisma.label.findMany({
+        where: {
+          id: { in: labelIds },
+          OR: [
+            { ownerId: null }, // System labels
+            { ownerId: user.sub } // User's own labels
+          ]
+        }
+      });
+
+      if (labels.length !== labelIds.length) {
+        return NextResponse.json(
+          { error: 'One or more invalid labels' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Update the audio file
     const updatedFile = await prisma.audioFile.update({
       where: { id },
@@ -151,8 +171,15 @@ export async function PUT(request: NextRequest) {
         ...(status && { status }),
         ...(categoryId && { categoryId }),
         ...(subcategoryId && { subcategoryId }),
+        labels: {
+          set: [], // Clear existing labels
+          connect: labelIds.map((id: string) => ({ id })) // Connect new labels
+        },
         updatedAt: new Date(),
       },
+      include: {
+        labels: true
+      }
     });
 
     return NextResponse.json({

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AudioStatus } from '../../types/audio';
+import { AudioStatus, Label } from '../../types/audio';
 import AudioFormFields from './AudioFormFields';
 
 interface AudioUrlUploadProps {
@@ -9,10 +9,12 @@ interface AudioUrlUploadProps {
   status: AudioStatus;
   selectedCategoryId: string;
   selectedSubcategoryId: string;
+  selectedLabels: Label[]; // Added
   onTitleChange: (title: string) => void;
   onStatusChange: (status: AudioStatus) => void;
   onCategoryChange: (categoryId: string) => void;
   onSubcategoryChange: (subcategoryId: string) => void;
+  onLabelsChange: (labels: Label[]) => void; // Added
   onUploadSuccess: () => void;
 }
 
@@ -21,10 +23,12 @@ export default function AudioUrlUpload({
   status,
   selectedCategoryId,
   selectedSubcategoryId,
+  selectedLabels, // Added
   onTitleChange,
   onStatusChange,
   onCategoryChange,
   onSubcategoryChange,
+  onLabelsChange, // Added
   onUploadSuccess
 }: AudioUrlUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
@@ -81,6 +85,7 @@ export default function AudioUrlUpload({
           status,
           categoryId: selectedCategoryId,
           subcategoryId: selectedSubcategoryId || null,
+          labelIds: selectedLabels.map(label => label.id), // Added
         }),
       });
 
@@ -96,6 +101,7 @@ export default function AudioUrlUpload({
       onStatusChange('draft');
       onCategoryChange('');
       onSubcategoryChange('');
+      onLabelsChange([]); // Added - reset labels
       
       // Call the success callback to refresh the audio list
       onUploadSuccess();
@@ -136,10 +142,12 @@ export default function AudioUrlUpload({
         status={status}
         selectedCategoryId={selectedCategoryId}
         selectedSubcategoryId={selectedSubcategoryId}
+        selectedLabels={selectedLabels} // Added
         onTitleChange={onTitleChange}
         onStatusChange={onStatusChange}
         onCategoryChange={onCategoryChange}
         onSubcategoryChange={onSubcategoryChange}
+        onLabelsChange={onLabelsChange} // Added
         categoryRequired={true}
         showStatusHelp={true}
       />

@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
     const duration = formData.get('duration') as string;
     const categoryId = formData.get('categoryId') as string;
     const subcategoryId = formData.get('subcategoryId') as string;
+    const labelIds = formData.getAll('labelIds') as string[];
 
     if (!file || !title) {
       return NextResponse.json(
@@ -56,6 +57,26 @@ export async function POST(request: NextRequest) {
       if (!subcategory) {
         return NextResponse.json(
           { error: 'Invalid subcategory for the selected category' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate labels if provided
+    if (labelIds.length > 0) {
+      const labels = await prisma.label.findMany({
+        where: {
+          id: { in: labelIds },
+          OR: [
+            { ownerId: null }, // System labels
+            { ownerId: user.sub } // User's own labels
+          ]
+        }
+      });
+
+      if (labels.length !== labelIds.length) {
+        return NextResponse.json(
+          { error: 'One or more invalid labels' },
           { status: 400 }
         );
       }
@@ -132,7 +153,15 @@ export async function POST(request: NextRequest) {
    // console.error('audioFile', data);
 
     const audioFile = await prisma.audioFile.create({
-      data:data ,
+      data: {
+        ...data,
+        labels: labelIds.length > 0 ? {
+          connect: labelIds.map(id => ({ id }))
+        } : undefined
+      },
+      include: {
+        labels: true
+      }
     });
 
     return NextResponse.json({
