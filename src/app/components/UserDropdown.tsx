@@ -68,7 +68,7 @@ export default function UserDropdown({ user }: UserDropdownProps) {
       {/* User Button */}
       <button
         onClick={toggleDropdown}
-        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white  hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
@@ -77,15 +77,7 @@ export default function UserDropdown({ user }: UserDropdownProps) {
           {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
         </div>
         
-        {/* User Info */}
-        <div className="hidden sm:block text-left">
-          <div className="font-medium text-gray-900 truncate max-w-[120px]">
-            {user.name || 'User'}
-          </div>
-          <div className="text-xs text-gray-500 truncate max-w-[120px]">
-            {user.email}
-          </div>
-        </div>
+
         
         {/* Dropdown Arrow */}
         <svg
