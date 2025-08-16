@@ -5,7 +5,6 @@ import { getSessionUser } from "@/lib/session";
 import Header from "@/app/components/Header";
 import FixedShareAudioPlayer from '@/app/components/FixedShareAudioPlayer';
 
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -19,6 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Tayino",
   description: "Promote your productivity",
+  viewport: "width=device-width, initial-scale=1.0", // Added viewport
 };
 
 export const viewport: Viewport = {
@@ -34,12 +34,10 @@ export default async function RootLayout({
   const user = await getSessionUser();
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-         <Header user={user} />
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <Header user={user} />
         {children}
-      <FixedShareAudioPlayer />
+        <FixedShareAudioPlayer />
       </body>
     </html>
   );
