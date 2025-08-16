@@ -5,8 +5,14 @@ import { AudioStatus } from '@/types/audio';
 import AudioFormFields from './AudioFormFields';
 
 interface AudioRecorderProps {
-  defaultTitle?: string;
-  defaultStatus?: AudioStatus;
+  title: string;
+  status: AudioStatus;
+  selectedCategoryId: string;
+  selectedSubcategoryId: string;
+  onTitleChange: (title: string) => void;
+  onStatusChange: (status: AudioStatus) => void;
+  onCategoryChange: (categoryId: string) => void;
+  onSubcategoryChange: (subcategoryId: string) => void;
   onUploaded?: () => void;
 }
 
@@ -57,9 +63,15 @@ export function playBreakSound() {
 const MAX_SIZE_BYTES = 4 * 1024 * 1024; // 4 MB
 
 export default function AudioRecorder({
-  defaultTitle = 'New recording',
-  defaultStatus = 'draft',
-  onUploaded,
+  title,
+  status,
+  selectedCategoryId,
+  selectedSubcategoryId,
+  onTitleChange,
+  onStatusChange,
+  onCategoryChange,
+  onSubcategoryChange,
+  onUploaded
 }: AudioRecorderProps) {
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -70,10 +82,6 @@ export default function AudioRecorder({
   const [isRecording, setIsRecording] = useState(false);
   const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
-  const [title, setTitle] = useState(defaultTitle);
-  const [status, setStatus] = useState<AudioStatus>(defaultStatus);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
-  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>('');
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [currentSize, setCurrentSize] = useState(0);
@@ -218,9 +226,9 @@ export default function AudioRecorder({
       setRecordingBlob(null);
       if (recordingUrl) URL.revokeObjectURL(recordingUrl);
       setRecordingUrl(null);
-      setTitle('New recording');
-      setSelectedCategoryId('');
-      setSelectedSubcategoryId('');
+      onTitleChange('New recording');
+      onCategoryChange('');
+      onSubcategoryChange('');
       curSizeRef.current = 0;
       setCurrentSize(0);
       setDuration(0);
@@ -287,10 +295,10 @@ export default function AudioRecorder({
             status={status}
             selectedCategoryId={selectedCategoryId}
             selectedSubcategoryId={selectedSubcategoryId}
-            onTitleChange={setTitle}
-            onStatusChange={setStatus}
-            onCategoryChange={setSelectedCategoryId}
-            onSubcategoryChange={setSelectedSubcategoryId}
+            onTitleChange={onTitleChange}
+            onStatusChange={onStatusChange}
+            onCategoryChange={onCategoryChange}
+            onSubcategoryChange={onSubcategoryChange}
             categoryRequired={true}
             showStatusHelp={true}
           />

@@ -5,19 +5,33 @@ import { AudioFormat, AudioStatus } from '../../types/audio';
 import AudioFormFields from './AudioFormFields';
 
 interface AudioUploadProps {
+  title: string;
+  status: AudioStatus;
+  selectedCategoryId: string;
+  selectedSubcategoryId: string;
+  onTitleChange: (title: string) => void;
+  onStatusChange: (status: AudioStatus) => void;
+  onCategoryChange: (categoryId: string) => void;
+  onSubcategoryChange: (subcategoryId: string) => void;
   onUploadSuccess: () => void;
 }
 
-export default function AudioUpload({ onUploadSuccess }: AudioUploadProps) {
+export default function AudioUpload({
+  title,
+  status,
+  selectedCategoryId,
+  selectedSubcategoryId,
+  onTitleChange,
+  onStatusChange,
+  onCategoryChange,
+  onSubcategoryChange,
+  onUploadSuccess
+}: AudioUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const [title, setTitle] = useState('');
-  const [status, setStatus] = useState<AudioStatus>('draft');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
-  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -61,7 +75,7 @@ export default function AudioUpload({ onUploadSuccess }: AudioUploadProps) {
     // Auto-generate title from filename if not set
     if (!title) {
       const fileName = file.name.replace(/\.[^/.]+$/, ''); // Remove extension
-      setTitle(fileName);
+      onTitleChange(fileName);
     }
   };
 
@@ -110,11 +124,11 @@ export default function AudioUpload({ onUploadSuccess }: AudioUploadProps) {
       }
 
       setSuccess('Audio file uploaded successfully!');
-      setTitle('');
+      onTitleChange('');
       setSelectedFile(null);
-      setStatus('draft');
-      setSelectedCategoryId('');
-      setSelectedSubcategoryId('');
+      onStatusChange('draft');
+      onCategoryChange('');
+      onSubcategoryChange('');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -219,10 +233,10 @@ export default function AudioUpload({ onUploadSuccess }: AudioUploadProps) {
         status={status}
         selectedCategoryId={selectedCategoryId}
         selectedSubcategoryId={selectedSubcategoryId}
-        onTitleChange={setTitle}
-        onStatusChange={setStatus}
-        onCategoryChange={setSelectedCategoryId}
-        onSubcategoryChange={setSelectedSubcategoryId}
+        onTitleChange={onTitleChange}
+        onStatusChange={onStatusChange}
+        onCategoryChange={onCategoryChange}
+        onSubcategoryChange={onSubcategoryChange}
         categoryRequired={true}
         showStatusHelp={true}
       />

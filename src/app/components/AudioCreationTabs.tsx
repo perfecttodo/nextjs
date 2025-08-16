@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { AudioStatus } from '@/types/audio';
 
 // Dynamically import components to reduce initial bundle size
 const AudioUpload = dynamic(() => import('./AudioUpload'), { ssr: false });
@@ -17,6 +18,14 @@ type TabType = 'upload' | 'record' | 'url';
 export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>('upload');
   const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Shared form state that persists across tab switches
+  const [sharedFormData, setSharedFormData] = useState({
+    title: '',
+    status: 'draft' as AudioStatus,
+    categoryId: '',
+    subcategoryId: ''
+  });
 
   const tabs = [
     {
@@ -52,16 +61,47 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     }, 150);
   };
 
+  // Update shared form data
+  const updateSharedFormData = (field: keyof typeof sharedFormData, value: string | AudioStatus) => {
+    setSharedFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Reset form data after successful upload
+  const handleUploadSuccess = () => {
+    setSharedFormData({
+      title: '',
+      status: 'draft',
+      categoryId: '',
+      subcategoryId: ''
+    });
+    onUploadSuccess();
+  };
+
   const renderTabContent = () => {
+    const commonProps = {
+      title: sharedFormData.title,
+      status: sharedFormData.status,
+      selectedCategoryId: sharedFormData.categoryId,
+      selectedSubcategoryId: sharedFormData.subcategoryId,
+      onTitleChange: (title: string) => updateSharedFormData('title', title),
+      onStatusChange: (status: AudioStatus) => updateSharedFormData('status', status),
+      onCategoryChange: (categoryId: string) => updateSharedFormData('categoryId', categoryId),
+      onSubcategoryChange: (subcategoryId: string) => updateSharedFormData('subcategoryId', subcategoryId),
+      onUploadSuccess: handleUploadSuccess
+    };
+
     switch (activeTab) {
       case 'upload':
-        return <AudioUpload onUploadSuccess={onUploadSuccess} />;
+        return <AudioUpload {...commonProps} />;
       case 'record':
-        return <AudioRecorder onUploaded={onUploadSuccess} />;
+        return <AudioRecorder {...commonProps} onUploaded={handleUploadSuccess} />;
       case 'url':
-        return <UrlAudio onUploadSuccess={onUploadSuccess} />;
+        return <UrlAudio {...commonProps} />;
       default:
-        return <AudioUpload onUploadSuccess={onUploadSuccess} />;
+        return <AudioUpload {...commonProps} />;
     }
   };
 
@@ -87,7 +127,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                     <span className="sm:hidden">{tab.shortLabel}</span>
                     <span className="hidden sm:inline">{tab.label}</span>
                   </div>
-                 {(activeTab === tab.id&&<div className="text-xs text-gray-400 hidden lg:block">
+                  {(activeTab === tab.id&&<div className="text-xs text-gray-400 hidden lg:block">
                     {tab.description}
                   </div>)}
                 </div>
@@ -118,6 +158,21 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
               </div>
             </div>
           </div>
+
+          {/* Form Data Persistence Info */}
+          {(sharedFormData.title || sharedFormData.categoryId) && (
+            <div className="mb-4 p-3 bg-green-50 border-l-4 border-green-500 rounded-r-md">
+              <div className="flex items-center space-x-2">
+                <span className="text-green-600">💾</span>
+                <div className="text-sm text-green-800">
+                  <div className="font-medium">Form data is saved</div>
+                  <div className="text-xs text-green-600">
+                    Your input will be preserved when switching between tabs
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           
           {renderTabContent()}
         </div>

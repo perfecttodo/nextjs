@@ -5,16 +5,30 @@ import { AudioStatus } from '../../types/audio';
 import AudioFormFields from './AudioFormFields';
 
 interface AudioUrlUploadProps {
+  title: string;
+  status: AudioStatus;
+  selectedCategoryId: string;
+  selectedSubcategoryId: string;
+  onTitleChange: (title: string) => void;
+  onStatusChange: (status: AudioStatus) => void;
+  onCategoryChange: (categoryId: string) => void;
+  onSubcategoryChange: (subcategoryId: string) => void;
   onUploadSuccess: () => void;
 }
 
-export default function AudioUrlUpload({ onUploadSuccess }: AudioUrlUploadProps) {
+export default function AudioUrlUpload({
+  title,
+  status,
+  selectedCategoryId,
+  selectedSubcategoryId,
+  onTitleChange,
+  onStatusChange,
+  onCategoryChange,
+  onSubcategoryChange,
+  onUploadSuccess
+}: AudioUrlUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const [title, setTitle] = useState('');
-  const [status, setStatus] = useState<AudioStatus>('draft');
   const [audioUrl, setAudioUrl] = useState('');
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
-  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -77,11 +91,11 @@ export default function AudioUrlUpload({ onUploadSuccess }: AudioUrlUploadProps)
       }
 
       setSuccess('Audio URL submitted successfully!');
-      setTitle('');
+      onTitleChange('');
       setAudioUrl('');
-      setStatus('draft');
-      setSelectedCategoryId('');
-      setSelectedSubcategoryId('');
+      onStatusChange('draft');
+      onCategoryChange('');
+      onSubcategoryChange('');
       
       // Call the success callback to refresh the audio list
       onUploadSuccess();
@@ -122,10 +136,10 @@ export default function AudioUrlUpload({ onUploadSuccess }: AudioUrlUploadProps)
         status={status}
         selectedCategoryId={selectedCategoryId}
         selectedSubcategoryId={selectedSubcategoryId}
-        onTitleChange={setTitle}
-        onStatusChange={setStatus}
-        onCategoryChange={setSelectedCategoryId}
-        onSubcategoryChange={setSelectedSubcategoryId}
+        onTitleChange={onTitleChange}
+        onStatusChange={onStatusChange}
+        onCategoryChange={onCategoryChange}
+        onSubcategoryChange={onSubcategoryChange}
         categoryRequired={true}
         showStatusHelp={true}
       />
