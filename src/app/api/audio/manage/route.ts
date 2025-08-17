@@ -37,6 +37,9 @@ export async function GET(request: NextRequest) {
           duration: true,
           fileSize: true,
           status: true,
+          language: true,
+          description: true,
+          originalWebsite: true,
           createdAt: true,
           updatedAt: true,
           category: {
@@ -57,6 +60,14 @@ export async function GET(request: NextRequest) {
               categoryId: true,
               createdAt: true,
               updatedAt: true,
+            }
+          },
+          labels: {
+            select: {
+              id: true,
+              name: true,
+              color: true,
+              description: true,
             }
           },
         },
@@ -91,7 +102,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, title, status, categoryId, subcategoryId, labelIds = [] } = body;
+    const { id, title, status, language, description, originalWebsite, categoryId, subcategoryId, labelIds = [] } = body;
 
     if (!id || !title) {
       return NextResponse.json(
@@ -169,6 +180,9 @@ export async function PUT(request: NextRequest) {
       data: {
         title: title.trim(),
         ...(status && { status }),
+        ...(language !== undefined && { language }),
+        ...(description !== undefined && { description }),
+        ...(originalWebsite !== undefined && { originalWebsite }),
         ...(categoryId && { categoryId }),
         ...(subcategoryId && { subcategoryId }),
         labels: {

@@ -7,11 +7,17 @@ import AudioFormFields from './AudioFormFields';
 interface AudioUploadProps {
   title: string;
   status: AudioStatus;
+  language?: string;
+  description?: string;
+  originalWebsite?: string;
   selectedCategoryId: string;
   selectedSubcategoryId: string;
   selectedLabels: Label[];
   onTitleChange: (title: string) => void;
   onStatusChange: (status: AudioStatus) => void;
+  onLanguageChange: (language: string) => void;
+  onDescriptionChange: (description: string) => void;
+  onOriginalWebsiteChange: (originalWebsite: string) => void;
   onCategoryChange: (categoryId: string) => void;
   onSubcategoryChange: (subcategoryId: string) => void;
   onLabelsChange: (labels: Label[]) => void;
@@ -21,11 +27,17 @@ interface AudioUploadProps {
 export default function AudioUpload({
   title,
   status,
+  language,
+  description,
+  originalWebsite,
   selectedCategoryId,
   selectedSubcategoryId,
   selectedLabels,
   onTitleChange,
   onStatusChange,
+  onLanguageChange,
+  onDescriptionChange,
+  onOriginalWebsiteChange,
   onCategoryChange,
   onSubcategoryChange,
   onLabelsChange,
@@ -111,6 +123,9 @@ export default function AudioUpload({
       formData.append('file', selectedFile);
       formData.append('title', title.trim());
       formData.append('status', status);
+      if (language) formData.append('language', language);
+      if (description) formData.append('description', description);
+      if (originalWebsite) formData.append('originalWebsite', originalWebsite);
       formData.append('categoryId', selectedCategoryId);
       if (selectedSubcategoryId) {
         formData.append('subcategoryId', selectedSubcategoryId);
@@ -135,6 +150,9 @@ export default function AudioUpload({
       onTitleChange('');
       setSelectedFile(null);
       onStatusChange('draft');
+      onLanguageChange('');
+      onDescriptionChange('');
+      onOriginalWebsiteChange('');
       onCategoryChange('');
       onSubcategoryChange('');
       if (fileInputRef.current) {
@@ -239,11 +257,17 @@ export default function AudioUpload({
       <AudioFormFields
         title={title}
         status={status}
+        language={language}
+        description={description}
+        originalWebsite={originalWebsite}
         selectedCategoryId={selectedCategoryId}
         selectedSubcategoryId={selectedSubcategoryId}
         selectedLabels={selectedLabels}
         onTitleChange={onTitleChange}
         onStatusChange={onStatusChange}
+        onLanguageChange={onLanguageChange}
+        onDescriptionChange={onDescriptionChange}
+        onOriginalWebsiteChange={onOriginalWebsiteChange}
         onCategoryChange={onCategoryChange}
         onSubcategoryChange={onSubcategoryChange}
         onLabelsChange={onLabelsChange}

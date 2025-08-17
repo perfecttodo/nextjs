@@ -7,11 +7,17 @@ import AudioFormFields from './AudioFormFields';
 interface AudioUrlUploadProps {
   title: string;
   status: AudioStatus;
+  language?: string;
+  description?: string;
+  originalWebsite?: string;
   selectedCategoryId: string;
   selectedSubcategoryId: string;
   selectedLabels: Label[]; // Added
   onTitleChange: (title: string) => void;
   onStatusChange: (status: AudioStatus) => void;
+  onLanguageChange: (language: string) => void;
+  onDescriptionChange: (description: string) => void;
+  onOriginalWebsiteChange: (originalWebsite: string) => void;
   onCategoryChange: (categoryId: string) => void;
   onSubcategoryChange: (subcategoryId: string) => void;
   onLabelsChange: (labels: Label[]) => void; // Added
@@ -21,11 +27,17 @@ interface AudioUrlUploadProps {
 export default function AudioUrlUpload({
   title,
   status,
+  language,
+  description,
+  originalWebsite,
   selectedCategoryId,
   selectedSubcategoryId,
   selectedLabels, // Added
   onTitleChange,
   onStatusChange,
+  onLanguageChange,
+  onDescriptionChange,
+  onOriginalWebsiteChange,
   onCategoryChange,
   onSubcategoryChange,
   onLabelsChange, // Added
@@ -83,6 +95,9 @@ export default function AudioUrlUpload({
           url: audioUrl,
           title: title.trim(),
           status,
+          language: language || null,
+          description: description || null,
+          originalWebsite: originalWebsite || null,
           categoryId: selectedCategoryId,
           subcategoryId: selectedSubcategoryId || null,
           labelIds: selectedLabels.map(label => label.id), // Added
@@ -99,6 +114,9 @@ export default function AudioUrlUpload({
       onTitleChange('');
       setAudioUrl('');
       onStatusChange('draft');
+      onLanguageChange('');
+      onDescriptionChange('');
+      onOriginalWebsiteChange('');
       onCategoryChange('');
       onSubcategoryChange('');
       onLabelsChange([]); // Added - reset labels
@@ -140,11 +158,17 @@ export default function AudioUrlUpload({
       <AudioFormFields
         title={title}
         status={status}
+        language={language}
+        description={description}
+        originalWebsite={originalWebsite}
         selectedCategoryId={selectedCategoryId}
         selectedSubcategoryId={selectedSubcategoryId}
         selectedLabels={selectedLabels} // Added
         onTitleChange={onTitleChange}
         onStatusChange={onStatusChange}
+        onLanguageChange={onLanguageChange}
+        onDescriptionChange={onDescriptionChange}
+        onOriginalWebsiteChange={onOriginalWebsiteChange}
         onCategoryChange={onCategoryChange}
         onSubcategoryChange={onSubcategoryChange}
         onLabelsChange={onLabelsChange} // Added

@@ -23,6 +23,9 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editStatus, setEditStatus] = useState<AudioStatus>('draft');
+  const [editLanguage, setEditLanguage] = useState<string>('');
+  const [editDescription, setEditDescription] = useState<string>('');
+  const [editOriginalWebsite, setEditOriginalWebsite] = useState<string>('');
   const [editCategoryId, setEditCategoryId] = useState<string>('');
   const [editSubcategoryId, setEditSubcategoryId] = useState<string>('');
   const [editLabels, setEditLabels] = useState<Label[]>([]); // Added
@@ -67,6 +70,9 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
     setEditingId(audio.id);
     setEditTitle(audio.title);
     setEditStatus(audio.status);
+    setEditLanguage(audio.language || '');
+    setEditDescription(audio.description || '');
+    setEditOriginalWebsite(audio.originalWebsite || '');
     setEditCategoryId(audio.categoryId || '');
     setEditSubcategoryId(audio.subcategoryId || '');
     setEditLabels(audio.labels || []); // Added
@@ -83,6 +89,9 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
           id: editingId,
           title: editTitle.trim(),
           status: editStatus,
+          language: editLanguage || null,
+          description: editDescription || null,
+          originalWebsite: editOriginalWebsite || null,
           categoryId: editCategoryId || null,
           subcategoryId: editSubcategoryId || null,
           labelIds: editLabels.map(label => label.id), // Added
@@ -94,6 +103,9 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
       setEditingId(null);
       setEditTitle('');
       setEditStatus('draft');
+      setEditLanguage('');
+      setEditDescription('');
+      setEditOriginalWebsite('');
       setEditCategoryId('');
       setEditSubcategoryId('');
       setEditLabels([]); // Added - reset labels
@@ -280,11 +292,17 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
                         <AudioFormFields
                           title={editTitle}
                           status={editStatus}
+                          language={editLanguage}
+                          description={editDescription}
+                          originalWebsite={editOriginalWebsite}
                           selectedCategoryId={editCategoryId}
                           selectedSubcategoryId={editSubcategoryId}
                           selectedLabels={editLabels} // Added
                           onTitleChange={setEditTitle}
                           onStatusChange={setEditStatus}
+                          onLanguageChange={setEditLanguage}
+                          onDescriptionChange={setEditDescription}
+                          onOriginalWebsiteChange={setEditOriginalWebsite}
                           onCategoryChange={setEditCategoryId}
                           onSubcategoryChange={setEditSubcategoryId}
                           onLabelsChange={setEditLabels} // Added
@@ -327,6 +345,15 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
 
                             <div className="text-sm text-gray-500 space-y-1">
                               <div>Original: {audio.originalName}</div>
+                              {audio.language && (
+                                <div>Language: {audio.language}</div>
+                              )}
+                              {audio.description && (
+                                <div>Description: {audio.description}</div>
+                              )}
+                              {audio.originalWebsite && (
+                                <div>Website: <a href={audio.originalWebsite} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{audio.originalWebsite}</a></div>
+                              )}
                               <div className="flex items-center space-x-4">
                                 <span>Format: {audio.format.toUpperCase()}</span>
                                 <span>Size: {formatFileSize(audio.fileSize)}</span>

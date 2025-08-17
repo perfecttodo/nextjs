@@ -41,6 +41,9 @@ export interface AudioFile {
   duration?: number; // in seconds
   fileSize: number; // in bytes
   status: AudioStatus;
+  language?: string; // Language of the audio content
+  description?: string; // Description of the audio content
+  originalWebsite?: string; // Original website where audio was found (optional)
   ownerId: string;
   categoryId?: string;
   category?: Category;

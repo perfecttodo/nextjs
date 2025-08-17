@@ -23,6 +23,9 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   const [sharedFormData, setSharedFormData] = useState({
     title: '',
     status: 'draft' as AudioStatus,
+    language: '',
+    description: '',
+    originalWebsite: '',
     categoryId: '',
     subcategoryId: '',
     labels: [] as Label[]
@@ -75,6 +78,9 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     setSharedFormData({
       title: '',
       status: 'draft',
+      language: '',
+      description: '',
+      originalWebsite: '',
       categoryId: '',
       subcategoryId: '',
       labels: []
@@ -86,11 +92,17 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     const commonProps = {
       title: sharedFormData.title,
       status: sharedFormData.status,
+      language: sharedFormData.language,
+      description: sharedFormData.description,
+      originalWebsite: sharedFormData.originalWebsite,
       selectedCategoryId: sharedFormData.categoryId,
       selectedSubcategoryId: sharedFormData.subcategoryId,
       selectedLabels: sharedFormData.labels,
       onTitleChange: (title: string) => updateSharedFormData('title', title),
       onStatusChange: (status: AudioStatus) => updateSharedFormData('status', status),
+      onLanguageChange: (language: string) => updateSharedFormData('language', language),
+      onDescriptionChange: (description: string) => updateSharedFormData('description', description),
+      onOriginalWebsiteChange: (originalWebsite: string) => updateSharedFormData('originalWebsite', originalWebsite),
       onCategoryChange: (categoryId: string) => updateSharedFormData('categoryId', categoryId),
       onSubcategoryChange: (subcategoryId: string) => updateSharedFormData('subcategoryId', subcategoryId),
       onLabelsChange: (labels: Label[]) => updateSharedFormData('labels', labels),
@@ -165,7 +177,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
           </div>
 
           {/* Form Data Persistence Info */}
-          {(sharedFormData.title || sharedFormData.categoryId) && (
+          {(sharedFormData.title || sharedFormData.language || sharedFormData.description || sharedFormData.originalWebsite || sharedFormData.categoryId) && (
             <div className="mb-4 p-3 bg-green-50 border-l-4 border-green-500 rounded-r-md">
               <div className="flex items-center space-x-2">
                 <span className="text-green-600">💾</span>

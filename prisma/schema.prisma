@@ -90,6 +90,9 @@ model AudioFile {
   duration      Int?        // in seconds
   fileSize      Int         // in bytes
   status        AudioStatus @default(draft)
+  language      String?     // Language of the audio content
+  description  String?     // Description of the audio content
+  originalWebsite String?   // Original website where audio was found (optional)
   ownerId       String
   owner         User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   categoryId    String?

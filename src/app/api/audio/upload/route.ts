@@ -14,6 +14,9 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File;
     const title = formData.get('title') as string;
     const status = formData.get('status') as 'draft' | 'published';
+    const language = formData.get('language') as string;
+    const description = formData.get('description') as string;
+    const originalWebsite = formData.get('originalWebsite') as string;
     const duration = formData.get('duration') as string;
     const categoryId = formData.get('categoryId') as string;
     const subcategoryId = formData.get('subcategoryId') as string;
@@ -146,6 +149,9 @@ export async function POST(request: NextRequest) {
       fileSize: file.size,
       status: status || 'draft',
       ownerId: user.sub,
+      language: language || null,
+      description: description || null,
+      originalWebsite: originalWebsite || null,
       duration: duration ? parseInt(duration) : 0,
       categoryId: categoryId,
       subcategoryId: subcategoryId || null,

@@ -7,11 +7,17 @@ import AudioFormFields from './AudioFormFields';
 interface AudioRecorderProps {
   title: string;
   status: AudioStatus;
+  language?: string;
+  description?: string;
+  originalWebsite?: string;
   selectedCategoryId: string;
   selectedSubcategoryId: string;
   selectedLabels: Label[]; // Added
   onTitleChange: (title: string) => void;
   onStatusChange: (status: AudioStatus) => void;
+  onLanguageChange: (language: string) => void;
+  onDescriptionChange: (description: string) => void;
+  onOriginalWebsiteChange: (originalWebsite: string) => void;
   onCategoryChange: (categoryId: string) => void;
   onSubcategoryChange: (subcategoryId: string) => void;
   onLabelsChange: (labels: Label[]) => void; // Added
@@ -67,11 +73,17 @@ const MAX_SIZE_BYTES = 4 * 1024 * 1024; // 4 MB
 export default function AudioRecorder({
   title,
   status,
+  language,
+  description,
+  originalWebsite,
   selectedCategoryId,
   selectedSubcategoryId,
   selectedLabels, // Added
   onTitleChange,
   onStatusChange,
+  onLanguageChange,
+  onDescriptionChange,
+  onOriginalWebsiteChange,
   onCategoryChange,
   onSubcategoryChange,
   onLabelsChange, // Added
@@ -215,6 +227,9 @@ export default function AudioRecorder({
       form.append('file', file);
       form.append('title', title.trim() || 'New recording');
       form.append('status', status);
+      if (language) form.append('language', language);
+      if (description) form.append('description', description);
+      if (originalWebsite) form.append('originalWebsite', originalWebsite);
       form.append('duration', duration.toString());
       form.append('categoryId', selectedCategoryId);
       if (selectedSubcategoryId) {
@@ -235,6 +250,9 @@ export default function AudioRecorder({
       if (recordingUrl) URL.revokeObjectURL(recordingUrl);
       setRecordingUrl(null);
       onTitleChange('New recording');
+      onLanguageChange('');
+      onDescriptionChange('');
+      onOriginalWebsiteChange('');
       onCategoryChange('');
       onSubcategoryChange('');
       onLabelsChange([]); // Added - reset labels
@@ -301,11 +319,17 @@ export default function AudioRecorder({
           <AudioFormFields
             title={title}
             status={status}
+            language={language}
+            description={description}
+            originalWebsite={originalWebsite}
             selectedCategoryId={selectedCategoryId}
             selectedSubcategoryId={selectedSubcategoryId}
             selectedLabels={selectedLabels} // Added
             onTitleChange={onTitleChange}
             onStatusChange={onStatusChange}
+            onLanguageChange={onLanguageChange}
+            onDescriptionChange={onDescriptionChange}
+            onOriginalWebsiteChange={onOriginalWebsiteChange}
             onCategoryChange={onCategoryChange}
             onSubcategoryChange={onSubcategoryChange}
             onLabelsChange={onLabelsChange} // Added
