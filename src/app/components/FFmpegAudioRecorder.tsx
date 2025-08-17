@@ -100,7 +100,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
       
       // Import FFmpeg dynamically to avoid SSR issues
       const { FFmpeg } = await import('@ffmpeg/ffmpeg');
-      const { toBlobURL } = await import('@ffmpeg/util');
+      const { toBlobURL,fetchFile } = await import('@ffmpeg/util');
       
       const ffmpeg = new FFmpeg();
       
@@ -231,7 +231,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
             '-hls_time', '2',
             '-hls_list_size', '0',
             '-hls_segment_filename', 'segment_%03d.ts',
- //           '-hls_playlist_type', 'vod',  // Video on Demand - ensures #EXT-X-ENDLIST
+            '-hls_playlist_type', 'vod',  // Video on Demand - ensures #EXT-X-ENDLIST
             '-hls_flags', 'independent_segments',  // Better compatibility
             '-hls_segment_type', 'mpegts',  // Explicit segment type
             outputFileName
@@ -324,7 +324,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
       setRecordingUrl(newUrl);
 
       // Clean up FFmpeg files safely
-      await cleanupFFmpegFiles(ffmpeg);
+     // await cleanupFFmpegFiles(ffmpeg);
 
     } catch (error) {
       console.error('FFmpeg processing error:', error);
