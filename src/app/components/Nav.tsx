@@ -10,7 +10,8 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { href: '/', label: 'Pomodoro' },
-  { href: '/audio', label: 'Audio' }
+  { href: '/audio', label: 'Audio' },
+  { href: '/categories', label: 'Categories' }
 ];
 
 export default function Nav() {
