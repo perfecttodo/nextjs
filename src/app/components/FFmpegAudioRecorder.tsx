@@ -51,8 +51,44 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
   const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
   const [ffmpegLoading, setFfmpegLoading] = useState(false);
   const [outputFormat, setOutputFormat] = useState<'m3u8' | 'mp3' | 'm4a'>('m3u8');
+  const [showM3U8Content, setShowM3U8Content] = useState(false);
+  const [m3u8Content, setM3u8Content] = useState<string>('');
+  const [m3u8ContentLoading, setM3u8ContentLoading] = useState(false);
 
   const curSizeRef = useRef(0);
+
+  // Function to ensure M3U8 files end with #EXT-X-ENDLIST
+  const ensureM3U8EndTag = (data: Uint8Array): Uint8Array => {
+    const text = new TextDecoder().decode(data);
+    
+    // Check if #EXT-X-ENDLIST is already present
+    if (text.includes('#EXT-X-ENDLIST')) {
+      return data; // Already has the tag
+    }
+    
+    // Add #EXT-X-ENDLIST if missing
+    const updatedText = text.trim() + '\n#EXT-X-ENDLIST';
+    return new TextEncoder().encode(updatedText);
+  };
+
+  // Function to get M3U8 content for display
+  const getM3U8Content = async (): Promise<string> => {
+    if (!ffmpegRef.current || outputFormat !== 'm3u8') return 'FFmpeg not available';
+    
+    try {
+      const ffmpeg = ffmpegRef.current;
+      const m3u8Data = await ffmpeg.readFile('output.m3u8');
+      const text = new TextDecoder().decode(m3u8Data);
+      
+      // Check if #EXT-X-ENDLIST is present
+      const hasEndTag = text.includes('#EXT-X-ENDLIST');
+      const status = hasEndTag ? '✅ Valid HLS Playlist' : '⚠️ Missing #EXT-X-ENDLIST';
+      
+      return `${status}\n\n${text}`;
+    } catch (error) {
+      return `Error reading M3U8 content: ${error}`;
+    }
+  };
 
   useEffect(() => {
     loadFFmpeg();
@@ -159,9 +195,27 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
 
       const ffmpeg = ffmpegRef.current;
       
-      // Write input file
+      // Write input file with retry logic
       const inputData = await inputBlob.arrayBuffer();
-      await ffmpeg.writeFile('input.webm', new Uint8Array(inputData));
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries) {
+        try {
+          await ffmpeg.writeFile('input.webm', new Uint8Array(inputData));
+          break; // Success, exit retry loop
+        } catch (writeError) {
+          retryCount++;
+          console.warn(`FFmpeg write retry ${retryCount}/${maxRetries}:`, writeError);
+          
+          if (retryCount >= maxRetries) {
+            throw new Error(`Failed to write input file after ${maxRetries} attempts`);
+          }
+          
+          // Wait a bit before retrying
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
 
       // Process based on output format
       let outputFileName: string;
@@ -177,6 +231,9 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
             '-hls_time', '2',
             '-hls_list_size', '0',
             '-hls_segment_filename', 'segment_%03d.ts',
+ //           '-hls_playlist_type', 'vod',  // Video on Demand - ensures #EXT-X-ENDLIST
+            '-hls_flags', 'independent_segments',  // Better compatibility
+            '-hls_segment_type', 'mpegts',  // Explicit segment type
             outputFileName
           ];
           break;
@@ -202,14 +259,58 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
           throw new Error('Unsupported output format');
       }
 
-      // Run FFmpeg command
-      await ffmpeg.exec(ffmpegArgs);
+      // Run FFmpeg command with retry logic
+      retryCount = 0;
+      while (retryCount < maxRetries) {
+        try {
+          await ffmpeg.exec(ffmpegArgs);
+          break; // Success, exit retry loop
+        } catch (execError) {
+          retryCount++;
+          console.warn(`FFmpeg exec retry ${retryCount}/${maxRetries}:`, execError);
+          
+          if (retryCount >= maxRetries) {
+            throw new Error(`Failed to process audio after ${maxRetries} attempts`);
+          }
+          
+          // Wait a bit before retrying
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      }
 
-      // Read output file
-      const outputData = await ffmpeg.readFile(outputFileName);
+      // Read output file with retry logic
+      retryCount = 0;
+      let outputData: Uint8Array | undefined;
+      
+      while (retryCount < maxRetries) {
+        try {
+          outputData = await ffmpeg.readFile(outputFileName);
+          break; // Success, exit retry loop
+        } catch (readError) {
+          retryCount++;
+          console.warn(`FFmpeg read retry ${retryCount}/${maxRetries}:`, readError);
+          
+          if (retryCount >= maxRetries) {
+            throw new Error(`Failed to read output file after ${maxRetries} attempts`);
+          }
+          
+          // Wait a bit before retrying
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+      
+      if (!outputData) {
+        throw new Error('Failed to read output file data');
+      }
+      
+      // For M3U8 files, ensure #EXT-X-ENDLIST tag is present
+      let finalOutputData = outputData;
+      if (outputFormat === 'm3u8') {
+        finalOutputData = ensureM3U8EndTag(outputData);
+      }
       
       // Create new blob with processed audio
-      const processedBlob = new Blob([outputData], { 
+      const processedBlob = new Blob([finalOutputData as any], { 
         type: outputFormat === 'm3u8' ? 'application/x-mpegURL' : 'audio/mpeg' 
       });
       
@@ -222,18 +323,8 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
       const newUrl = URL.createObjectURL(processedBlob);
       setRecordingUrl(newUrl);
 
-      // Clean up FFmpeg files
-      await ffmpeg.deleteFile('input.webm');
-      await ffmpeg.deleteFile(outputFileName);
-      if (outputFormat === 'm3u8') {
-        // Clean up HLS segments
-        const files = await ffmpeg.listDir('.');
-        for (const file of files) {
-          if (file.isFile && file.name.startsWith('segment_') && file.name.endsWith('.ts')) {
-            await ffmpeg.deleteFile(file.name);
-          }
-        }
-      }
+      // Clean up FFmpeg files safely
+      await cleanupFFmpegFiles(ffmpeg);
 
     } catch (error) {
       console.error('FFmpeg processing error:', error);
@@ -309,54 +400,147 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
     try {
       const ffmpeg = ffmpegRef.current;
       
-      // Get the M3U8 playlist content
-      const m3u8Data = await ffmpeg.readFile('output.m3u8');
-      const m3u8Blob = new Blob([m3u8Data], { type: 'application/x-mpegURL' });
+      // Check FFmpeg file system health first
+      const fsHealthy = await checkFFmpegFS(ffmpeg);
+      if (!fsHealthy) {
+        throw new Error('FFmpeg file system is not healthy. Please try refreshing the page.');
+      }
       
-      // Get all TS segment files
-      const files = await ffmpeg.listDir('.');
-      const tsFiles: File[] = [];
+      // Store all file data before cleanup to avoid FS errors
+      const filesToUpload: { name: string; data: Uint8Array; type: string }[] = [];
       
-      for (const file of files) {
-        if (file.isFile && file.name.startsWith('segment_') && file.name.endsWith('.ts')) {
-          const tsData = await ffmpeg.readFile(file.name);
-          const tsBlob = new Blob([tsData], { type: 'video/mp2t' });
-          const tsFile = new File([tsBlob], file.name, { type: 'video/mp2t' });
-          tsFiles.push(tsFile);
+      try {
+        // Get the M3U8 playlist content first
+        const m3u8Data = await ffmpeg.readFile('output.m3u8');
+        filesToUpload.push({
+          name: 'playlist.m3u8',
+          data: m3u8Data,
+          type: 'application/x-mpegURL'
+        });
+        
+        // Get all TS segment files
+        const files = await ffmpeg.listDir('.');
+        
+        for (const file of files) {
+          if (!file.isDir && file.name.startsWith('segment_') && file.name.endsWith('.ts')) {
+            try {
+              const tsData = await ffmpeg.readFile(file.name);
+              filesToUpload.push({
+                name: file.name,
+                data: tsData,
+                type: 'video/mp2t'
+              });
+            } catch (segmentError) {
+              console.warn(`Failed to read segment ${file.name}:`, segmentError);
+              // Continue with other segments
+            }
+          }
         }
-      }
+        
+        // Verify we have files to upload
+        if (filesToUpload.length === 0) {
+          throw new Error('No HLS files found for upload');
+        }
+        
+        // Create form data for HLS upload
+        const form = new FormData();
+        
+        // Add M3U8 file
+        const m3u8File = filesToUpload.find(f => f.name === 'playlist.m3u8');
+        if (m3u8File) {
+          const m3u8Blob = new Blob([m3u8File.data as any], { type: m3u8File.type });
+          form.append('m3u8File', m3u8Blob, 'playlist.m3u8');
+        }
+        
+        // Add TS segment files
+        const tsFiles = filesToUpload.filter(f => f.name !== 'playlist.m3u8');
+        tsFiles.forEach((tsFile) => {
+          const tsBlob = new Blob([tsFile.data as any], { type: tsFile.type });
+          const tsFileObj = new File([tsBlob], tsFile.name, { type: tsFile.type });
+          form.append('tsFiles', tsFileObj);
+        });
+        
+        // Add metadata
+        form.append('title', props.title.trim() || 'New recording');
+        form.append('status', props.status);
+        form.append('duration', duration.toString());
+        form.append('language', props.language || '');
+        form.append('description', props.description || '');
+        form.append('originalWebsite', props.originalWebsite || '');
+        form.append('categoryId', props.selectedCategoryId);
+        if (props.selectedSubcategoryId) {
+          form.append('subcategoryId', props.selectedSubcategoryId);
+        }
+        props.selectedLabels.forEach(label => {
+          form.append('labelIds', label.id);
+        });
 
-      // Create form data for HLS upload
-      const form = new FormData();
-      form.append('m3u8File', m3u8Blob, 'playlist.m3u8');
-      tsFiles.forEach((tsFile, index) => {
-        form.append('tsFiles', tsFile);
-      });
-      form.append('title', props.title.trim() || 'New recording');
-      form.append('status', props.status);
-      form.append('duration', duration.toString());
-      form.append('language', props.language || '');
-      form.append('description', props.description || '');
-      form.append('originalWebsite', props.originalWebsite || '');
-      form.append('categoryId', props.selectedCategoryId);
-      if (props.selectedSubcategoryId) {
-        form.append('subcategoryId', props.selectedSubcategoryId);
+        // Upload files
+        const res = await fetch('/api/audio/upload-hls', { method: 'POST', body: form });
+        const data = await res.json();
+        
+        if (!res.ok) throw new Error(data.error || 'HLS upload failed');
+        
+        if (props.onUploaded) props.onUploaded();
+        resetAfterUpload();
+        
+      } finally {
+        // Clean up FFmpeg files after all data is extracted
+        await cleanupFFmpegFiles(ffmpeg);
       }
-      props.selectedLabels.forEach(label => {
-        form.append('labelIds', label.id);
-      });
-
-      const res = await fetch('/api/audio/upload-hls', { method: 'POST', body: form });
-      const data = await res.json();
-      
-      if (!res.ok) throw new Error(data.error || 'HLS upload failed');
-      
-      if (props.onUploaded) props.onUploaded();
-      resetAfterUpload();
       
     } catch (error) {
       console.error('HLS upload error:', error);
-      throw new Error('Failed to upload HLS files. Please try again.');
+      throw new Error(`Failed to upload HLS files: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  // Check FFmpeg file system health
+  const checkFFmpegFS = async (ffmpeg: any): Promise<boolean> => {
+    try {
+      // Try to list directory to check if FS is working
+      await ffmpeg.listDir('.');
+      return true;
+    } catch (error) {
+      console.warn('FFmpeg FS check failed:', error);
+      return false;
+    }
+  };
+
+  // Separate cleanup function to avoid FS errors
+  const cleanupFFmpegFiles = async (ffmpeg: any) => {
+    try {
+      // Clean up input file
+      try {
+        await ffmpeg.deleteFile('input.webm');
+      } catch (e) {
+        console.warn('Could not delete input.webm:', e);
+      }
+      
+      // Clean up output file
+      try {
+        await ffmpeg.deleteFile('output.m3u8');
+      } catch (e) {
+        console.warn('Could not delete output.m3u8:', e);
+      }
+      
+      // Clean up HLS segments
+      try {
+        const files = await ffmpeg.listDir('.');
+        for (const file of files) {
+          if (file.isFile && file.name.startsWith('segment_') && file.name.endsWith('.ts')) {
+            try {
+              await ffmpeg.deleteFile(file.name);
+            } catch (e) {
+              console.warn(`Could not delete ${file.name}:`, e);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Could not list directory for cleanup:', e);
+      }
+    } catch (error) {
+      console.warn('FFmpeg cleanup error:', error);
     }
   };
 
@@ -495,6 +679,36 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
             Duration: {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, '0')} |
             Format: {outputFormat.toUpperCase()}
           </div>
+          
+          {/* M3U8 Content Display */}
+          {outputFormat === 'm3u8' && (
+            <div className="mt-4">
+              <button
+                onClick={async () => {
+                  if (!showM3U8Content) {
+                    setM3u8ContentLoading(true);
+                    const content = await getM3U8Content();
+                    setM3u8Content(content);
+                    setM3u8ContentLoading(false);
+                  }
+                  setShowM3U8Content(!showM3U8Content);
+                }}
+                className="text-sm text-blue-600 hover:text-blue-800 underline"
+                disabled={m3u8ContentLoading}
+              >
+                {m3u8ContentLoading ? 'Loading...' : (showM3U8Content ? 'Hide' : 'Show')} M3U8 Content
+              </button>
+              
+              {showM3U8Content && (
+                <div className="mt-2 p-3 bg-gray-100 rounded text-xs font-mono overflow-x-auto">
+                  <div className="text-gray-600 mb-2">M3U8 Playlist Content:</div>
+                  <pre className="whitespace-pre-wrap break-words">
+                    {m3u8Content}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

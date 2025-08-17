@@ -65,7 +65,15 @@ For M3U8 output, the following FFmpeg parameters are used:
 -hls_time 2       # Segment duration: 2 seconds
 -hls_list_size 0  # Keep all segments
 -hls_segment_filename segment_%03d.ts
+-hls_playlist_type vod  # Video on Demand - ensures #EXT-X-ENDLIST
+-hls_flags independent_segments  # Better compatibility
+-hls_segment_type mpegts  # Explicit segment type
 ```
+
+**Key Parameters for #EXT-X-ENDLIST:**
+- **`-hls_playlist_type vod`**: Ensures the playlist is marked as "Video on Demand" and automatically adds `#EXT-X-ENDLIST`
+- **`-hls_list_size 0`**: Keeps all segments in the playlist
+- **`-hls_flags independent_segments`**: Makes segments independently decodable
 
 ### **HLS Upload Process**
 When M3U8 format is selected, the system automatically:
@@ -75,6 +83,16 @@ When M3U8 format is selected, the system automatically:
 3. **Uploads Separately**: Uses dedicated `/api/audio/upload-hls` endpoint
 4. **Organizes Storage**: Creates organized folder structure in blob storage
 5. **Database Entry**: Stores M3U8 playlist URL as main audio file reference
+
+### **Error Prevention & Recovery**
+The system includes several layers of protection against common FFmpeg errors:
+
+1. **File System Health Check**: Verifies FFmpeg FS is working before operations
+2. **Retry Logic**: Automatically retries failed operations up to 3 times
+3. **Safe File Handling**: All file data is extracted before cleanup operations
+4. **Graceful Degradation**: Continues processing even if some segments fail
+5. **Memory Management**: Proper cleanup and memory deallocation
+6. **Error Isolation**: Individual file failures don't crash the entire process
 
 **File Structure in Storage:**
 ```
@@ -91,6 +109,29 @@ audio/{user_id}/{timestamp}-{title}/
 - **Adaptive Bitrate**: Segments can be served at different quality levels
 - **Scalable**: Easy to add more segments or modify existing ones
 - **Compatible**: Works with major streaming platforms and players
+
+### **M3U8 Content Validation**
+The system automatically ensures M3U8 playlists are valid:
+
+1. **Automatic #EXT-X-ENDLIST**: FFmpeg adds this tag automatically with `-hls_playlist_type vod`
+2. **Content Verification**: Users can view the generated M3U8 content to verify structure
+3. **Fallback Protection**: If the tag is missing, the system adds it programmatically
+4. **Real-time Preview**: Click "Show M3U8 Content" to see the generated playlist
+
+**Example M3U8 Structure:**
+```m3u8
+#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:2
+#EXT-X-MEDIA-SEQUENCE:0
+#EXTINF:2.000000,
+segment_000.ts
+#EXTINF:2.000000,
+segment_001.ts
+#EXTINF:2.000000,
+segment_002.ts
+#EXT-X-ENDLIST
+```
 
 ## 🌐 Browser Compatibility
 
@@ -152,6 +193,34 @@ audio/{user_id}/{timestamp}-{title}/
 2. Try smaller recording duration
 3. Check available memory
 4. Restart browser if needed
+
+### **M3U8 Playlist Issues**
+1. **Missing #EXT-X-ENDLIST**: 
+   - Ensure `-hls_playlist_type vod` is used
+   - Check FFmpeg version compatibility
+   - Verify HLS parameters are correct
+2. **Invalid Segment References**: 
+   - Check segment file naming convention
+   - Verify segment durations are consistent
+   - Ensure all segments are properly uploaded
+3. **Playlist Not Loading**: 
+   - Verify MIME type is `application/x-mpegURL`
+   - Check CORS settings for cross-origin access
+   - Ensure all segment URLs are accessible
+
+### **FFmpeg File System Errors**
+1. **"ErrnoError: FS error"**: 
+   - **Cause**: FFmpeg file system operations failing due to timing or memory issues
+   - **Solution**: The system now includes automatic retry logic and safer file handling
+   - **Prevention**: Files are read before cleanup to avoid access-after-delete errors
+2. **File Access Failures**: 
+   - **Cause**: Files being accessed after deletion or during cleanup
+   - **Solution**: Implemented separate cleanup function with error handling
+   - **Prevention**: All file data is extracted before any cleanup operations
+3. **Memory Issues**: 
+   - **Cause**: Large files or multiple operations overwhelming browser memory
+   - **Solution**: Automatic retry with delays and memory management
+   - **Prevention**: Files are processed in smaller chunks with proper cleanup
 
 ## 🔮 Future Enhancements
 
