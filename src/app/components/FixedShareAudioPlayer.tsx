@@ -90,7 +90,7 @@ export default function FixedAudioPlayer() {
         }
       });
       playerRef.current = player;
-    }
+ 
 
 
 
@@ -99,7 +99,7 @@ export default function FixedAudioPlayer() {
     player.on('ended', handleEnded);
     player.on('play', play);
     player.on('pause', pause);
-
+  }
     // Set up Media Session API for background control
     if ('mediaSession' in navigator && audio) {
       navigator.mediaSession.metadata = new MediaMetadata({
@@ -149,9 +149,33 @@ export default function FixedAudioPlayer() {
             ));
           }
         });
+
+        
       } catch (error) {
         console.log('Seek actions not supported:', error);
       }
+
+      player.one('loadedmetadata', () => {
+        setCurrentTime(0);
+        setDuration(player.duration());
+      });
+      const wasPlaying = isPlaying;
+
+      player.one('canplay', () => {
+        if (wasPlaying && userInteracted) {
+          player.play().catch((e: Error) => {
+            console.error("Playback failed:", e);
+            pause();
+          });
+        }
+      });
+  
+      //player.load();
+      player.play().catch((e: Error) => {
+        console.error("Initial playback failed:", e);
+       // pause();
+      });
+
     }
 
     return () => {
@@ -211,8 +235,6 @@ export default function FixedAudioPlayer() {
     if (!playerRef.current || !audio) return;
 
     const player = playerRef.current;
-    const wasPlaying = isPlaying;
-    player.pause();
 
     let url = audio.blobUrl
     let type = getType(audio);
@@ -222,27 +244,9 @@ export default function FixedAudioPlayer() {
       type
     });
 
-    player.one('loadedmetadata', () => {
-      setCurrentTime(0);
-      setDuration(player.duration());
-    });
 
-    player.one('canplay', () => {
-      if (wasPlaying && userInteracted) {
-        player.play().catch((e: Error) => {
-          console.error("Playback failed:", e);
-          pause();
-        });
-      }
-    });
 
-    player.load();
-    player.play().catch((e: Error) => {
-      console.error("Initial playback failed:", e);
-      pause();
-    });
-
-  }, [audio, userInteracted, pause, setCurrentTime, setDuration]);
+  }, [audio, userInteracted]);
 
   // Handle play/pause state changes
   useEffect(() => {
@@ -251,12 +255,12 @@ export default function FixedAudioPlayer() {
     if (isPlaying && userInteracted) {
       playerRef.current.play().catch((e: Error) => {
         console.error("Playback failed:", e);
-        pause();
+      //  pause();
       });
     } else {
       playerRef.current.pause();
     }
-  }, [isPlaying, userInteracted, pause]);
+  }, [isPlaying, userInteracted]);
 
   // Format time helper
   const formatTime = (time: number) => {
