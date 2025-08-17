@@ -1,6 +1,7 @@
 'use client';
 
 import { AudioFile, Category } from '@/types/audio';
+import { useRouter } from 'next/navigation';
 
 interface CategorizedAudioListProps {
   audioFiles: AudioFile[];
@@ -24,7 +25,8 @@ export default function CategorizedAudioList({
 }: CategorizedAudioListProps) {
   // Group audio files by category
   const groupedAudioFiles: GroupedAudioFiles = {};
-  
+  const router = useRouter();
+
   audioFiles.forEach(audio => {
     if (audio.category) {
       const categoryId = audio.category.id;
@@ -98,7 +100,7 @@ export default function CategorizedAudioList({
                 className={`px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer ${
                   currentAudio?.id === audio.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                 }`}
-                onClick={() => onAudioSelect(audio)}
+                
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
@@ -109,7 +111,7 @@ export default function CategorizedAudioList({
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium text-gray-900 truncate">
+                        <h4 className="text-sm font-medium text-gray-900 truncate"    onClick={() => router.push(`/audio/${audio.id}`)}>
                           {audio.title}
                         </h4>
                         <div className="flex items-center space-x-2 text-xs text-gray-500">
@@ -144,7 +146,7 @@ export default function CategorizedAudioList({
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2" onClick={() => onAudioSelect(audio)}>
                     {currentAudio?.id === audio.id && isPlaying && (
                       <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
                     )}
