@@ -13,61 +13,19 @@ export async function GET(
     }
 
     const { groupId } = await params;
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const search = searchParams.get('search') || '';
+    const status = searchParams.get('status') || '';
 
+    const skip = (page - 1) * limit;
+
+    // Get group info
     const group = await prisma.group.findFirst({
       where: {
         id: groupId,
         ownerId: user.sub
-      },
-      include: {
-        audioFiles: {
-          select: {
-            id: true,
-            title: true,
-            originalName: true,
-            blobUrl: true,
-            blobId: true,
-            format: true,
-            duration: true,
-            fileSize: true,
-            status: true,
-            language: true,
-            description: true,
-            originalWebsite: true,
-            createdAt: true,
-            updatedAt: true,
-            category: {
-              select: {
-                id: true,
-                name: true,
-                description: true,
-                color: true,
-              }
-            },
-            subcategory: {
-              select: {
-                id: true,
-                name: true,
-                description: true,
-              }
-            },
-            labels: {
-              select: {
-                id: true,
-                name: true,
-                color: true,
-                description: true,
-              }
-            },
-            owner: {
-              select: {
-                name: true,
-                email: true,
-              },
-            },
-          },
-          orderBy: { createdAt: 'desc' }
-        }
       }
     });
 
@@ -78,7 +36,87 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ group });
+    // Build where clause for audio files
+    const whereClause: any = { groupId };
+    if (search) {
+      whereClause.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+    if (status && status !== 'all') {
+      whereClause.status = status;
+    }
+
+    // Get total count for pagination
+    const totalAudioFiles = await prisma.audioFile.count({ where: whereClause });
+
+    // Get paginated audio files
+    const audioFiles = await prisma.audioFile.findMany({
+      where: whereClause,
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        originalName: true,
+        blobUrl: true,
+        blobId: true,
+        format: true,
+        duration: true,
+        fileSize: true,
+        status: true,
+        language: true,
+        description: true,
+        originalWebsite: true,
+        createdAt: true,
+        updatedAt: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            color: true,
+          }
+        },
+        subcategory: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          }
+        },
+        labels: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+            description: true,
+          }
+        },
+        owner: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      }
+    });
+
+    const totalPages = Math.ceil(totalAudioFiles / limit);
+
+    return NextResponse.json({ 
+      group,
+      audioFiles,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalAudioFiles,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
+    });
   } catch (error) {
     console.error('Error fetching group:', error);
     return NextResponse.json(

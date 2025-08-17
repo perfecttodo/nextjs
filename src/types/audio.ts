@@ -38,6 +38,9 @@ export interface Group {
   color?: string;
   ownerId: string;
   audioFiles?: AudioFile[];
+  _count?: {
+    audioFiles: number;
+  };
   createdAt: string;
   updatedAt: string;
 }

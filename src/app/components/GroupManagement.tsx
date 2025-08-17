@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Group } from '@/types/audio';
+import Pagination from './Pagination';
+import Link from 'next/link';
 
 export default function GroupManagement() {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -15,23 +17,39 @@ export default function GroupManagement() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
+  
+  // Pagination and search state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalGroups, setTotalGroups] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
     fetchGroups();
   }, []);
 
-  const fetchGroups = async () => {
+  const fetchGroups = async (page = 1, search = '') => {
     try {
       setLoading(true);
       setError('');
       
-      const response = await fetch('/api/audio/groups');
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: itemsPerPage.toString(),
+        ...(search && { search })
+      });
+      
+      const response = await fetch(`/api/audio/groups?${params}`);
       if (!response.ok) {
         throw new Error('Failed to fetch groups');
       }
       
       const data = await response.json();
       setGroups(data.groups || []);
+      setTotalPages(data.pagination.totalPages);
+      setTotalGroups(data.pagination.totalGroups);
+      setCurrentPage(page);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch groups');
     } finally {
@@ -93,6 +111,20 @@ export default function GroupManagement() {
     setError('');
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentPage(1);
+    fetchGroups(1, searchQuery);
+  };
+
+  const handlePageChange = (page: number) => {
+    fetchGroups(page, searchQuery);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
   const handleEdit = (group: Group) => {
     setEditingGroup(group);
     setFormData({
@@ -151,6 +183,37 @@ export default function GroupManagement() {
           {error}
         </div>
       )}
+
+      {/* Search Form */}
+      <div className="p-4 bg-white rounded-lg border shadow-sm">
+        <form onSubmit={handleSearch} className="flex gap-3">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            placeholder="Search groups by name or description..."
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Search
+          </button>
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                fetchGroups(1, '');
+              }}
+              className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+            >
+              Clear
+            </button>
+          )}
+        </form>
+      </div>
 
       {/* Group Creation Form */}
       {showForm && (
@@ -244,18 +307,23 @@ export default function GroupManagement() {
               className="p-4 bg-white rounded-lg border shadow-sm"
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
+                                <div className="flex items-center space-x-3">
                   <div
                     className="w-4 h-4 rounded-full"
                     style={{ backgroundColor: group.color || '#3B82F6' }}
                   />
-                  <div>
-                    <h3 className="font-medium text-gray-900">{group.name}</h3>
+                  <div className="flex-1">
+                    <Link 
+                      href={`/groups/${group.id}`}
+                      className="hover:text-blue-600 transition-colors"
+                    >
+                      <h3 className="font-medium text-gray-900">{group.name}</h3>
+                    </Link>
                     {group.description && (
                       <p className="text-sm text-gray-600">{group.description}</p>
                     )}
                     <p className="text-xs text-gray-500">
-                      {group.audioFiles?.length || 0} audio file(s)
+                      {group._count?.audioFiles || 0} audio file(s)
                     </p>
                   </div>
                 </div>
@@ -279,6 +347,17 @@ export default function GroupManagement() {
           ))
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          totalItems={totalGroups}
+          itemsPerPage={itemsPerPage}
+        />
+      )}
     </div>
   );
 }
