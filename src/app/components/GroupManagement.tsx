@@ -7,6 +7,14 @@ export default function GroupManagement() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    color: '#3B82F6'
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<Group | null>(null);
 
   useEffect(() => {
     fetchGroups();
@@ -31,6 +39,92 @@ export default function GroupManagement() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim()) {
+      setError('Group name is required');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setError('');
+      
+      const url = editingGroup 
+        ? `/api/audio/groups/${editingGroup.id}`
+        : '/api/audio/groups';
+      
+      const method = editingGroup ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to ${editingGroup ? 'update' : 'create'} group`);
+      }
+
+      const data = await response.json();
+      
+      if (editingGroup) {
+        setGroups(groups.map(g => g.id === editingGroup.id ? data.group : g));
+      } else {
+        setGroups([data.group, ...groups]);
+      }
+      
+      resetForm();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `Failed to ${editingGroup ? 'update' : 'create'} group`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({ name: '', description: '', color: '#3B82F6' });
+    setShowForm(false);
+    setEditingGroup(null);
+    setError('');
+  };
+
+  const handleEdit = (group: Group) => {
+    setEditingGroup(group);
+    setFormData({
+      name: group.name,
+      description: group.description || '',
+      color: group.color || '#3B82F6'
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (groupId: string) => {
+    if (!confirm('Are you sure you want to delete this group? Audio files will be removed from the group but not deleted.')) {
+      return;
+    }
+
+    try {
+      setError('');
+      const response = await fetch(`/api/audio/groups/${groupId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete group');
+      }
+
+      setGroups(groups.filter(g => g.id !== groupId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete group');
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center py-8">
@@ -44,7 +138,10 @@ export default function GroupManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Audio Groups</h2>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+        <button 
+          onClick={() => setShowForm(true)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
           Create Group
         </button>
       </div>
@@ -52,6 +149,85 @@ export default function GroupManagement() {
       {error && (
         <div className="p-3 text-sm bg-red-50 text-red-700 border border-red-200 rounded">
           {error}
+        </div>
+      )}
+
+      {/* Group Creation Form */}
+      {showForm && (
+        <div className="p-6 bg-gray-50 rounded-lg border">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            {editingGroup ? 'Edit Group' : 'Create New Group'}
+          </h3>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                Group Name *
+              </label>
+              <input
+                type="text"
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter group name"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter group description (optional)"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="color" className="block text-sm font-medium text-gray-700 mb-2">
+                Color
+              </label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="color"
+                  id="color"
+                  value={formData.color}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={formData.color}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="#3B82F6"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={resetForm}
+                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submitting ? (editingGroup ? 'Updating...' : 'Creating...') : (editingGroup ? 'Update Group' : 'Create Group')}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
@@ -67,19 +243,36 @@ export default function GroupManagement() {
               key={group.id}
               className="p-4 bg-white rounded-lg border shadow-sm"
             >
-              <div className="flex items-center space-x-3">
-                <div
-                  className="w-4 h-4 rounded-full"
-                  style={{ backgroundColor: group.color || '#3B82F6' }}
-                />
-                <div>
-                  <h3 className="font-medium text-gray-900">{group.name}</h3>
-                  {group.description && (
-                    <p className="text-sm text-gray-600">{group.description}</p>
-                  )}
-                  <p className="text-xs text-gray-500">
-                    {group.audioFiles?.length || 0} audio file(s)
-                  </p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div
+                    className="w-4 h-4 rounded-full"
+                    style={{ backgroundColor: group.color || '#3B82F6' }}
+                  />
+                  <div>
+                    <h3 className="font-medium text-gray-900">{group.name}</h3>
+                    {group.description && (
+                      <p className="text-sm text-gray-600">{group.description}</p>
+                    )}
+                    <p className="text-xs text-gray-500">
+                      {group.audioFiles?.length || 0} audio file(s)
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleEdit(group)}
+                    className="px-3 py-1 text-sm text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(group.id)}
+                    className="px-3 py-1 text-sm text-red-600 hover:text-red-800 underline"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             </div>
