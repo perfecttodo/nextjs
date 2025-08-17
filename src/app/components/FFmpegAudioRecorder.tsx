@@ -219,7 +219,8 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
       if (recordingUrl) {
         URL.revokeObjectURL(recordingUrl);
       }
-      setRecordingUrl(URL.createObjectURL(processedBlob));
+      const newUrl = URL.createObjectURL(processedBlob);
+      setRecordingUrl(newUrl);
 
       // Clean up FFmpeg files
       await ffmpeg.deleteFile('input.webm');
@@ -252,13 +253,85 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
       setIsUploading(true);
       setError('');
 
-      const form = new FormData();
-      const ext = outputFormat === 'm3u8' ? 'm3u8' : outputFormat;
-      const mimeType = outputFormat === 'm3u8' ? 'application/x-mpegURL' : 
-                      outputFormat === 'mp3' ? 'audio/mpeg' : 'audio/mp4';
+      // Handle HLS upload differently
+      if (outputFormat === 'm3u8') {
+        await uploadHLSRecording();
+      } else {
+        await uploadStandardRecording();
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Upload failed');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const uploadStandardRecording = async () => {
+    if (!recordingBlob) {
+      throw new Error('No recording available for upload');
+    }
+    
+    const form = new FormData();
+    const ext = outputFormat;
+    const mimeType = outputFormat === 'mp3' ? 'audio/mpeg' : 'audio/mp4';
+    
+    const file = new File([recordingBlob], `recording.${ext}`, { type: mimeType });
+    form.append('file', file);
+    form.append('title', props.title.trim() || 'New recording');
+    form.append('status', props.status);
+    form.append('duration', duration.toString());
+    form.append('language', props.language || '');
+    form.append('description', props.description || '');
+    form.append('originalWebsite', props.originalWebsite || '');
+    form.append('categoryId', props.selectedCategoryId);
+    if (props.selectedSubcategoryId) {
+      form.append('subcategoryId', props.selectedSubcategoryId);
+    }
+    props.selectedLabels.forEach(label => {
+      form.append('labelIds', label.id);
+    });
+
+    const res = await fetch('/api/audio/upload', { method: 'POST', body: form });
+    const data = await res.json();
+    
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    
+    if (props.onUploaded) props.onUploaded();
+    resetAfterUpload();
+  };
+
+  const uploadHLSRecording = async () => {
+    // For HLS, we need to get the processed files from FFmpeg
+    if (!ffmpegRef.current) {
+      throw new Error('FFmpeg not available for HLS processing');
+    }
+
+    try {
+      const ffmpeg = ffmpegRef.current;
       
-      const file = new File([recordingBlob], `recording.${ext}`, { type: mimeType });
-      form.append('file', file);
+      // Get the M3U8 playlist content
+      const m3u8Data = await ffmpeg.readFile('output.m3u8');
+      const m3u8Blob = new Blob([m3u8Data], { type: 'application/x-mpegURL' });
+      
+      // Get all TS segment files
+      const files = await ffmpeg.listDir('.');
+      const tsFiles: File[] = [];
+      
+      for (const file of files) {
+        if (file.isFile && file.name.startsWith('segment_') && file.name.endsWith('.ts')) {
+          const tsData = await ffmpeg.readFile(file.name);
+          const tsBlob = new Blob([tsData], { type: 'video/mp2t' });
+          const tsFile = new File([tsBlob], file.name, { type: 'video/mp2t' });
+          tsFiles.push(tsFile);
+        }
+      }
+
+      // Create form data for HLS upload
+      const form = new FormData();
+      form.append('m3u8File', m3u8Blob, 'playlist.m3u8');
+      tsFiles.forEach((tsFile, index) => {
+        form.append('tsFiles', tsFile);
+      });
       form.append('title', props.title.trim() || 'New recording');
       form.append('status', props.status);
       form.append('duration', duration.toString());
@@ -273,32 +346,35 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
         form.append('labelIds', label.id);
       });
 
-      const res = await fetch('/api/audio/upload', { method: 'POST', body: form });
+      const res = await fetch('/api/audio/upload-hls', { method: 'POST', body: form });
       const data = await res.json();
       
-      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      if (!res.ok) throw new Error(data.error || 'HLS upload failed');
       
       if (props.onUploaded) props.onUploaded();
+      resetAfterUpload();
       
-      // Reset
-      setRecordingBlob(null);
-      if (recordingUrl) URL.revokeObjectURL(recordingUrl);
-      setRecordingUrl(null);
-      props.onTitleChange('New recording');
-      props.onLanguageChange('');
-      props.onDescriptionChange('');
-      props.onOriginalWebsiteChange('');
-      props.onCategoryChange('');
-      props.onSubcategoryChange('');
-      props.onLabelsChange([]);
-      curSizeRef.current = 0;
-      setCurrentSize(0);
-      setDuration(0);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Upload failed');
-    } finally {
-      setIsUploading(false);
+    } catch (error) {
+      console.error('HLS upload error:', error);
+      throw new Error('Failed to upload HLS files. Please try again.');
     }
+  };
+
+  const resetAfterUpload = () => {
+    // Reset
+    setRecordingBlob(null);
+    if (recordingUrl) URL.revokeObjectURL(recordingUrl);
+    setRecordingUrl(null);
+    props.onTitleChange('New recording');
+    props.onLanguageChange('');
+    props.onDescriptionChange('');
+    props.onOriginalWebsiteChange('');
+    props.onCategoryChange('');
+    props.onSubcategoryChange('');
+    props.onLabelsChange([]);
+    curSizeRef.current = 0;
+    setCurrentSize(0);
+    setDuration(0);
   };
 
   useEffect(() => {

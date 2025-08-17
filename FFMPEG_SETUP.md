@@ -52,7 +52,9 @@ npm install @ffmpeg/ffmpeg @ffmpeg/util
 1. **Recording**: Captures audio using MediaRecorder API
 2. **Processing**: Converts WebM to selected format using FFmpeg
 3. **Output**: Creates processed audio file with proper MIME type
-4. **Upload**: Sends processed file to server
+4. **Upload**: 
+   - **Standard formats (MP3/M4A)**: Single file upload via `/api/audio/upload`
+   - **HLS format (M3U8)**: Multi-file upload via `/api/audio/upload-hls` (M3U8 + TS segments)
 
 ### **HLS Configuration**
 For M3U8 output, the following FFmpeg parameters are used:
@@ -64,6 +66,31 @@ For M3U8 output, the following FFmpeg parameters are used:
 -hls_list_size 0  # Keep all segments
 -hls_segment_filename segment_%03d.ts
 ```
+
+### **HLS Upload Process**
+When M3U8 format is selected, the system automatically:
+
+1. **Processes Audio**: Converts WebM recording to M3U8 + TS segments
+2. **Collects Files**: Gathers M3U8 playlist and all TS segment files
+3. **Uploads Separately**: Uses dedicated `/api/audio/upload-hls` endpoint
+4. **Organizes Storage**: Creates organized folder structure in blob storage
+5. **Database Entry**: Stores M3U8 playlist URL as main audio file reference
+
+**File Structure in Storage:**
+```
+audio/{user_id}/{timestamp}-{title}/
+├── playlist.m3u8          # Main playlist file
+├── segment_000.ts         # Audio segment 1
+├── segment_001.ts         # Audio segment 2
+├── segment_002.ts         # Audio segment 3
+└── ...                    # Additional segments
+```
+
+**Benefits:**
+- **Streaming Ready**: M3U8 files work with HLS players and CDNs
+- **Adaptive Bitrate**: Segments can be served at different quality levels
+- **Scalable**: Easy to add more segments or modify existing ones
+- **Compatible**: Works with major streaming platforms and players
 
 ## 🌐 Browser Compatibility
 
@@ -139,6 +166,30 @@ For M3U8 output, the following FFmpeg parameters are used:
 - **Streaming Processing**: Process audio in chunks
 - **Caching**: Cache FFmpeg core files locally
 - **Optimization**: Reduce memory usage and processing time
+
+## 🔌 API Endpoints
+
+### **Standard Audio Upload**
+- **Endpoint**: `POST /api/audio/upload`
+- **Purpose**: Upload single audio files (MP3, M4A, WAV, OGG, WebM)
+- **Format**: Standard form data with single file
+
+### **HLS Audio Upload**
+- **Endpoint**: `POST /api/audio/upload-hls`
+- **Purpose**: Upload M3U8 playlist + TS segment files
+- **Format**: Form data with multiple files
+- **Files**:
+  - `m3u8File`: M3U8 playlist file
+  - `tsFiles[]`: Array of TS segment files
+  - Standard metadata fields (title, category, etc.)
+
+### **Upload Flow**
+```
+FFmpeg Processing → File Collection → Format Detection → API Selection → Upload
+     ↓                    ↓              ↓              ↓           ↓
+  M3U8 + TS         Gather Files    M3U8 Format    HLS Endpoint   Storage
+  MP3/M4A           Single File     MP3/M4A       Standard       Storage
+```
 
 ## 📚 Additional Resources
 
