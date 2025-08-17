@@ -8,12 +8,13 @@ import { AudioStatus, Label } from '@/types/audio';
 const AudioUpload = dynamic(() => import('./AudioUpload'), { ssr: false });
 const AudioRecorder = dynamic(() => import('./AudioRecorder'), { ssr: false });
 const UrlAudio = dynamic(() => import('./UrlAudio'), { ssr: false });
+const FFmpegAudioRecorder = dynamic(() => import('./FFmpegAudioRecorder'), { ssr: false });
 
 interface AudioCreationTabsProps {
   onUploadSuccess: () => void;
 }
 
-type TabType = 'upload' | 'record' | 'url';
+type TabType = 'upload' | 'record' | 'ffmpeg' | 'url';
 
 export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>('upload');
@@ -45,6 +46,13 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       description: 'Record audio directly in your browser',
       icon: '🎙️',
       shortLabel: 'Record'
+    },
+    {
+      id: 'ffmpeg' as TabType,
+      label: 'FFmpeg Recorder',
+      description: 'Advanced recording with M3U8 HLS support',
+      icon: '⚡',
+      shortLabel: 'FFmpeg'
     },
     {
       id: 'url' as TabType,
@@ -115,6 +123,8 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
         return <AudioUpload {...commonProps} />;
       case 'record':
         return <AudioRecorder {...commonProps} onUploaded={handleUploadSuccess} />;
+      case 'ffmpeg':
+        return <FFmpegAudioRecorder {...commonProps} onUploaded={handleUploadSuccess} />;
       case 'url':
         return <UrlAudio {...commonProps} />;
       default:
