@@ -28,6 +28,7 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
   const [editOriginalWebsite, setEditOriginalWebsite] = useState<string>('');
   const [editCategoryId, setEditCategoryId] = useState<string>('');
   const [editSubcategoryId, setEditSubcategoryId] = useState<string>('');
+  const [editGroupId, setEditGroupId] = useState<string>('');
   const [editLabels, setEditLabels] = useState<Label[]>([]); // Added
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'draft' | 'published'>('all');
@@ -75,6 +76,7 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
     setEditOriginalWebsite(audio.originalWebsite || '');
     setEditCategoryId(audio.categoryId || '');
     setEditSubcategoryId(audio.subcategoryId || '');
+    setEditGroupId(audio.groupId || '');
     setEditLabels(audio.labels || []); // Added
   };
 
@@ -94,6 +96,7 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
           originalWebsite: editOriginalWebsite || null,
           categoryId: editCategoryId || null,
           subcategoryId: editSubcategoryId || null,
+          groupId: editGroupId || null,
           labelIds: editLabels.map(label => label.id), // Added
         }),
       });
@@ -297,6 +300,7 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
                           originalWebsite={editOriginalWebsite}
                           selectedCategoryId={editCategoryId}
                           selectedSubcategoryId={editSubcategoryId}
+                          selectedGroupId={editGroupId}
                           selectedLabels={editLabels} // Added
                           onTitleChange={setEditTitle}
                           onStatusChange={setEditStatus}
@@ -305,6 +309,7 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
                           onOriginalWebsiteChange={setEditOriginalWebsite}
                           onCategoryChange={setEditCategoryId}
                           onSubcategoryChange={setEditSubcategoryId}
+                          onGroupChange={setEditGroupId}
                           onLabelsChange={setEditLabels} // Added
                           categoryRequired={false}
                           showStatusHelp={false}

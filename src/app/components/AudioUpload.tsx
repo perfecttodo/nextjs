@@ -12,6 +12,7 @@ interface AudioUploadProps {
   originalWebsite?: string;
   selectedCategoryId: string;
   selectedSubcategoryId: string;
+  selectedGroupId: string;
   selectedLabels: Label[];
   onTitleChange: (title: string) => void;
   onStatusChange: (status: AudioStatus) => void;
@@ -20,6 +21,7 @@ interface AudioUploadProps {
   onOriginalWebsiteChange: (originalWebsite: string) => void;
   onCategoryChange: (categoryId: string) => void;
   onSubcategoryChange: (subcategoryId: string) => void;
+  onGroupChange: (groupId: string) => void;
   onLabelsChange: (labels: Label[]) => void;
   onUploadSuccess: () => void;
 }
@@ -32,6 +34,7 @@ export default function AudioUpload({
   originalWebsite,
   selectedCategoryId,
   selectedSubcategoryId,
+  selectedGroupId,
   selectedLabels,
   onTitleChange,
   onStatusChange,
@@ -40,6 +43,7 @@ export default function AudioUpload({
   onOriginalWebsiteChange,
   onCategoryChange,
   onSubcategoryChange,
+  onGroupChange,
   onLabelsChange,
   onUploadSuccess
 }: AudioUploadProps) {
@@ -262,6 +266,7 @@ export default function AudioUpload({
         originalWebsite={originalWebsite}
         selectedCategoryId={selectedCategoryId}
         selectedSubcategoryId={selectedSubcategoryId}
+        selectedGroupId={selectedGroupId}
         selectedLabels={selectedLabels}
         onTitleChange={onTitleChange}
         onStatusChange={onStatusChange}
@@ -270,6 +275,7 @@ export default function AudioUpload({
         onOriginalWebsiteChange={onOriginalWebsiteChange}
         onCategoryChange={onCategoryChange}
         onSubcategoryChange={onSubcategoryChange}
+        onGroupChange={onGroupChange}
         onLabelsChange={onLabelsChange}
         categoryRequired={true}
         showStatusHelp={true}

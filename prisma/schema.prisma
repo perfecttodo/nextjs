@@ -36,6 +36,7 @@ model User {
   items     TestingItem[]
   audioFiles AudioFile[]
   labels    Label[]       // User's custom labels
+  groups    Group[]       // User's groups
   
   @@index([githubId])
 }
@@ -80,6 +81,21 @@ model Label {
   @@index([ownerId])
 }
 
+model Group {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  color       String?    // Hex color for UI display
+  ownerId     String
+  owner       User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  audioFiles  AudioFile[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([name, ownerId]) // Allow same name for different owners
+  @@index([ownerId])
+}
+
 model AudioFile {
   id            String      @id @default(uuid())
   title         String
@@ -100,6 +116,8 @@ model AudioFile {
   subcategoryId String?
   subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
   labels        Label[]     // Many-to-many relationship
+  groupId       String?
+  group         Group?      @relation(fields: [groupId], references: [id])
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -107,6 +125,7 @@ model AudioFile {
   @@index([ownerId])
   @@index([categoryId])
   @@index([subcategoryId])
+  @@index([groupId])
 }
 
 enum AudioStatus {

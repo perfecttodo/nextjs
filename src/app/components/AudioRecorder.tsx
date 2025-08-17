@@ -12,6 +12,7 @@ interface AudioRecorderProps {
   originalWebsite?: string;
   selectedCategoryId: string;
   selectedSubcategoryId: string;
+  selectedGroupId: string;
   selectedLabels: Label[]; // Added
   onTitleChange: (title: string) => void;
   onStatusChange: (status: AudioStatus) => void;
@@ -20,6 +21,7 @@ interface AudioRecorderProps {
   onOriginalWebsiteChange: (originalWebsite: string) => void;
   onCategoryChange: (categoryId: string) => void;
   onSubcategoryChange: (subcategoryId: string) => void;
+  onGroupChange: (groupId: string) => void;
   onLabelsChange: (labels: Label[]) => void; // Added
   onUploaded?: () => void;
 }
@@ -78,6 +80,7 @@ export default function AudioRecorder({
   originalWebsite,
   selectedCategoryId,
   selectedSubcategoryId,
+  selectedGroupId,
   selectedLabels, // Added
   onTitleChange,
   onStatusChange,
@@ -86,6 +89,7 @@ export default function AudioRecorder({
   onOriginalWebsiteChange,
   onCategoryChange,
   onSubcategoryChange,
+  onGroupChange,
   onLabelsChange, // Added
   onUploaded
 }: AudioRecorderProps) {
@@ -324,6 +328,7 @@ export default function AudioRecorder({
             originalWebsite={originalWebsite}
             selectedCategoryId={selectedCategoryId}
             selectedSubcategoryId={selectedSubcategoryId}
+            selectedGroupId={selectedGroupId}
             selectedLabels={selectedLabels} // Added
             onTitleChange={onTitleChange}
             onStatusChange={onStatusChange}
@@ -332,6 +337,7 @@ export default function AudioRecorder({
             onOriginalWebsiteChange={onOriginalWebsiteChange}
             onCategoryChange={onCategoryChange}
             onSubcategoryChange={onSubcategoryChange}
+            onGroupChange={onGroupChange}
             onLabelsChange={onLabelsChange} // Added
             categoryRequired={true}
             showStatusHelp={true}

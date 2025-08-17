@@ -31,6 +31,17 @@ export interface Label {
   updatedAt: string;
 }
 
+export interface Group {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string;
+  ownerId: string;
+  audioFiles?: AudioFile[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AudioFile {
   id: string;
   title: string;
@@ -50,6 +61,8 @@ export interface AudioFile {
   subcategoryId?: string;
   subcategory?: Subcategory;
   labels?: Label[];
+  groupId?: string;
+  group?: Group;
   createdAt: string;
   updatedAt: string;
 }

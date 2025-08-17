@@ -29,6 +29,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     originalWebsite: '',
     categoryId: '',
     subcategoryId: '',
+    groupId: '',
     labels: [] as Label[]
   });
 
@@ -91,6 +92,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       originalWebsite: '',
       categoryId: '',
       subcategoryId: '',
+      groupId: '',
       labels: []
     });
     onUploadSuccess();
@@ -105,6 +107,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       originalWebsite: sharedFormData.originalWebsite,
       selectedCategoryId: sharedFormData.categoryId,
       selectedSubcategoryId: sharedFormData.subcategoryId,
+      selectedGroupId: sharedFormData.groupId,
       selectedLabels: sharedFormData.labels,
       onTitleChange: (title: string) => updateSharedFormData('title', title),
       onStatusChange: (status: AudioStatus) => updateSharedFormData('status', status),
@@ -113,6 +116,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       onOriginalWebsiteChange: (originalWebsite: string) => updateSharedFormData('originalWebsite', originalWebsite),
       onCategoryChange: (categoryId: string) => updateSharedFormData('categoryId', categoryId),
       onSubcategoryChange: (subcategoryId: string) => updateSharedFormData('subcategoryId', subcategoryId),
+      onGroupChange: (groupId: string) => updateSharedFormData('groupId', groupId),
       onLabelsChange: (labels: Label[]) => updateSharedFormData('labels', labels),
       onUploadSuccess: handleUploadSuccess,
       ownerId: 'user-id' // This should come from user context

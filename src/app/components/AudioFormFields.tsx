@@ -3,6 +3,7 @@
 import { AudioStatus, Label } from '@/types/audio';
 import CategorySelector from './CategorySelector';
 import LabelSelector from './LabelSelector';
+import GroupSelector from './GroupSelector';
 
 interface AudioFormFieldsProps {
   title: string;
@@ -13,6 +14,7 @@ interface AudioFormFieldsProps {
   selectedCategoryId: string;
   selectedSubcategoryId: string;
   selectedLabels: Label[];
+  selectedGroupId: string;
   onTitleChange: (title: string) => void;
   onStatusChange: (status: AudioStatus) => void;
   onLanguageChange: (language: string) => void;
@@ -21,6 +23,7 @@ interface AudioFormFieldsProps {
   onCategoryChange: (categoryId: string) => void;
   onSubcategoryChange: (subcategoryId: string) => void;
   onLabelsChange: (labels: Label[]) => void;
+  onGroupChange: (groupId: string) => void;
   categoryRequired?: boolean;
   showStatusHelp?: boolean;
   ownerId?: string;
@@ -35,6 +38,7 @@ export default function AudioFormFields({
   selectedCategoryId,
   selectedSubcategoryId,
   selectedLabels,
+  selectedGroupId,
   onTitleChange,
   onStatusChange,
   onLanguageChange,
@@ -43,6 +47,7 @@ export default function AudioFormFields({
   onCategoryChange,
   onSubcategoryChange,
   onLabelsChange,
+  onGroupChange,
   categoryRequired = true,
   showStatusHelp = true,
   ownerId
@@ -138,6 +143,12 @@ export default function AudioFormFields({
         onCategoryChange={onCategoryChange}
         onSubcategoryChange={onSubcategoryChange}
         required={categoryRequired}
+      />
+
+      {/* Group Selection */}
+      <GroupSelector
+        selectedGroupId={selectedGroupId}
+        onGroupChange={onGroupChange}
       />
 
       {/* Label Selection */}
