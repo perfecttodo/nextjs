@@ -11,8 +11,8 @@ interface AudioFormFieldsProps {
   language?: string;
   description?: string;
   originalWebsite?: string;
-  selectedCategoryId: string;
-  selectedSubcategoryId: string;
+  selectedCategoryId?: string;
+  selectedSubcategoryId?: string;
   selectedLabels: Label[];
   selectedGroupId: string;
   onTitleChange: (title: string) => void;
@@ -20,8 +20,8 @@ interface AudioFormFieldsProps {
   onLanguageChange: (language: string) => void;
   onDescriptionChange: (description: string) => void;
   onOriginalWebsiteChange: (originalWebsite: string) => void;
-  onCategoryChange: (categoryId: string) => void;
-  onSubcategoryChange: (subcategoryId: string) => void;
+  onCategoryChange: (categoryId: string | undefined) => void;
+  onSubcategoryChange: (subcategoryId: string | undefined) => void;
   onLabelsChange: (labels: Label[]) => void;
   onGroupChange: (groupId: string) => void;
   categoryRequired?: boolean;
@@ -48,7 +48,7 @@ export default function AudioFormFields({
   onSubcategoryChange,
   onLabelsChange,
   onGroupChange,
-  categoryRequired = true,
+  categoryRequired = false,
   showStatusHelp = true,
   ownerId
 }: AudioFormFieldsProps) {

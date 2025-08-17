@@ -10,8 +10,8 @@ interface AudioUploadProps {
   language?: string;
   description?: string;
   originalWebsite?: string;
-  selectedCategoryId: string;
-  selectedSubcategoryId: string;
+  selectedCategoryId?: string;
+  selectedSubcategoryId?: string;
   selectedGroupId: string;
   selectedLabels: Label[];
   onTitleChange: (title: string) => void;
@@ -19,8 +19,8 @@ interface AudioUploadProps {
   onLanguageChange: (language: string) => void;
   onDescriptionChange: (description: string) => void;
   onOriginalWebsiteChange: (originalWebsite: string) => void;
-  onCategoryChange: (categoryId: string) => void;
-  onSubcategoryChange: (subcategoryId: string) => void;
+  onCategoryChange: (categoryId: string | undefined) => void;
+  onSubcategoryChange: (subcategoryId: string | undefined) => void;
   onGroupChange: (groupId: string) => void;
   onLabelsChange: (labels: Label[]) => void;
   onUploadSuccess: () => void;
@@ -113,10 +113,7 @@ export default function AudioUpload({
       return;
     }
 
-    if (!selectedCategoryId) {
-      setError('Please select a category.');
-      return;
-    }
+
 
     setIsUploading(true);
     setError('');
@@ -130,7 +127,9 @@ export default function AudioUpload({
       if (language) formData.append('language', language);
       if (description) formData.append('description', description);
       if (originalWebsite) formData.append('originalWebsite', originalWebsite);
-      formData.append('categoryId', selectedCategoryId);
+      if (selectedCategoryId) {
+        formData.append('categoryId', selectedCategoryId);
+      }
       if (selectedSubcategoryId) {
         formData.append('subcategoryId', selectedSubcategoryId);
       }
@@ -277,7 +276,7 @@ export default function AudioUpload({
         onSubcategoryChange={onSubcategoryChange}
         onGroupChange={onGroupChange}
         onLabelsChange={onLabelsChange}
-        categoryRequired={true}
+                    categoryRequired={false}
         showStatusHelp={true}
       />
 
@@ -297,9 +296,9 @@ export default function AudioUpload({
       {/* Submit Button */}
       <button
         type="submit"
-        disabled={isUploading || !selectedFile || !title.trim() || !selectedCategoryId}
+        disabled={isUploading || !selectedFile || !title.trim()}
         className={`w-full py-2 px-4 rounded-md font-medium transition-colors ${
-          isUploading || !selectedFile || !title.trim() || !selectedCategoryId
+                      isUploading || !selectedFile || !title.trim()
             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
             : 'bg-blue-600 hover:bg-blue-700 text-white'
         }`}

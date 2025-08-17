@@ -10,8 +10,8 @@ interface AudioRecorderProps {
   language?: string;
   description?: string;
   originalWebsite?: string;
-  selectedCategoryId: string;
-  selectedSubcategoryId: string;
+  selectedCategoryId?: string;
+  selectedSubcategoryId?: string;
   selectedGroupId: string;
   selectedLabels: Label[]; // Added
   onTitleChange: (title: string) => void;
@@ -19,8 +19,8 @@ interface AudioRecorderProps {
   onLanguageChange: (language: string) => void;
   onDescriptionChange: (description: string) => void;
   onOriginalWebsiteChange: (originalWebsite: string) => void;
-  onCategoryChange: (categoryId: string) => void;
-  onSubcategoryChange: (subcategoryId: string) => void;
+  onCategoryChange: (categoryId: string | undefined) => void;
+  onSubcategoryChange: (subcategoryId: string | undefined) => void;
   onGroupChange: (groupId: string) => void;
   onLabelsChange: (labels: Label[]) => void; // Added
   onUploaded?: () => void;
@@ -211,10 +211,7 @@ export default function AudioRecorder({
   const uploadRecording = async () => {
     if (!recordingBlob) return;
     
-    if (!selectedCategoryId) {
-      setError('Please select a category before uploading.');
-      return;
-    }
+
     
     try {
       setIsUploading(true);
@@ -235,7 +232,9 @@ export default function AudioRecorder({
       if (description) form.append('description', description);
       if (originalWebsite) form.append('originalWebsite', originalWebsite);
       form.append('duration', duration.toString());
-      form.append('categoryId', selectedCategoryId);
+      if (selectedCategoryId) {
+        form.append('categoryId', selectedCategoryId);
+      }
       if (selectedSubcategoryId) {
         form.append('subcategoryId', selectedSubcategoryId);
       }
@@ -339,17 +338,17 @@ export default function AudioRecorder({
             onSubcategoryChange={onSubcategoryChange}
             onGroupChange={onGroupChange}
             onLabelsChange={onLabelsChange} // Added
-            categoryRequired={true}
+            categoryRequired={false}
             showStatusHelp={true}
           />
         </div>
 
       {recordingBlob && (
         <button
-          disabled={isUploading || !selectedCategoryId}
+          disabled={isUploading}
           onClick={uploadRecording}
           className={`w-full px-4 py-3 rounded ${
-            !recordingBlob || isUploading || !selectedCategoryId 
+            !recordingBlob || isUploading 
               ? 'bg-gray-300 text-gray-600' 
               : 'bg-green-600 hover:bg-green-700 text-white'
           }`}

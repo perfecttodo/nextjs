@@ -26,8 +26,8 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
   const [editLanguage, setEditLanguage] = useState<string>('');
   const [editDescription, setEditDescription] = useState<string>('');
   const [editOriginalWebsite, setEditOriginalWebsite] = useState<string>('');
-  const [editCategoryId, setEditCategoryId] = useState<string>('');
-  const [editSubcategoryId, setEditSubcategoryId] = useState<string>('');
+  const [editCategoryId, setEditCategoryId] = useState<string | undefined>('');
+  const [editSubcategoryId, setEditSubcategoryId] = useState<string | undefined>('');
   const [editGroupId, setEditGroupId] = useState<string>('');
   const [editLabels, setEditLabels] = useState<Label[]>([]); // Added
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -307,8 +307,8 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
                           onLanguageChange={setEditLanguage}
                           onDescriptionChange={setEditDescription}
                           onOriginalWebsiteChange={setEditOriginalWebsite}
-                          onCategoryChange={setEditCategoryId}
-                          onSubcategoryChange={setEditSubcategoryId}
+                          onCategoryChange={(categoryId) => setEditCategoryId(categoryId || '')}
+                          onSubcategoryChange={(subcategoryId) => setEditSubcategoryId(subcategoryId || '')}
                           onGroupChange={setEditGroupId}
                           onLabelsChange={setEditLabels} // Added
                           categoryRequired={false}

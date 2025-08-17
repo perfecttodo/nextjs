@@ -114,8 +114,8 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       onLanguageChange: (language: string) => updateSharedFormData('language', language),
       onDescriptionChange: (description: string) => updateSharedFormData('description', description),
       onOriginalWebsiteChange: (originalWebsite: string) => updateSharedFormData('originalWebsite', originalWebsite),
-      onCategoryChange: (categoryId: string) => updateSharedFormData('categoryId', categoryId),
-      onSubcategoryChange: (subcategoryId: string) => updateSharedFormData('subcategoryId', subcategoryId),
+      onCategoryChange: (categoryId: string | undefined) => updateSharedFormData('categoryId', categoryId || ''),
+      onSubcategoryChange: (subcategoryId: string | undefined) => updateSharedFormData('subcategoryId', subcategoryId || ''),
       onGroupChange: (groupId: string) => updateSharedFormData('groupId', groupId),
       onLabelsChange: (labels: Label[]) => updateSharedFormData('labels', labels),
       onUploadSuccess: handleUploadSuccess,
@@ -158,9 +158,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                     <span className="sm:hidden">{tab.shortLabel}</span>
                     <span className="hidden sm:inline">{tab.label}</span>
                   </div>
-                  {(activeTab === tab.id&&<div className="text-xs text-gray-400 hidden lg:block">
-                    {tab.description}
-                  </div>)}
+
                 </div>
               </div>
             </button>

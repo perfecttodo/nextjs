@@ -30,23 +30,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!categoryId) {
-      return NextResponse.json(
-        { error: 'Category is required' },
-        { status: 400 }
-      );
-    }
+    // Validate category if provided
+    if (categoryId) {
+      const category = await prisma.category.findUnique({
+        where: { id: categoryId }
+      });
 
-    // Validate category exists
-    const category = await prisma.category.findUnique({
-      where: { id: categoryId }
-    });
-
-    if (!category) {
-      return NextResponse.json(
-        { error: 'Invalid category' },
-        { status: 400 }
-      );
+      if (!category) {
+        return NextResponse.json(
+          { error: 'Invalid category' },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate subcategory if provided

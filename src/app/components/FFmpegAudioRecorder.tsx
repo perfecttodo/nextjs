@@ -18,8 +18,8 @@ interface FFmpegAudioRecorderProps {
   language?: string;
   description?: string;
   originalWebsite?: string;
-  selectedCategoryId: string;
-  selectedSubcategoryId: string;
+  selectedCategoryId?: string;
+  selectedSubcategoryId?: string;
   selectedGroupId: string;
   selectedLabels: Label[];
   onTitleChange: (title: string) => void;
@@ -27,8 +27,8 @@ interface FFmpegAudioRecorderProps {
   onLanguageChange: (language: string) => void;
   onDescriptionChange: (description: string) => void;
   onOriginalWebsiteChange: (originalWebsite: string) => void;
-  onCategoryChange: (categoryId: string) => void;
-  onSubcategoryChange: (subcategoryId: string) => void;
+  onCategoryChange: (categoryId: string | undefined) => void;
+  onSubcategoryChange: (subcategoryId: string | undefined) => void;
   onGroupChange: (groupId: string) => void;
   onLabelsChange: (labels: Label[]) => void;
   onUploaded?: () => void;
@@ -376,7 +376,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
     form.append('language', props.language || '');
     form.append('description', props.description || '');
     form.append('originalWebsite', props.originalWebsite || '');
-    form.append('categoryId', props.selectedCategoryId);
+    if (props.selectedCategoryId) { form.append('categoryId', props.selectedCategoryId); }
     if (props.selectedSubcategoryId) {
       form.append('subcategoryId', props.selectedSubcategoryId);
     }
@@ -469,7 +469,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
         form.append('language', props.language || '');
         form.append('description', props.description || '');
         form.append('originalWebsite', props.originalWebsite || '');
-        form.append('categoryId', props.selectedCategoryId);
+        if (props.selectedCategoryId) { form.append('categoryId', props.selectedCategoryId); }
         if (props.selectedSubcategoryId) {
           form.append('subcategoryId', props.selectedSubcategoryId);
         }
@@ -736,7 +736,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
             onSubcategoryChange={props.onSubcategoryChange}
             onGroupChange={props.onGroupChange || (() => {})}
             onLabelsChange={props.onLabelsChange}
-            categoryRequired={true}
+            categoryRequired={false}
             showStatusHelp={true}
           />
         </div>
@@ -744,7 +744,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
 
       {recordingBlob && (
         <button
-          disabled={isUploading || !props.selectedCategoryId}
+          disabled={isUploading}
           onClick={uploadRecording}
           className={`w-full px-4 py-3 rounded ${
             !recordingBlob || isUploading || !props.selectedCategoryId 

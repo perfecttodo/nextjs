@@ -6,8 +6,8 @@ import { Category, Subcategory } from '@/types/audio';
 interface CategorySelectorProps {
   selectedCategoryId?: string;
   selectedSubcategoryId?: string;
-  onCategoryChange: (categoryId: string) => void;
-  onSubcategoryChange: (subcategoryId: string) => void;
+  onCategoryChange: (categoryId: string | undefined) => void;
+  onSubcategoryChange: (subcategoryId: string | undefined) => void;
   required?: boolean;
 }
 
@@ -112,13 +112,13 @@ export default function CategorySelector({
           id="category"
           value={selectedCategoryId || ''}
           onChange={(e) => {
-            onCategoryChange(e.target.value);
+            onCategoryChange(e.target.value || undefined);
             onSubcategoryChange(''); // Reset subcategory when category changes
           }}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           required={required}
         >
-          <option value="">Select a category</option>
+          <option value="">Select a category (optional)</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name}
@@ -136,7 +136,7 @@ export default function CategorySelector({
           <select
             id="subcategory"
             value={selectedSubcategoryId || ''}
-            onChange={(e) => onSubcategoryChange(e.target.value)}
+            onChange={(e) => onSubcategoryChange(e.target.value || undefined)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Select a subcategory (optional)</option>
