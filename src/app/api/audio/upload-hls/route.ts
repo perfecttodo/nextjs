@@ -122,13 +122,7 @@ export async function POST(request: NextRequest) {
     // Validate labels if provided
     if (labelIds.length > 0) {
       const labels = await prisma.label.findMany({
-        where: {
-          id: { in: labelIds },
-          OR: [
-            { ownerId: null }, // System labels
-            { ownerId: user.sub } // User's own labels
-          ]
-        }
+        where: { id: { in: labelIds } }
       });
 
       if (labels.length !== labelIds.length) {
@@ -189,14 +183,9 @@ export async function POST(request: NextRequest) {
 
     const audioFile = await prisma.audioFile.create({
       data: {
-        ...data,
-        labels: labelIds.length > 0 ? {
-          connect: labelIds.map(id => ({ id }))
-        } : undefined
+        ...data
       },
-      include: {
-        labels: true
-      }
+      include: {}
     });
 
     return NextResponse.json({

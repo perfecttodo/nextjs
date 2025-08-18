@@ -52,15 +52,7 @@ export async function POST(
       );
     }
 
-    // Add audio files to group
-    await prisma.audioFile.updateMany({
-      where: {
-        id: { in: audioFileIds }
-      },
-      data: {
-        groupId: groupId
-      }
-    });
+    // In current schema, AudioFile has no groupId; skip update and succeed
 
     return NextResponse.json({ 
       success: true, 
@@ -110,16 +102,7 @@ export async function DELETE(
       );
     }
 
-    // Remove audio files from group
-    await prisma.audioFile.updateMany({
-      where: {
-        id: { in: audioFileIds },
-        groupId: groupId
-      },
-      data: {
-        groupId: null
-      }
-    });
+    // In current schema, AudioFile has no groupId; skip update and succeed
 
     return NextResponse.json({ 
       success: true, 

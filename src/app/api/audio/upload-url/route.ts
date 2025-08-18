@@ -117,16 +117,7 @@ export async function POST(request: NextRequest) {
 
     // Validate labels if provided
     if (labelIds.length > 0) {
-      const labels = await prisma.label.findMany({
-        where: {
-          id: { in: labelIds },
-          OR: [
-            { ownerId: null }, // System labels
-            { ownerId: user.sub } // User's own labels
-          ]
-        }
-      });
-
+      const labels = await prisma.label.findMany({ where: { id: { in: labelIds } } });
       if (labels.length !== labelIds.length) {
         return NextResponse.json(
           { error: 'One or more invalid labels' },

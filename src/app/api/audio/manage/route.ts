@@ -42,34 +42,15 @@ export async function GET(request: NextRequest) {
           originalWebsite: true,
           createdAt: true,
           updatedAt: true,
-          category: {
+          album: {
             select: {
               id: true,
               name: true,
-              description: true,
-              color: true,
-              createdAt: true,
-              updatedAt: true,
+              category: { select: { id: true, name: true, description: true, color: true, createdAt: true, updatedAt: true } },
+              subcategory: { select: { id: true, name: true, categoryId: true } },
             }
           },
-          subcategory: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-              categoryId: true,
-              createdAt: true,
-              updatedAt: true,
-            }
-          },
-          labels: {
-            select: {
-              id: true,
-              name: true,
-              color: true,
-              description: true,
-            }
-          },
+          // labels not on AudioFile in current model
         },
       }),
       prisma.audioFile.count({ where }),
@@ -154,25 +135,7 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // Validate labels if provided
-    if (labelIds.length > 0) {
-      const labels = await prisma.label.findMany({
-        where: {
-          id: { in: labelIds },
-          OR: [
-            { ownerId: null }, // System labels
-            { ownerId: user.sub } // User's own labels
-          ]
-        }
-      });
-
-      if (labels.length !== labelIds.length) {
-        return NextResponse.json(
-          { error: 'One or more invalid labels' },
-          { status: 400 }
-        );
-      }
-    }
+    // Labels are not on AudioFile in current model; skip validation
 
     // Update the audio file
     const updatedFile = await prisma.audioFile.update({
@@ -183,17 +146,10 @@ export async function PUT(request: NextRequest) {
         ...(language !== undefined && { language }),
         ...(description !== undefined && { description }),
         ...(originalWebsite !== undefined && { originalWebsite }),
-        ...(categoryId && { categoryId }),
-        ...(subcategoryId && { subcategoryId }),
-        labels: {
-          set: [], // Clear existing labels
-          connect: labelIds.map((id: string) => ({ id })) // Connect new labels
-        },
+        // category/subcategory not on AudioFile in current model
         updatedAt: new Date(),
       },
-      include: {
-        labels: true
-      }
+      include: {}
     });
 
     return NextResponse.json({

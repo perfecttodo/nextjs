@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       include: {
         _count: {
           select: {
-            audioFiles: true
+            albums: true
           }
         }
       }

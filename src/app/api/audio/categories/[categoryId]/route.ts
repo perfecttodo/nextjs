@@ -32,7 +32,7 @@ export async function GET(
       prisma.audioFile.findMany({
         where: { 
           status: 'published',
-          categoryId: categoryId
+          album: { categoryId: categoryId }
         },
         orderBy: { createdAt: 'desc' },
         skip: offset,
@@ -53,46 +53,22 @@ export async function GET(
           ownerId: true,
           createdAt: true,
           updatedAt: true,
-          category: {
+          album: {
             select: {
               id: true,
               name: true,
-              description: true,
-              color: true,
-              createdAt: true,
-              updatedAt: true,
+              category: { select: { id: true, name: true, description: true, color: true, createdAt: true, updatedAt: true } },
+              subcategory: { select: { id: true, name: true, categoryId: true } },
             }
           },
-          subcategory: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-              categoryId: true,
-              createdAt: true,
-              updatedAt: true,
-            }
-          },
-          labels: {
-            select: {
-              id: true,
-              name: true,
-              color: true,
-              description: true,
-            }
-          },
-          owner: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
+          // labels are not on AudioFile in current model
+          // owner relation not selected here; use ownerId if needed
         },
       }),
       prisma.audioFile.count({
         where: { 
           status: 'published',
-          categoryId: categoryId
+          album: { categoryId: categoryId }
         },
       }),
     ]);

@@ -72,35 +72,16 @@ export async function GET(
         originalWebsite: true,
         createdAt: true,
         updatedAt: true,
-        category: {
+        album: {
           select: {
             id: true,
             name: true,
-            description: true,
-            color: true,
+            category: { select: { id: true, name: true, description: true, color: true } },
+            subcategory: { select: { id: true, name: true, categoryId: true } }
           }
         },
-        subcategory: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-          }
-        },
-        labels: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-            description: true,
-          }
-        },
-        owner: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
+        // labels are not on AudioFile in current model
+        // owner relation not selected here; use ownerId if needed
       }
     });
 
@@ -223,11 +204,7 @@ export async function DELETE(
       );
     }
 
-    // Remove group from all audio files
-    await prisma.audioFile.updateMany({
-      where: { groupId: groupId },
-      data: { groupId: null }
-    });
+    // Current schema has no audioFile.groupId; nothing to update
 
     // Delete the group
     await prisma.group.delete({

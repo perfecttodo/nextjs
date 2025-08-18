@@ -4,54 +4,7 @@ import { getSessionUser } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
 import AlbumAudioClient from './AlbumAudioClient';
 
-// Type for the album data from Prisma
-type AlbumWithAudio = {
-  id: string;
-  name: string;
-  description: string | null;
-  color: string | null;
-  ownerId: string;
-  groupId: string | null;
-  categoryId: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  group: {
-    id: string;
-    name: string;
-    color: string | null;
-  } | null;
-  category: {
-    id: string;
-    name: string;
-    color: string | null;
-  } | null;
-  subcategory: {
-    id: string;
-    name: string;
-    categoryId: string;
-  } | null;
-  audioFiles: {
-    id: string;
-    title: string;
-    originalName: string;
-    format: string;
-    duration: number | null;
-    fileSize: number;
-    status: string;
-    language: string | null;
-    description: string | null;
-    originalWebsite: string | null;
-    createdAt: Date;
-    labels: {
-      id: string;
-      name: string;
-      color: string | null;
-    }[];
-  }[];
-  _count: {
-    audioFiles: number;
-  };
-};
+// Use inferred Prisma payload types instead of manual shape
 
 export default async function AlbumPage({ params }: { params: Promise<{ albumId: string }> }) {
   const resolved = await params;
@@ -68,7 +21,7 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
   }
 
   // Fetch album details
-  const album: AlbumWithAudio | null = await prisma.album.findFirst({
+  const album = await prisma.album.findFirst({
     where: {
       id: resolved.albumId,
       ownerId: user.sub,
@@ -108,13 +61,6 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
           description: true,
           originalWebsite: true,
           createdAt: true,
-          labels: {
-            select: {
-              id: true,
-              name: true,
-              color: true,
-            },
-          },
         },
         orderBy: {
           createdAt: 'desc',
@@ -179,8 +125,8 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
             </div>
           }>
             <AlbumAudioClient 
-              album={album} 
-              audioFiles={album.audioFiles}
+              album={album as any} 
+              audioFiles={album.audioFiles as any}
               userId={user.sub}
             />
           </Suspense>

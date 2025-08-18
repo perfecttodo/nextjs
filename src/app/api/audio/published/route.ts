@@ -28,26 +28,7 @@ export async function GET(request: NextRequest) {
           ownerId: true,
           createdAt: true,
           updatedAt: true,
-          category: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-              color: true,
-              createdAt: true,
-              updatedAt: true,
-            }
-          },
-          subcategory: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-              categoryId: true,
-              createdAt: true,
-              updatedAt: true,
-            }
-          },
+          // category/subcategory moved under album
           album: {
             select: {
               id: true,
@@ -56,12 +37,7 @@ export async function GET(request: NextRequest) {
               subcategory: { select: { id: true, name: true, categoryId: true } },
             }
           },
-          owner: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
+          // owner relation not selected; use ownerId if needed
         },
       }),
       prisma.audioFile.count({

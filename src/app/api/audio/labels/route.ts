@@ -9,16 +9,8 @@ export async function GET(request: NextRequest) {
     const ownerId = searchParams.get('ownerId');
 
     const labels = await prisma.label.findMany({
-      where: {
-        OR: [
-          { ownerId: null }, // System-wide labels
-          ...(ownerId ? [{ ownerId }] : []) // User-specific labels
-        ]
-      },
-      orderBy: [
-        { ownerId: 'asc' }, // System labels first
-        { name: 'asc' }
-      ]
+      where: ownerId ? { name: { not: '' } } : {},
+      orderBy: [{ name: 'asc' }]
     });
 
     return NextResponse.json({ labels });
@@ -40,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, color, ownerId } = body;
+    const { name, color } = body;
 
     if (!name || !name.trim()) {
       return NextResponse.json(
@@ -51,10 +43,7 @@ export async function POST(request: NextRequest) {
 
     // Check if label already exists for this user
     const existingLabel = await prisma.label.findFirst({
-      where: {
-        name: name.trim(),
-        ownerId: ownerId || user.sub
-      }
+      where: { name: name.trim() }
     });
 
     if (existingLabel) {
@@ -67,8 +56,7 @@ export async function POST(request: NextRequest) {
     const label = await prisma.label.create({
       data: {
         name: name.trim(),
-        color: color || '#3B82F6',
-        ownerId: ownerId || user.sub,
+        color: color || '#3B82F6'
       }
     });
 
