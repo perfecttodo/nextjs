@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import { AudioStatus, Episode, Category, Label } from '../../types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
-import CategorySelector from './CategorySelector';
-import AudioFormFields from './AudioFormFields';
+import AudioFormFields from '../components/AudioFormFields';
 
 interface CategorizedAudioManagementProps {
   onRefresh: () => void;
@@ -17,7 +16,7 @@ interface GroupedAudioFiles {
   };
 }
 
-export default function CategorizedAudioManagement({ onRefresh }: CategorizedAudioManagementProps) {
+export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioManagementProps) {
   const [episodes, setAudioFiles] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
