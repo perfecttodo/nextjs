@@ -1,9 +1,7 @@
 'use client';
 
 import { AudioStatus, Label } from '@/types/audio';
-import CategorySelector from './CategorySelector';
-import LabelSelector from './LabelSelector';
-import GroupSelector from './GroupSelector';
+
 import AlbumSelector from './AlbumSelector';
 
 interface AudioFormFieldsProps {
@@ -35,28 +33,23 @@ interface AudioFormFieldsProps {
 export default function AudioFormFields({
   title,
   status,
-  language,
   description,
   originalWebsite,
   selectedCategoryId,
   selectedSubcategoryId,
-  selectedLabels,
   selectedGroupId,
   selectedAlbumId,
   onTitleChange,
   onStatusChange,
-  onLanguageChange,
   onDescriptionChange,
   onOriginalWebsiteChange,
-  onCategoryChange,
-  onSubcategoryChange,
-  onLabelsChange,
-  onGroupChange,
   onAlbumChange,
   categoryRequired = false,
   showStatusHelp = true,
   ownerId
 }: AudioFormFieldsProps) {
+  console.log('ownerId', ownerId);
+  console.log('ownerId', ownerId);
   return (
     <div className="space-y-6">
       {/* Title Input */}

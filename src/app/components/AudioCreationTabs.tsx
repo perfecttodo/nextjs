@@ -40,7 +40,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     {
       id: 'upload' as TabType,
       label: 'Upload File',
-      description: 'Upload episodes from your device',
+      description: 'Upload audio files from your device',
       icon: '📁',
       shortLabel: 'Upload'
     },

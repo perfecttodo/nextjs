@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { Album, Category, Group } from '@/types/audio';
 import Link from 'next/link';
-import AlbumForm from './AlbumForm';
+import AlbumForm from '@/app/components/AlbumForm';
 
 interface AlbumManagementClientProps {
   userId: string;
