@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { AudioFormat, AudioStatus, Label } from '../../types/audio';
-import AudioFormFields from './AudioFormFields';
+import { AudioFormat, AudioStatus, Label } from '../../../types/audio';
+import AudioFormFields from '../AudioFormFields';
 
 interface AudioUploadProps {
   title: string;

@@ -6,10 +6,10 @@ import { AudioStatus, Label } from '@/types/audio';
 import { useUser } from '../hooks/useUser';
 
 // Dynamically import components to reduce initial bundle size
-const AudioUpload = dynamic(() => import('./AudioUpload'), { ssr: false });
-const AudioRecorder = dynamic(() => import('./AudioRecorder'), { ssr: false });
-const UrlAudio = dynamic(() => import('./UrlAudio'), { ssr: false });
-const FFmpegAudioRecorder = dynamic(() => import('./FFmpegAudioRecorder'), { ssr: false });
+const AudioUpload = dynamic(() => import('./upload/AudioUpload'), { ssr: false });
+const AudioRecorder = dynamic(() => import('./upload/AudioRecorder'), { ssr: false });
+const UrlAudio = dynamic(() => import('./upload/UrlAudio'), { ssr: false });
+const FFmpegAudioRecorder = dynamic(() => import('./upload/FFmpegAudioRecorder'), { ssr: false });
 
 interface AudioCreationTabsProps {
   onUploadSuccess: () => void;
