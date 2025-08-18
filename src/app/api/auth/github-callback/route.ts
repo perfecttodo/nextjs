@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
     const userData = await userResponse.json();
 
     // Get user email from GitHub
-    const emailsResponse = await fetch('https://api.github.com/user/emails', {
+    const emailsResponse = await fetch('https://api.github.com/my/emails', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Accept': 'application/vnd.github.v3+json',

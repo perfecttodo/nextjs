@@ -27,7 +27,7 @@ npm install @ffmpeg/ffmpeg @ffmpeg/util
 
 ### **Accessing the FFmpeg Recorder**
 
-1. Navigate to `/user/audio` (Audio Management page)
+1. Navigate to `/my/audio` (Audio Management page)
 2. Look for the **"FFmpeg Recorder"** tab (⚡ icon)
 3. Select your desired output format
 4. Click "Start Recording" to begin

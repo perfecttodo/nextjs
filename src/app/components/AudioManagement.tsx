@@ -166,14 +166,14 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-gray-800">My Audio Files</h3>
+        <h3 className="text-xl font-semibold text-gray-800">My Episodes</h3>
         <div className="flex items-center space-x-2">
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value as 'all' | 'draft' | 'published')}
             className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="all">All Files</option>
+            <option value="all">All Episodes</option>
             <option value="draft">Drafts</option>
             <option value="published">Published</option>
           </select>

@@ -175,7 +175,7 @@ export default function ProfileClient({ user }: ProfileClientProps) {
             </div>
             <p className="text-gray-600 mb-4">Upload, organize, and manage your audio files</p>
             <button
-              onClick={() => router.push('/user//submit/episode')}
+              onClick={() => router.push('/my//submit/episode')}
               className="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
             >
               Go to Audio Manager
