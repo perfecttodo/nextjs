@@ -75,7 +75,7 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
               
            
                   <span className="text-sm text-gray-500">
-                    {album._count.episodes} audio files
+                    {album._count.episodes} episodes
                   </span>
                 </div>
               </div>
@@ -93,7 +93,7 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
           <Suspense fallback={
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-2 text-gray-600">Loading audio files...</span>
+              <span className="ml-2 text-gray-600">Loading episodes...</span>
             </div>
           }>
             <AlbumAudioClient 

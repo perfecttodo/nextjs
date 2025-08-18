@@ -127,8 +127,8 @@ export default function CategoryAudioList({
       {dates.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <div className="text-gray-400 text-4xl mb-4">🎵</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No audio files found</h3>
-          <p className="text-gray-500">This category doesn't have any published audio files yet.</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No episodes found</h3>
+          <p className="text-gray-500">This category doesn't have any published episodes yet.</p>
         </div>
       ) : (
         <div className="space-y-6">

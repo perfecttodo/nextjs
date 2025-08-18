@@ -11,7 +11,7 @@ This project now includes a separate FFmpeg.js version for advanced audio record
 - **Format Conversion**: Automatically converts from WebM to desired output format
 
 ### **Supported Output Formats**
-1. **M3U8 (HLS)**: HTTP Live Streaming format with segmented audio files
+1. **M3U8 (HLS)**: HTTP Live Streaming format with segmented episodes
 2. **MP3**: Standard MP3 format for maximum compatibility
 3. **M4A**: AAC-encoded audio in M4A container for quality
 
@@ -240,7 +240,7 @@ segment_002.ts
 
 ### **Standard Audio Upload**
 - **Endpoint**: `POST /api/episode/upload`
-- **Purpose**: Upload single audio files (MP3, M4A, WAV, OGG, WebM)
+- **Purpose**: Upload single episodes (MP3, M4A, WAV, OGG, WebM)
 - **Format**: Standard form data with single file
 
 ### **HLS Audio Upload**

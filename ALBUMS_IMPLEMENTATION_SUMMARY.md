@@ -72,7 +72,7 @@ model Episode {
 
 ### 3. **GET /api/episode/albums/[albumId]**
 - Gets individual album details
-- Includes audio files and metadata
+- Includes episodes and metadata
 
 ### 4. **PUT /api/episode/albums/[albumId]**
 - Updates existing albums
@@ -81,7 +81,7 @@ model Episode {
 
 ### 5. **DELETE /api/episode/albums/[albumId]**
 - Deletes albums
-- Safely removes album associations from audio files
+- Safely removes album associations from episodes
 
 ### 6. **PATCH /api/episode/[id]**
 - Updates audio file album association
@@ -94,7 +94,7 @@ model Episode {
   - Create new albums inline
   - Select existing albums
   - Filter by category/group (optional)
-  - "Single" option for individual audio files
+  - "Single" option for individual episodes
 - **Integration**: Used in all audio creation forms
 
 ### 2. **Album Management Page** (`src/app/albums/page.tsx`)
@@ -108,8 +108,8 @@ model Episode {
 ### 3. **Individual Album Page** (`src/app/albums/[albumId]/page.tsx`)
 - **Features**:
   - View album details
-  - List all audio files in album
-  - Remove audio files from album
+  - List all episodes in album
+  - Remove episodes from album
   - Album metadata and statistics
 
 ### 4. **Updated Audio Creation Components**
@@ -147,9 +147,9 @@ model Episode {
 
 ### 4. **View Album Contents**
 1. Click on any album from the albums list
-2. See all audio files in that album
-3. Remove audio files from albums
-4. Navigate to individual audio files
+2. See all episodes in that album
+3. Remove episodes from albums
+4. Navigate to individual episodes
 
 ## 🔍 **Debugging Features Added**
 
@@ -182,7 +182,7 @@ model Episode {
 
 ## 🎯 **Key Benefits**
 
-1. **Better Organization**: Users can group related audio files
+1. **Better Organization**: Users can group related episodes
 2. **Flexible Structure**: Albums are independent of categories
 3. **Easy Management**: Dedicated pages for album management
 4. **Seamless Workflow**: Integrated into existing audio creation
@@ -200,10 +200,10 @@ model Episode {
 
 - [ ] Create new albums from `/albums` page
 - [ ] Create albums inline during audio creation
-- [ ] Assign audio files to albums
+- [ ] Assign episodes to albums
 - [ ] Edit album details
 - [ ] Delete albums
-- [ ] Remove audio files from albums
+- [ ] Remove episodes from albums
 - [ ] Navigate between album pages
 - [ ] Test album filtering by category/group
 - [ ] Verify user ownership validation

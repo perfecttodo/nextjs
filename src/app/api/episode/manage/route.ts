@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
 import { deleteAudioFile } from '@/lib/blob';
 
-// GET - List user's audio files
+// GET - List user's episodes
 export async function GET(request: NextRequest) {
   try {
     const user = await getSessionUser();
@@ -64,9 +64,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching audio files:', error);
+    console.error('Error fetching episodes:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch audio files' },
+      { error: 'Failed to fetch episodes' },
       { status: 500 }
     );
   }

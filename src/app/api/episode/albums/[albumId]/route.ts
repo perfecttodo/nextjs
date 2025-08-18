@@ -170,7 +170,7 @@ export async function DELETE(
       );
     }
 
-    // Delete the album (this will also remove albumId from associated audio files due to onDelete: SetNull)
+    // Delete the album (this will also remove albumId from associated episodes due to onDelete: SetNull)
     await prisma.album.delete({
       where: { id: albumId },
     });

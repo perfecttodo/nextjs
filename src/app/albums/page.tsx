@@ -23,7 +23,7 @@ export default async function AlbumsPage() {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Album Management</h1>
             <p className="mt-2 text-gray-600">
-              Organize your audio files into albums and collections
+              Organize your episodes into albums and collections
             </p>
           </div>
           
@@ -33,7 +33,6 @@ export default async function AlbumsPage() {
               <span className="ml-2 text-gray-600">Loading albums...</span>
             </div>
           }>
-            <AlbumManagementClient userId={user.sub} />
           </Suspense>
         </div>
       </div>

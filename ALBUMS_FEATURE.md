@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Albums feature allows users to organize their audio files into collections. Each album belongs to a specific category and optionally to a group, providing a structured way to organize audio content.
+The Albums feature allows users to organize their episodes into collections. Each album belongs to a specific category and optionally to a group, providing a structured way to organize audio content.
 
 ## Features
 
@@ -14,7 +14,7 @@ The Albums feature allows users to organize their audio files into collections. 
 
 ### Audio File Organization
 - **Album Assignment**: Audio files can be assigned to specific albums
-- **Default Album**: If no album is selected, audio files are marked as "Single" (individual files)
+- **Default Album**: If no album is selected, episodes are marked as "Single" (individual files)
 - **Album Filtering**: Albums are filtered by category and group selection
 
 ### User Experience
@@ -115,7 +115,7 @@ The main component for managing albums in the audio creation form.
 **Features:**
 - Displays existing albums filtered by category and group
 - Provides option to create new albums inline
-- Shows "Single" option for individual audio files
+- Shows "Single" option for individual episodes
 - Handles album selection and creation
 
 **Props:**
@@ -139,13 +139,13 @@ The Albums feature is integrated into all audio creation methods:
 3. **User can either:**
    - Select an existing album
    - Create a new album inline
-   - Choose "Single" for individual audio files
+   - Choose "Single" for individual episodes
 4. **Audio file is created** with the selected album association
 5. **Album is automatically created** if user creates a new one during audio creation
 
 ## Benefits
 
-- **Better Organization**: Users can group related audio files together
+- **Better Organization**: Users can group related episodes together
 - **Improved Discovery**: Albums provide context and grouping for audio content
 - **Flexible Structure**: Albums can be personal or shared within groups
 - **Seamless Integration**: Album creation is integrated into the existing audio workflow
@@ -157,4 +157,4 @@ The Albums feature is integrated into all audio creation methods:
 - **Album Playlists**: Sequential playback of album tracks
 - **Album Sharing**: Public/private album visibility
 - **Album Analytics**: Usage statistics and insights
-- **Bulk Operations**: Move multiple audio files between albums
+- **Bulk Operations**: Move multiple episodes between albums

@@ -13,7 +13,7 @@ export default function AudioPlayerPage() {
   const { setAudio,setAudioFiles:updateAudioFiles,audio:currentAudio,togglePlay,isPlaying} = useAudioPlayerStore();
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch published audio files from API
+  // Fetch published episodes from API
   useEffect(() => {
     const fetchAudioFiles = async () => {
       setLoading(true);
@@ -33,8 +33,8 @@ export default function AudioPlayerPage() {
         setAudioFiles(allFiles);
         setError(null);
       } catch (error:any) {
-        console.error('Error fetching audio files:', error);
-        setError('Failed to load audio files. Please try again later.');
+        console.error('Error fetching episodes:', error);
+        setError('Failed to load episodes. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -60,7 +60,7 @@ export default function AudioPlayerPage() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">All Audio Files</h1>
-              <p className="text-gray-600">Browse and listen to all published audio files</p>
+              <p className="text-gray-600">Browse and listen to all published episodes</p>
             </div>
 
           </div>

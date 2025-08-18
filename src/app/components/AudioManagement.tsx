@@ -46,12 +46,12 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
       }
       
       const response = await fetch(`/api/episode/manage?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch audio files');
+      if (!response.ok) throw new Error('Failed to fetch episodes');
       
       const data = await response.json();
       setAudioFiles(data.episodes);
     } catch (error) {
-      console.error('Error fetching audio files:', error);
+      console.error('Error fetching episodes:', error);
     } finally {
       setLoading(false);
     }
@@ -157,7 +157,7 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 mt-2">Loading audio files...</p>
+          <p className="text-gray-600 mt-2">Loading episodes...</p>
         </div>
       </div>
     );
@@ -189,7 +189,7 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
       {episodes.length === 0 ? (
         <div className="text-center py-8">
           <div className="text-gray-400 text-4xl mb-2">🎵</div>
-          <p className="text-gray-500">No audio files found</p>
+          <p className="text-gray-500">No episodes found</p>
         </div>
       ) : (
         <div className="space-y-4">

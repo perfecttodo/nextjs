@@ -23,7 +23,7 @@ export default function CategorizedAudioList({
   onAudioSelect,
   isPlaying
 }: CategorizedAudioListProps) {
-  // Group audio files by category
+  // Group episodes by category
   const groupedAudioFiles: GroupedAudioFiles = {};
   const router = useRouter();
 
@@ -61,8 +61,8 @@ export default function CategorizedAudioList({
   if (episodes.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500 text-lg">No audio files found</div>
-        <div className="text-gray-400 text-sm mt-2">Upload some audio files to get started</div>
+        <div className="text-gray-500 text-lg">No episodes found</div>
+        <div className="text-gray-400 text-sm mt-2">Upload some episodes to get started</div>
       </div>
     );
   }

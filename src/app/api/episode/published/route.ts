@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = (page - 1) * limit;
 
-    // Get published audio files ordered by upload date descending
+    // Get published episodes ordered by upload date descending
     const [episodes, total] = await Promise.all([
       prisma.episode.findMany({
         where: { status: 'published' },
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    // Group audio files by date for better organization
+    // Group episodes by date for better organization
     const groupedByDate = episodes.reduce((acc, audio) => {
       const date = audio.createdAt.toISOString().split('T')[0];
       if (!acc[date]) {
@@ -67,9 +67,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching published audio files:', error);
+    console.error('Error fetching published episodes:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch published audio files' },
+      { error: 'Failed to fetch published episodes' },
       { status: 500 }
     );
   }

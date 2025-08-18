@@ -311,7 +311,7 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
               <div className="text-gray-400 text-6xl mb-4">🎵</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No albums yet</h3>
               <p className="text-gray-600 mb-4">
-                Create your first album to start organizing your audio files
+                Create your first album to start organizing your episodes
               </p>
               <button
                 onClick={() => setShowCreateForm(true)}
@@ -349,7 +349,7 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
                         <p className="text-sm text-gray-600 mt-1">{album.description}</p>
                       )}
                       <div className="text-xs text-gray-500 mt-1">
-                        {album._count?.episodes || 0} audio files • Created {new Date(album.createdAt).toLocaleDateString()}
+                        {album._count?.episodes || 0} episodes • Created {new Date(album.createdAt).toLocaleDateString()}
                       </div>
                     </div>
                   </div>

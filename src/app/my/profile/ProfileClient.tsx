@@ -173,7 +173,7 @@ export default function ProfileClient({ user }: ProfileClientProps) {
               </div>
               <h3 className="text-lg font-semibold text-gray-800">Manage Episodes</h3>
             </div>
-            <p className="text-gray-600 mb-4">Upload, organize, and manage your audio files</p>
+            <p className="text-gray-600 mb-4">Upload, organize, and manage your episodes</p>
             <button
               onClick={() => router.push('/my//submit/episode')}
               className="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
