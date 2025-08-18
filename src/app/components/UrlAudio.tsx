@@ -91,7 +91,7 @@ export default function AudioUrlUpload({
     setSuccess('');
 
     try {
-      const response = await fetch('/api/audio/upload-url', {
+      const response = await fetch('/api/episode/upload-url', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

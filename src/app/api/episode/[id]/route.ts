@@ -10,7 +10,7 @@ export async function GET(
     const resolvedParams = await params;
     const { id } = resolvedParams;
 
-    const audio = await prisma.audioFile.findUnique({
+    const audio = await prisma.episode.findUnique({
       where: { id },
       select: {
         id: true,
@@ -45,7 +45,7 @@ export async function GET(
   }
 }
 
-// PATCH /api/audio/[id] - Update audio file
+// PATCH /api/episode/[id] - Update audio file
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -62,7 +62,7 @@ export async function PATCH(
     const { albumId } = body;
 
     // Check if audio file exists and belongs to the user
-    const audio = await prisma.audioFile.findFirst({
+    const audio = await prisma.episode.findFirst({
       where: {
         id,
         ownerId: user.sub,
@@ -77,7 +77,7 @@ export async function PATCH(
     }
 
     // Update the audio file
-    const updatedAudio = await prisma.audioFile.update({
+    const updatedAudio = await prisma.episode.update({
       where: { id },
       data: {
         albumId: albumId || null,

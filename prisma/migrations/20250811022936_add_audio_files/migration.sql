@@ -5,7 +5,7 @@ CREATE TYPE "public"."AudioFormat" AS ENUM ('mp3', 'm4a', 'wav', 'ogg', 'webm');
 CREATE TYPE "public"."AudioStatus" AS ENUM ('draft', 'published');
 
 -- CreateTable
-CREATE TABLE "public"."AudioFile" (
+CREATE TABLE "public"."Episode" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "originalName" TEXT NOT NULL,
@@ -23,16 +23,16 @@ CREATE TABLE "public"."AudioFile" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "AudioFile_blobUrl_key" ON "public"."AudioFile"("blobUrl");
+CREATE UNIQUE INDEX "AudioFile_blobUrl_key" ON "public"."Episode"("blobUrl");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "AudioFile_blobId_key" ON "public"."AudioFile"("blobId");
+CREATE UNIQUE INDEX "AudioFile_blobId_key" ON "public"."Episode"("blobId");
 
 -- CreateIndex
-CREATE INDEX "AudioFile_status_createdAt_idx" ON "public"."AudioFile"("status", "createdAt");
+CREATE INDEX "AudioFile_status_createdAt_idx" ON "public"."Episode"("status", "createdAt");
 
 -- CreateIndex
-CREATE INDEX "AudioFile_ownerId_idx" ON "public"."AudioFile"("ownerId");
+CREATE INDEX "AudioFile_ownerId_idx" ON "public"."Episode"("ownerId");
 
 -- AddForeignKey
-ALTER TABLE "public"."AudioFile" ADD CONSTRAINT "AudioFile_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."Episode" ADD CONSTRAINT "AudioFile_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

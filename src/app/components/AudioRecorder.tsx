@@ -247,7 +247,7 @@ export default function AudioRecorder({
         form.append('labelIds', label.id);
       });
 
-      const res = await fetch('/api/audio/upload', { method: 'POST', body: form });
+      const res = await fetch('/api/episode/upload', { method: 'POST', body: form });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
       if (onUploaded) onUploaded();

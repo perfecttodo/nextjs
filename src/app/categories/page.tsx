@@ -19,7 +19,7 @@ export default function CategoriesPage() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/audio/categories');
+      const response = await fetch('/api/episode/categories');
       
       if (!response.ok) {
         throw new Error('Failed to fetch categories');

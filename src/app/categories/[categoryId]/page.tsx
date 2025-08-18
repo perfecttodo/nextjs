@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useParams } from 'next/navigation';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
-import { AudioFile } from '@/types/audio';
+import { Episode } from '@/types/audio';
 import { PulseLoader } from 'react-spinners';
 
 const CategoryAudioList = dynamic(() => import('@/app/components/CategoryAudioList'), { ssr: false });
@@ -12,7 +12,7 @@ const CategoryAudioList = dynamic(() => import('@/app/components/CategoryAudioLi
 export default function CategoryPage() {
   const params = useParams();
   const categoryId = params.categoryId as string;
-  const [currentAudio, setCurrentAudio] = useState<AudioFile | null>(null);
+  const [currentAudio, setCurrentAudio] = useState<Episode | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const { setAudio, setAudioFiles: updateAudioFiles, audio, togglePlay } = useAudioPlayerStore();
 
@@ -22,7 +22,7 @@ export default function CategoryPage() {
     setIsPlaying(audio ? true : false);
   }, [audio]);
 
-  const handleAudioSelect = (audio: AudioFile) => {
+  const handleAudioSelect = (audio: Episode) => {
     if (currentAudio?.id === audio.id) {
       togglePlay();
     } else {

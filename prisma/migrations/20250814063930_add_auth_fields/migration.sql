@@ -7,7 +7,7 @@
 -- AlterEnum
 BEGIN;
 CREATE TYPE "public"."AudioFormat_new" AS ENUM ('mp3', 'm4a', 'wav', 'ogg', 'webm');
-ALTER TABLE "public"."AudioFile" ALTER COLUMN "format" TYPE "public"."AudioFormat_new" USING ("format"::text::"public"."AudioFormat_new");
+ALTER TABLE "public"."Episode" ALTER COLUMN "format" TYPE "public"."AudioFormat_new" USING ("format"::text::"public"."AudioFormat_new");
 ALTER TYPE "public"."AudioFormat" RENAME TO "AudioFormat_old";
 ALTER TYPE "public"."AudioFormat_new" RENAME TO "AudioFormat";
 DROP TYPE "public"."AudioFormat_old";

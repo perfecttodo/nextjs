@@ -5,7 +5,7 @@ import { AudioListProps } from '@/types/audio';
 import { useRouter } from 'next/navigation';
 
 function AudioListComponent({
-  audioFiles,
+  episodes,
   currentAudio,
   onAudioSelect,
   isPlaying
@@ -40,7 +40,7 @@ function AudioListComponent({
     }
   };
 
-  if (audioFiles.length === 0) {
+  if (episodes.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-lg p-6 text-center">
         <div className="text-gray-400 text-6xl mb-4">📁</div>
@@ -55,12 +55,12 @@ function AudioListComponent({
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-semibold text-gray-800">Latest Audio</h3>
         <div className="text-sm text-gray-500">
-          {audioFiles.length} file{audioFiles.length !== 1 ? 's' : ''}
+          {episodes.length} file{episodes.length !== 1 ? 's' : ''}
         </div>
       </div>
 
       <div className="space-y-3">
-        {audioFiles.map((audio, index) => (
+        {episodes.map((audio, index) => (
           <div
             key={audio.id}
             className={`p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${
@@ -78,7 +78,7 @@ function AudioListComponent({
               {/* Audio Info */}
               <div 
                 className="flex-1 min-w-0 cursor-pointer hover:bg-blue-50 p-2 rounded transition-all duration-200 group border border-transparent hover:border-blue-200"
-                onClick={() => router.push(`/audio/${audio.id}`)}
+                onClick={() => router.push(`/episode/${audio.id}`)}
               >
                 <div className="flex items-center space-x-2 mb-1">
                   <h4 className="font-medium text-gray-800 truncate group-hover:text-blue-600 transition-colors">
@@ -142,7 +142,7 @@ function AudioListComponent({
       </div>
 
       {/* Empty state when no files */}
-      {audioFiles.length === 0 && (
+      {episodes.length === 0 && (
         <div className="text-center py-8">
           <div className="text-gray-400 text-4xl mb-2">🎵</div>
           <p className="text-gray-500">No audio files available</p>

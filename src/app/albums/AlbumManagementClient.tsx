@@ -32,21 +32,21 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
     setIsLoading(true);
     try {
       // Fetch albums
-      const albumsResponse = await fetch(`/api/audio/albums?ownerId=${userId}`);
+      const albumsResponse = await fetch(`/api/episode/albums?ownerId=${userId}`);
       if (albumsResponse.ok) {
         const albumsData = await albumsResponse.json();
         setAlbums(albumsData.albums || []);
       }
 
       // Fetch categories
-      const categoriesResponse = await fetch('/api/audio/categories');
+      const categoriesResponse = await fetch('/api/episode/categories');
       if (categoriesResponse.ok) {
         const categoriesData = await categoriesResponse.json();
         setCategories(categoriesData.categories || []);
       }
 
       // Fetch groups
-      const groupsResponse = await fetch('/api/audio/groups');
+      const groupsResponse = await fetch('/api/episode/groups');
       if (groupsResponse.ok) {
         const groupsData = await groupsResponse.json();
         setGroups(groupsData.groups || []);
@@ -62,7 +62,7 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
     if (!albumName.trim()) return;
 
     try {
-      const response = await fetch('/api/audio/albums', {
+      const response = await fetch('/api/episode/albums', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
     if (!editingAlbum || !albumName.trim()) return;
 
     try {
-      const response = await fetch(`/api/audio/albums/${editingAlbum.id}`, {
+      const response = await fetch(`/api/episode/albums/${editingAlbum.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -134,7 +134,7 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
     }
 
     try {
-      const response = await fetch(`/api/audio/albums/${albumId}`, {
+      const response = await fetch(`/api/episode/albums/${albumId}`, {
         method: 'DELETE',
       });
 
@@ -361,7 +361,7 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
                         <p className="text-sm text-gray-600 mt-1">{album.description}</p>
                       )}
                       <div className="text-xs text-gray-500 mt-1">
-                        {album._count?.audioFiles || 0} audio files • Created {new Date(album.createdAt).toLocaleDateString()}
+                        {album._count?.episodes || 0} audio files • Created {new Date(album.createdAt).toLocaleDateString()}
                       </div>
                     </div>
                   </div>

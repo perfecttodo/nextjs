@@ -27,7 +27,7 @@ export default function CategorySelector({
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('/api/audio/categories');
+        const response = await fetch('/api/episode/categories');
         if (!response.ok) {
           throw new Error('Failed to fetch categories');
         }
@@ -50,7 +50,7 @@ export default function CategorySelector({
     if (selectedCategoryId) {
       const fetchSubcategories = async () => {
         try {
-          const response = await fetch(`/api/audio/categories/${selectedCategoryId}/subcategories`);
+          const response = await fetch(`/api/episode/categories/${selectedCategoryId}/subcategories`);
           if (!response.ok) {
             throw new Error('Failed to fetch subcategories');
           }

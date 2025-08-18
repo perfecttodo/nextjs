@@ -148,7 +148,7 @@ export default function AudioUpload({
         formData.append('labelIds', label.id);
       });
 
-      const response = await fetch('/api/audio/upload', {
+      const response = await fetch('/api/episode/upload', {
         method: 'POST',
         body: formData,
       });

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// GET /api/audio/albums - Fetch albums for a user
+// GET /api/episode/albums - Fetch albums for a user
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       include: {
         _count: {
           select: {
-            audioFiles: true,
+            episodes: true,
           },
         },
       },
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/audio/albums - Create a new album
+// POST /api/episode/albums - Create a new album
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       include: {
         _count: {
           select: {
-            audioFiles: true,
+            episodes: true,
           },
         },
       },

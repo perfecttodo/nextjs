@@ -1,21 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AudioFile, Category } from '@/types/audio';
+import { Episode, Category } from '@/types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 import Pagination from './Pagination';
 import { PulseLoader } from 'react-spinners';
 
 interface CategoryAudioListProps {
   categoryId: string;
-  currentAudio: AudioFile | null;
-  onAudioSelect: (audio: AudioFile) => void;
+  currentAudio: Episode | null;
+  onAudioSelect: (audio: Episode) => void;
   isPlaying: boolean;
 }
 
 interface CategoryAudioData {
   category: Category;
-  audioFiles: Record<string, AudioFile[]>;
+  episodes: Record<string, Episode[]>;
   dates: string[];
   pagination: {
     page: number;
@@ -48,7 +48,7 @@ export default function CategoryAudioList({
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/audio/categories/${categoryId}?page=${currentPage}&limit=${itemsPerPage}`);
+      const response = await fetch(`/api/episode/categories/${categoryId}?page=${currentPage}&limit=${itemsPerPage}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch category audio');
@@ -69,17 +69,17 @@ export default function CategoryAudioList({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleAudioSelect = (audio: AudioFile) => {
+  const handleAudioSelect = (audio: Episode) => {
     if (currentAudio?.id === audio.id) {
       togglePlay();
     } else {
       setAudio(audio);
       // Flatten the grouped data for the audio player store
-      const allFiles: AudioFile[] = [];
-      if (data?.audioFiles) {
-        Object.values(data.audioFiles).forEach(dateGroup => {
-          dateGroup.forEach(audioFile => {
-            allFiles.push(audioFile);
+      const allFiles: Episode[] = [];
+      if (data?.episodes) {
+        Object.values(data.episodes).forEach(dateGroup => {
+          dateGroup.forEach(episode => {
+            allFiles.push(episode);
           });
         });
       }
@@ -118,7 +118,7 @@ export default function CategoryAudioList({
     );
   }
 
-  const { category, audioFiles, dates, pagination } = data;
+  const { category, episodes, dates, pagination } = data;
 
   return (
     <div className="space-y-6">
@@ -160,7 +160,7 @@ export default function CategoryAudioList({
                 <h3 className="text-lg font-medium text-gray-900">{new Date(date).toLocaleDateString()}</h3>
               </div>
               <div className="divide-y divide-gray-100">
-                {audioFiles[date].map((audio) => (
+                {episodes[date].map((audio) => (
                   <div
                     key={audio.id}
                     className="p-6 hover:bg-gray-50 transition-colors cursor-pointer"

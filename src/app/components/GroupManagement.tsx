@@ -40,7 +40,7 @@ export default function GroupManagement() {
         ...(search && { search })
       });
       
-      const response = await fetch(`/api/audio/groups?${params}`);
+      const response = await fetch(`/api/episode/groups?${params}`);
       if (!response.ok) {
         throw new Error('Failed to fetch groups');
       }
@@ -70,8 +70,8 @@ export default function GroupManagement() {
       setError('');
       
       const url = editingGroup 
-        ? `/api/audio/groups/${editingGroup.id}`
-        : '/api/audio/groups';
+        ? `/api/episode/groups/${editingGroup.id}`
+        : '/api/episode/groups';
       
       const method = editingGroup ? 'PUT' : 'POST';
       
@@ -142,7 +142,7 @@ export default function GroupManagement() {
 
     try {
       setError('');
-      const response = await fetch(`/api/audio/groups/${groupId}`, {
+      const response = await fetch(`/api/episode/groups/${groupId}`, {
         method: 'DELETE',
       });
 
@@ -323,7 +323,7 @@ export default function GroupManagement() {
                       <p className="text-sm text-gray-600">{group.description}</p>
                     )}
                     <p className="text-xs text-gray-500">
-                      {group._count?.audioFiles || 0} audio file(s)
+                      {group._count?.episodes || 0} audio file(s)
                     </p>
                   </div>
                 </div>

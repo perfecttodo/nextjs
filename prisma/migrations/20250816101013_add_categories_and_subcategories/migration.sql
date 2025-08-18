@@ -1,11 +1,11 @@
 /*
   Warnings:
 
-  - Changed the type of `format` on the `AudioFile` table. No cast exists, the column would be dropped and recreated, which cannot be done if there is data, since the column is required.
+  - Changed the type of `format` on the `Episode` table. No cast exists, the column would be dropped and recreated, which cannot be done if there is data, since the column is required.
 
 */
 -- AlterTable
-ALTER TABLE "public"."AudioFile" ADD COLUMN     "categoryId" TEXT,
+ALTER TABLE "public"."Episode" ADD COLUMN     "categoryId" TEXT,
 ADD COLUMN     "subcategoryId" TEXT,
 DROP COLUMN "format",
 ADD COLUMN     "format" TEXT NOT NULL;
@@ -47,16 +47,16 @@ CREATE INDEX "Subcategory_categoryId_idx" ON "public"."Subcategory"("categoryId"
 CREATE UNIQUE INDEX "Subcategory_name_categoryId_key" ON "public"."Subcategory"("name", "categoryId");
 
 -- CreateIndex
-CREATE INDEX "AudioFile_categoryId_idx" ON "public"."AudioFile"("categoryId");
+CREATE INDEX "AudioFile_categoryId_idx" ON "public"."Episode"("categoryId");
 
 -- CreateIndex
-CREATE INDEX "AudioFile_subcategoryId_idx" ON "public"."AudioFile"("subcategoryId");
+CREATE INDEX "AudioFile_subcategoryId_idx" ON "public"."Episode"("subcategoryId");
 
 -- AddForeignKey
 ALTER TABLE "public"."Subcategory" ADD CONSTRAINT "Subcategory_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "public"."Category"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."AudioFile" ADD CONSTRAINT "AudioFile_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "public"."Category"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."Episode" ADD CONSTRAINT "AudioFile_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "public"."Category"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."AudioFile" ADD CONSTRAINT "AudioFile_subcategoryId_fkey" FOREIGN KEY ("subcategoryId") REFERENCES "public"."Subcategory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."Episode" ADD CONSTRAINT "AudioFile_subcategoryId_fkey" FOREIGN KEY ("subcategoryId") REFERENCES "public"."Subcategory"("id") ON DELETE SET NULL ON UPDATE CASCADE;

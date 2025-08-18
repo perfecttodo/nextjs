@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE "public"."AudioFile" ADD COLUMN     "groupId" TEXT;
+ALTER TABLE "public"."Episode" ADD COLUMN     "groupId" TEXT;
 
 -- CreateTable
 CREATE TABLE "public"."Group" (
@@ -21,10 +21,10 @@ CREATE INDEX "Group_ownerId_idx" ON "public"."Group"("ownerId");
 CREATE UNIQUE INDEX "Group_name_ownerId_key" ON "public"."Group"("name", "ownerId");
 
 -- CreateIndex
-CREATE INDEX "AudioFile_groupId_idx" ON "public"."AudioFile"("groupId");
+CREATE INDEX "AudioFile_groupId_idx" ON "public"."Episode"("groupId");
 
 -- AddForeignKey
 ALTER TABLE "public"."Group" ADD CONSTRAINT "Group_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."AudioFile" ADD CONSTRAINT "AudioFile_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "public"."Group"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."Episode" ADD CONSTRAINT "AudioFile_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "public"."Group"("id") ON DELETE SET NULL ON UPDATE CASCADE;

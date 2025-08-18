@@ -35,7 +35,7 @@ model Album {
   group       Group?     @relation(fields: [groupId], references: [id])
   categoryId  String?    // Optional category association (was required)
   category   Category?   @relation(fields: [categoryId], references: [id])
-  audioFiles  AudioFile[]
+  episodes  Episode[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
@@ -45,7 +45,7 @@ model Album {
   @@index([categoryId])
 }
 
-model AudioFile {
+model Episode {
   // ... existing fields ...
   albumId       String?     // Add album relationship
   album         Album?      @relation(fields: [albumId], references: [id], onDelete: SetNull)
@@ -60,30 +60,30 @@ model AudioFile {
 
 ## 🔧 **API Endpoints Added/Updated**
 
-### 1. **GET /api/audio/albums**
+### 1. **GET /api/episode/albums**
 - Fetches albums for a user
 - Optional filtering by category and group
 - Returns albums with full details
 
-### 2. **POST /api/audio/albums**
+### 2. **POST /api/episode/albums**
 - Creates new albums
 - Validates user ownership
 - Optional category and group association
 
-### 3. **GET /api/audio/albums/[albumId]**
+### 3. **GET /api/episode/albums/[albumId]**
 - Gets individual album details
 - Includes audio files and metadata
 
-### 4. **PUT /api/audio/albums/[albumId]**
+### 4. **PUT /api/episode/albums/[albumId]**
 - Updates existing albums
 - Validates user ownership
 - Prevents duplicate names
 
-### 5. **DELETE /api/audio/albums/[albumId]**
+### 5. **DELETE /api/episode/albums/[albumId]**
 - Deletes albums
 - Safely removes album associations from audio files
 
-### 6. **PATCH /api/audio/[id]**
+### 6. **PATCH /api/episode/[id]**
 - Updates audio file album association
 - Allows removing audio from albums
 

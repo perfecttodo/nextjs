@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AudioFile } from '@/types/audio';
+import { Episode } from '@/types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 import { PulseLoader } from 'react-spinners';
 
@@ -11,7 +11,7 @@ interface AudioDetailClientProps {
 }
 
 export default function AudioDetailClient({ audioId }: AudioDetailClientProps) {
-  const [audio, setAudioState] = useState<AudioFile | null>(null);
+  const [audio, setAudioState] = useState<Episode | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -23,7 +23,7 @@ export default function AudioDetailClient({ audioId }: AudioDetailClientProps) {
     const fetchAudioDetails = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/audio/${audioId}`);
+        const response = await fetch(`/api/episode/${audioId}`);
         if (response.ok) {
           const data = await response.json();
           setAudioState(data.audio);

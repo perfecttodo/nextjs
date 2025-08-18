@@ -9,8 +9,8 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit;
 
     // Get published audio files ordered by upload date descending
-    const [audioFiles, total] = await Promise.all([
-      prisma.audioFile.findMany({
+    const [episodes, total] = await Promise.all([
+      prisma.episode.findMany({
         where: { status: 'published' },
         orderBy: { createdAt: 'desc' },
         skip: offset,
@@ -38,26 +38,26 @@ export async function GET(request: NextRequest) {
           // owner relation not selected; use ownerId if needed
         },
       }),
-      prisma.audioFile.count({
+      prisma.episode.count({
         where: { status: 'published' },
       }),
     ]);
 
     // Group audio files by date for better organization
-    const groupedByDate = audioFiles.reduce((acc, audio) => {
+    const groupedByDate = episodes.reduce((acc, audio) => {
       const date = audio.createdAt.toISOString().split('T')[0];
       if (!acc[date]) {
         acc[date] = [];
       }
       acc[date].push(audio);
       return acc;
-    }, {} as Record<string, typeof audioFiles>);
+    }, {} as Record<string, typeof episodes>);
 
     // Convert to array and sort by date descending
     const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
 
     return NextResponse.json({
-      audioFiles: groupedByDate,
+      episodes: groupedByDate,
       dates: sortedDates,
       pagination: {
         page,

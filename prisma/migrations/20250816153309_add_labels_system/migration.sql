@@ -32,7 +32,7 @@ CREATE INDEX "_AudioFileToLabel_B_index" ON "public"."_AudioFileToLabel"("B");
 ALTER TABLE "public"."Label" ADD CONSTRAINT "Label_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."_AudioFileToLabel" ADD CONSTRAINT "_AudioFileToLabel_A_fkey" FOREIGN KEY ("A") REFERENCES "public"."AudioFile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."_AudioFileToLabel" ADD CONSTRAINT "_AudioFileToLabel_A_fkey" FOREIGN KEY ("A") REFERENCES "public"."Episode"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."_AudioFileToLabel" ADD CONSTRAINT "_AudioFileToLabel_B_fkey" FOREIGN KEY ("B") REFERENCES "public"."Label"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -37,7 +37,7 @@ model Album {
   group       Group?     @relation(fields: [groupId], references: [id])
   categoryId  String     // Required category association
   category    Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  audioFiles  AudioFile[]
+  episodes  Episode[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
@@ -48,9 +48,9 @@ model Album {
 }
 ```
 
-### Updated AudioFile Model
+### Updated Episode Model
 ```prisma
-model AudioFile {
+model Episode {
   // ... existing fields ...
   albumId       String?     // Add album relationship
   album         Album?      @relation(fields: [albumId], references: [id])
@@ -60,7 +60,7 @@ model AudioFile {
 
 ## API Endpoints
 
-### GET /api/audio/albums
+### GET /api/episode/albums
 Fetches albums for a user based on category and optional group.
 
 **Query Parameters:**
@@ -82,7 +82,7 @@ Fetches albums for a user based on category and optional group.
       "categoryId": "category-id",
       "group": { "id": "group-id", "name": "Group Name" },
       "category": { "id": "category-id", "name": "Category Name" },
-      "_count": { "audioFiles": 5 },
+      "_count": { "episodes": 5 },
       "createdAt": "2024-01-01T00:00:00Z",
       "updatedAt": "2024-01-01T00:00:00Z"
     }
@@ -90,7 +90,7 @@ Fetches albums for a user based on category and optional group.
 }
 ```
 
-### POST /api/audio/albums
+### POST /api/episode/albums
 Creates a new album.
 
 **Request Body:**

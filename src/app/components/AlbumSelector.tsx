@@ -49,7 +49,7 @@ export default function AlbumSelector({
           params.append('groupId', selectedGroupId);
         }
 
-        const response = await fetch(`/api/audio/albums?${params}`);
+        const response = await fetch(`/api/episode/albums?${params}`);
         if (response.ok) {
           const data = await response.json();
           setAlbums(data.albums || []);
@@ -78,7 +78,7 @@ export default function AlbumSelector({
         ownerId: ownerId
       });
 
-      const response = await fetch('/api/audio/albums', {
+      const response = await fetch('/api/episode/albums', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

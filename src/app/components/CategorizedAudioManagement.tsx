@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AudioStatus, AudioFile, Category, Label } from '../../types/audio';
+import { AudioStatus, Episode, Category, Label } from '../../types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 import CategorySelector from './CategorySelector';
 import AudioFormFields from './AudioFormFields';
@@ -13,12 +13,12 @@ interface CategorizedAudioManagementProps {
 interface GroupedAudioFiles {
   [categoryId: string]: {
     category: Category;
-    audioFiles: AudioFile[];
+    episodes: Episode[];
   };
 }
 
 export default function CategorizedAudioManagement({ onRefresh }: CategorizedAudioManagementProps) {
-  const [audioFiles, setAudioFiles] = useState<AudioFile[]>([]);
+  const [episodes, setAudioFiles] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
@@ -38,12 +38,12 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
     fetchAudioFiles();
   }, [filter]);
 
-  const onPlayAudio = (audio: AudioFile) => {
+  const onPlayAudio = (audio: Episode) => {
     if (currentAudio?.id === audio.id) {
       togglePlay();
     } else {
       setAudio(audio);
-      updateAudioFiles(audioFiles);
+      updateAudioFiles(episodes);
     }
   };
 
@@ -55,11 +55,11 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
         params.append('status', filter);
       }
 
-      const response = await fetch(`/api/audio/manage?${params}`);
+      const response = await fetch(`/api/episode/manage?${params}`);
       if (!response.ok) throw new Error('Failed to fetch audio files');
 
       const data = await response.json();
-      setAudioFiles(data.audioFiles);
+      setAudioFiles(data.episodes);
     } catch (error) {
       console.error('Error fetching audio files:', error);
     } finally {
@@ -67,7 +67,7 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
     }
   };
 
-  const handleEdit = (audio: AudioFile) => {
+  const handleEdit = (audio: Episode) => {
     setEditingId(audio.id);
     setEditTitle(audio.title);
     setEditStatus(audio.status);
@@ -84,7 +84,7 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
     if (!editingId || !editTitle.trim()) return;
 
     try {
-      const response = await fetch('/api/audio/manage', {
+      const response = await fetch('/api/episode/manage', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -135,7 +135,7 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
 
     try {
       setDeletingId(id);
-      const response = await fetch(`/api/audio/manage?id=${id}`, {
+      const response = await fetch(`/api/episode/manage?id=${id}`, {
         method: 'DELETE',
       });
 
@@ -154,26 +154,26 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
   // Group audio files by category
   const groupedAudioFiles: GroupedAudioFiles = {};
 
-  audioFiles.forEach(audio => {
+  episodes.forEach(audio => {
     const effectiveCategory = audio.album?.category || audio.category;
     if (effectiveCategory) {
       const categoryId = effectiveCategory.id;
       if (!groupedAudioFiles[categoryId]) {
         groupedAudioFiles[categoryId] = {
           category: effectiveCategory,
-          audioFiles: []
+          episodes: []
         };
       }
-      groupedAudioFiles[categoryId].audioFiles.push(audio);
+      groupedAudioFiles[categoryId].episodes.push(audio);
     } else {
       // Handle uncategorized files
       if (!groupedAudioFiles['uncategorized']) {
         groupedAudioFiles['uncategorized'] = {
           category: { id: 'uncategorized', name: 'Uncategorized', createdAt: '', updatedAt: '' },
-          audioFiles: []
+          episodes: []
         };
       }
-      groupedAudioFiles['uncategorized'].audioFiles.push(audio);
+      groupedAudioFiles['uncategorized'].episodes.push(audio);
     }
   });
 
@@ -251,14 +251,14 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
         </div>
       </div>
 
-      {audioFiles.length === 0 ? (
+      {episodes.length === 0 ? (
         <div className="text-center py-8">
           <div className="text-gray-400 text-4xl mb-2">🎵</div>
           <p className="text-gray-500">No audio files found</p>
         </div>
       ) : (
         <div className="space-y-8">
-          {sortedCategories.map(({ category, audioFiles }) => (
+          {sortedCategories.map(({ category, episodes }) => (
             <div key={category.id} className="border border-gray-200 rounded-lg">
               {/* Category Header */}
               <div 
@@ -274,7 +274,7 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
                       {category.name}
                     </h4>
                     <span className="px-2 py-1 text-xs font-medium bg-gray-200 text-gray-600 rounded-full">
-                      {audioFiles.length} {audioFiles.length === 1 ? 'file' : 'files'}
+                      {episodes.length} {episodes.length === 1 ? 'file' : 'files'}
                     </span>
                   </div>
                   {category.description && (
@@ -285,7 +285,7 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
 
               {/* Audio Files in this Category */}
               <div className="divide-y divide-gray-100">
-                {audioFiles.map((audio) => (
+                {episodes.map((audio) => (
                   <div
                     key={audio.id}
                     className="p-4 hover:bg-gray-50 transition-colors"

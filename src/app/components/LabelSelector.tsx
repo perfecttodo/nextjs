@@ -25,7 +25,7 @@ export default function LabelSelector({
         const params = new URLSearchParams();
         if (ownerId) params.append('ownerId', ownerId);
         
-        const response = await fetch(`/api/audio/labels?${params}`);
+        const response = await fetch(`/api/episode/labels?${params}`);
         if (response.ok) {
           const data = await response.json();
           setAvailableLabels(data.labels);

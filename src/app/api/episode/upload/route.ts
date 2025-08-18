@@ -121,9 +121,9 @@ export async function POST(request: NextRequest) {
       // Prefer album-level categorization if album provided and has category linkage
       albumId: albumId || null,
     };
-   // console.error('audioFile', data);
+   // console.error('episode', data);
 
-    const audioFile = await prisma.audioFile.create({
+    const episode = await prisma.episode.create({
       data: {
         ...data
       },
@@ -133,13 +133,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      audioFile: {
-        id: audioFile.id,
-        title: audioFile.title,
-        blobUrl: audioFile.blobUrl,
-        format: audioFile.format,
-        status: audioFile.status,
-        createdAt: audioFile.createdAt,
+      episode: {
+        id: episode.id,
+        title: episode.title,
+        blobUrl: episode.blobUrl,
+        format: episode.format,
+        status: episode.status,
+        createdAt: episode.createdAt,
       },
     });
   } catch (error) {

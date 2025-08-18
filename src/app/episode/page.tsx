@@ -3,12 +3,12 @@
 import { Suspense, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 const CategorizedAudioList = dynamic(() => import('@/app/components/CategorizedAudioList'), { ssr: false });
-import { AudioFile } from '@/types/audio';
+import { Episode } from '@/types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 import { PulseLoader } from 'react-spinners';
 
 export default function AudioPlayerPage() {
-  const [audioFiles, setAudioFiles] = useState<AudioFile[]>([]);
+  const [episodes, setAudioFiles] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(true);
   const { setAudio,setAudioFiles:updateAudioFiles,audio:currentAudio,togglePlay,isPlaying} = useAudioPlayerStore();
   const [error, setError] = useState<string | null>(null);
@@ -18,14 +18,14 @@ export default function AudioPlayerPage() {
     const fetchAudioFiles = async () => {
       setLoading(true);
       try {
-        const response = await fetch('/api/audio/published');
+        const response = await fetch('/api/episode/published');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
         // Flatten the grouped data into a single array
-        const allFiles: AudioFile[] = [];
-        Object.values(data.audioFiles).forEach((dateGroup: any) => {
+        const allFiles: Episode[] = [];
+        Object.values(data.episodes).forEach((dateGroup: any) => {
           dateGroup.forEach((audio: any) => {
             allFiles.push(audio);
           });
@@ -43,12 +43,12 @@ export default function AudioPlayerPage() {
     fetchAudioFiles();
   }, []);
 
-  const handleAudioSelect = (audio: AudioFile) => {
+  const handleAudioSelect = (audio: Episode) => {
     if(currentAudio?.id===audio.id){
       togglePlay();
     }else{
       setAudio(audio)
-      updateAudioFiles(audioFiles);
+      updateAudioFiles(episodes);
     }
   };
 
@@ -97,7 +97,7 @@ export default function AudioPlayerPage() {
               </div>
             }>
               <CategorizedAudioList
-                audioFiles={audioFiles}
+                episodes={episodes}
                 currentAudio={currentAudio}
                 onAudioSelect={handleAudioSelect}
                 isPlaying={isPlaying}

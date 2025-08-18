@@ -53,8 +53,8 @@ npm install @ffmpeg/ffmpeg @ffmpeg/util
 2. **Processing**: Converts WebM to selected format using FFmpeg
 3. **Output**: Creates processed audio file with proper MIME type
 4. **Upload**: 
-   - **Standard formats (MP3/M4A)**: Single file upload via `/api/audio/upload`
-   - **HLS format (M3U8)**: Multi-file upload via `/api/audio/upload-hls` (M3U8 + TS segments)
+   - **Standard formats (MP3/M4A)**: Single file upload via `/api/episode/upload`
+   - **HLS format (M3U8)**: Multi-file upload via `/api/episode/upload-hls` (M3U8 + TS segments)
 
 ### **HLS Configuration**
 For M3U8 output, the following FFmpeg parameters are used:
@@ -80,7 +80,7 @@ When M3U8 format is selected, the system automatically:
 
 1. **Processes Audio**: Converts WebM recording to M3U8 + TS segments
 2. **Collects Files**: Gathers M3U8 playlist and all TS segment files
-3. **Uploads Separately**: Uses dedicated `/api/audio/upload-hls` endpoint
+3. **Uploads Separately**: Uses dedicated `/api/episode/upload-hls` endpoint
 4. **Organizes Storage**: Creates organized folder structure in blob storage
 5. **Database Entry**: Stores M3U8 playlist URL as main audio file reference
 
@@ -239,12 +239,12 @@ segment_002.ts
 ## 🔌 API Endpoints
 
 ### **Standard Audio Upload**
-- **Endpoint**: `POST /api/audio/upload`
+- **Endpoint**: `POST /api/episode/upload`
 - **Purpose**: Upload single audio files (MP3, M4A, WAV, OGG, WebM)
 - **Format**: Standard form data with single file
 
 ### **HLS Audio Upload**
-- **Endpoint**: `POST /api/audio/upload-hls`
+- **Endpoint**: `POST /api/episode/upload-hls`
 - **Purpose**: Upload M3U8 playlist + TS segment files
 - **Format**: Form data with multiple files
 - **Files**:

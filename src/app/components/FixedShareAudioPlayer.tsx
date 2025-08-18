@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
-import { AudioFile } from '@/types/audio';
+import { Episode } from '@/types/audio';
 
 export default function FixedAudioPlayer() {
   const {
@@ -13,7 +13,7 @@ export default function FixedAudioPlayer() {
     playMode,
     currentTime,
     duration,
-    audioFiles,
+    episodes,
     currentIndex,
     playHistory,
     play,
@@ -209,7 +209,7 @@ export default function FixedAudioPlayer() {
   }, []);
 
 
-  function getType(audio: AudioFile) {
+  function getType(audio: Episode) {
     switch (audio.format) {
       case 'm4a':
         return 'audio/mp4';
@@ -343,7 +343,7 @@ export default function FixedAudioPlayer() {
                 {viewMode === 'playlist' ? 'Playlist' : 'Play History'}
               </h3>
               <p className="text-sm text-gray-500">
-                {viewMode === 'playlist' ? `${audioFiles.length} tracks` : `${playHistory.length} items`}
+                {viewMode === 'playlist' ? `${episodes.length} tracks` : `${playHistory.length} items`}
               </p>
             </div>
             <button
@@ -380,13 +380,13 @@ export default function FixedAudioPlayer() {
         <div className={`p-2 transition-opacity duration-500 ease-in-out ${showPlaylist ? 'opacity-100' : 'opacity-0'
           }`}>
           {viewMode === 'playlist' ? (
-            audioFiles.length === 0 ? (
+            episodes.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <div className="text-4xl mb-2">🎵</div>
                 <p>No tracks in playlist</p>
               </div>
             ) : (
-              audioFiles.map((track, index) => (
+              episodes.map((track, index) => (
                 <div
                   key={track.id}
                   onClick={() => setAudio(track)}
@@ -542,9 +542,9 @@ export default function FixedAudioPlayer() {
             <div className="ml-2 min-w-0">
               <div className="font-medium text-sm truncate">{audio.title}</div>
               <div className="text-xs text-gray-500">
-                {audioFiles.length > 0 && (
+                {episodes.length > 0 && (
                   <span className="mr-2">
-                    {currentIndex + 1} of {audioFiles.length}
+                    {currentIndex + 1} of {episodes.length}
                   </span>
                 )}
                 {formatTime(audio.duration || 0)}
@@ -578,9 +578,9 @@ export default function FixedAudioPlayer() {
             title={showPlaylist ? 'Hide playlist' : 'Show playlist'}
           >
             {viewMode === 'history' ? '⏰' : '📋'}
-            {audioFiles.length > 0 && (
+            {episodes.length > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {audioFiles.length}
+                {episodes.length}
               </span>
             )}
             {playHistory.length > 0 && (

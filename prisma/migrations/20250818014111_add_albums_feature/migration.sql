@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE "public"."AudioFile" ADD COLUMN     "albumId" TEXT;
+ALTER TABLE "public"."Episode" ADD COLUMN     "albumId" TEXT;
 
 -- CreateTable
 CREATE TABLE "public"."Album" (
@@ -29,7 +29,7 @@ CREATE INDEX "Album_categoryId_idx" ON "public"."Album"("categoryId");
 CREATE UNIQUE INDEX "Album_name_ownerId_key" ON "public"."Album"("name", "ownerId");
 
 -- CreateIndex
-CREATE INDEX "AudioFile_albumId_idx" ON "public"."AudioFile"("albumId");
+CREATE INDEX "AudioFile_albumId_idx" ON "public"."Episode"("albumId");
 
 -- AddForeignKey
 ALTER TABLE "public"."Album" ADD CONSTRAINT "Album_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -41,4 +41,4 @@ ALTER TABLE "public"."Album" ADD CONSTRAINT "Album_groupId_fkey" FOREIGN KEY ("g
 ALTER TABLE "public"."Album" ADD CONSTRAINT "Album_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "public"."Category"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."AudioFile" ADD CONSTRAINT "AudioFile_albumId_fkey" FOREIGN KEY ("albumId") REFERENCES "public"."Album"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."Episode" ADD CONSTRAINT "AudioFile_albumId_fkey" FOREIGN KEY ("albumId") REFERENCES "public"."Album"("id") ON DELETE SET NULL ON UPDATE CASCADE;

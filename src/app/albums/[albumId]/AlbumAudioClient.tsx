@@ -24,7 +24,7 @@ type AlbumWithAudio = {
     name: string;
     color: string | null;
   } | null;
-  audioFiles: {
+  episodes: {
     id: string;
     title: string;
     originalName: string;
@@ -43,17 +43,17 @@ type AlbumWithAudio = {
     }[];
   }[];
   _count: {
-    audioFiles: number;
+    episodes: number;
   };
 };
 
 interface AlbumAudioClientProps {
   album: AlbumWithAudio;
-  audioFiles: AlbumWithAudio['audioFiles'];
+  episodes: AlbumWithAudio['episodes'];
   userId: string;
 }
 
-export default function AlbumAudioClient({ album, audioFiles, userId }: AlbumAudioClientProps) {
+export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudioClientProps) {
   const [isRemoving, setIsRemoving] = useState<string | null>(null);
 
   const formatFileSize = (bytes: number) => {
@@ -93,7 +93,7 @@ export default function AlbumAudioClient({ album, audioFiles, userId }: AlbumAud
 
     setIsRemoving(audioId);
     try {
-      const response = await fetch(`/api/audio/${audioId}`, {
+      const response = await fetch(`/api/episode/${audioId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -118,7 +118,7 @@ export default function AlbumAudioClient({ album, audioFiles, userId }: AlbumAud
     }
   };
 
-  if (audioFiles.length === 0) {
+  if (episodes.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
         <div className="text-gray-400 text-6xl mb-4">🎵</div>
@@ -143,7 +143,7 @@ export default function AlbumAudioClient({ album, audioFiles, userId }: AlbumAud
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium text-gray-900">
-              Audio Files ({audioFiles.length})
+              Audio Files ({episodes.length})
             </h3>
             <Link
               href="/audio"
@@ -155,7 +155,7 @@ export default function AlbumAudioClient({ album, audioFiles, userId }: AlbumAud
         </div>
 
         <div className="divide-y divide-gray-200">
-          {audioFiles.map((audio) => (
+          {episodes.map((audio) => (
             <div key={audio.id} className="px-6 py-4 hover:bg-gray-50">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
@@ -217,7 +217,7 @@ export default function AlbumAudioClient({ album, audioFiles, userId }: AlbumAud
 
                 <div className="flex items-center space-x-2 ml-4">
                   <Link
-                    href={`/audio/${audio.id}`}
+                    href={`/episode/${audio.id}`}
                     className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200"
                   >
                     View

@@ -1,24 +1,24 @@
 'use client';
 
-import { AudioFile, Category } from '@/types/audio';
+import { Episode, Category } from '@/types/audio';
 import { useRouter } from 'next/navigation';
 
 interface CategorizedAudioListProps {
-  audioFiles: AudioFile[];
-  currentAudio: AudioFile | null;
-  onAudioSelect: (audio: AudioFile) => void;
+  episodes: Episode[];
+  currentAudio: Episode | null;
+  onAudioSelect: (audio: Episode) => void;
   isPlaying: boolean;
 }
 
 interface GroupedAudioFiles {
   [categoryId: string]: {
     category: Category;
-    audioFiles: AudioFile[];
+    episodes: Episode[];
   };
 }
 
 export default function CategorizedAudioList({
-  audioFiles,
+  episodes,
   currentAudio,
   onAudioSelect,
   isPlaying
@@ -27,7 +27,7 @@ export default function CategorizedAudioList({
   const groupedAudioFiles: GroupedAudioFiles = {};
   const router = useRouter();
 
-  audioFiles.forEach(audio => {
+  episodes.forEach(audio => {
     // Prefer album.category if available; fallback to audio.category
     const effectiveCategory = audio.album?.category || audio.category;
     if (effectiveCategory) {
@@ -35,19 +35,19 @@ export default function CategorizedAudioList({
       if (!groupedAudioFiles[categoryId]) {
         groupedAudioFiles[categoryId] = {
           category: effectiveCategory,
-          audioFiles: []
+          episodes: []
         };
       }
-      groupedAudioFiles[categoryId].audioFiles.push(audio);
+      groupedAudioFiles[categoryId].episodes.push(audio);
     } else {
       // Handle uncategorized files
       if (!groupedAudioFiles['uncategorized']) {
         groupedAudioFiles['uncategorized'] = {
           category: { id: 'uncategorized', name: 'Uncategorized', createdAt: '', updatedAt: '' },
-          audioFiles: []
+          episodes: []
         };
       }
-      groupedAudioFiles['uncategorized'].audioFiles.push(audio);
+      groupedAudioFiles['uncategorized'].episodes.push(audio);
     }
   });
 
@@ -58,7 +58,7 @@ export default function CategorizedAudioList({
     return a.category.name.localeCompare(b.category.name);
   });
 
-  if (audioFiles.length === 0) {
+  if (episodes.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="text-gray-500 text-lg">No audio files found</div>
@@ -69,7 +69,7 @@ export default function CategorizedAudioList({
 
   return (
     <div className="space-y-8">
-      {sortedCategories.map(({ category, audioFiles }) => (
+      {sortedCategories.map(({ category, episodes }) => (
         <div key={category.id} className="bg-white rounded-lg shadow-sm border border-gray-200">
           {/* Category Header */}
           <div 
@@ -85,7 +85,7 @@ export default function CategorizedAudioList({
                   {category.name}
                 </h3>
                 <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
-                  {audioFiles.length} {audioFiles.length === 1 ? 'file' : 'files'}
+                  {episodes.length} {episodes.length === 1 ? 'file' : 'files'}
                 </span>
               </div>
               {category.description && (
@@ -96,7 +96,7 @@ export default function CategorizedAudioList({
 
           {/* Audio Files in this Category */}
           <div className="divide-y divide-gray-100">
-            {audioFiles.map((audio) => (
+            {episodes.map((audio) => (
               <div
                 key={audio.id}
                 className={`px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer ${
@@ -113,7 +113,7 @@ export default function CategorizedAudioList({
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium text-gray-900 truncate"    onClick={() => router.push(`/audio/${audio.id}`)}>
+                        <h4 className="text-sm font-medium text-gray-900 truncate"    onClick={() => router.push(`/episode/${audio.id}`)}>
                           {audio.title}
                         </h4>
                         <div className="flex items-center space-x-2 text-xs text-gray-500">

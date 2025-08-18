@@ -23,7 +23,7 @@ export default function GroupSelector({ selectedGroupId, onGroupChange, classNam
       setLoading(true);
       setError('');
       
-      const response = await fetch('/api/audio/groups');
+      const response = await fetch('/api/episode/groups');
       if (!response.ok) {
         throw new Error('Failed to fetch groups');
       }

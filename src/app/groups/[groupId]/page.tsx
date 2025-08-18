@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { Group, AudioFile } from '@/types/audio';
+import { Group, Episode } from '@/types/audio';
 import Pagination from '@/app/components/Pagination';
 import Link from 'next/link';
 
 interface GroupDetailData {
   group: Group;
-  audioFiles: AudioFile[];
+  episodes: Episode[];
   pagination: {
     currentPage: number;
     totalPages: number;
@@ -50,7 +50,7 @@ export default function GroupDetailPage() {
         ...(statusFilter !== 'all' && { status: statusFilter })
       });
       
-      const response = await fetch(`/api/audio/groups/${groupId}?${params}`);
+      const response = await fetch(`/api/episode/groups/${groupId}?${params}`);
       if (!response.ok) {
         throw new Error('Failed to fetch group data');
       }
@@ -117,7 +117,7 @@ export default function GroupDetailPage() {
     );
   }
 
-  const { group, audioFiles, pagination } = data;
+  const { group, episodes, pagination } = data;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -188,7 +188,7 @@ export default function GroupDetailPage() {
 
       {/* Audio Files List */}
       <div className="space-y-4">
-        {audioFiles.length === 0 ? (
+        {episodes.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <p>No audio files found in this group.</p>
             {searchQuery || statusFilter !== 'all' ? (
@@ -198,7 +198,7 @@ export default function GroupDetailPage() {
             )}
           </div>
         ) : (
-          audioFiles.map((audio) => (
+          episodes.map((audio) => (
             <div
               key={audio.id}
               className="p-4 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow"

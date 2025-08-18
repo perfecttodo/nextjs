@@ -386,7 +386,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
       form.append('labelIds', label.id);
     });
 
-    const res = await fetch('/api/audio/upload', { method: 'POST', body: form });
+    const res = await fetch('/api/episode/upload', { method: 'POST', body: form });
     const data = await res.json();
     
     if (!res.ok) throw new Error(data.error || 'Upload failed');
@@ -480,7 +480,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
         });
 
         // Upload files
-        const res = await fetch('/api/audio/upload-hls', { method: 'POST', body: form });
+        const res = await fetch('/api/episode/upload-hls', { method: 'POST', body: form });
         const data = await res.json();
         
         if (!res.ok) throw new Error(data.error || 'HLS upload failed');

@@ -28,7 +28,7 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
     },
     include: {
 
-      audioFiles: {
+      episodes: {
         select: {
           id: true,
           title: true,
@@ -48,7 +48,7 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
       },
       _count: {
         select: {
-          audioFiles: true,
+          episodes: true,
         },
       },
     },
@@ -75,7 +75,7 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
               
            
                   <span className="text-sm text-gray-500">
-                    {album._count.audioFiles} audio files
+                    {album._count.episodes} audio files
                   </span>
                 </div>
               </div>
@@ -98,7 +98,7 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
           }>
             <AlbumAudioClient 
               album={album as any} 
-              audioFiles={album.audioFiles as any}
+              episodes={album.episodes as any}
               userId={user.sub}
             />
           </Suspense>

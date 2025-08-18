@@ -37,10 +37,10 @@ export interface Group {
   description?: string;
   color?: string;
   ownerId: string;
-  audioFiles?: AudioFile[];
+  episodes?: Episode[];
   albums?: Album[]; // Add albums relationship
   _count?: {
-    audioFiles: number;
+    episodes: number;
   };
   createdAt: string;
   updatedAt: string;
@@ -58,15 +58,15 @@ export interface Album {
   category?: Category;
   subcategoryId?: string;
   subcategory?: Subcategory;
-  audioFiles?: AudioFile[];
+  episodes?: Episode[];
   _count?: {
-    audioFiles: number;
+    episodes: number;
   };
   createdAt: string;
   updatedAt: string;
 }
 
-export interface AudioFile {
+export interface Episode {
   id: string;
   title: string;
   originalName: string;
@@ -96,7 +96,7 @@ export interface AudioFile {
 export type PlayMode = 'sequence' | 'loop' | 'random';
 
 export interface AudioPlayerProps {
-  audio: AudioFile | null;
+  audio: Episode | null;
   isPlaying: boolean;
   onPlay: () => void;
   onPause: () => void;
@@ -108,18 +108,18 @@ export interface AudioPlayerProps {
 }
 
 export interface AudioListProps {
-  audioFiles: AudioFile[];
-  currentAudio: AudioFile | null;
-  onAudioSelect: (audio: AudioFile) => void;
+  episodes: Episode[];
+  currentAudio: Episode | null;
+  onAudioSelect: (audio: Episode) => void;
   isPlaying:boolean
 }
 
 
 
 export interface AudioPlayerState {
-  currentTrack: AudioFile | null;
+  currentTrack: Episode | null;
   isPlaying: boolean;
-  playTrack: (track: AudioFile) => void;
+  playTrack: (track: Episode) => void;
   pause: () => void;
   togglePlay: () => void;
 }

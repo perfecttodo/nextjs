@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AudioStatus,AudioFile } from '../../types/audio';
+import { AudioStatus,Episode } from '../../types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 
 
@@ -10,7 +10,7 @@ interface AudioManagementProps {
 }
 
 export default function AudioManagement({ onRefresh }: AudioManagementProps) {
-  const [audioFiles, setAudioFiles] = useState<AudioFile[]>([]);
+  const [episodes, setAudioFiles] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
@@ -23,14 +23,14 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
     fetchAudioFiles();
   }, [filter]);
 
-  const onPlayAudio = (audio: AudioFile) => {
+  const onPlayAudio = (audio: Episode) => {
 
     if(currentAudio?.id === audio.id){
       togglePlay();
 
     }else{
       setAudio(audio)
-      updateAudioFiles(audioFiles);
+      updateAudioFiles(episodes);
     }
 
 
@@ -45,11 +45,11 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
         params.append('status', filter);
       }
       
-      const response = await fetch(`/api/audio/manage?${params}`);
+      const response = await fetch(`/api/episode/manage?${params}`);
       if (!response.ok) throw new Error('Failed to fetch audio files');
       
       const data = await response.json();
-      setAudioFiles(data.audioFiles);
+      setAudioFiles(data.episodes);
     } catch (error) {
       console.error('Error fetching audio files:', error);
     } finally {
@@ -57,7 +57,7 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
     }
   };
 
-  const handleEdit = (audio: AudioFile) => {
+  const handleEdit = (audio: Episode) => {
     setEditingId(audio.id);
     setEditTitle(audio.title);
     setEditStatus(audio.status);
@@ -67,7 +67,7 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
     if (!editingId || !editTitle.trim()) return;
 
     try {
-      const response = await fetch('/api/audio/manage', {
+      const response = await fetch('/api/episode/manage', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -103,7 +103,7 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
 
     try {
       setDeletingId(id);
-      const response = await fetch(`/api/audio/manage?id=${id}`, {
+      const response = await fetch(`/api/episode/manage?id=${id}`, {
         method: 'DELETE',
       });
 
@@ -186,14 +186,14 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
         </div>
       </div>
 
-      {audioFiles.length === 0 ? (
+      {episodes.length === 0 ? (
         <div className="text-center py-8">
           <div className="text-gray-400 text-4xl mb-2">🎵</div>
           <p className="text-gray-500">No audio files found</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {audioFiles.map((audio) => (
+          {episodes.map((audio) => (
             <div
               key={audio.id}
               className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"

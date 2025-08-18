@@ -1,6 +1,6 @@
 // store/audioPlayerStore.ts
 import { create } from 'zustand';
-import { AudioFile } from '@/types/audio';
+import { Episode } from '@/types/audio';
 
 type PlayMode = 'sequence' | 'loop' | 'random';
 
@@ -8,19 +8,19 @@ type PlayMode = 'sequence' | 'loop' | 'random';
 type PlayerCallback = (state: AudioPlayerState) => void;
 
 interface AudioPlayerState {
-  audio: AudioFile | null;
+  audio: Episode | null;
   isPlaying: boolean;
   playMode: PlayMode;
-  audioFiles: AudioFile[];
+  episodes: Episode[];
   currentIndex: number;
   currentTime: number;
   duration: number;
-  playHistory: AudioFile[];
+  playHistory: Episode[];
   callback: PlayerCallback | null;
   
   // State actions
-  setAudio: (audio: AudioFile) => void;
-  setAudioFiles:(audioFiles:AudioFile[])=>void;
+  setAudio: (audio: Episode) => void;
+  setAudioFiles:(episodes:Episode[])=>void;
   togglePlay: () => void;
   play: () => void;
   pause: () => void;
@@ -35,7 +35,7 @@ interface AudioPlayerState {
   removeTrack: (index: number) => void;
   
   // Play history management
-  addToHistory: (audio: AudioFile) => void;
+  addToHistory: (audio: Episode) => void;
   clearHistory: () => void;
   removeFromHistory: (index: number) => void;
   
@@ -45,7 +45,7 @@ interface AudioPlayerState {
 
 export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
   // Load play history from localStorage on initialization
-  let initialPlayHistory: AudioFile[] = [];
+  let initialPlayHistory: Episode[] = [];
   try {
     if (typeof window !== 'undefined') {
       const savedHistory = localStorage.getItem('audioPlayHistory');
@@ -61,7 +61,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
     audio: null,
     isPlaying: false,
     playMode: 'sequence',
-    audioFiles: [],
+    episodes: [],
     currentIndex: -1,
     currentTime: 0,
     duration: 0,
@@ -69,8 +69,8 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
     callback: null,
 
   setAudio: (audio) => {
-    const { audioFiles } = get();
-    const currentIndex = audioFiles.findIndex(file => file.id === audio.id);
+    const { episodes } = get();
+    const currentIndex = episodes.findIndex(file => file.id === audio.id);
     set({ audio, isPlaying: true, currentIndex: currentIndex >= 0 ? currentIndex : -1 });
     
     // Add to play history
@@ -78,8 +78,8 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
     
     get().callback?.(get());
   },
-  setAudioFiles:(audioFiles)=>{
-    set({ audioFiles, currentIndex: -1 });
+  setAudioFiles:(episodes)=>{
+    set({ episodes, currentIndex: -1 });
   },
   togglePlay: () => {
     set((state) => ({ isPlaying: !state.isPlaying }));
@@ -97,19 +97,19 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
   },
   
   next: () => {
-    const { audioFiles, currentIndex, playMode } = get();
-    if (audioFiles.length === 0) return;
+    const { episodes, currentIndex, playMode } = get();
+    if (episodes.length === 0) return;
 
     let nextIndex;
     if (playMode === 'random') {
-      nextIndex = Math.floor(Math.random() * audioFiles.length);
+      nextIndex = Math.floor(Math.random() * episodes.length);
     } else {
-      nextIndex = (currentIndex + 1) % audioFiles.length;
+      nextIndex = (currentIndex + 1) % episodes.length;
     }
     
     set({
       currentIndex: nextIndex,
-      audio: audioFiles[nextIndex],
+      audio: episodes[nextIndex],
       isPlaying: true,
       currentTime: 0,
     });
@@ -117,13 +117,13 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
   },
   
   previous: () => {
-    const { audioFiles, currentIndex } = get();
-    if (audioFiles.length === 0) return;
+    const { episodes, currentIndex } = get();
+    if (episodes.length === 0) return;
 
-    const prevIndex = currentIndex <= 0 ? audioFiles.length - 1 : currentIndex - 1;
+    const prevIndex = currentIndex <= 0 ? episodes.length - 1 : currentIndex - 1;
     set({
       currentIndex: prevIndex,
-      audio: audioFiles[prevIndex],
+      audio: episodes[prevIndex],
       isPlaying: true,
       currentTime: 0,
     });
@@ -160,10 +160,10 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
 
   // Playlist management
   removeTrack: (index) => {
-    const { audioFiles, currentIndex, audio, isPlaying } = get();
-    if (index < 0 || index >= audioFiles.length) return;
+    const { episodes, currentIndex, audio, isPlaying } = get();
+    if (index < 0 || index >= episodes.length) return;
     
-    const newAudioFiles = audioFiles.filter((_, i) => i !== index);
+    const newAudioFiles = episodes.filter((_, i) => i !== index);
     let newCurrentIndex = currentIndex;
     let newAudio = audio;
     
@@ -185,7 +185,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
     }
     
     set({
-      audioFiles: newAudioFiles,
+      episodes: newAudioFiles,
       currentIndex: newCurrentIndex,
       audio: newAudio,
       isPlaying: newAudio ? isPlaying : false,

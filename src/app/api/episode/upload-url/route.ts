@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Save to database
-    const audioFile = await prisma.audioFile.create({
+    const episode = await prisma.episode.create({
       data: {
         title: title.trim(),
         originalName: title.trim(),
@@ -100,13 +100,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      audioFile: {
-        id: audioFile.id,
-        title: audioFile.title,
-        blobUrl: audioFile.blobUrl,
-        format: audioFile.format,
-        status: audioFile.status,
-        createdAt: audioFile.createdAt,
+      episode: {
+        id: episode.id,
+        title: episode.title,
+        blobUrl: episode.blobUrl,
+        format: episode.format,
+        status: episode.status,
+        createdAt: episode.createdAt,
       },
     });
   } catch (error) {

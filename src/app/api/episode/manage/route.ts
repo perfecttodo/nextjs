@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
       ...(status && { status: status as 'draft' | 'published' }),
     };
 
-    const [audioFiles, total] = await Promise.all([
-      prisma.audioFile.findMany({
+    const [episodes, total] = await Promise.all([
+      prisma.episode.findMany({
         where,
         orderBy: { createdAt: 'desc' },
         skip: offset,
@@ -48,14 +48,14 @@ export async function GET(request: NextRequest) {
               name: true,
             }
           },
-          // labels not on AudioFile in current model
+          // labels not on Episode in current model
         },
       }),
-      prisma.audioFile.count({ where }),
+      prisma.episode.count({ where }),
     ]);
 
     return NextResponse.json({
-      audioFiles,
+      episodes,
       pagination: {
         page,
         limit,
@@ -91,7 +91,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Check if user owns the audio file
-    const existingFile = await prisma.audioFile.findFirst({
+    const existingFile = await prisma.episode.findFirst({
       where: { id, ownerId: user.sub },
     });
 
@@ -105,10 +105,10 @@ export async function PUT(request: NextRequest) {
 
 
 
-    // Labels are not on AudioFile in current model; skip validation
+    // Labels are not on Episode in current model; skip validation
 
     // Update the audio file
-    const updatedFile = await prisma.audioFile.update({
+    const updatedFile = await prisma.episode.update({
       where: { id },
       data: {
         title: title.trim(),
@@ -116,7 +116,7 @@ export async function PUT(request: NextRequest) {
         ...(language !== undefined && { language }),
         ...(description !== undefined && { description }),
         ...(originalWebsite !== undefined && { originalWebsite }),
-        // category/subcategory not on AudioFile in current model
+        // category/subcategory not on Episode in current model
         updatedAt: new Date(),
       },
       include: {}
@@ -124,7 +124,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      audioFile: updatedFile,
+      episode: updatedFile,
     });
   } catch (error) {
     console.error('Error updating audio file:', error);
@@ -154,7 +154,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Check if user owns the audio file
-    const existingFile = await prisma.audioFile.findFirst({
+    const existingFile = await prisma.episode.findFirst({
       where: { id, ownerId: user.sub },
     });
 
@@ -169,7 +169,7 @@ export async function DELETE(request: NextRequest) {
     await deleteAudioFile(existingFile.blobId);
 
     // Delete from database
-    await prisma.audioFile.delete({
+    await prisma.episode.delete({
       where: { id },
     });
 
