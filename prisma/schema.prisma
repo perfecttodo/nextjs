@@ -39,28 +39,7 @@ model User {
   @@index([githubId])
 }
 
-model Category {
-  id          String       @id @default(uuid())
-  name        String       @unique
-  description String?
-  color       String?      // Hex color for UI display
-  subcategories Subcategory[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-}
 
-model Subcategory {
-  id          String     @id @default(uuid())
-  name        String
-  description String?
-  categoryId  String
-  category    Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  @@unique([name, categoryId])
-  @@index([categoryId])
-}
 
 model Label {
   id          String     @id @default(uuid())
@@ -83,18 +62,7 @@ model AlbumLabel {
   @@unique([labelId,albumId]) 
 }
 
-model Group {
-  id          String     @id @default(uuid())
-  name        String
-  description String?
-  color       String?    // Hex color for UI display
-  ownerId     String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
 
-  @@unique([name, ownerId]) // Allow same name for different owners
-  @@index([ownerId])
-}
 
 model Album {
   id          String     @id @default(uuid())

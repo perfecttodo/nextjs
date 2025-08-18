@@ -14,20 +14,7 @@ export async function GET(
     const album = await prisma.album.findUnique({
       where: { id: albumId },
       include: {
-        group: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-        category: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
+
         audioFiles: {
           select: {
             id: true,
@@ -105,36 +92,9 @@ export async function PUT(
       );
     }
 
-    // Check if category exists (if provided)
-    if (categoryId) {
-      const category = await prisma.category.findUnique({
-        where: { id: categoryId },
-      });
 
-      if (!category) {
-        return NextResponse.json(
-          { error: 'Category not found' },
-          { status: 404 }
-        );
-      }
-    }
 
-    // Check if group exists and belongs to the user (if provided)
-    if (groupId) {
-      const group = await prisma.group.findFirst({
-        where: {
-          id: groupId,
-          ownerId: user.sub,
-        },
-      });
 
-      if (!group) {
-        return NextResponse.json(
-          { error: 'Group not found or access denied' },
-          { status: 404 }
-        );
-      }
-    }
 
     // Check if album name already exists for this user (excluding current album)
     const duplicateAlbum = await prisma.album.findFirst({
@@ -159,24 +119,10 @@ export async function PUT(
         name: name.trim(),
         description: description?.trim() || null,
         categoryId: categoryId || null,
-        groupId: groupId || null,
         color: color || null,
       },
       include: {
-        group: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-        category: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
+
         _count: {
           select: {
             audioFiles: true,

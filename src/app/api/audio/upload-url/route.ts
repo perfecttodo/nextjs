@@ -19,53 +19,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate category if provided
-    if (categoryId) {
-      const category = await prisma.category.findUnique({
-        where: { id: categoryId }
-      });
 
-      if (!category) {
-        return NextResponse.json(
-          { error: 'Invalid category' },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Validate subcategory if provided
-    if (subcategoryId) {
-      const subcategory = await prisma.subcategory.findFirst({
-        where: {
-          id: subcategoryId,
-          categoryId: categoryId
-        }
-      });
-
-      if (!subcategory) {
-        return NextResponse.json(
-          { error: 'Invalid subcategory for the selected category' },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Validate group if provided
-    if (groupId) {
-      const group = await prisma.group.findFirst({
-        where: {
-          id: groupId,
-          ownerId: user.sub
-        }
-      });
-
-      if (!group) {
-        return NextResponse.json(
-          { error: 'Invalid group' },
-          { status: 400 }
-        );
-      }
-    }
 
     // Validate album if provided, and ensure its category/subcategory match when provided
     if (albumId) {

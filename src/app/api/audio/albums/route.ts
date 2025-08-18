@@ -61,54 +61,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if category exists (if provided)
-    if (categoryId) {
-      const category = await prisma.category.findUnique({
-        where: { id: categoryId },
-      });
 
-      if (!category) {
-        return NextResponse.json(
-          { error: 'Category not found' },
-          { status: 404 }
-        );
-      }
-    }
-
-    // Check if subcategory exists and belongs to category (if provided)
-    if (subcategoryId) {
-      const subcategory = await prisma.subcategory.findUnique({
-        where: { id: subcategoryId },
-      });
-      if (!subcategory || (categoryId && subcategory.categoryId !== categoryId)) {
-        return NextResponse.json(
-          { error: 'Subcategory not found or does not belong to the category' },
-          { status: 404 }
-        );
-      }
-    }
-
-    // Check if group exists (if provided)
-    if (groupId) {
-      const group = await prisma.group.findUnique({
-        where: { id: groupId },
-      });
-
-      if (!group) {
-        return NextResponse.json(
-          { error: 'Group not found' },
-          { status: 404 }
-        );
-      }
-
-      // Verify group belongs to the owner
-      if (group.ownerId !== ownerId) {
-        return NextResponse.json(
-          { error: 'Group does not belong to the owner' },
-          { status: 403 }
-        );
-      }
-    }
 
     // Check if album name already exists for this user
     const existingAlbum = await prisma.album.findFirst({

@@ -46,8 +46,6 @@ export async function GET(request: NextRequest) {
             select: {
               id: true,
               name: true,
-              category: { select: { id: true, name: true, description: true, color: true, createdAt: true, updatedAt: true } },
-              subcategory: { select: { id: true, name: true, categoryId: true } },
             }
           },
           // labels not on AudioFile in current model
@@ -104,36 +102,8 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Validate category if provided
-    if (categoryId) {
-      const category = await prisma.category.findUnique({
-        where: { id: categoryId }
-      });
 
-      if (!category) {
-        return NextResponse.json(
-          { error: 'Invalid category' },
-          { status: 400 }
-        );
-      }
-    }
 
-    // Validate subcategory if provided
-    if (subcategoryId && categoryId) {
-      const subcategory = await prisma.subcategory.findFirst({
-        where: {
-          id: subcategoryId,
-          categoryId: categoryId
-        }
-      });
-
-      if (!subcategory) {
-        return NextResponse.json(
-          { error: 'Invalid subcategory for the selected category' },
-          { status: 400 }
-        );
-      }
-    }
 
     // Labels are not on AudioFile in current model; skip validation
 
