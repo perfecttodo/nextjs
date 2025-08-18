@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { AudioStatus, Label } from '@/types/audio';
-import AudioFormFields from '../AudioFormFields';
+import AudioFormFields from './AudioFormFields';
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';

@@ -2,7 +2,7 @@
 
 import { AudioStatus, Label } from '@/types/audio';
 
-import AlbumSelector from './AlbumSelector';
+import AlbumSelector from '../AlbumSelector';
 
 interface AudioFormFieldsProps {
   title: string;

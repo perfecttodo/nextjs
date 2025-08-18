@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { AudioStatus, Label } from '@/types/audio';
-import AudioFormFields from '../AudioFormFields';
+import AudioFormFields from './AudioFormFields';
 
 interface AudioRecorderProps {
   title: string;

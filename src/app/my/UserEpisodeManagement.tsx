@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { AudioStatus, Episode, Category, Label } from '../../types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
-import AudioFormFields from '../components/AudioFormFields';
+import AudioFormFields from '../components/upload/AudioFormFields';
 
 interface CategorizedAudioManagementProps {
   onRefresh: () => void;
