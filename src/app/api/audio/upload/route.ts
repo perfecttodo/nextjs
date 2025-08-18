@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
     // Generate unique filename
     const timestamp = Date.now();
     const safeName = (file.name || `recording.${format}`).replace(/\s+/g, '_');
-    const filename = `audio/${user.sub}/${timestamp}-${safeName}`;
+    const filename = `${timestamp}-${safeName}`;
 
     // Upload to Vercel Blob
     const blobResult = await uploadAudioFile(file, filename);

@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     // Generate unique folder name for this HLS upload
     const timestamp = Date.now();
     const safeName = (title || 'hls_recording').replace(/\s+/g, '_');
-    const hlsFolder = `audio/${user.sub}/${timestamp}-${safeName}`;
+    const hlsFolder = `${timestamp}-${safeName}`;
 
     // Upload M3U8 playlist file
     const m3u8Filename = `${hlsFolder}/playlist.m3u8`;
