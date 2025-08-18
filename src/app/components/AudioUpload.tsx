@@ -26,6 +26,8 @@ interface AudioUploadProps {
   onAlbumChange: (albumId: string) => void;
   onLabelsChange: (labels: Label[]) => void;
   onUploadSuccess: () => void;
+  ownerId:string;
+
 }
 
 export default function AudioUpload({
@@ -49,7 +51,8 @@ export default function AudioUpload({
   onGroupChange,
   onAlbumChange,
   onLabelsChange,
-  onUploadSuccess
+  onUploadSuccess,
+  ownerId
 }: AudioUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -290,6 +293,7 @@ export default function AudioUpload({
         onLabelsChange={onLabelsChange}
         categoryRequired={false}
         showStatusHelp={true}
+        ownerId={ownerId}
       />
 
       {/* Error and Success Messages */}

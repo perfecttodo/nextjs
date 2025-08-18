@@ -26,6 +26,8 @@ interface AudioRecorderProps {
   onAlbumChange: (albumId: string) => void;
   onLabelsChange: (labels: Label[]) => void; // Added
   onUploaded?: () => void;
+  ownerId:string;
+
 }
 
 function formatFileSize(bytes: number): string {
@@ -95,7 +97,8 @@ export default function AudioRecorder({
   onGroupChange,
   onAlbumChange,
   onLabelsChange, // Added
-  onUploaded
+  onUploaded,
+  ownerId
 }: AudioRecorderProps) {
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -346,6 +349,7 @@ export default function AudioRecorder({
             onLabelsChange={onLabelsChange} // Added
             categoryRequired={false}
             showStatusHelp={true}
+            ownerId={ownerId}
           />
         </div>
 

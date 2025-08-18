@@ -26,6 +26,8 @@ interface AudioUrlUploadProps {
   onAlbumChange: (albumId: string) => void;
   onLabelsChange: (labels: Label[]) => void; // Added
   onUploadSuccess: () => void;
+  ownerId:string;
+
 }
 
 export default function AudioUrlUpload({
@@ -49,7 +51,8 @@ export default function AudioUrlUpload({
   onGroupChange,
   onAlbumChange,
   onLabelsChange, // Added
-  onUploadSuccess
+  onUploadSuccess,
+  ownerId
 }: AudioUrlUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [audioUrl, setAudioUrl] = useState('');
@@ -185,6 +188,7 @@ export default function AudioUrlUpload({
         onLabelsChange={onLabelsChange} // Added
         categoryRequired={false}
         showStatusHelp={true}
+        ownerId={ownerId}
       />
 
       {/* Error and Success Messages */}

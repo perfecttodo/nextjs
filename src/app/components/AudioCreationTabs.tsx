@@ -205,21 +205,6 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
               </div>
             </div>
           </div>
-
-          {/* Form Data Persistence Info */}
-          {(sharedFormData.title || sharedFormData.language || sharedFormData.description || sharedFormData.originalWebsite || sharedFormData.categoryId) && (
-            <div className="mb-4 p-3 bg-green-50 border-l-4 border-green-500 rounded-r-md">
-              <div className="flex items-center space-x-2">
-                <span className="text-green-600">💾</span>
-                <div className="text-sm text-green-800">
-                  <div className="font-medium">Form data is saved</div>
-                  <div className="text-xs text-green-600">
-                    Your input will be preserved when switching between tabs
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
           
           {renderTabContent()}
         </div>

@@ -34,6 +34,8 @@ interface FFmpegAudioRecorderProps {
   onAlbumChange: (albumId: string) => void;
   onLabelsChange: (labels: Label[]) => void;
   onUploaded?: () => void;
+  ownerId:string;
+
 }
 
 export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
@@ -742,6 +744,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
             onLabelsChange={props.onLabelsChange}
             categoryRequired={false}
             showStatusHelp={true}
+            ownerId={props.ownerId}
           />
         </div>
       )}
