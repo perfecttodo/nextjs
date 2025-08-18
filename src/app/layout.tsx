@@ -18,12 +18,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Tayino",
   description: "Promote your productivity",
-  viewport: "width=device-width, initial-scale=1.0", // Added viewport
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+
 };
 
 export default async function RootLayout({
