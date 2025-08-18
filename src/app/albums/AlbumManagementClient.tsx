@@ -38,19 +38,9 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
         setAlbums(albumsData.albums || []);
       }
 
-      // Fetch categories
-      const categoriesResponse = await fetch('/api/episode/categories');
-      if (categoriesResponse.ok) {
-        const categoriesData = await categoriesResponse.json();
-        setCategories(categoriesData.categories || []);
-      }
 
-      // Fetch groups
-      const groupsResponse = await fetch('/api/episode/groups');
-      if (groupsResponse.ok) {
-        const groupsData = await groupsResponse.json();
-        setGroups(groupsData.groups || []);
-      }
+
+
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -71,8 +61,6 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
           name: albumName.trim(),
           description: albumDescription.trim() || undefined,
           categoryId: selectedCategoryId || undefined,
-          subcategoryId: selectedSubcategoryId || undefined,
-          groupId: selectedGroupId || undefined,
           ownerId: userId,
           color: albumColor
         }),

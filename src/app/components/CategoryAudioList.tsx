@@ -39,30 +39,8 @@ export default function CategoryAudioList({
 
   const itemsPerPage = 20;
 
-  useEffect(() => {
-    fetchCategoryAudio();
-  }, [categoryId, currentPage]);
 
-  const fetchCategoryAudio = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetch(`/api/episode/categories/${categoryId}?page=${currentPage}&limit=${itemsPerPage}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch category audio');
-      }
-      
-      const result = await response.json();
-      setData(result);
-    } catch (error) {
-      console.error('Error fetching category audio:', error);
-      setError('Failed to load audio files for this category. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);

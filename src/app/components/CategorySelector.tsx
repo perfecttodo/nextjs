@@ -23,60 +23,7 @@ export default function CategorySelector({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch categories on component mount
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch('/api/episode/categories');
-        if (!response.ok) {
-          throw new Error('Failed to fetch categories');
-        }
-        const data = await response.json();
-        setCategories(data.categories);
-        setError(null);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-        setError('Failed to load categories');
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchCategories();
-  }, []);
-
-  // Fetch subcategories when category changes
-  useEffect(() => {
-    if (selectedCategoryId) {
-      const fetchSubcategories = async () => {
-        try {
-          const response = await fetch(`/api/episode/categories/${selectedCategoryId}/subcategories`);
-          if (!response.ok) {
-            throw new Error('Failed to fetch subcategories');
-          }
-          const data = await response.json();
-          setSubcategories(data.subcategories);
-        } catch (error) {
-          console.error('Error fetching subcategories:', error);
-          setSubcategories([]);
-        }
-      };
-
-      fetchSubcategories();
-    } else {
-      setSubcategories([]);
-    }
-  }, [selectedCategoryId]);
-
-  // Reset subcategory when category changes
-  useEffect(() => {
-    if (selectedSubcategoryId && selectedCategoryId) {
-      const subcategory = subcategories.find(sub => sub.id === selectedSubcategoryId);
-      if (!subcategory || subcategory.categoryId !== selectedCategoryId) {
-        onSubcategoryChange('');
-      }
-    }
-  }, [selectedCategoryId, selectedSubcategoryId, subcategories, onSubcategoryChange]);
 
   if (loading) {
     return (
