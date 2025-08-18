@@ -141,8 +141,6 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
       {(showCreateForm || editingAlbum) && (
         <AlbumForm
           editingAlbum={editingAlbum}
-          categories={categories}
-          groups={groups}
           onCreate={handleCreateAlbum}
           onUpdate={handleUpdateAlbum}
           onCancel={resetForm}
