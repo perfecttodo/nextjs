@@ -25,17 +25,20 @@ export default function AlbumSelector({
   const [newAlbumDescription, setNewAlbumDescription] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
-  // Fetch albums based on category and group
+  // Fetch albums based on group (category is optional)
   useEffect(() => {
-    if (!selectedCategoryId || !ownerId) return;
+    if (!ownerId) return;
 
     const fetchAlbums = async () => {
       setIsLoading(true);
       try {
         const params = new URLSearchParams({
-          categoryId: selectedCategoryId,
           ownerId: ownerId
         });
+        
+        if (selectedCategoryId) {
+          params.append('categoryId', selectedCategoryId);
+        }
         
         if (selectedGroupId) {
           params.append('groupId', selectedGroupId);
@@ -57,10 +60,18 @@ export default function AlbumSelector({
   }, [selectedCategoryId, selectedGroupId, ownerId]);
 
   const handleCreateAlbum = async () => {
-    if (!newAlbumName.trim() || !selectedCategoryId || !ownerId) return;
+    if (!newAlbumName.trim() || !ownerId) return;
 
     setIsCreating(true);
     try {
+      console.log('Creating album with data:', {
+        name: newAlbumName.trim(),
+        description: newAlbumDescription.trim() || undefined,
+        categoryId: selectedCategoryId || undefined,
+        groupId: selectedGroupId || undefined,
+        ownerId: ownerId
+      });
+
       const response = await fetch('/api/audio/albums', {
         method: 'POST',
         headers: {
@@ -69,22 +80,30 @@ export default function AlbumSelector({
         body: JSON.stringify({
           name: newAlbumName.trim(),
           description: newAlbumDescription.trim() || undefined,
-          categoryId: selectedCategoryId,
+          categoryId: selectedCategoryId || undefined,
           groupId: selectedGroupId || undefined,
           ownerId: ownerId
         }),
       });
 
+      console.log('Response status:', response.status);
+      
       if (response.ok) {
         const newAlbum = await response.json();
+        console.log('Created album:', newAlbum);
         setAlbums(prev => [newAlbum, ...prev]);
         onAlbumChange(newAlbum.id);
         setNewAlbumName('');
         setNewAlbumDescription('');
         setShowCreateForm(false);
+      } else {
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        alert(`Error creating album: ${errorData.error}`);
       }
     } catch (error) {
       console.error('Error creating album:', error);
+      alert('Failed to create album');
     } finally {
       setIsCreating(false);
     }
@@ -94,15 +113,7 @@ export default function AlbumSelector({
     onAlbumChange(albumId);
   };
 
-  if (!selectedCategoryId) {
-    return (
-      <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-        <p className="text-sm text-yellow-800">
-          Please select a category first to manage albums
-        </p>
-      </div>
-    );
-  }
+
 
   return (
     <div className="space-y-4">

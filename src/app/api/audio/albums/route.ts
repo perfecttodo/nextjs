@@ -9,18 +9,21 @@ export async function GET(request: NextRequest) {
     const ownerId = searchParams.get('ownerId');
     const groupId = searchParams.get('groupId');
 
-    if (!categoryId || !ownerId) {
+    if (!ownerId) {
       return NextResponse.json(
-        { error: 'Category ID and Owner ID are required' },
+        { error: 'Owner ID is required' },
         { status: 400 }
       );
     }
 
     // Build where clause
     const where: any = {
-      categoryId,
       ownerId,
     };
+
+    if (categoryId) {
+      where.categoryId = categoryId;
+    }
 
     if (groupId) {
       where.groupId = groupId;
@@ -70,23 +73,25 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, description, categoryId, groupId, ownerId } = body;
 
-    if (!name || !categoryId || !ownerId) {
+    if (!name || !ownerId) {
       return NextResponse.json(
-        { error: 'Name, Category ID, and Owner ID are required' },
+        { error: 'Name and Owner ID are required' },
         { status: 400 }
       );
     }
 
-    // Check if category exists
-    const category = await prisma.category.findUnique({
-      where: { id: categoryId },
-    });
+    // Check if category exists (if provided)
+    if (categoryId) {
+      const category = await prisma.category.findUnique({
+        where: { id: categoryId },
+      });
 
-    if (!category) {
-      return NextResponse.json(
-        { error: 'Category not found' },
-        { status: 404 }
-      );
+      if (!category) {
+        return NextResponse.json(
+          { error: 'Category not found' },
+          { status: 404 }
+        );
+      }
     }
 
     // Check if group exists (if provided)

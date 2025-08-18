@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/session';
 
 export async function GET(
   request: NextRequest,
@@ -39,6 +40,55 @@ export async function GET(
     console.error('Error fetching audio file:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH /api/audio/[id] - Update audio file
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await getSessionUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
+    const body = await request.json();
+    const { albumId } = body;
+
+    // Check if audio file exists and belongs to the user
+    const audio = await prisma.audioFile.findFirst({
+      where: {
+        id,
+        ownerId: user.sub,
+      },
+    });
+
+    if (!audio) {
+      return NextResponse.json(
+        { error: 'Audio file not found or access denied' },
+        { status: 404 }
+      );
+    }
+
+    // Update the audio file
+    const updatedAudio = await prisma.audioFile.update({
+      where: { id },
+      data: {
+        albumId: albumId || null,
+      },
+    });
+
+    return NextResponse.json({ success: true, audio: updatedAudio });
+  } catch (error) {
+    console.error('Error updating audio file:', error);
+    return NextResponse.json(
+      { error: 'Failed to update audio file' },
       { status: 500 }
     );
   }
