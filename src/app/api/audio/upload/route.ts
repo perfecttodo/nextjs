@@ -79,18 +79,33 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Validate album if provided
+    // Validate album if provided, and ensure its category/subcategory match when provided
     if (albumId) {
       const album = await prisma.album.findFirst({
         where: {
           id: albumId,
           ownerId: user.sub
-        }
+        },
+        select: { id: true, categoryId: true, subcategoryId: true }
       });
 
       if (!album) {
         return NextResponse.json(
           { error: 'Invalid album' },
+          { status: 400 }
+        );
+      }
+
+      // If album has category/subcategory, enforce alignment
+      if (album.categoryId && categoryId && album.categoryId !== categoryId) {
+        return NextResponse.json(
+          { error: 'Album category does not match selected category' },
+          { status: 400 }
+        );
+      }
+      if (album.subcategoryId && subcategoryId && album.subcategoryId !== subcategoryId) {
+        return NextResponse.json(
+          { error: 'Album subcategory does not match selected subcategory' },
           { status: 400 }
         );
       }
@@ -185,8 +200,9 @@ export async function POST(request: NextRequest) {
       description: description || null,
       originalWebsite: originalWebsite || null,
       duration: duration ? parseInt(duration) : 0,
-      categoryId: categoryId,
-      subcategoryId: subcategoryId || null,
+      // Prefer album-level categorization if album provided and has category linkage
+      categoryId: albumId ? undefined : categoryId,
+      subcategoryId: albumId ? undefined : (subcategoryId || null),
       groupId: groupId || null,
       albumId: albumId || null,
     };

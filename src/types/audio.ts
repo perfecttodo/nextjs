@@ -56,6 +56,8 @@ export interface Album {
   group?: Group;
   categoryId?: string;
   category?: Category;
+  subcategoryId?: string;
+  subcategory?: Subcategory;
   audioFiles?: AudioFile[];
   _count?: {
     audioFiles: number;

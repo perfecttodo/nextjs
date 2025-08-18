@@ -160,6 +160,7 @@ export default function AudioFormFields({
       <AlbumSelector
         selectedAlbumId={selectedAlbumId}
         selectedCategoryId={selectedCategoryId}
+        selectedSubcategoryId={selectedSubcategoryId}
         selectedGroupId={selectedGroupId}
         onAlbumChange={onAlbumChange}
         ownerId={ownerId}

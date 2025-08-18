@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const categoryId = searchParams.get('categoryId');
+    const subcategoryId = searchParams.get('subcategoryId');
     const ownerId = searchParams.get('ownerId');
     const groupId = searchParams.get('groupId');
 
@@ -27,6 +28,9 @@ export async function GET(request: NextRequest) {
 
     if (groupId) {
       where.groupId = groupId;
+    }
+    if (subcategoryId) {
+      where.subcategoryId = subcategoryId;
     }
 
     const albums = await prisma.album.findMany({
@@ -71,7 +75,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, description, categoryId, groupId, ownerId } = body;
+    const { name, description, categoryId, subcategoryId, groupId, ownerId } = body;
 
     if (!name || !ownerId) {
       return NextResponse.json(
@@ -89,6 +93,19 @@ export async function POST(request: NextRequest) {
       if (!category) {
         return NextResponse.json(
           { error: 'Category not found' },
+          { status: 404 }
+        );
+      }
+    }
+
+    // Check if subcategory exists and belongs to category (if provided)
+    if (subcategoryId) {
+      const subcategory = await prisma.subcategory.findUnique({
+        where: { id: subcategoryId },
+      });
+      if (!subcategory || (categoryId && subcategory.categoryId !== categoryId)) {
+        return NextResponse.json(
+          { error: 'Subcategory not found or does not belong to the category' },
           { status: 404 }
         );
       }
@@ -137,6 +154,7 @@ export async function POST(request: NextRequest) {
         name: name.trim(),
         description: description?.trim() || null,
         categoryId,
+        subcategoryId: subcategoryId || null,
         groupId: groupId || null,
         ownerId,
       },
@@ -153,6 +171,13 @@ export async function POST(request: NextRequest) {
             id: true,
             name: true,
             color: true,
+          },
+        },
+        subcategory: {
+          select: {
+            id: true,
+            name: true,
+            categoryId: true,
           },
         },
         _count: {

@@ -48,6 +48,14 @@ export async function GET(request: NextRequest) {
               updatedAt: true,
             }
           },
+          album: {
+            select: {
+              id: true,
+              name: true,
+              category: { select: { id: true, name: true, description: true, color: true, createdAt: true, updatedAt: true } },
+              subcategory: { select: { id: true, name: true, categoryId: true } },
+            }
+          },
           owner: {
             select: {
               name: true,

@@ -6,6 +6,7 @@ import { Album, Category, Group } from '@/types/audio';
 interface AlbumSelectorProps {
   selectedAlbumId: string;
   selectedCategoryId?: string;
+  selectedSubcategoryId?: string;
   selectedGroupId: string;
   onAlbumChange: (albumId: string) => void;
   ownerId?: string;
@@ -14,6 +15,7 @@ interface AlbumSelectorProps {
 export default function AlbumSelector({
   selectedAlbumId,
   selectedCategoryId,
+  selectedSubcategoryId,
   selectedGroupId,
   onAlbumChange,
   ownerId
@@ -39,6 +41,9 @@ export default function AlbumSelector({
         if (selectedCategoryId) {
           params.append('categoryId', selectedCategoryId);
         }
+        if (selectedSubcategoryId) {
+          params.append('subcategoryId', selectedSubcategoryId);
+        }
         
         if (selectedGroupId) {
           params.append('groupId', selectedGroupId);
@@ -57,7 +62,7 @@ export default function AlbumSelector({
     };
 
     fetchAlbums();
-  }, [selectedCategoryId, selectedGroupId, ownerId]);
+  }, [selectedCategoryId, selectedSubcategoryId, selectedGroupId, ownerId]);
 
   const handleCreateAlbum = async () => {
     if (!newAlbumName.trim() || !ownerId) return;
@@ -68,6 +73,7 @@ export default function AlbumSelector({
         name: newAlbumName.trim(),
         description: newAlbumDescription.trim() || undefined,
         categoryId: selectedCategoryId || undefined,
+        subcategoryId: selectedSubcategoryId || undefined,
         groupId: selectedGroupId || undefined,
         ownerId: ownerId
       });
@@ -81,6 +87,7 @@ export default function AlbumSelector({
           name: newAlbumName.trim(),
           description: newAlbumDescription.trim() || undefined,
           categoryId: selectedCategoryId || undefined,
+          subcategoryId: selectedSubcategoryId || undefined,
           groupId: selectedGroupId || undefined,
           ownerId: ownerId
         }),

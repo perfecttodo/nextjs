@@ -5,10 +5,11 @@ import { getSessionUser } from '@/lib/session';
 // GET /api/audio/albums/[albumId] - Get album details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { albumId: string } }
+  { params }: { params: Promise<{ albumId: string }> }
 ) {
   try {
-    const albumId = params.albumId;
+    const resolved = await params;
+    const albumId = resolved.albumId;
 
     const album = await prisma.album.findUnique({
       where: { id: albumId },
@@ -69,7 +70,7 @@ export async function GET(
 // PUT /api/audio/albums/[albumId] - Update album
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { albumId: string } }
+  { params }: { params: Promise<{ albumId: string }> }
 ) {
   try {
     const user = await getSessionUser();
@@ -77,7 +78,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const albumId = params.albumId;
+    const resolved = await params;
+    const albumId = resolved.albumId;
     const body = await request.json();
     const { name, description, categoryId, groupId, color } = body;
 
@@ -196,7 +198,7 @@ export async function PUT(
 // DELETE /api/audio/albums/[albumId] - Delete album
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { albumId: string } }
+  { params }: { params: Promise<{ albumId: string }> }
 ) {
   try {
     const user = await getSessionUser();
@@ -204,7 +206,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const albumId = params.albumId;
+    const resolved = await params;
+    const albumId = resolved.albumId;
 
     // Check if album exists and belongs to the user
     const album = await prisma.album.findFirst({

@@ -25,6 +25,11 @@ type AlbumWithAudio = {
     name: string;
     color: string | null;
   } | null;
+  subcategory: {
+    id: string;
+    name: string;
+    categoryId: string;
+  } | null;
   audioFiles: {
     id: string;
     title: string;
@@ -48,13 +53,8 @@ type AlbumWithAudio = {
   };
 };
 
-interface AlbumPageProps {
-  params: {
-    albumId: string;
-  };
-}
-
-export default async function AlbumPage({ params }: AlbumPageProps) {
+export default async function AlbumPage({ params }: { params: Promise<{ albumId: string }> }) {
+  const resolved = await params;
   const user = await getSessionUser();
   if (!user) {
     return (
@@ -70,7 +70,7 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
   // Fetch album details
   const album: AlbumWithAudio | null = await prisma.album.findFirst({
     where: {
-      id: params.albumId,
+      id: resolved.albumId,
       ownerId: user.sub,
     },
     include: {
@@ -86,6 +86,13 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
           id: true,
           name: true,
           color: true,
+        },
+      },
+      subcategory: {
+        select: {
+          id: true,
+          name: true,
+          categoryId: true,
         },
       },
       audioFiles: {

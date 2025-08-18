@@ -20,6 +20,7 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
   const [albumName, setAlbumName] = useState('');
   const [albumDescription, setAlbumDescription] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState('');
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [albumColor, setAlbumColor] = useState('#3B82F6');
 
@@ -70,6 +71,7 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
           name: albumName.trim(),
           description: albumDescription.trim() || undefined,
           categoryId: selectedCategoryId || undefined,
+          subcategoryId: selectedSubcategoryId || undefined,
           groupId: selectedGroupId || undefined,
           ownerId: userId,
           color: albumColor
@@ -162,6 +164,7 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
     setAlbumDescription('');
     setSelectedCategoryId('');
     setSelectedGroupId('');
+    setSelectedSubcategoryId('');
     setAlbumColor('#3B82F6');
   };
 
@@ -232,6 +235,18 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
                 ))}
               </select>
             </div>
+            {selectedCategoryId && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Subcategory (Optional)</label>
+                <select
+                  value={selectedSubcategoryId}
+                  onChange={(e) => setSelectedSubcategoryId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">No Subcategory</option>
+                </select>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">

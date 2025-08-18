@@ -155,11 +155,12 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
   const groupedAudioFiles: GroupedAudioFiles = {};
 
   audioFiles.forEach(audio => {
-    if (audio.category) {
-      const categoryId = audio.category.id;
+    const effectiveCategory = audio.album?.category || audio.category;
+    if (effectiveCategory) {
+      const categoryId = effectiveCategory.id;
       if (!groupedAudioFiles[categoryId]) {
         groupedAudioFiles[categoryId] = {
-          category: audio.category,
+          category: effectiveCategory,
           audioFiles: []
         };
       }
@@ -343,9 +344,9 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
                               <span className={getStatusBadge(audio.status)}>
                                 {audio.status}
                               </span>
-                              {audio.subcategory && (
+                              {(audio.album?.subcategory || audio.subcategory) && (
                                 <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                                  {audio.subcategory.name}
+                                  {(audio.album?.subcategory || audio.subcategory)!.name}
                                 </span>
                               )}
                             </div>

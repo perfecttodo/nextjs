@@ -28,11 +28,13 @@ export default function CategorizedAudioList({
   const router = useRouter();
 
   audioFiles.forEach(audio => {
-    if (audio.category) {
-      const categoryId = audio.category.id;
+    // Prefer album.category if available; fallback to audio.category
+    const effectiveCategory = audio.album?.category || audio.category;
+    if (effectiveCategory) {
+      const categoryId = effectiveCategory.id;
       if (!groupedAudioFiles[categoryId]) {
         groupedAudioFiles[categoryId] = {
-          category: audio.category,
+          category: effectiveCategory,
           audioFiles: []
         };
       }
@@ -120,11 +122,12 @@ export default function CategorizedAudioList({
                           <span>{audio.duration ? `${Math.floor(audio.duration / 60)}:${(audio.duration % 60).toString().padStart(2, '0')}` : 'Unknown duration'}</span>
                           <span>•</span>
                           <span>{audio.status}</span>
-                          {audio.subcategory && (
+                          {/* Prefer album.subcategory display if present */}
+                          {(audio.album?.subcategory || audio.subcategory) && (
                             <>
                               <span>•</span>
                               <span className="px-2 py-1 bg-gray-100 rounded text-xs">
-                                {audio.subcategory.name}
+                                {(audio.album?.subcategory || audio.subcategory)!.name}
                               </span>
                             </>
                           )}
