@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Album, Category, Group } from '@/types/audio';
+import { Album } from '@/types/audio';
+import AlbumForm from './AlbumForm'; // Import AlbumForm
 
 interface AlbumSelectorProps {
   selectedAlbumId: string;
@@ -23,8 +24,6 @@ export default function AlbumSelector({
   const [albums, setAlbums] = useState<Album[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newAlbumName, setNewAlbumName] = useState('');
-  const [newAlbumDescription, setNewAlbumDescription] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
   // Fetch albums based on group (category is optional)
@@ -64,52 +63,32 @@ export default function AlbumSelector({
     fetchAlbums();
   }, [selectedCategoryId, selectedSubcategoryId, selectedGroupId, ownerId]);
 
-  const handleCreateAlbum = async () => {
-    if (!newAlbumName.trim() || !ownerId) return;
+  const handleCreateAlbum = async (albumData: any) => {
+    if (!ownerId) return;
 
     setIsCreating(true);
     try {
-      console.log('Creating album with data:', {
-        name: newAlbumName.trim(),
-        description: newAlbumDescription.trim() || undefined,
-        categoryId: selectedCategoryId || undefined,
-        subcategoryId: selectedSubcategoryId || undefined,
-        groupId: selectedGroupId || undefined,
-        ownerId: ownerId
-      });
-
       const response = await fetch('/api/episode/albums', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: newAlbumName.trim(),
-          description: newAlbumDescription.trim() || undefined,
-          categoryId: selectedCategoryId || undefined,
-          subcategoryId: selectedSubcategoryId || undefined,
-          groupId: selectedGroupId || undefined,
+          ...albumData,
           ownerId: ownerId
         }),
       });
 
-      console.log('Response status:', response.status);
-      
       if (response.ok) {
         const newAlbum = await response.json();
-        console.log('Created album:', newAlbum);
         setAlbums(prev => [newAlbum, ...prev]);
         onAlbumChange(newAlbum.id);
-        setNewAlbumName('');
-        setNewAlbumDescription('');
         setShowCreateForm(false);
       } else {
         const errorData = await response.json();
-        console.error('Error response:', errorData);
         alert(`Error creating album: ${errorData.error}`);
       }
     } catch (error) {
-      console.error('Error creating album:', error);
       alert('Failed to create album');
     } finally {
       setIsCreating(false);
@@ -120,14 +99,10 @@ export default function AlbumSelector({
     onAlbumChange(albumId);
   };
 
-
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-gray-700">
-          Album
-        </label>
+        <label className="block text-sm font-medium text-gray-700">Album</label>
         <button
           type="button"
           onClick={() => setShowCreateForm(!showCreateForm)}
@@ -139,55 +114,13 @@ export default function AlbumSelector({
 
       {/* Create New Album Form */}
       {showCreateForm && (
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-md space-y-3">
-          <div>
-            <label htmlFor="newAlbumName" className="block text-xs font-medium text-blue-800 mb-1">
-              Album Name *
-            </label>
-            <input
-              type="text"
-              id="newAlbumName"
-              value={newAlbumName}
-              onChange={(e) => setNewAlbumName(e.target.value)}
-              className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              placeholder="Enter album name"
-              maxLength={100}
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="newAlbumDescription" className="block text-xs font-medium text-blue-800 mb-1">
-              Description (Optional)
-            </label>
-            <textarea
-              id="newAlbumDescription"
-              value={newAlbumDescription}
-              onChange={(e) => setNewAlbumDescription(e.target.value)}
-              rows={2}
-              className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              placeholder="Describe the album..."
-              maxLength={500}
-            />
-          </div>
-
-          <div className="flex space-x-2">
-            <button
-              type="button"
-              onClick={handleCreateAlbum}
-              disabled={!newAlbumName.trim() || isCreating}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isCreating ? 'Creating...' : 'Create Album'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowCreateForm(false)}
-              className="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
+        <AlbumForm
+          editingAlbum={null} // No album is being edited
+          onCreate={handleCreateAlbum}
+          onUpdate={() => {}} // Not used, but required
+          onCancel={() => setShowCreateForm(false)}
+          isLoading={isCreating}
+        />
       )}
 
       {/* Album Selection */}
