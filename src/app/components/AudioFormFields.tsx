@@ -95,7 +95,7 @@ export default function AudioFormFields({
       {/* Original Website Input */}
       <div>
         <label htmlFor="originalWebsite" className="block text-sm font-medium text-gray-700 mb-2">
-          Original Website (Optional)
+          Website (Optional)
         </label>
         <input
           type="url"

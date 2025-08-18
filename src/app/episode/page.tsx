@@ -62,14 +62,7 @@ export default function AudioPlayerPage() {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">All Audio Files</h1>
               <p className="text-gray-600">Browse and listen to all published audio files</p>
             </div>
-            <div className="flex items-center space-x-3">
-              <a
-                href="/categories"
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                📁 Browse Categories
-              </a>
-            </div>
+
           </div>
         </div>
         
