@@ -34,9 +34,6 @@ model User {
   githubId  String?       @unique // For GitHub OAuth
   createdAt DateTime      @default(now())
   items     TestingItem[]
-  audioFiles AudioFile[]
-  labels    Label[]       // User's custom labels
-  groups    Group[]       // User's groups
   albums    Album[]       // User's albums
   
   @@index([githubId])
@@ -48,7 +45,6 @@ model Category {
   description String?
   color       String?      // Hex color for UI display
   subcategories Subcategory[]
-  audioFiles  AudioFile[]
   albums      Album[]      // Add albums relationship
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -60,7 +56,6 @@ model Subcategory {
   description String?
   categoryId  String
   category    Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  audioFiles  AudioFile[]
   albums      Album[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
@@ -72,16 +67,22 @@ model Subcategory {
 model Label {
   id          String     @id @default(uuid())
   name        String
-  color       String?    // Hex color for UI display
+  color       String?    
   description String?
-  ownerId     String?    // null means system-wide label
-  owner       User?      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  audioFiles  AudioFile[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-  @@unique([name, ownerId]) // Allow same name for different owners
-  @@index([ownerId])
+  @@unique([name]) 
+}
+
+model AlbumLabel {
+  id          String     @id @default(uuid())
+  labelId        String
+  albumId        String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([labelId,albumId]) 
 }
 
 model Group {
@@ -90,8 +91,6 @@ model Group {
   description String?
   color       String?    // Hex color for UI display
   ownerId     String
-  owner       User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  audioFiles  AudioFile[]
   albums      Album[]    // Add albums relationship
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
@@ -138,14 +137,6 @@ model AudioFile {
   description  String?     // Description of the audio content
   originalWebsite String?   // Original website where audio was found (optional)
   ownerId       String
-  owner         User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  categoryId    String?
-  category      Category?   @relation(fields: [categoryId], references: [id])
-  subcategoryId String?
-  subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
-  labels        Label[]     // Many-to-many relationship
-  groupId       String?
-  group         Group?      @relation(fields: [groupId], references: [id])
   albumId       String?     // Add album relationship
   album         Album?      @relation(fields: [albumId], references: [id], onDelete: SetNull)
   createdAt     DateTime    @default(now())
@@ -153,9 +144,6 @@ model AudioFile {
 
   @@index([status, createdAt])
   @@index([ownerId])
-  @@index([categoryId])
-  @@index([subcategoryId])
-  @@index([groupId])
   @@index([albumId])
 }
 

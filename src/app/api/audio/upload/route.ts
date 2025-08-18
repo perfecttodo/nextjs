@@ -14,15 +14,10 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File;
     const title = formData.get('title') as string;
     const status = formData.get('status') as 'draft' | 'published';
-    const language = formData.get('language') as string;
     const description = formData.get('description') as string;
     const originalWebsite = formData.get('originalWebsite') as string;
     const duration = formData.get('duration') as string;
-    const categoryId = formData.get('categoryId') as string;
-    const subcategoryId = formData.get('subcategoryId') as string;
-    const groupId = formData.get('groupId') as string;
     const albumId = formData.get('albumId') as string;
-    const labelIds = formData.getAll('labelIds') as string[];
 
     if (!file || !title) {
       return NextResponse.json(
@@ -31,53 +26,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate category if provided
-    if (categoryId) {
-      const category = await prisma.category.findUnique({
-        where: { id: categoryId }
-      });
 
-      if (!category) {
-        return NextResponse.json(
-          { error: 'Invalid category' },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Validate subcategory if provided
-    if (subcategoryId) {
-      const subcategory = await prisma.subcategory.findFirst({
-        where: {
-          id: subcategoryId,
-          categoryId: categoryId
-        }
-      });
-
-      if (!subcategory) {
-        return NextResponse.json(
-          { error: 'Invalid subcategory for the selected category' },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Validate group if provided
-    if (groupId) {
-      const group = await prisma.group.findFirst({
-        where: {
-          id: groupId,
-          ownerId: user.sub
-        }
-      });
-
-      if (!group) {
-        return NextResponse.json(
-          { error: 'Invalid group' },
-          { status: 400 }
-        );
-      }
-    }
 
     // Validate album if provided, and ensure its category/subcategory match when provided
     if (albumId) {
@@ -86,7 +35,7 @@ export async function POST(request: NextRequest) {
           id: albumId,
           ownerId: user.sub
         },
-        select: { id: true, categoryId: true, subcategoryId: true }
+        select: { id: true, categoryId: true }
       });
 
       if (!album) {
@@ -96,40 +45,10 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // If album has category/subcategory, enforce alignment
-      if (album.categoryId && categoryId && album.categoryId !== categoryId) {
-        return NextResponse.json(
-          { error: 'Album category does not match selected category' },
-          { status: 400 }
-        );
-      }
-      if (album.subcategoryId && subcategoryId && album.subcategoryId !== subcategoryId) {
-        return NextResponse.json(
-          { error: 'Album subcategory does not match selected subcategory' },
-          { status: 400 }
-        );
-      }
+
     }
 
-    // Validate labels if provided
-    if (labelIds.length > 0) {
-      const labels = await prisma.label.findMany({
-        where: {
-          id: { in: labelIds },
-          OR: [
-            { ownerId: null }, // System labels
-            { ownerId: user.sub } // User's own labels
-          ]
-        }
-      });
-
-      if (labels.length !== labelIds.length) {
-        return NextResponse.json(
-          { error: 'One or more invalid labels' },
-          { status: 400 }
-        );
-      }
-    }
+  
 
     // Normalize mime type (strip codecs params)
     const rawType = file.type || '';
@@ -196,27 +115,19 @@ export async function POST(request: NextRequest) {
       fileSize: file.size,
       status: status || 'draft',
       ownerId: user.sub,
-      language: language || null,
       description: description || null,
       originalWebsite: originalWebsite || null,
       duration: duration ? parseInt(duration) : 0,
       // Prefer album-level categorization if album provided and has category linkage
-      categoryId: albumId ? undefined : categoryId,
-      subcategoryId: albumId ? undefined : (subcategoryId || null),
-      groupId: groupId || null,
       albumId: albumId || null,
     };
    // console.error('audioFile', data);
 
     const audioFile = await prisma.audioFile.create({
       data: {
-        ...data,
-        labels: labelIds.length > 0 ? {
-          connect: labelIds.map(id => ({ id }))
-        } : undefined
+        ...data
       },
       include: {
-        labels: true
       }
     });
 

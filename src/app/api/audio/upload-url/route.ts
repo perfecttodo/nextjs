@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Changed from formData to JSON parsing since the frontend sends JSON
-    const { url, title, status = 'draft', language, description, originalWebsite, duration = 0, categoryId, subcategoryId, groupId, albumId, labelIds = [] } = await request.json();
+    const { url, title, status = 'draft', description, originalWebsite, duration = 0, categoryId, subcategoryId, groupId, albumId, labelIds = [] } = await request.json();
 
     if (!url || !title) {
       return NextResponse.json(
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
           id: albumId,
           ownerId: user.sub
         },
-        select: { id: true, categoryId: true, subcategoryId: true }
+        select: { id: true, categoryId: true }
       });
 
       if (!album) {
@@ -90,12 +90,7 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-      if (album.subcategoryId && subcategoryId && album.subcategoryId !== subcategoryId) {
-        return NextResponse.json(
-          { error: 'Album subcategory does not match selected subcategory' },
-          { status: 400 }
-        );
-      }
+
     }
 
     // Validate URL format
@@ -151,20 +146,10 @@ export async function POST(request: NextRequest) {
         fileSize: 0, // Can't determine size without downloading
         status,
         ownerId: user.sub,
-        language: language || null,
         description: description || null,
         originalWebsite: originalWebsite || null,
         duration: typeof duration === 'string' ? parseInt(duration) : duration,
-        categoryId: albumId ? undefined : categoryId,
-        subcategoryId: albumId ? undefined : (subcategoryId || null),
-        groupId: groupId || null,
         albumId: albumId || null,
-        labels: labelIds.length > 0 ? {
-          connect: labelIds.map((id: string) => ({ id }))
-        } : undefined
-      },
-      include: {
-        labels: true
       }
     });
 

@@ -139,13 +139,6 @@ export default function AudioFormFields({
         onAlbumChange={onAlbumChange}
         ownerId={ownerId}
       />
-
-      {/* Label Selection */}
-      <LabelSelector
-        selectedLabels={selectedLabels}
-        onLabelsChange={onLabelsChange}
-        ownerId={ownerId}
-      />
     </div>
   );
 }
