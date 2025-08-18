@@ -45,7 +45,6 @@ model Category {
   description String?
   color       String?      // Hex color for UI display
   subcategories Subcategory[]
-  albums      Album[]      // Add albums relationship
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 }
@@ -56,7 +55,6 @@ model Subcategory {
   description String?
   categoryId  String
   category    Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  albums      Album[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
@@ -91,7 +89,6 @@ model Group {
   description String?
   color       String?    // Hex color for UI display
   ownerId     String
-  albums      Album[]    // Add albums relationship
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
@@ -106,21 +103,14 @@ model Album {
   color       String?    // Hex color for UI display
   ownerId     String
   owner       User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  groupId     String?    // Optional group association
-  group       Group?     @relation(fields: [groupId], references: [id])
   categoryId  String?    // Optional category association
-  category    Category?  @relation(fields: [categoryId], references: [id])
-  subcategoryId String?  // Optional subcategory association (must belong to category)
-  subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
   audioFiles  AudioFile[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
   @@unique([name, ownerId]) // Allow same name for different owners
   @@index([ownerId])
-  @@index([groupId])
   @@index([categoryId])
-  @@index([subcategoryId])
 }
 
 model AudioFile {

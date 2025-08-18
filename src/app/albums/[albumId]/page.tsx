@@ -27,27 +27,7 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
       ownerId: user.sub,
     },
     include: {
-      group: {
-        select: {
-          id: true,
-          name: true,
-          color: true,
-        },
-      },
-      category: {
-        select: {
-          id: true,
-          name: true,
-          color: true,
-        },
-      },
-      subcategory: {
-        select: {
-          id: true,
-          name: true,
-          categoryId: true,
-        },
-      },
+
       audioFiles: {
         select: {
           id: true,
@@ -92,16 +72,8 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{album.name}</h1>
                 <div className="flex items-center space-x-2 mt-1">
-                  {album.category && (
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
-                      {album.category.name}
-                    </span>
-                  )}
-                  {album.group && (
-                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">
-                      {album.group.name}
-                    </span>
-                  )}
+              
+           
                   <span className="text-sm text-gray-500">
                     {album._count.audioFiles} audio files
                   </span>

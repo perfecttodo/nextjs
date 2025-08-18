@@ -22,34 +22,11 @@ export async function GET(request: NextRequest) {
       ownerId,
     };
 
-    if (categoryId) {
-      where.categoryId = categoryId;
-    }
 
-    if (groupId) {
-      where.groupId = groupId;
-    }
-    if (subcategoryId) {
-      where.subcategoryId = subcategoryId;
-    }
 
     const albums = await prisma.album.findMany({
       where,
       include: {
-        group: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-        category: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
         _count: {
           select: {
             audioFiles: true,
@@ -153,33 +130,9 @@ export async function POST(request: NextRequest) {
       data: {
         name: name.trim(),
         description: description?.trim() || null,
-        categoryId,
-        subcategoryId: subcategoryId || null,
-        groupId: groupId || null,
         ownerId,
       },
       include: {
-        group: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-        category: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-        subcategory: {
-          select: {
-            id: true,
-            name: true,
-            categoryId: true,
-          },
-        },
         _count: {
           select: {
             audioFiles: true,
