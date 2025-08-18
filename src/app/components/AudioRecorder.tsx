@@ -13,6 +13,7 @@ interface AudioRecorderProps {
   selectedCategoryId?: string;
   selectedSubcategoryId?: string;
   selectedGroupId: string;
+  selectedAlbumId: string;
   selectedLabels: Label[]; // Added
   onTitleChange: (title: string) => void;
   onStatusChange: (status: AudioStatus) => void;
@@ -22,6 +23,7 @@ interface AudioRecorderProps {
   onCategoryChange: (categoryId: string | undefined) => void;
   onSubcategoryChange: (subcategoryId: string | undefined) => void;
   onGroupChange: (groupId: string) => void;
+  onAlbumChange: (albumId: string) => void;
   onLabelsChange: (labels: Label[]) => void; // Added
   onUploaded?: () => void;
 }
@@ -81,6 +83,7 @@ export default function AudioRecorder({
   selectedCategoryId,
   selectedSubcategoryId,
   selectedGroupId,
+  selectedAlbumId,
   selectedLabels, // Added
   onTitleChange,
   onStatusChange,
@@ -90,6 +93,7 @@ export default function AudioRecorder({
   onCategoryChange,
   onSubcategoryChange,
   onGroupChange,
+  onAlbumChange,
   onLabelsChange, // Added
   onUploaded
 }: AudioRecorderProps) {
@@ -328,6 +332,7 @@ export default function AudioRecorder({
             selectedCategoryId={selectedCategoryId}
             selectedSubcategoryId={selectedSubcategoryId}
             selectedGroupId={selectedGroupId}
+            selectedAlbumId={selectedAlbumId}
             selectedLabels={selectedLabels} // Added
             onTitleChange={onTitleChange}
             onStatusChange={onStatusChange}
@@ -337,6 +342,7 @@ export default function AudioRecorder({
             onCategoryChange={onCategoryChange}
             onSubcategoryChange={onSubcategoryChange}
             onGroupChange={onGroupChange}
+            onAlbumChange={onAlbumChange}
             onLabelsChange={onLabelsChange} // Added
             categoryRequired={false}
             showStatusHelp={true}

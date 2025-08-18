@@ -301,6 +301,7 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
                           selectedCategoryId={editCategoryId}
                           selectedSubcategoryId={editSubcategoryId}
                           selectedGroupId={editGroupId}
+                          selectedAlbumId=""
                           selectedLabels={editLabels} // Added
                           onTitleChange={setEditTitle}
                           onStatusChange={setEditStatus}
@@ -310,6 +311,7 @@ export default function CategorizedAudioManagement({ onRefresh }: CategorizedAud
                           onCategoryChange={(categoryId) => setEditCategoryId(categoryId || '')}
                           onSubcategoryChange={(subcategoryId) => setEditSubcategoryId(subcategoryId || '')}
                           onGroupChange={setEditGroupId}
+                          onAlbumChange={() => {}}
                           onLabelsChange={setEditLabels} // Added
                           categoryRequired={false}
                           showStatusHelp={false}

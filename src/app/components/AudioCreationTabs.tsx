@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { AudioStatus, Label } from '@/types/audio';
+import { useUser } from '../hooks/useUser';
 
 // Dynamically import components to reduce initial bundle size
 const AudioUpload = dynamic(() => import('./AudioUpload'), { ssr: false });
@@ -19,6 +20,7 @@ type TabType = 'upload' | 'record' | 'ffmpeg' | 'url';
 export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>('upload');
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const { user, loading: userLoading } = useUser();
 
   // Shared form state that persists across tab switches
   const [sharedFormData, setSharedFormData] = useState({
@@ -30,6 +32,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     categoryId: '',
     subcategoryId: '',
     groupId: '',
+    albumId: '',
     labels: [] as Label[]
   });
 
@@ -93,6 +96,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       categoryId: '',
       subcategoryId: '',
       groupId: '',
+      albumId: '',
       labels: []
     });
     onUploadSuccess();
@@ -108,6 +112,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       selectedCategoryId: sharedFormData.categoryId,
       selectedSubcategoryId: sharedFormData.subcategoryId,
       selectedGroupId: sharedFormData.groupId,
+      selectedAlbumId: sharedFormData.albumId,
       selectedLabels: sharedFormData.labels,
       onTitleChange: (title: string) => updateSharedFormData('title', title),
       onStatusChange: (status: AudioStatus) => updateSharedFormData('status', status),
@@ -117,9 +122,10 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       onCategoryChange: (categoryId: string | undefined) => updateSharedFormData('categoryId', categoryId || ''),
       onSubcategoryChange: (subcategoryId: string | undefined) => updateSharedFormData('subcategoryId', subcategoryId || ''),
       onGroupChange: (groupId: string) => updateSharedFormData('groupId', groupId),
+      onAlbumChange: (albumId: string) => updateSharedFormData('albumId', albumId),
       onLabelsChange: (labels: Label[]) => updateSharedFormData('labels', labels),
       onUploadSuccess: handleUploadSuccess,
-      ownerId: 'user-id' // This should come from user context
+      ownerId: user?.id || ''
     };
 
     switch (activeTab) {
@@ -135,6 +141,18 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
         return <AudioUpload {...commonProps} />;
     }
   };
+
+  // Show loading state while user is being fetched
+  if (userLoading) {
+    return (
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2 text-gray-600">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-lg">

@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
     const categoryId = formData.get('categoryId') as string;
     const subcategoryId = formData.get('subcategoryId') as string;
     const groupId = formData.get('groupId') as string;
+    const albumId = formData.get('albumId') as string;
     const labelIds = formData.getAll('labelIds') as string[];
 
     if (!file || !title) {
@@ -73,6 +74,23 @@ export async function POST(request: NextRequest) {
       if (!group) {
         return NextResponse.json(
           { error: 'Invalid group' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate album if provided
+    if (albumId) {
+      const album = await prisma.album.findFirst({
+        where: {
+          id: albumId,
+          ownerId: user.sub
+        }
+      });
+
+      if (!album) {
+        return NextResponse.json(
+          { error: 'Invalid album' },
           { status: 400 }
         );
       }
@@ -170,6 +188,7 @@ export async function POST(request: NextRequest) {
       categoryId: categoryId,
       subcategoryId: subcategoryId || null,
       groupId: groupId || null,
+      albumId: albumId || null,
     };
    // console.error('audioFile', data);
 

@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Changed from formData to JSON parsing since the frontend sends JSON
-    const { url, title, status = 'draft', language, description, originalWebsite, duration = 0, categoryId, subcategoryId, labelIds = [] } = await request.json();
+    const { url, title, status = 'draft', language, description, originalWebsite, duration = 0, categoryId, subcategoryId, groupId, albumId, labelIds = [] } = await request.json();
 
     if (!url || !title) {
       return NextResponse.json(
@@ -45,6 +45,40 @@ export async function POST(request: NextRequest) {
       if (!subcategory) {
         return NextResponse.json(
           { error: 'Invalid subcategory for the selected category' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate group if provided
+    if (groupId) {
+      const group = await prisma.group.findFirst({
+        where: {
+          id: groupId,
+          ownerId: user.sub
+        }
+      });
+
+      if (!group) {
+        return NextResponse.json(
+          { error: 'Invalid group' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate album if provided
+    if (albumId) {
+      const album = await prisma.album.findFirst({
+        where: {
+          id: albumId,
+          ownerId: user.sub
+        }
+      });
+
+      if (!album) {
+        return NextResponse.json(
+          { error: 'Invalid album' },
           { status: 400 }
         );
       }
@@ -109,6 +143,8 @@ export async function POST(request: NextRequest) {
         duration: typeof duration === 'string' ? parseInt(duration) : duration,
         categoryId: categoryId,
         subcategoryId: subcategoryId || null,
+        groupId: groupId || null,
+        albumId: albumId || null,
         labels: labelIds.length > 0 ? {
           connect: labelIds.map((id: string) => ({ id }))
         } : undefined

@@ -21,6 +21,7 @@ interface FFmpegAudioRecorderProps {
   selectedCategoryId?: string;
   selectedSubcategoryId?: string;
   selectedGroupId: string;
+  selectedAlbumId: string;
   selectedLabels: Label[];
   onTitleChange: (title: string) => void;
   onStatusChange: (status: AudioStatus) => void;
@@ -30,6 +31,7 @@ interface FFmpegAudioRecorderProps {
   onCategoryChange: (categoryId: string | undefined) => void;
   onSubcategoryChange: (subcategoryId: string | undefined) => void;
   onGroupChange: (groupId: string) => void;
+  onAlbumChange: (albumId: string) => void;
   onLabelsChange: (labels: Label[]) => void;
   onUploaded?: () => void;
 }
@@ -726,6 +728,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
             selectedCategoryId={props.selectedCategoryId}
             selectedSubcategoryId={props.selectedSubcategoryId}
             selectedGroupId={props.selectedGroupId || ""}
+            selectedAlbumId={props.selectedAlbumId}
             selectedLabels={props.selectedLabels}
             onTitleChange={props.onTitleChange}
             onStatusChange={props.onStatusChange}
@@ -735,6 +738,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
             onCategoryChange={props.onCategoryChange}
             onSubcategoryChange={props.onSubcategoryChange}
             onGroupChange={props.onGroupChange || (() => {})}
+            onAlbumChange={props.onAlbumChange}
             onLabelsChange={props.onLabelsChange}
             categoryRequired={false}
             showStatusHelp={true}

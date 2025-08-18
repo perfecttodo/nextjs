@@ -37,6 +37,7 @@ model User {
   audioFiles AudioFile[]
   labels    Label[]       // User's custom labels
   groups    Group[]       // User's groups
+  albums    Album[]       // User's albums
   
   @@index([githubId])
 }
@@ -48,6 +49,7 @@ model Category {
   color       String?      // Hex color for UI display
   subcategories Subcategory[]
   audioFiles  AudioFile[]
+  albums      Album[]      // Add albums relationship
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 }
@@ -89,11 +91,33 @@ model Group {
   ownerId     String
   owner       User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   audioFiles  AudioFile[]
+  albums      Album[]    // Add albums relationship
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
   @@unique([name, ownerId]) // Allow same name for different owners
   @@index([ownerId])
+}
+
+model Album {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  color       String?    // Hex color for UI display
+  ownerId     String
+  owner       User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  groupId     String?    // Optional group association
+  group       Group?     @relation(fields: [groupId], references: [id])
+  categoryId  String     // Required category association
+  category    Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  audioFiles  AudioFile[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([name, ownerId]) // Allow same name for different owners
+  @@index([ownerId])
+  @@index([groupId])
+  @@index([categoryId])
 }
 
 model AudioFile {
@@ -118,6 +142,8 @@ model AudioFile {
   labels        Label[]     // Many-to-many relationship
   groupId       String?
   group         Group?      @relation(fields: [groupId], references: [id])
+  albumId       String?     // Add album relationship
+  album         Album?      @relation(fields: [albumId], references: [id])
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -126,6 +152,7 @@ model AudioFile {
   @@index([categoryId])
   @@index([subcategoryId])
   @@index([groupId])
+  @@index([albumId])
 }
 
 enum AudioStatus {

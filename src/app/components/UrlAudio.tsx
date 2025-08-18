@@ -13,6 +13,7 @@ interface AudioUrlUploadProps {
   selectedCategoryId?: string;
   selectedSubcategoryId?: string;
   selectedGroupId: string;
+  selectedAlbumId: string;
   selectedLabels: Label[]; // Added
   onTitleChange: (title: string) => void;
   onStatusChange: (status: AudioStatus) => void;
@@ -22,6 +23,7 @@ interface AudioUrlUploadProps {
   onCategoryChange: (categoryId: string | undefined) => void;
   onSubcategoryChange: (subcategoryId: string | undefined) => void;
   onGroupChange: (groupId: string) => void;
+  onAlbumChange: (albumId: string) => void;
   onLabelsChange: (labels: Label[]) => void; // Added
   onUploadSuccess: () => void;
 }
@@ -35,6 +37,7 @@ export default function AudioUrlUpload({
   selectedCategoryId,
   selectedSubcategoryId,
   selectedGroupId,
+  selectedAlbumId,
   selectedLabels, // Added
   onTitleChange,
   onStatusChange,
@@ -44,6 +47,7 @@ export default function AudioUrlUpload({
   onCategoryChange,
   onSubcategoryChange,
   onGroupChange,
+  onAlbumChange,
   onLabelsChange, // Added
   onUploadSuccess
 }: AudioUrlUploadProps) {
@@ -101,6 +105,8 @@ export default function AudioUrlUpload({
           originalWebsite: originalWebsite || null,
           categoryId: selectedCategoryId || null,
           subcategoryId: selectedSubcategoryId || null,
+          groupId: selectedGroupId || null,
+          albumId: selectedAlbumId || null,
           labelIds: selectedLabels.map(label => label.id), // Added
         }),
       });
@@ -165,6 +171,7 @@ export default function AudioUrlUpload({
         selectedCategoryId={selectedCategoryId}
         selectedSubcategoryId={selectedSubcategoryId}
         selectedGroupId={selectedGroupId}
+        selectedAlbumId={selectedAlbumId}
         selectedLabels={selectedLabels} // Added
         onTitleChange={onTitleChange}
         onStatusChange={onStatusChange}
@@ -174,8 +181,9 @@ export default function AudioUrlUpload({
         onCategoryChange={onCategoryChange}
         onSubcategoryChange={onSubcategoryChange}
         onGroupChange={onGroupChange}
+        onAlbumChange={onAlbumChange}
         onLabelsChange={onLabelsChange} // Added
-                    categoryRequired={false}
+        categoryRequired={false}
         showStatusHelp={true}
       />
 

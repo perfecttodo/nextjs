@@ -38,6 +38,25 @@ export interface Group {
   color?: string;
   ownerId: string;
   audioFiles?: AudioFile[];
+  albums?: Album[]; // Add albums relationship
+  _count?: {
+    audioFiles: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Album {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string;
+  ownerId: string;
+  groupId?: string;
+  group?: Group;
+  categoryId: string;
+  category: Category;
+  audioFiles?: AudioFile[];
   _count?: {
     audioFiles: number;
   };
@@ -66,6 +85,8 @@ export interface AudioFile {
   labels?: Label[];
   groupId?: string;
   group?: Group;
+  albumId?: string; // Add album relationship
+  album?: Album;
   createdAt: string;
   updatedAt: string;
 }
