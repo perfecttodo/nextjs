@@ -15,7 +15,6 @@ export default function AudioManagePage() {
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">Audio Management</h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Audio Creation Section with Tabs */}

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { AudioStatus, Episode, Category, Label } from '../../types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 import AudioFormFields from '../components/upload/AudioFormFields';
+import { useUser } from '../hooks/useUser';
 
 interface CategorizedAudioManagementProps {
   onRefresh: () => void;
@@ -33,7 +34,12 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
   const [filter, setFilter] = useState<'all' | 'draft' | 'published'>('all');
   const { setAudio, setAudioFiles: updateAudioFiles, audio: currentAudio, togglePlay, isPlaying } = useAudioPlayerStore();
 
+  const { user, loading: userLoading } = useUser();
+
+
   useEffect(() => {
+    
+
     fetchAudioFiles();
   }, [filter]);
 
@@ -216,7 +222,7 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
     return `${baseClasses} bg-yellow-100 text-yellow-800`;
   };
 
-  if (loading) {
+  if (loading ) {
     return (
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="text-center py-8">
@@ -315,6 +321,7 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
                           onLabelsChange={setEditLabels} // Added
                           categoryRequired={false}
                           showStatusHelp={false}
+                          ownerId={user?.id}
                         />
                         <div className="flex items-center space-x-2">
                           <button

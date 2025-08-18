@@ -20,10 +20,7 @@ export async function POST(request: NextRequest) {
     const originalWebsite = formData.get('originalWebsite') as string;
     const duration = formData.get('duration') as string;
     const categoryId = formData.get('categoryId') as string;
-    const subcategoryId = formData.get('subcategoryId') as string;
-    const groupId = formData.get('groupId') as string;
     const albumId = formData.get('albumId') as string;
-    const labelIds = formData.getAll('labelIds') as string[];
 
     if (!m3u8File || !title) {
       return NextResponse.json(
@@ -68,19 +65,6 @@ export async function POST(request: NextRequest) {
 
     }
 
-    // Validate labels if provided
-    if (labelIds.length > 0) {
-      const labels = await prisma.label.findMany({
-        where: { id: { in: labelIds } }
-      });
-
-      if (labels.length !== labelIds.length) {
-        return NextResponse.json(
-          { error: 'One or more invalid labels' },
-          { status: 400 }
-        );
-      }
-    }
 
     // Generate unique folder name for this HLS upload
     const timestamp = Date.now();
@@ -124,9 +108,6 @@ export async function POST(request: NextRequest) {
       description: description || null,
       originalWebsite: originalWebsite || null,
       duration: duration ? parseInt(duration) : 0,
-      categoryId: albumId ? undefined : categoryId,
-      subcategoryId: albumId ? undefined : (subcategoryId || null),
-      groupId: groupId || null,
       albumId: albumId || null,
     };
 

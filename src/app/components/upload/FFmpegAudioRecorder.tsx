@@ -341,8 +341,8 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
   };
 
   const uploadRecording = async () => {
-    if (!recordingBlob || !props.selectedCategoryId) {
-      setError('Please record audio and select a category before uploading.');
+    if (!recordingBlob ) {
+      setError('Please record audio before uploading.');
       return;
     }
 
@@ -380,13 +380,8 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
     form.append('language', props.language || '');
     form.append('description', props.description || '');
     form.append('originalWebsite', props.originalWebsite || '');
-    if (props.selectedCategoryId) { form.append('categoryId', props.selectedCategoryId); }
-    if (props.selectedSubcategoryId) {
-      form.append('subcategoryId', props.selectedSubcategoryId);
-    }
-    props.selectedLabels.forEach(label => {
-      form.append('labelIds', label.id);
-    });
+
+
 
     const res = await fetch('/api/episode/upload', { method: 'POST', body: form });
     const data = await res.json();
@@ -473,13 +468,6 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
         form.append('language', props.language || '');
         form.append('description', props.description || '');
         form.append('originalWebsite', props.originalWebsite || '');
-        if (props.selectedCategoryId) { form.append('categoryId', props.selectedCategoryId); }
-        if (props.selectedSubcategoryId) {
-          form.append('subcategoryId', props.selectedSubcategoryId);
-        }
-        props.selectedLabels.forEach(label => {
-          form.append('labelIds', label.id);
-        });
 
         // Upload files
         const res = await fetch('/api/episode/upload-hls', { method: 'POST', body: form });
@@ -754,7 +742,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
           disabled={isUploading}
           onClick={uploadRecording}
           className={`w-full px-4 py-3 rounded ${
-            !recordingBlob || isUploading || !props.selectedCategoryId 
+            !recordingBlob || isUploading 
               ? 'bg-gray-300 text-gray-600' 
               : 'bg-green-600 hover:bg-green-700 text-white'
           }`}
