@@ -169,7 +169,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50'
               }`}
             >
-              <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2">
+              <div className="flex flex-col  items-center space-y-1 sm:space-y-0 sm:space-x-2">
                 <span className="text-lg sm:text-xl">{tab.icon}</span>
                 <div className="text-center sm:text-left">
                   <div className="font-medium text-xs sm:text-sm">
