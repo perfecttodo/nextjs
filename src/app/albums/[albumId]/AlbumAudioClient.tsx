@@ -149,7 +149,7 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
               href={`/my/submit/episode?album=${album.id}`}
               className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
             >
-              + Add More Audio
+              + Add More Episode
             </Link>
           </div>
         </div>

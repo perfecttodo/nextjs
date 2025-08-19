@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/app/globals.css";
 import { getSessionUser } from "@/lib/session";
-import Header from "@/app/components/Header";
+import Header from "@/app/components/comm/Header";
 import FixedShareAudioPlayer from '@/app/components/FixedShareAudioPlayer';
 
 const geistSans = Geist({
