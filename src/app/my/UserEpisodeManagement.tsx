@@ -12,7 +12,7 @@ interface CategorizedAudioManagementProps {
 
 
 export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioManagementProps) {
-  const [episodes, setAudioFiles] = useState<Episode[]>([]);
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
@@ -59,7 +59,7 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
       if (!response.ok) throw new Error('Failed to fetch episodes');
 
       const data = await response.json();
-      setAudioFiles(data.episodes);
+      setEpisodes(data.episodes);
     } catch (error) {
       console.error('Error fetching episodes:', error);
     } finally {
