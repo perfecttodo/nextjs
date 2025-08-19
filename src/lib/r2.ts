@@ -82,11 +82,12 @@ export async function listAudioFiles(prefix?: string) {
   }
 }
 
-export async function generatePresignedUploadUrl(fileKey:string) {
+export async function generatePresignedUploadUrl(fileKey:string, contentType?: string) {
   try {
     const command = new PutObjectCommand({
       Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME,
       Key: fileKey,
+      ContentType: contentType,
     });
 
     const signedUrl = await getSignedUrl(s3Client, command, {

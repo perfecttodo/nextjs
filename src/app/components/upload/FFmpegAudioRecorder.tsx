@@ -384,27 +384,45 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
     if (!recordingBlob) {
       throw new Error('No recording available for upload');
     }
-    
-    const form = new FormData();
     const ext = outputFormat;
     const mimeType = outputFormat === 'mp3' ? 'audio/mpeg' : 'audio/mp4';
-    
     const file = new File([recordingBlob], `recording.${ext}`, { type: mimeType });
-    form.append('file', file);
-    form.append('title', props.title.trim() || 'New recording');
-    form.append('status', props.status);
-    form.append('duration', duration.toString());
-    form.append('language', props.language || '');
-    form.append('description', props.description || '');
-    form.append('originalWebsite', props.originalWebsite || '');
 
+    // 1) Request presigned URL
+    const presignRes = await fetch('/api/episode/presign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: file.name, contentType: file.type })
+    });
+    const presign = await presignRes.json();
+    if (!presignRes.ok) throw new Error(presign.error || 'Failed to get presigned URL');
 
+    // 2) Upload file directly to R2 via PUT
+    const putRes = await fetch(presign.uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type },
+      body: file
+    });
+    if (!putRes.ok) throw new Error('Direct upload to storage failed');
 
-    const res = await fetch('/api/episode/upload', { method: 'POST', body: form });
-    const data = await res.json();
-    
-    if (!res.ok) throw new Error(data.error || 'Upload failed');
-    
+    // 3) Finalize by creating episode using the public URL
+    const finalizeRes = await fetch('/api/episode/upload-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: presign.publicUrl,
+        title: props.title.trim() || 'New recording',
+        status: props.status,
+        description: props.description || '',
+        originalWebsite: props.originalWebsite || '',
+        duration,
+        albumId: props.selectedAlbumId || undefined,
+        labelIds: (props.selectedLabels || []).map(l => l.id)
+      })
+    });
+    const finalizeData = await finalizeRes.json();
+    if (!finalizeRes.ok) throw new Error(finalizeData.error || 'Failed to save episode');
+
     if (props.onUploaded) props.onUploaded();
     resetAfterUpload();
   };
