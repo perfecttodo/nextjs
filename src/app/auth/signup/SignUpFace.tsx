@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import GoogleLoginButton from '../../components/GoogleLoginButton';
-import GitHubLoginButton from '../../components/GitHubLoginButton';
+import GoogleLoginButton from '../../components/comm/GoogleLoginButton';
+import GitHubLoginButton from '../../components/comm/GitHubLoginButton';
 
 export default function SignUpPage() {
   const [name, setName] = useState('');

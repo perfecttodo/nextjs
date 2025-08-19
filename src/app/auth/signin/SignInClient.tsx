@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import GoogleLoginButton from '../../components/GoogleLoginButton';
-import GitHubLoginButton from '../../components/GitHubLoginButton';
+import GoogleLoginButton from '../../components/comm/GoogleLoginButton';
+import GitHubLoginButton from '../../components/comm/GitHubLoginButton';
 
 export default function SignInClient() {
   const [email, setEmail] = useState('');
