@@ -130,6 +130,22 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
     }
   };
 
+  async function processRecording(){
+    const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+    setRecordingBlob(blob);
+    setRecordingUrl(URL.createObjectURL(blob));
+    
+    // Process with FFmpeg if loaded
+    if (ffmpegRef.current) {
+      await processAudioWithFFmpeg(blob);
+    }
+  }
+  async function changeFormat(e: React.ChangeEvent<HTMLSelectElement>) {
+    setOutputFormat(e.target.value as 'm3u8' | 'mp3' | 'm4a');
+    await new Promise(resolve => setTimeout(resolve, 100));
+    await processRecording();
+}
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -154,15 +170,9 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
         }
       };
 
+      
       recorder.onstop = async () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        setRecordingBlob(blob);
-        setRecordingUrl(URL.createObjectURL(blob));
-        
-        // Process with FFmpeg if loaded
-        if (ffmpegRef.current) {
-          await processAudioWithFFmpeg(blob);
-        }
+        await processRecording();
       };
 
       recorder.start(100);
@@ -632,7 +642,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
         <select
           id="outputFormat"
           value={outputFormat}
-          onChange={(e) => setOutputFormat(e.target.value as 'm3u8' | 'mp3' | 'm4a')}
+          onChange={changeFormat}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
           <option value="m3u8">M3U8 (HLS Streaming)</option>
