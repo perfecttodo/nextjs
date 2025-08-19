@@ -1,5 +1,6 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import { NextRequest } from 'next/server';
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // Configure the S3 client for Cloudflare R2
 const s3Client = new S3Client({
@@ -78,5 +79,23 @@ export async function listAudioFiles(prefix?: string) {
   } catch (error) {
     console.error('Error listing files from R2:', error);
     throw new Error('Failed to list files');
+  }
+}
+
+export async function generatePresignedUploadUrl(fileKey:string) {
+  try {
+    const command = new PutObjectCommand({
+      Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME,
+      Key: fileKey,
+    });
+
+    const signedUrl = await getSignedUrl(s3Client, command, {
+      expiresIn: 3600, // URL valid for 1 hour (in seconds)
+    });
+
+    console.log("Presigned URL for upload:", signedUrl);
+    return {fileKey,signedUrl};
+  } catch (error) {
+    console.error("Error generating presigned URL:", error);
   }
 }
