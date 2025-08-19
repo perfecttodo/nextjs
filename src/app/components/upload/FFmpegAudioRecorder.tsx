@@ -60,6 +60,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
   const [showM3U8Content, setShowM3U8Content] = useState(false);
   const [m3u8Content, setM3u8Content] = useState<string>('');
   const [m3u8ContentLoading, setM3u8ContentLoading] = useState(false);
+  const [useFFmpeg, setUseFFmpeg] = useState(false); // New state for FFmpeg choice
 
   const curSizeRef = useRef(0);
 
@@ -97,8 +98,10 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
   };
 
   useEffect(() => {
-    loadFFmpeg();
-  }, []);
+    
+    if(useFFmpeg)
+      loadFFmpeg();
+  }, [useFFmpeg]);
 
   const loadFFmpeg = async () => {
     try {
@@ -578,8 +581,35 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
     );
   }
 
-  if (!ffmpegLoaded) {
-    return (
+ 
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center py-8">
+        <div className="text-blue-500 text-4xl mb-4">🎙️</div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">FFmpeg Audio Recorder</h3>
+        <p className="text-gray-500">Advanced audio recording with M3U8 HLS support</p>
+      </div>
+      
+      {error && (
+        <div className="p-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded">{error}</div>
+      )}
+      {/* Toggle for using FFmpeg or uploading original recording */}
+      <div>
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            checked={useFFmpeg}
+            onChange={(e) => setUseFFmpeg(e.target.checked)}
+            className="mr-2"
+          />
+          <span>Use FFmpeg for conversion</span>
+        </label>
+      </div>
+      {/* Output Format Selection */}
+      {(useFFmpeg&&
+      <div>
+        {!ffmpegLoaded&&(
       <div className="space-y-6">
         <div className="text-center py-8">
           <div className="text-red-500 text-4xl mb-4">⚠️</div>
@@ -593,22 +623,8 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
           </button>
         </div>
       </div>
-    );
+    )
   }
-
-  return (
-    <div className="space-y-6">
-      <div className="text-center py-8">
-        <div className="text-blue-500 text-4xl mb-4">🎙️</div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">FFmpeg Audio Recorder</h3>
-        <p className="text-gray-500">Advanced audio recording with M3U8 HLS support</p>
-      </div>
-      
-      {error && (
-        <div className="p-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded">{error}</div>
-      )}
-      
-      {/* Output Format Selection */}
       <div>
         <label htmlFor="outputFormat" className="block text-sm font-medium text-gray-700 mb-2">
           Output Format
@@ -629,6 +645,8 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
           {outputFormat === 'm4a' && 'M4A format with AAC codec for quality'}
         </p>
       </div>
+      </div>
+  )}
       
       <div className="flex flex-col gap-3">
         {!isRecording ? (
