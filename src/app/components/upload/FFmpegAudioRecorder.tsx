@@ -53,6 +53,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [currentSize, setCurrentSize] = useState(0);
   const [duration, setDuration] = useState(0);
   const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
@@ -365,6 +366,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
 
     try {
       setIsUploading(true);
+      setUploadProgress(0);
       setError('');
 
       // Handle HLS upload differently
@@ -377,6 +379,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
       setError(e instanceof Error ? e.message : 'Upload failed');
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -392,10 +395,29 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
     const presign = await presignUploadSingle(file.name, file.type);
 
     // 2) Upload file directly to R2 via PUT
-    const putRes = await fetch(presign.uploadUrl, {
-      method: 'PUT',
-      headers: { 'Content-Type': file.type },
-      body: file
+    const putRes = await new Promise<Response>((resolve, reject) => {
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', presign.uploadUrl);
+        xhr.setRequestHeader('Content-Type', file.type);
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            setUploadProgress(percent);
+          }
+        };
+        xhr.onerror = () => reject(new Error('Network error during upload'));
+        xhr.onload = () => {
+          const status = xhr.status;
+          const statusText = xhr.statusText;
+          const headers = new Headers();
+          const res = new Response(xhr.response, { status, statusText, headers });
+          resolve(res);
+        };
+        xhr.send(file);
+      } catch (err) {
+        reject(err);
+      }
     });
     if (!putRes.ok) throw new Error('Direct upload to storage failed');
 
@@ -464,13 +486,42 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
 
       // 2) Upload each file via PUT
       const nameToUploadUrl = new Map<string, string>(presign.files.map((f: any) => [f.name, f.uploadUrl]));
+      // Upload with per-file progress and aggregate progress
+      let uploadedBytes = 0;
+      const totalBytes = filesToUpload.reduce((sum, file) => sum + file.data.byteLength, 0);
       for (const f of filesToUpload) {
         const uploadUrl = nameToUploadUrl.get(f.name);
         if (!uploadUrl) throw new Error(`Missing upload URL for ${f.name}`);
 
-        const blob = new Blob([f.data as any], { type: f.type });
-        const putRes = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': f.type }, body: blob });
-        if (!putRes.ok) throw new Error(`Failed to upload ${f.name}`);
+        await new Promise<void>((resolve, reject) => {
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open('PUT', uploadUrl);
+            xhr.setRequestHeader('Content-Type', f.type);
+            const blob = new Blob([f.data as any], { type: f.type });
+            xhr.upload.onprogress = (e) => {
+              if (e.lengthComputable) {
+                const currentFileUploaded = e.loaded;
+                const otherBytes = uploadedBytes;
+                const percent = Math.round(((otherBytes + currentFileUploaded) / totalBytes) * 100);
+                setUploadProgress(percent);
+              }
+            };
+            xhr.onerror = () => reject(new Error(`Network error during upload of ${f.name}`));
+            xhr.onload = () => {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                uploadedBytes += f.data.byteLength;
+                setUploadProgress(Math.round((uploadedBytes / totalBytes) * 100));
+                resolve();
+              } else {
+                reject(new Error(`Failed to upload ${f.name}`));
+              }
+            };
+            xhr.send(blob);
+          } catch (err) {
+            reject(err);
+          }
+        });
       }
 
       // 3) Finalize by creating the episode pointing to the playlist URL
@@ -688,6 +739,17 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
         <div className="text-center py-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
           <p className="text-gray-600">Processing audio with FFmpeg...</p>
+        </div>
+      )}
+
+      {/* Upload progress */}
+      {isUploading && (
+        <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div
+            className="bg-green-600 h-2.5 rounded-full"
+            style={{ width: `${uploadProgress}%` }}
+          ></div>
+          <div className="text-xs text-gray-600 mt-1">Uploading {uploadProgress}%</div>
         </div>
       )}
 

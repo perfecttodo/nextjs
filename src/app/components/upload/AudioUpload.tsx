@@ -55,6 +55,7 @@ export default function AudioUpload({
   ownerId
 }: AudioUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState('');
@@ -123,6 +124,7 @@ export default function AudioUpload({
 
 
     setIsUploading(true);
+    setUploadProgress(0);
     setError('');
     setSuccess('');
 
@@ -151,9 +153,27 @@ export default function AudioUpload({
         formData.append('labelIds', label.id);
       });
 
-      const response = await fetch('/api/episode/upload', {
-        method: 'POST',
-        body: formData,
+      const response: Response = await new Promise((resolve, reject) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', '/api/episode/upload');
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              setUploadProgress(Math.round((e.loaded / e.total) * 100));
+            }
+          };
+          xhr.onerror = () => reject(new Error('Network error during upload'));
+          xhr.onload = () => {
+            const status = xhr.status;
+            const statusText = xhr.statusText;
+            const headers = new Headers();
+            const res = new Response(xhr.response, { status, statusText, headers });
+            resolve(res);
+          };
+          xhr.send(formData);
+        } catch (err) {
+          reject(err);
+        }
       });
 
       const result = await response.json();
@@ -184,6 +204,7 @@ export default function AudioUpload({
       setError(error instanceof Error ? error.message : 'Upload failed');
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -312,6 +333,16 @@ export default function AudioUpload({
       >
         {isUploading ? 'Uploading...' : 'Upload Audio'}
       </button>
+
+      {/* Progress bar */}
+      {isUploading && (
+        <div className="mt-2">
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
+          </div>
+          <div className="text-xs text-gray-600 mt-1">Uploading {uploadProgress}%</div>
+        </div>
+      )}
     </form>
   );
 }

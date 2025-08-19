@@ -111,6 +111,7 @@ export default function AudioRecorder({
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [currentSize, setCurrentSize] = useState(0);
   const curSizeRef = useRef(0);
   const [duration, setDuration] = useState(0); // Duration in seconds
@@ -222,6 +223,7 @@ export default function AudioRecorder({
     
     try {
       setIsUploading(true);
+      setUploadProgress(0);
       setError('');
       const form = new FormData();
       const ext = recordingBlob.type.includes('ogg')
@@ -250,7 +252,28 @@ export default function AudioRecorder({
         form.append('labelIds', label.id);
       });
 
-      const res = await fetch('/api/episode/upload', { method: 'POST', body: form });
+      const res: Response = await new Promise((resolve, reject) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', '/api/episode/upload');
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              setUploadProgress(Math.round((e.loaded / e.total) * 100));
+            }
+          };
+          xhr.onerror = () => reject(new Error('Network error during upload'));
+          xhr.onload = () => {
+            const status = xhr.status;
+            const statusText = xhr.statusText;
+            const headers = new Headers();
+            const response = new Response(xhr.response, { status, statusText, headers });
+            resolve(response);
+          };
+          xhr.send(form);
+        } catch (err) {
+          reject(err);
+        }
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
       if (onUploaded) onUploaded();
@@ -273,6 +296,7 @@ export default function AudioRecorder({
       setError(e instanceof Error ? e.message : 'Upload failed');
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -356,6 +380,16 @@ export default function AudioRecorder({
         >
           {isUploading ? 'Uploading...' : 'Upload Recording'}
         </button>
+      )}
+
+      {/* Upload progress */}
+      {isUploading && (
+        <div>
+          <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+            <div className="bg-green-600 h-2.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
+          </div>
+          <div className="text-xs text-gray-600 mt-1">Uploading {uploadProgress}%</div>
+        </div>
       )}
     </div>
   );
