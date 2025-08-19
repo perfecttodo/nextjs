@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from 'react';
 import dynamic from 'next/dynamic';
-const AudioCreationTabs = dynamic(() => import('@/app/components/AudioCreationTabs'), { ssr: false });
+const AudioCreationTabs = dynamic(() => import('@/app/components/upload/AudioCreationTabs'), { ssr: false });
 const UserEpisodeManagement = dynamic(() => import('@/app/my/UserEpisodeManagement'), { ssr: false });
 
 export default function AudioManagePage() {
