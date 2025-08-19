@@ -131,6 +131,8 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
   };
 
   async function processRecording(format :'m3u8' | 'mp3' | 'm4a'){
+
+    if(!chunksRef.current||!chunksRef.current?.length)return;
     const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
     setRecordingBlob(blob);
     setRecordingUrl(URL.createObjectURL(blob));
@@ -174,6 +176,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
 
       
       recorder.onstop = async () => {
+        await processRecording(outputFormat);
       };
 
       recorder.start(100);
