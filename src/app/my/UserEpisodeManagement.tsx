@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AudioStatus, Episode, Category, Label } from '../../types/audio';
+import { AudioStatus, Episode, Label } from '../../types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 import AudioFormFields from '../components/upload/AudioFormFields';
 import { useUser } from '../hooks/useUser';
@@ -10,12 +10,6 @@ interface CategorizedAudioManagementProps {
   onRefresh: () => void;
 }
 
-interface GroupedAudioFiles {
-  [categoryId: string]: {
-    category: Category;
-    episodes: Episode[];
-  };
-}
 
 export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioManagementProps) {
   const [episodes, setAudioFiles] = useState<Episode[]>([]);
@@ -157,38 +151,9 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
     }
   };
 
-  // Group episodes by category
-  const groupedAudioFiles: GroupedAudioFiles = {};
 
-  episodes.forEach(audio => {
-    const effectiveCategory = audio.album?.category || audio.category;
-    if (effectiveCategory) {
-      const categoryId = effectiveCategory.id;
-      if (!groupedAudioFiles[categoryId]) {
-        groupedAudioFiles[categoryId] = {
-          category: effectiveCategory,
-          episodes: []
-        };
-      }
-      groupedAudioFiles[categoryId].episodes.push(audio);
-    } else {
-      // Handle uncategorized files
-      if (!groupedAudioFiles['uncategorized']) {
-        groupedAudioFiles['uncategorized'] = {
-          category: { id: 'uncategorized', name: 'Uncategorized', createdAt: '', updatedAt: '' },
-          episodes: []
-        };
-      }
-      groupedAudioFiles['uncategorized'].episodes.push(audio);
-    }
-  });
 
-  // Sort categories by name
-  const sortedCategories = Object.values(groupedAudioFiles).sort((a, b) => {
-    if (a.category.name === 'Uncategorized') return 1;
-    if (b.category.name === 'Uncategorized') return -1;
-    return a.category.name.localeCompare(b.category.name);
-  });
+
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -264,31 +229,6 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
         </div>
       ) : (
         <div className="space-y-8">
-          {sortedCategories.map(({ category, episodes }) => (
-            <div key={category.id} className="border border-gray-200 rounded-lg">
-              {/* Category Header */}
-              <div 
-                className="px-4 py-3 border-b border-gray-200 bg-gray-50"
-                style={{
-                  borderLeftColor: category.color || '#3B82F6',
-                  borderLeftWidth: '4px'
-                }}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <h4 className="font-medium text-gray-900">
-                      {category.name}
-                    </h4>
-                    <span className="px-2 py-1 text-xs font-medium bg-gray-200 text-gray-600 rounded-full">
-                      {episodes.length} {episodes.length === 1 ? 'file' : 'files'}
-                    </span>
-                  </div>
-                  {category.description && (
-                    <p className="text-sm text-gray-500">{category.description}</p>
-                  )}
-                </div>
-              </div>
-
               {/* Audio Files in this Category */}
               <div className="divide-y divide-gray-100">
                 {episodes.map((audio) => (
@@ -433,8 +373,6 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
                   </div>
                 ))}
               </div>
-            </div>
-          ))}
         </div>
       )}
     </div>
