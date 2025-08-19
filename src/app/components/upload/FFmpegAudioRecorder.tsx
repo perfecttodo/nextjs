@@ -144,6 +144,8 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
     setOutputFormat(e.target.value as 'm3u8' | 'mp3' | 'm4a');
     await new Promise(resolve => setTimeout(resolve, 100));
     await processRecording(e.target.value as 'm3u8' | 'mp3' | 'm4a');
+
+
 }
 
   const startRecording = async () => {

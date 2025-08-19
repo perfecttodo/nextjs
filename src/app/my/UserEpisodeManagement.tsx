@@ -33,6 +33,7 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'draft' | 'published'>('all');
   const { setAudio, setAudioFiles: updateAudioFiles, audio: currentAudio, togglePlay, isPlaying } = useAudioPlayerStore();
+  const [album,setAlbum] =useState('');
 
   const { user, loading: userLoading } = useUser();
 
@@ -307,7 +308,7 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
                           selectedCategoryId={editCategoryId}
                           selectedSubcategoryId={editSubcategoryId}
                           selectedGroupId={editGroupId}
-                          selectedAlbumId=""
+                          selectedAlbumId={album}
                           selectedLabels={editLabels} // Added
                           onTitleChange={setEditTitle}
                           onStatusChange={setEditStatus}
@@ -317,7 +318,7 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
                           onCategoryChange={(categoryId) => setEditCategoryId(categoryId || '')}
                           onSubcategoryChange={(subcategoryId) => setEditSubcategoryId(subcategoryId || '')}
                           onGroupChange={setEditGroupId}
-                          onAlbumChange={() => {}}
+                          onAlbumChange={setAlbum}
                           onLabelsChange={setEditLabels} // Added
                           categoryRequired={false}
                           showStatusHelp={false}
