@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { presignUploadSingle, presignUploadBatch } from '@/lib/presign';
 import { AudioStatus, Label } from '@/types/audio';
 import AudioFormFields from './AudioFormFields';
 
@@ -389,13 +390,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
     const file = new File([recordingBlob], `recording.${ext}`, { type: mimeType });
 
     // 1) Request presigned URL
-    const presignRes = await fetch('/api/episode/presign', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename: file.name, contentType: file.type })
-    });
-    const presign = await presignRes.json();
-    if (!presignRes.ok) throw new Error(presign.error || 'Failed to get presigned URL');
+    const presign = await presignUploadSingle(file.name, file.type);
 
     // 2) Upload file directly to R2 via PUT
     const putRes = await fetch(presign.uploadUrl, {
@@ -463,16 +458,10 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
       }
 
       // 1) Ask server for presigned URLs for all files
-      const presignRes = await fetch('/api/episode/presign-hls', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: props.title.trim() || 'New recording',
-          files: filesToUpload.map(f => ({ name: f.name, contentType: f.type }))
-        })
-      });
-      const presign = await presignRes.json();
-      if (!presignRes.ok) throw new Error(presign.error || 'Failed to get presigned URLs for HLS');
+      const presign = await presignUploadBatch(
+        props.title.trim() || 'New recording',
+        filesToUpload.map(f => ({ name: f.name, contentType: f.type }))
+      );
 
       // 2) Upload each file via PUT
       const nameToUploadUrl = new Map<string, string>(presign.files.map((f: any) => [f.name, f.uploadUrl]));
