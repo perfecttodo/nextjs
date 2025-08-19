@@ -86,14 +86,14 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
     return statusClasses[status as keyof typeof statusClasses] || statusClasses.draft;
   };
 
-  const handleRemoveFromAlbum = async (audioId: string) => {
+  const handleRemoveFromAlbum = async (episodeId: string) => {
     if (!confirm('Are you sure you want to remove this audio file from the album?')) {
       return;
     }
 
-    setIsRemoving(audioId);
+    setIsRemoving(episodeId);
     try {
-      const response = await fetch(`/api/episode/${audioId}`, {
+      const response = await fetch(`/api/episode/${episodeId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -127,8 +127,8 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
           This album is empty. Add episodes to get started.
         </p>
         <Link
-          href="/my/submit/episode"
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+              href="/my/submit/episode"
+              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
         >
           Submit Episode
         </Link>
@@ -146,7 +146,7 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
               Audio Files ({episodes.length})
             </h3>
             <Link
-              href="/audio"
+              href={`/my/submit/episode?album=${album.id}`}
               className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
             >
               + Add More Audio
