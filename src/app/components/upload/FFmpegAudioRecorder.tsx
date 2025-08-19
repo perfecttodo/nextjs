@@ -78,7 +78,6 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
     const updatedText = text.trim() + '\n#EXT-X-ENDLIST';
     return new TextEncoder().encode(updatedText);
   };
-
   // Function to get M3U8 content for display
   const getM3U8Content = async (): Promise<string> => {
     if (!ffmpegRef.current || outputFormat !== 'm3u8') return 'FFmpeg not available';
