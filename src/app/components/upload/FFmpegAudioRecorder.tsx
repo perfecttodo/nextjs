@@ -428,96 +428,85 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
   };
 
   const uploadHLSRecording = async () => {
-    // For HLS, we need to get the processed files from FFmpeg
     if (!ffmpegRef.current) {
       throw new Error('FFmpeg not available for HLS processing');
     }
 
     try {
       const ffmpeg = ffmpegRef.current;
-      
-      // Check FFmpeg file system health first
+
       const fsHealthy = await checkFFmpegFS(ffmpeg);
       if (!fsHealthy) {
         throw new Error('FFmpeg file system is not healthy. Please try refreshing the page.');
       }
-      
-      // Store all file data before cleanup to avoid FS errors
+
+      // Gather files from FFmpeg FS
       const filesToUpload: { name: string; data: Uint8Array; type: string }[] = [];
-      
-      try {
-        // Get the M3U8 playlist content first
-        const m3u8Data = await ffmpeg.readFile('output.m3u8');
-        filesToUpload.push({
-          name: 'playlist.m3u8',
-          data: m3u8Data,
-          type: 'application/x-mpegURL'
-        });
-        
-        // Get all TS segment files
-        const files = await ffmpeg.listDir('.');
-        
-        for (const file of files) {
-          if (!file.isDir && file.name.startsWith('segment_') && file.name.endsWith('.ts')) {
-            try {
-              const tsData = await ffmpeg.readFile(file.name);
-              filesToUpload.push({
-                name: file.name,
-                data: tsData,
-                type: 'video/mp2t'
-              });
-            } catch (segmentError) {
-              console.warn(`Failed to read segment ${file.name}:`, segmentError);
-              // Continue with other segments
-            }
+
+      const m3u8Data = await ffmpeg.readFile('output.m3u8');
+      filesToUpload.push({ name: 'playlist.m3u8', data: m3u8Data, type: 'application/x-mpegURL' });
+
+      const files = await ffmpeg.listDir('.');
+      for (const file of files) {
+        if (!file.isDir && file.name.startsWith('segment_') && file.name.endsWith('.ts')) {
+          try {
+            const tsData = await ffmpeg.readFile(file.name);
+            filesToUpload.push({ name: file.name, data: tsData, type: 'video/mp2t' });
+          } catch (segmentError) {
+            console.warn(`Failed to read segment ${file.name}:`, segmentError);
           }
         }
-        
-        // Verify we have files to upload
-        if (filesToUpload.length === 0) {
-          throw new Error('No HLS files found for upload');
-        }
-        
-        // Create form data for HLS upload
-        const form = new FormData();
-        
-        // Add M3U8 file
-        const m3u8File = filesToUpload.find(f => f.name === 'playlist.m3u8');
-        if (m3u8File) {
-          const m3u8Blob = new Blob([m3u8File.data as any], { type: m3u8File.type });
-          form.append('m3u8File', m3u8Blob, 'playlist.m3u8');
-        }
-        
-        // Add TS segment files
-        const tsFiles = filesToUpload.filter(f => f.name !== 'playlist.m3u8');
-        tsFiles.forEach((tsFile) => {
-          const tsBlob = new Blob([tsFile.data as any], { type: tsFile.type });
-          const tsFileObj = new File([tsBlob], tsFile.name, { type: tsFile.type });
-          form.append('tsFiles', tsFileObj);
-        });
-        
-        // Add metadata
-        form.append('title', props.title.trim() || 'New recording');
-        form.append('status', props.status);
-        form.append('duration', duration.toString());
-        form.append('language', props.language || '');
-        form.append('description', props.description || '');
-        form.append('originalWebsite', props.originalWebsite || '');
-
-        // Upload files
-        const res = await fetch('/api/episode/upload-hls', { method: 'POST', body: form });
-        const data = await res.json();
-        
-        if (!res.ok) throw new Error(data.error || 'HLS upload failed');
-        
-        if (props.onUploaded) props.onUploaded();
-        resetAfterUpload();
-        
-      } finally {
-        // Clean up FFmpeg files after all data is extracted
-        await cleanupFFmpegFiles(ffmpeg);
       }
-      
+
+      if (filesToUpload.length === 0) {
+        throw new Error('No HLS files found for upload');
+      }
+
+      // 1) Ask server for presigned URLs for all files
+      const presignRes = await fetch('/api/episode/presign-hls', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: props.title.trim() || 'New recording',
+          files: filesToUpload.map(f => ({ name: f.name, contentType: f.type }))
+        })
+      });
+      const presign = await presignRes.json();
+      if (!presignRes.ok) throw new Error(presign.error || 'Failed to get presigned URLs for HLS');
+
+      // 2) Upload each file via PUT
+      const nameToUploadUrl = new Map<string, string>(presign.files.map((f: any) => [f.name, f.uploadUrl]));
+      for (const f of filesToUpload) {
+        const uploadUrl = nameToUploadUrl.get(f.name);
+        if (!uploadUrl) throw new Error(`Missing upload URL for ${f.name}`);
+
+        const blob = new Blob([f.data as any], { type: f.type });
+        const putRes = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': f.type }, body: blob });
+        if (!putRes.ok) throw new Error(`Failed to upload ${f.name}`);
+      }
+
+      // 3) Finalize by creating the episode pointing to the playlist URL
+      const finalizeRes = await fetch('/api/episode/finalize-hls', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          playlistUrl: presign.playlistPublicUrl,
+          title: props.title.trim() || 'New recording',
+          status: props.status,
+          language: props.language || '',
+          description: props.description || '',
+          originalWebsite: props.originalWebsite || '',
+          duration,
+          albumId: props.selectedAlbumId || undefined
+        })
+      });
+      const finalize = await finalizeRes.json();
+      if (!finalizeRes.ok) throw new Error(finalize.error || 'Failed to save HLS episode');
+
+      if (props.onUploaded) props.onUploaded();
+      resetAfterUpload();
+
+      await cleanupFFmpegFiles(ffmpeg);
     } catch (error) {
       console.error('HLS upload error:', error);
       throw new Error(`Failed to upload HLS files: ${error instanceof Error ? error.message : 'Unknown error'}`);
