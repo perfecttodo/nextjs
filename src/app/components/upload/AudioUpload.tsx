@@ -276,22 +276,13 @@ export default function AudioUpload({
         language={language}
         description={description}
         originalWebsite={originalWebsite}
-        selectedCategoryId={selectedCategoryId}
-        selectedSubcategoryId={selectedSubcategoryId}
-        selectedGroupId={selectedGroupId}
         selectedAlbumId={selectedAlbumId}
-        selectedLabels={selectedLabels}
         onTitleChange={onTitleChange}
         onStatusChange={onStatusChange}
         onLanguageChange={onLanguageChange}
         onDescriptionChange={onDescriptionChange}
         onOriginalWebsiteChange={onOriginalWebsiteChange}
-        onCategoryChange={onCategoryChange}
-        onSubcategoryChange={onSubcategoryChange}
-        onGroupChange={onGroupChange}
         onAlbumChange={onAlbumChange}
-        onLabelsChange={onLabelsChange}
-        categoryRequired={false}
         showStatusHelp={true}
         ownerId={ownerId}
       />

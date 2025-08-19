@@ -6,19 +6,13 @@ import AlbumForm from './AlbumForm'; // Import AlbumForm
 
 interface AlbumSelectorProps {
   selectedAlbumId: string;
-  selectedCategoryId?: string;
-  selectedSubcategoryId?: string;
-  selectedGroupId: string;
   onAlbumChange: (albumId: string) => void;
   ownerId?: string;
 }
 
 export default function AlbumSelector({
-  selectedAlbumId,
-  selectedCategoryId,
-  selectedSubcategoryId,
-  selectedGroupId,
   onAlbumChange,
+  selectedAlbumId,
   ownerId
 }: AlbumSelectorProps) {
   const [albums, setAlbums] = useState<Album[]>([]);
@@ -37,16 +31,7 @@ export default function AlbumSelector({
           ownerId: ownerId
         });
         
-        if (selectedCategoryId) {
-          params.append('categoryId', selectedCategoryId);
-        }
-        if (selectedSubcategoryId) {
-          params.append('subcategoryId', selectedSubcategoryId);
-        }
-        
-        if (selectedGroupId) {
-          params.append('groupId', selectedGroupId);
-        }
+       
 
         const response = await fetch(`/api/episode/albums?${params}`);
         if (response.ok) {
@@ -61,7 +46,7 @@ export default function AlbumSelector({
     };
 
     fetchAlbums();
-  }, [selectedCategoryId, selectedSubcategoryId, selectedGroupId, ownerId]);
+  }, [ ownerId]);
 
   const handleCreateAlbum = async (albumData: any) => {
     if (!ownerId) return;

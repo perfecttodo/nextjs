@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AudioStatus, Episode, Label } from '../../types/audio';
+import { AudioStatus, Episode } from '../../types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 import AudioFormFields from '../components/upload/AudioFormFields';
 import { useUser } from '../hooks/useUser';
@@ -23,7 +23,6 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
   const [editCategoryId, setEditCategoryId] = useState<string | undefined>('');
   const [editSubcategoryId, setEditSubcategoryId] = useState<string | undefined>('');
   const [editGroupId, setEditGroupId] = useState<string>('');
-  const [editLabels, setEditLabels] = useState<Label[]>([]); // Added
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'draft' | 'published'>('all');
   const { setAudio, setAudioFiles: updateAudioFiles, audio: currentAudio, togglePlay, isPlaying } = useAudioPlayerStore();
@@ -77,7 +76,6 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
     setEditCategoryId(audio.categoryId || '');
     setEditSubcategoryId(audio.subcategoryId || '');
     setEditGroupId(audio.groupId || '');
-    setEditLabels(audio.labels || []); // Added
   };
 
   const handleSave = async () => {
@@ -94,10 +92,6 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
           language: editLanguage || null,
           description: editDescription || null,
           originalWebsite: editOriginalWebsite || null,
-          categoryId: editCategoryId || null,
-          subcategoryId: editSubcategoryId || null,
-          groupId: editGroupId || null,
-          labelIds: editLabels.map(label => label.id), // Added
         }),
       });
 
@@ -111,7 +105,6 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
       setEditOriginalWebsite('');
       setEditCategoryId('');
       setEditSubcategoryId('');
-      setEditLabels([]); // Added - reset labels
       fetchAudioFiles();
       onRefresh();
     } catch (error) {
@@ -245,22 +238,13 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
                           language={editLanguage}
                           description={editDescription}
                           originalWebsite={editOriginalWebsite}
-                          selectedCategoryId={editCategoryId}
-                          selectedSubcategoryId={editSubcategoryId}
-                          selectedGroupId={editGroupId}
                           selectedAlbumId={album}
-                          selectedLabels={editLabels} // Added
                           onTitleChange={setEditTitle}
                           onStatusChange={setEditStatus}
                           onLanguageChange={setEditLanguage}
                           onDescriptionChange={setEditDescription}
                           onOriginalWebsiteChange={setEditOriginalWebsite}
-                          onCategoryChange={(categoryId) => setEditCategoryId(categoryId || '')}
-                          onSubcategoryChange={(subcategoryId) => setEditSubcategoryId(subcategoryId || '')}
-                          onGroupChange={setEditGroupId}
                           onAlbumChange={setAlbum}
-                          onLabelsChange={setEditLabels} // Added
-                          categoryRequired={false}
                           showStatusHelp={false}
                           ownerId={user?.id}
                         />

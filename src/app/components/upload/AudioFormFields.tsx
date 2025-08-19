@@ -10,22 +10,13 @@ interface AudioFormFieldsProps {
   language?: string;
   description?: string;
   originalWebsite?: string;
-  selectedCategoryId?: string;
-  selectedSubcategoryId?: string;
-  selectedLabels: Label[];
-  selectedGroupId: string;
   selectedAlbumId: string;
   onTitleChange: (title: string) => void;
   onStatusChange: (status: AudioStatus) => void;
   onLanguageChange: (language: string) => void;
   onDescriptionChange: (description: string) => void;
   onOriginalWebsiteChange: (originalWebsite: string) => void;
-  onCategoryChange: (categoryId: string | undefined) => void;
-  onSubcategoryChange: (subcategoryId: string | undefined) => void;
-  onLabelsChange: (labels: Label[]) => void;
-  onGroupChange: (groupId: string) => void;
   onAlbumChange: (albumId: string) => void;
-  categoryRequired?: boolean;
   showStatusHelp?: boolean;
   ownerId?: string;
 }
@@ -35,16 +26,12 @@ export default function AudioFormFields({
   status,
   description,
   originalWebsite,
-  selectedCategoryId,
-  selectedSubcategoryId,
-  selectedGroupId,
   selectedAlbumId,
   onTitleChange,
   onStatusChange,
   onDescriptionChange,
   onOriginalWebsiteChange,
   onAlbumChange,
-  categoryRequired = false,
   showStatusHelp = true,
   ownerId
 }: AudioFormFieldsProps) {
@@ -126,9 +113,6 @@ export default function AudioFormFields({
       {/* Album Selection */}
       <AlbumSelector
         selectedAlbumId={selectedAlbumId}
-        selectedCategoryId={selectedCategoryId}
-        selectedSubcategoryId={selectedSubcategoryId}
-        selectedGroupId={selectedGroupId}
         onAlbumChange={onAlbumChange}
         ownerId={ownerId}
       />

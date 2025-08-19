@@ -174,7 +174,6 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
 
       
       recorder.onstop = async () => {
-        await processRecording();
       };
 
       recorder.start(100);
@@ -745,22 +744,13 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
             language={props.language}
             description={props.description}
             originalWebsite={props.originalWebsite}
-            selectedCategoryId={props.selectedCategoryId}
-            selectedSubcategoryId={props.selectedSubcategoryId}
-            selectedGroupId={props.selectedGroupId || ""}
             selectedAlbumId={props.selectedAlbumId}
-            selectedLabels={props.selectedLabels}
             onTitleChange={props.onTitleChange}
             onStatusChange={props.onStatusChange}
             onLanguageChange={props.onLanguageChange}
             onDescriptionChange={props.onDescriptionChange}
             onOriginalWebsiteChange={props.onOriginalWebsiteChange}
-            onCategoryChange={props.onCategoryChange}
-            onSubcategoryChange={props.onSubcategoryChange}
-            onGroupChange={props.onGroupChange || (() => {})}
             onAlbumChange={props.onAlbumChange}
-            onLabelsChange={props.onLabelsChange}
-            categoryRequired={false}
             showStatusHelp={true}
             ownerId={props.ownerId}
           />
