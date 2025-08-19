@@ -130,20 +130,20 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
     }
   };
 
-  async function processRecording(){
+  async function processRecording(format :'m3u8' | 'mp3' | 'm4a'){
     const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
     setRecordingBlob(blob);
     setRecordingUrl(URL.createObjectURL(blob));
-    
+    console.log(format);
     // Process with FFmpeg if loaded
     if (ffmpegRef.current) {
-      await processAudioWithFFmpeg(blob);
+      await processAudioWithFFmpeg(blob,format);
     }
   }
   async function changeFormat(e: React.ChangeEvent<HTMLSelectElement>) {
     setOutputFormat(e.target.value as 'm3u8' | 'mp3' | 'm4a');
     await new Promise(resolve => setTimeout(resolve, 100));
-    await processRecording();
+    await processRecording(e.target.value as 'm3u8' | 'mp3' | 'm4a');
 }
 
   const startRecording = async () => {
@@ -202,7 +202,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
     }
   };
 
-  const processAudioWithFFmpeg = async (inputBlob: Blob) => {
+  const processAudioWithFFmpeg = async (inputBlob: Blob,format :'m3u8' | 'mp3' | 'm4a') => {
     if (!ffmpegRef.current) {
       setError('FFmpeg not loaded');
       return;
@@ -240,7 +240,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
       let outputFileName: string;
       let ffmpegArgs: string[];
 
-      switch (outputFormat) {
+      switch (format) {
         case 'm3u8':
           outputFileName = 'output.m3u8';
           ffmpegArgs = [
@@ -324,13 +324,13 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
       
       // For M3U8 files, ensure #EXT-X-ENDLIST tag is present
       let finalOutputData = outputData;
-      if (outputFormat === 'm3u8') {
+      if (format === 'm3u8') {
         finalOutputData = ensureM3U8EndTag(outputData);
       }
       
       // Create new blob with processed audio
       const processedBlob = new Blob([finalOutputData as any], { 
-        type: outputFormat === 'm3u8' ? 'application/x-mpegURL' : 'audio/mpeg' 
+        type: format === 'm3u8' ? 'application/x-mpegURL' : 'audio/mpeg' 
       });
       
       setRecordingBlob(processedBlob);
