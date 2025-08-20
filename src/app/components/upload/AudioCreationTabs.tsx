@@ -365,7 +365,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       if (recordingUrl) {
         URL.revokeObjectURL(recordingUrl);
       }
-      const newUrl = format === 'm3u8' ?  oriBlob.current&& URL.createObjectURL(oriBlob.current): URL.createObjectURL(processedBlob);
+      const newUrl = format === 'm3u8' ? oriBlob.current && URL.createObjectURL(oriBlob.current) : URL.createObjectURL(processedBlob);
       setRecordingUrl(newUrl);
 
     } catch (error) {
@@ -669,15 +669,15 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     setRecordingBlob(oriBlob.current);
 
     if (blob instanceof Blob) {
-        setRecordingUrl(URL.createObjectURL(blob));
-        oriBlob.current = blob;
+      setRecordingUrl(URL.createObjectURL(blob));
+      oriBlob.current = blob;
 
     } else if (typeof blob === 'string') {
-        setRecordingUrl(blob); // Use the string directly
-        oriBlob.current = null;
+      setRecordingUrl(blob); // Use the string directly
+      oriBlob.current = null;
 
-    } 
-};
+    }
+  };
 
 
   const renderTabContent = () => {
@@ -688,8 +688,8 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
         return <UploadProvider onSuccess={handleProvideBlogSuccess} />;
       /*  case 'record':
           return <AudioRecorder onUploaded={handleUploadSuccess} />;*/
-        case 'url':
-          return <UrlProvider onSuccess={handleUploadSuccess}/>;
+      case 'url':
+        return <UrlProvider onSuccess={handleUploadSuccess} />;
       default:
         return <UploadProvider onSuccess={handleProvideBlogSuccess} />;
     }
@@ -789,7 +789,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                 <div className="p-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded">{error}</div>
               )}
               {/* Toggle for using FFmpeg or uploading original recording */}
-              <div>
+              {(activeTab!=='url'  && <div>
                 <label className="flex items-center">
                   <input
                     type="checkbox"
@@ -800,8 +800,10 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                   <span>Use FFmpeg for conversion</span>
                 </label>
               </div>
+              )}
+
               {/* Output Format Selection */}
-              {(useFFmpeg &&
+              {(useFFmpeg && activeTab!=='url'  &&
                 <div>
                   {!ffmpegLoaded && (
                     <div className="space-y-6">
