@@ -840,7 +840,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
               )}
 
               {/* Common Form Fields - only show when there's a recording */}
-              {audioBlob && (
+              {audioUrl && (
                 <div>
                   <AudioFormFields
                     title={sharedFormData.title}
@@ -861,7 +861,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                 </div>
               )}
 
-              {audioBlob && (
+              {audioUrl && (
                 <button
                   disabled={isUploading}
                   onClick={uploadRecording}
