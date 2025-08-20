@@ -62,6 +62,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const ffmpegRef = useRef<any>(null);
   const curSizeRef = useRef(0);
+  const oriBlob = useRef<Blob>(null);
 
   const tabs = [
     {
@@ -147,10 +148,12 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     }
   };
 
+
+
   async function processRecording(format: 'm3u8' | 'mp3' | 'm4a') {
-    if (!chunksRef.current || !chunksRef.current?.length) return;
-    const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-    setRecordingBlob(blob);
+    if (!oriBlob.current) return;
+    const blob = oriBlob.current;
+    setRecordingBlob(oriBlob.current);
     setRecordingUrl(URL.createObjectURL(blob));
 
     // Process with FFmpeg if loaded
@@ -192,6 +195,8 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
 
 
       recorder.onstop = async () => {
+
+        oriBlob.current = new Blob(chunksRef.current, { type: 'audio/webm' });
         await processRecording(outputFormat);
       };
 
@@ -659,22 +664,25 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   };
 
   const handleProvideBlogSuccess = (blob: Blob): void => {
-    // Your logic here
+    oriBlob.current = blob;
+    setRecordingBlob(oriBlob.current);
+    setRecordingUrl(URL.createObjectURL(oriBlob.current))
+
   };
 
 
   const renderTabContent = () => {
- 
+
 
     switch (activeTab) {
       case 'upload':
         return <UploadProvider onSuccess={handleProvideBlogSuccess} />;
-    /*  case 'record':
-        return <AudioRecorder onUploaded={handleUploadSuccess} />;
-      case 'url':
-        return <UrlAudio onUploaded={handleUploadSuccess}/>;*/
+      /*  case 'record':
+          return <AudioRecorder onUploaded={handleUploadSuccess} />;
+        case 'url':
+          return <UrlAudio onUploaded={handleUploadSuccess}/>;*/
       default:
-        return <UploadProvider onSuccess={handleProvideBlogSuccess}/>;
+        return <UploadProvider onSuccess={handleProvideBlogSuccess} />;
     }
   };
 
@@ -722,8 +730,8 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
               className={`flex-1 sm:flex-none py-4 px-2 sm:px-4 border-b-2 font-medium text-sm transition-all duration-200 ${activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600 bg-blue-50'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                ? 'border-blue-500 text-blue-600 bg-blue-50'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                 }`}
             >
               <div className="flex flex-col  items-center space-y-1 sm:space-y-0 sm:space-x-2">
@@ -740,7 +748,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
           ))}
         </nav>
       </div>
-   
+
 
       {/* Tab Content with Animation */}
       <div className="p-4 sm:p-6">
@@ -766,7 +774,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
           {renderTabContent()}
           <div>
             <div className="space-y-6">
-         
+
 
               {error && (
                 <div className="p-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded">{error}</div>
@@ -824,7 +832,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                   </div>
 
                   {(
-                    ffmpegLoading&&<div className="space-y-6">
+                    ffmpegLoading && <div className="space-y-6">
                       <div className="text-center py-8">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                         <p className="text-gray-600">Loading FFmpeg...</p>
@@ -948,8 +956,8 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                   disabled={isUploading}
                   onClick={uploadRecording}
                   className={`w-full px-4 py-3 rounded ${!recordingBlob || isUploading
-                      ? 'bg-gray-300 text-gray-600'
-                      : 'bg-green-600 hover:bg-green-700 text-white'
+                    ? 'bg-gray-300 text-gray-600'
+                    : 'bg-green-600 hover:bg-green-700 text-white'
                     }`}
                 >
                   {isUploading ? 'Uploading...' : `Upload ${outputFormat.toUpperCase()} Recording`}

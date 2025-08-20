@@ -36,22 +36,24 @@ export default function AudioUpload({
 
   const handleFileSelect = (file: File) => {
     // Validate file type
-    const allowedTypes = ['audio/mp3', 'audio/mp4','audio/x-m4a','audio/m4a',  'audio/wav', 'audio/ogg'];
+    const allowedTypes = ['audio/mp3', 'audio/mp4', 'audio/x-m4a', 'audio/m4a', 'audio/wav', 'audio/ogg'];
     if (!allowedTypes.includes(file.type)) {
       setError('Invalid file type. Only MP3, x-m4a, WAV, and OGG files are allowed.');
       return;
     }
-
-    // Validate file size (max 50MB)
-    const maxSize = 4 * 1024 * 1024; // 50MB
+  
+    // Validate file size (max 4MB)
+    const maxSize = 4 * 1024 * 1024; // 4MB
     if (file.size > maxSize) {
       setError('File size too large. Maximum size is 4MB.');
       return;
     }
-
+  
     setSelectedFile(file);
     setError('');
-
+  
+    // Call onSuccess with the file as a Blob
+    onSuccess(new Blob([file], { type: file.type }));
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
