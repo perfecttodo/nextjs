@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Save to database
+    console.error('user.sub',user.sub)
     const episode = await prisma.episode.create({
       data: {
         title: title.trim(),

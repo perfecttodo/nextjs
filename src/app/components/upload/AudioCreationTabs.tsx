@@ -160,8 +160,8 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       setIsUploading(true);
       setUploadProgress(0);
       setError('');
-
-      if (outputFormat === 'm3u8') {
+      
+      if (activeTab!='url'&&outputFormat === 'm3u8') {
         await uploadHLSRecording();
       } else {
         await uploadStandardEpisode();
@@ -175,6 +175,12 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   }, [audioUrl, outputFormat]);
 
   const uploadStandardEpisode = useCallback(async () => {
+
+    let finalUrl;
+    if(activeTab!='url'){
+
+
+
     if (!audioBlob) {
       throw new Error('No data available for upload');
     }
@@ -213,13 +219,15 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     });
     
     if (!putRes.ok) throw new Error('Direct upload to storage failed');
+    finalUrl =presign.publicUrl;
 
+  }else finalUrl = audioUrl;
     // 3) Finalize by creating episode using the public URL
     const finalizeRes = await fetch('/api/episode/upload-url', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        url: presign.publicUrl,
+        url: finalUrl,
         title: sharedFormData.title.trim() || 'New recording',
         status: sharedFormData.status,
         description: sharedFormData.description || '',
@@ -234,7 +242,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
 
     handleUploadSuccess();
     resetAfterUpload();
-  }, [audioBlob, outputFormat, sharedFormData, duration]);
+  }, [audioBlob, outputFormat, sharedFormData, duration,activeTab,audioUrl]);
 
   const uploadHLSRecording = useCallback(async () => {
     try {
