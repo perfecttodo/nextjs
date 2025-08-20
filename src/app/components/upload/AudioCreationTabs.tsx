@@ -6,6 +6,7 @@ import { useUser } from '../../hooks/useUser';
 import { presignUploadSingle, presignUploadBatch } from '@/lib/presign';
 import AudioFormFields from './AudioFormFields';
 import UploadProvider from './UploadProvider';
+import UrlProvider from './UrlProvider';
 
 interface AudioCreationTabsProps {
   onUploadSuccess: () => void;
@@ -663,12 +664,20 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     onUploadSuccess();
   };
 
-  const handleProvideBlogSuccess = (blob: Blob): void => {
-    oriBlob.current = blob;
-    setRecordingBlob(oriBlob.current);
-    setRecordingUrl(URL.createObjectURL(oriBlob.current))
+  const handleProvideBlogSuccess = (blob: Blob | string | null): void => {
 
-  };
+    setRecordingBlob(oriBlob.current);
+
+    if (blob instanceof Blob) {
+        setRecordingUrl(URL.createObjectURL(blob));
+        oriBlob.current = blob;
+
+    } else if (typeof blob === 'string') {
+        setRecordingUrl(blob); // Use the string directly
+        oriBlob.current = null;
+
+    } 
+};
 
 
   const renderTabContent = () => {
@@ -678,9 +687,9 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       case 'upload':
         return <UploadProvider onSuccess={handleProvideBlogSuccess} />;
       /*  case 'record':
-          return <AudioRecorder onUploaded={handleUploadSuccess} />;
+          return <AudioRecorder onUploaded={handleUploadSuccess} />;*/
         case 'url':
-          return <UrlAudio onUploaded={handleUploadSuccess}/>;*/
+          return <UrlProvider onSuccess={handleUploadSuccess}/>;
       default:
         return <UploadProvider onSuccess={handleProvideBlogSuccess} />;
     }
