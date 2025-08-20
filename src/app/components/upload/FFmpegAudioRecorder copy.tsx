@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { presignUploadSingle, presignUploadBatch } from '@/lib/presign';
-import { AudioStatus } from '@/types/audio';
+import { AudioStatus, Label } from '@/types/audio';
 import AudioFormFields from './AudioFormFields';
 
 function formatFileSize(bytes: number): string {
@@ -23,12 +23,17 @@ interface FFmpegAudioRecorderProps {
   selectedSubcategoryId?: string;
   selectedGroupId: string;
   selectedAlbumId: string;
+  selectedLabels: Label[];
   onTitleChange: (title: string) => void;
   onStatusChange: (status: AudioStatus) => void;
   onLanguageChange: (language: string) => void;
   onDescriptionChange: (description: string) => void;
   onOriginalWebsiteChange: (originalWebsite: string) => void;
+  onCategoryChange: (categoryId: string | undefined) => void;
+  onSubcategoryChange: (subcategoryId: string | undefined) => void;
+  onGroupChange: (groupId: string) => void;
   onAlbumChange: (albumId: string) => void;
+  onLabelsChange: (labels: Label[]) => void;
   onUploaded?: () => void;
   ownerId:string;
 
@@ -428,6 +433,7 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
         originalWebsite: props.originalWebsite || '',
         duration,
         albumId: props.selectedAlbumId || undefined,
+        labelIds: (props.selectedLabels || []).map(l => l.id)
       })
     });
     const finalizeData = await finalizeRes.json();
@@ -604,6 +610,9 @@ export default function FFmpegAudioRecorder(props: FFmpegAudioRecorderProps) {
     props.onLanguageChange('');
     props.onDescriptionChange('');
     props.onOriginalWebsiteChange('');
+    props.onCategoryChange('');
+    props.onSubcategoryChange('');
+    props.onLabelsChange([]);
     curSizeRef.current = 0;
     setCurrentSize(0);
     setDuration(0);
