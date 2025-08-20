@@ -5,6 +5,7 @@ import { AudioStatus, Label } from '@/types/audio';
 import { useUser } from '../../hooks/useUser';
 import { presignUploadSingle, presignUploadBatch } from '@/lib/presign';
 import AudioFormFields from './AudioFormFields';
+import UploadProvider from './UploadProvider';
 
 interface AudioCreationTabsProps {
   onUploadSuccess: () => void;
@@ -657,6 +658,26 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     onUploadSuccess();
   };
 
+  const handleProvideBlogSuccess = (blob: Blob): void => {
+    // Your logic here
+  };
+
+
+  const renderTabContent = () => {
+ 
+
+    switch (activeTab) {
+      case 'upload':
+        return <UploadProvider onSuccess={handleProvideBlogSuccess} />;
+    /*  case 'record':
+        return <AudioRecorder onUploaded={handleUploadSuccess} />;
+      case 'url':
+        return <UrlAudio onUploaded={handleUploadSuccess}/>;*/
+      default:
+        return <UploadProvider onSuccess={handleProvideBlogSuccess}/>;
+    }
+  };
+
   useEffect(() => {
     if (useFFmpeg) {
       loadFFmpeg();
@@ -719,6 +740,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
           ))}
         </nav>
       </div>
+   
 
       {/* Tab Content with Animation */}
       <div className="p-4 sm:p-6">
@@ -741,6 +763,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
             </div>
           </div>
           {/*form */}
+          {renderTabContent()}
           <div>
             <div className="space-y-6">
          
