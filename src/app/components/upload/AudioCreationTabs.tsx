@@ -364,7 +364,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       if (recordingUrl) {
         URL.revokeObjectURL(recordingUrl);
       }
-      const newUrl = URL.createObjectURL(processedBlob);
+      const newUrl = format === 'm3u8' ?  oriBlob.current&& URL.createObjectURL(oriBlob.current): URL.createObjectURL(processedBlob);
       setRecordingUrl(newUrl);
 
     } catch (error) {

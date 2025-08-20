@@ -42,8 +42,8 @@ export default function AudioUpload({
       return;
     }
   
-    // Validate file size (max 4MB)
-    const maxSize = 4 * 1024 * 1024; // 4MB
+    // Validate file size (max 30MB)
+    const maxSize = 30* 1024 * 1024; // 20MB
     if (file.size > maxSize) {
       setError('File size too large. Maximum size is 4MB.');
       return;
@@ -74,7 +74,7 @@ export default function AudioUpload({
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Audio File
         </label>
-        
+
         <div
           className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
             dragActive
@@ -89,6 +89,7 @@ export default function AudioUpload({
           role="button"
           tabIndex={0}
         >
+          
           <input
             ref={fileInputRef}
             type="file"
@@ -96,7 +97,11 @@ export default function AudioUpload({
             onChange={handleFileInputChange}
             className="hidden"
           />
-          
+                  {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+          <div className="text-red-800 text-sm">{error}</div>
+        </div>
+      )}
           {selectedFile ? (
             <div className="space-y-2">
               <div className="text-green-600 text-lg">✓ File Selected</div>
@@ -138,6 +143,7 @@ export default function AudioUpload({
               </div>
             </div>
           )}
+          
         </div>
       </div>
 
