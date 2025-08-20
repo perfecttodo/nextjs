@@ -865,12 +865,12 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                 <button
                   disabled={isUploading}
                   onClick={uploadRecording}
-                  className={`w-full px-4 py-3 rounded ${!audioBlob || isUploading
+                  className={`w-full px-4 py-3 rounded ${!audioUrl || isUploading
                     ? 'bg-gray-300 text-gray-600'
                     : 'bg-green-600 hover:bg-green-700 text-white'
                     }`}
                 >
-                  {isUploading ? 'Uploading...' : `Upload ${outputFormat.toUpperCase()} Recording`}
+                  {isUploading ? 'Uploading...' : `Upload`}
                 </button>
               )}
             </div>
