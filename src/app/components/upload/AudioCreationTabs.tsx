@@ -7,6 +7,7 @@ import { presignUploadSingle, presignUploadBatch } from '@/lib/presign';
 import AudioFormFields from './AudioFormFields';
 import UploadProvider from './UploadProvider';
 import UrlProvider from './UrlProvider';
+import RecordingProvider from './RecordingProvider';
 
 interface AudioCreationTabsProps {
   onUploadSuccess: () => void;
@@ -170,63 +171,6 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     await processRecording(newFormat);
   }
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaStreamRef.current = stream;
-
-      const recorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
-
-      recorderRef.current = recorder;
-      chunksRef.current = [];
-      startTimeRef.current = Date.now();
-      curSizeRef.current = 0;
-      setCurrentSize(0);
-      setDuration(0);
-
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunksRef.current.push(event.data);
-          curSizeRef.current += event.data.size;
-          setCurrentSize(curSizeRef.current);
-        }
-      };
-
-
-      recorder.onstop = async () => {
-
-        oriBlob.current = new Blob(chunksRef.current, { type: 'audio/webm' });
-        await processRecording(outputFormat);
-      };
-
-      recorder.start(100);
-      setIsRecording(true);
-
-      durationIntervalRef.current = setInterval(() => {
-        setDuration(prev => prev + 1);
-      }, 1000);
-
-    } catch (error) {
-      console.error('Error starting recording:', error);
-      setError('Failed to start recording. Please check microphone permissions.');
-    }
-  };
-
-  const stopRecording = () => {
-    if (recorderRef.current && isRecording) {
-      recorderRef.current.stop();
-      if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach(track => track.stop());
-      }
-      setIsRecording(false);
-
-      if (durationIntervalRef.current) {
-        clearInterval(durationIntervalRef.current);
-      }
-    }
-  };
 
   const processAudioWithFFmpeg = async (inputBlob: Blob, format: 'm3u8' | 'mp3' | 'm4a') => {
     if (!ffmpegRef.current) {
@@ -686,10 +630,10 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     switch (activeTab) {
       case 'upload':
         return <UploadProvider onSuccess={handleProvideBlogSuccess} />;
-      /*  case 'record':
-          return <AudioRecorder onUploaded={handleUploadSuccess} />;*/
+      case 'record':
+        return <RecordingProvider onSuccess={handleProvideBlogSuccess} />;
       case 'url':
-        return <UrlProvider onSuccess={handleUploadSuccess} />;
+        return <UrlProvider onSuccess={handleProvideBlogSuccess} />;
       default:
         return <UploadProvider onSuccess={handleProvideBlogSuccess} />;
     }
@@ -724,11 +668,6 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       </div>
     );
   }
-
-
-
-
-
   return (
     <div className="bg-white rounded-lg shadow-lg">
       {/* Tab Navigation */}
@@ -789,7 +728,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                 <div className="p-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded">{error}</div>
               )}
               {/* Toggle for using FFmpeg or uploading original recording */}
-              {(activeTab!=='url'  && <div>
+              {(activeTab !== 'url' && <div>
                 <label className="flex items-center">
                   <input
                     type="checkbox"
@@ -803,7 +742,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
               )}
 
               {/* Output Format Selection */}
-              {(useFFmpeg && activeTab!=='url'  &&
+              {(useFFmpeg && activeTab !== 'url' &&
                 <div>
                   {!ffmpegLoaded && (
                     <div className="space-y-6">
@@ -853,31 +792,10 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                 </div>
               )}
 
-              <div className="flex flex-col gap-3">
-                {!isRecording ? (
-                  <button
-                    onClick={startRecording}
-                    className="w-full px-4 py-3 rounded bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    Start Recording
-                  </button>
-                ) : (
-                  <button
-                    onClick={stopRecording}
-                    className="w-full px-4 py-3 rounded bg-red-600 hover:bg-red-700 text-white"
-                  >
-                    Stop Recording
-                  </button>
-                )}
-              </div>
+
 
               {/* Show current size and duration during recording */}
-              {isRecording && (
-                <div className="text-sm text-gray-600">
-                  <div>Duration: {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, '0')}</div>
-                  <div>Recording: {formatFileSize(currentSize)}</div>
-                </div>
-              )}
+
 
               {/* Processing indicator */}
               {isProcessing && (
