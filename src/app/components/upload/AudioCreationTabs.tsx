@@ -6,13 +6,11 @@ import { useUser } from '../../hooks/useUser';
 import { presignUploadSingle, presignUploadBatch } from '@/lib/presign';
 import AudioFormFields from './AudioFormFields';
 
-
 interface AudioCreationTabsProps {
   onUploadSuccess: () => void;
 }
 
 type TabType = 'upload' | 'record' | 'ffmpeg' | 'url';
-
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
@@ -21,8 +19,6 @@ function formatFileSize(bytes: number): string {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
-
-
 
 export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>('upload');
@@ -38,6 +34,33 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     originalWebsite: '',
     albumId: '',
   });
+
+  // Recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
+  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [currentSize, setCurrentSize] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
+  const [ffmpegLoading, setFfmpegLoading] = useState(false);
+  const [outputFormat, setOutputFormat] = useState<'m3u8' | 'mp3' | 'm4a'>('m3u8');
+  const [showM3U8Content, setShowM3U8Content] = useState(false);
+  const [m3u8Content, setM3u8Content] = useState<string>('');
+  const [m3u8ContentLoading, setM3u8ContentLoading] = useState(false);
+  const [useFFmpeg, setUseFFmpeg] = useState(false);
+
+  // Refs
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const startTimeRef = useRef<number | null>(null);
+  const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const ffmpegRef = useRef<any>(null);
+  const curSizeRef = useRef(0);
 
   const tabs = [
     {
@@ -70,80 +93,6 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     }
   ];
 
-  const handleTabChange = (newTab: TabType) => {
-    if (newTab === activeTab) return;
-
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setActiveTab(newTab);
-      setIsTransitioning(false);
-    }, 150);
-  };
-
-  // Update shared form data
-  const updateSharedFormData = (field: keyof typeof sharedFormData, value: string | AudioStatus | Label[]) => {
-    setSharedFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  // Reset form data after successful upload
-  const handleUploadSuccess = () => {
-    setSharedFormData({
-      title: '',
-      status: 'draft',
-      language: '',
-      description: '',
-      originalWebsite: '',
-      albumId: '',
-    });
-    onUploadSuccess();
-  };
-
-  const mediaStreamRef = useRef<MediaStream | null>(null);
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const startTimeRef = useRef<number | null>(null);
-  const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const ffmpegRef = useRef<any>(null);
-
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
-  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
-  const [error, setError] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [currentSize, setCurrentSize] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
-  const [ffmpegLoading, setFfmpegLoading] = useState(false);
-  const [outputFormat, setOutputFormat] = useState<'m3u8' | 'mp3' | 'm4a'>('m3u8');
-  const [showM3U8Content, setShowM3U8Content] = useState(false);
-  const [m3u8Content, setM3u8Content] = useState<string>('');
-  const [m3u8ContentLoading, setM3u8ContentLoading] = useState(false);
-  const [useFFmpeg, setUseFFmpeg] = useState(false); // New state for FFmpeg choice
-
-  const curSizeRef = useRef(0);
-
-
-
-  // Show loading state while user is being fetched
-  if (userLoading) {
-    return (
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2 text-gray-600">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-
-
-
-
   // Function to ensure M3U8 files end with #EXT-X-ENDLIST
   const ensureM3U8EndTag = (data: Uint8Array): Uint8Array => {
     const text = new TextDecoder().decode(data);
@@ -157,6 +106,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     const updatedText = text.trim() + '\n#EXT-X-ENDLIST';
     return new TextEncoder().encode(updatedText);
   };
+
   // Function to get M3U8 content for display
   const getM3U8Content = async (): Promise<string> => {
     if (!ffmpegRef.current || outputFormat !== 'm3u8') return 'FFmpeg not available';
@@ -176,15 +126,13 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     }
   };
 
-
-
   const loadFFmpeg = async () => {
     try {
       setFfmpegLoading(true);
 
       // Import FFmpeg dynamically to avoid SSR issues
       const { FFmpeg } = await import('@ffmpeg/ffmpeg');
-      const { toBlobURL, fetchFile } = await import('@ffmpeg/util');
+      const { toBlobURL } = await import('@ffmpeg/util');
 
       const ffmpeg = new FFmpeg();
 
@@ -206,23 +154,22 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   };
 
   async function processRecording(format: 'm3u8' | 'mp3' | 'm4a') {
-
     if (!chunksRef.current || !chunksRef.current?.length) return;
     const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
     setRecordingBlob(blob);
     setRecordingUrl(URL.createObjectURL(blob));
-    console.log(format);
+
     // Process with FFmpeg if loaded
     if (ffmpegRef.current) {
       await processAudioWithFFmpeg(blob, format);
     }
   }
+
   async function changeFormat(e: React.ChangeEvent<HTMLSelectElement>) {
-    setOutputFormat(e.target.value as 'm3u8' | 'mp3' | 'm4a');
+    const newFormat = e.target.value as 'm3u8' | 'mp3' | 'm4a';
+    setOutputFormat(newFormat);
     await new Promise(resolve => setTimeout(resolve, 100));
-    await processRecording(e.target.value as 'm3u8' | 'mp3' | 'm4a');
-
-
+    await processRecording(newFormat);
   }
 
   const startRecording = async () => {
@@ -420,9 +367,6 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       }
       const newUrl = URL.createObjectURL(processedBlob);
       setRecordingUrl(newUrl);
-
-      // Clean up FFmpeg files safely
-      // await cleanupFFmpegFiles(ffmpeg);
 
     } catch (error) {
       console.error('FFmpeg processing error:', error);
@@ -679,20 +623,53 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     setRecordingBlob(null);
     if (recordingUrl) URL.revokeObjectURL(recordingUrl);
     setRecordingUrl(null);
-    updateSharedFormData('status', status)
-    updateSharedFormData('description', ''),
-      updateSharedFormData('originalWebsite', ''),
-      curSizeRef.current = 0;
+    setSharedFormData(prev => ({
+      ...prev,
+      description: '',
+      originalWebsite: '',
+    }));
+    curSizeRef.current = 0;
     setCurrentSize(0);
     setDuration(0);
   };
 
-  useEffect(() => {
+  const handleTabChange = (newTab: TabType) => {
+    if (newTab === activeTab) return;
 
-    if (useFFmpeg)
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setActiveTab(newTab);
+      setIsTransitioning(false);
+    }, 150);
+  };
+
+  // Update shared form data
+  const updateSharedFormData = (field: keyof typeof sharedFormData, value: string | AudioStatus | Label[]) => {
+    setSharedFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Reset form data after successful upload
+  const handleUploadSuccess = () => {
+    setSharedFormData({
+      title: '',
+      status: 'draft',
+      language: '',
+      description: '',
+      originalWebsite: '',
+      albumId: '',
+    });
+    onUploadSuccess();
+  };
+
+  useEffect(() => {
+    if (useFFmpeg) {
       loadFFmpeg();
+    }
   }, [useFFmpeg]);
-  
+
   useEffect(() => {
     return () => {
       if (recordingUrl) URL.revokeObjectURL(recordingUrl);
@@ -704,6 +681,19 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       }
     };
   }, [recordingUrl]);
+
+  // Show loading state while user is being fetched
+  if (userLoading) {
+    return (
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2 text-gray-600">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
 
 
 
@@ -760,11 +750,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
           {/*form */}
           <div>
             <div className="space-y-6">
-              <div className="text-center py-8">
-                <div className="text-blue-500 text-4xl mb-4">🎙️</div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">FFmpeg Audio Recorder</h3>
-                <p className="text-gray-500">Advanced audio recording with M3U8 HLS support</p>
-              </div>
+         
 
               {error && (
                 <div className="p-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded">{error}</div>
@@ -800,14 +786,6 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                     </div>
                   )
                   }
-                  {(ffmpegLoading &&
-                    <div className="space-y-6">
-                      <div className="text-center py-8">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                        <p className="text-gray-600">Loading FFmpeg...</p>
-                      </div>
-                    </div>
-                  )}
                   <div>
                     <label htmlFor="outputFormat" className="block text-sm font-medium text-gray-700 mb-2">
                       Output Format
@@ -828,6 +806,15 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                       {outputFormat === 'm4a' && 'M4A format with AAC codec for quality'}
                     </p>
                   </div>
+
+                  {(
+                    ffmpegLoading&&<div className="space-y-6">
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Loading FFmpeg...</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
