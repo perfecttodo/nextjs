@@ -179,6 +179,9 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       } else {
         await uploadStandardEpisode();
       }
+
+      setAudioBlob(null);
+      setAudioUrl('');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Upload failed');
     } finally {

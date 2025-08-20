@@ -12,7 +12,7 @@ export default function AudioRecord({ onSuccess }: RecordProvider) {
   const [audioSize, setAudioSize] = useState<string>('0 KB');
   const [audioFormat, setAudioFormat] = useState<string>('webm');
   const [error, setError] = useState('');
-  
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
@@ -37,7 +37,7 @@ export default function AudioRecord({ onSuccess }: RecordProvider) {
       setRecordingDuration(0);
       setAudioSize('0 KB');
 
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
@@ -45,13 +45,13 @@ export default function AudioRecord({ onSuccess }: RecordProvider) {
           channelCount: 1
         }
       });
-      
+
       streamRef.current = stream;
 
       // Determine supported MIME type with preference for webm with opus
       const options = { mimeType: 'audio/webm;codecs=opus' };
       mediaRecorderRef.current = new MediaRecorder(stream, options);
-      
+
       // Set format based on actual MIME type
       const mimeType = mediaRecorderRef.current.mimeType;
       setAudioFormat(mimeType.split(';')[0].split('/')[1] || 'webm');
@@ -73,7 +73,7 @@ export default function AudioRecord({ onSuccess }: RecordProvider) {
 
       mediaRecorderRef.current.start(1000); // Collect data every second for better progress
       setIsRecording(true);
-      
+
       // Start duration timer
       timerRef.current = setInterval(() => {
         setRecordingDuration(prev => prev + 1);
@@ -89,13 +89,13 @@ export default function AudioRecord({ onSuccess }: RecordProvider) {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      
+
       // Clean up timer and stream
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
-      
+
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
@@ -111,9 +111,6 @@ export default function AudioRecord({ onSuccess }: RecordProvider) {
 
   return (
     <div className="max-w-md mx-auto p-4 bg-white rounded-lg shadow-md">
-      <label className="block text-sm font-medium text-gray-700 mb-4">
-        Audio Recording
-      </label>
 
       <div className="flex flex-col items-center space-y-4">
         {error && (
@@ -121,11 +118,11 @@ export default function AudioRecord({ onSuccess }: RecordProvider) {
             <div className="text-red-800 text-sm">{error}</div>
           </div>
         )}
-        
+
         <div className="text-gray-400 text-4xl">🎤</div>
-        
+
         {/* Recording Info */}
-        <div className="w-full grid grid-cols-3 gap-2 text-sm text-gray-600">
+        {isRecording && (<div className="w-full grid grid-cols-3 gap-2 text-sm text-gray-600">
           <div className="text-center">
             <div className="font-semibold">Duration</div>
             <div className="text-lg font-mono">{formatDuration(recordingDuration)}</div>
@@ -138,16 +135,16 @@ export default function AudioRecord({ onSuccess }: RecordProvider) {
             <div className="font-semibold">Format</div>
             <div className="text-lg uppercase">{audioFormat}</div>
           </div>
-        </div>
+        </div>)}
+
 
         {/* Recording Button */}
         <button
           onClick={isRecording ? stopRecording : startRecording}
-          className={`py-3 px-6 rounded-lg text-white font-medium transition-colors ${
-            isRecording 
-              ? 'bg-red-600 hover:bg-red-700' 
+          className={`py-3 px-6 rounded-lg text-white font-medium transition-colors ${isRecording
+              ? 'bg-red-600 hover:bg-red-700'
               : 'bg-blue-600 hover:bg-blue-700'
-          }`}
+            }`}
           disabled={!!error}
         >
           {isRecording ? 'Stop Recording' : 'Start Recording'}
