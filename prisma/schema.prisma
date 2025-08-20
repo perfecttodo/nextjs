@@ -85,7 +85,7 @@ model Episode {
   id            String      @id @default(uuid())
   title         String
   originalName  String
-  blobUrl       String      @unique
+  blobUrl       String     
   blobId        String      @unique
   format        String
   duration      Int?        // in seconds

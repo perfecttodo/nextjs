@@ -82,6 +82,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   const [m3u8Content, setM3u8Content] = useState<string>('');
   const [m3u8ContentLoading, setM3u8ContentLoading] = useState(false);
   const [useFFmpeg, setUseFFmpeg] = useState(false);
+  const [isFormatable, setIsFormatable] = useState(false);
 
   const oriBlob = useRef<Blob | null>(null);
 
@@ -140,6 +141,18 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       }
     }
   }, [audioUrl, ffmpegLoaded, processBlob, useFFmpeg]);
+
+
+  useEffect(()=>{
+    setIsFormatable(activeTab!='url' && audioBlob!=null);
+  },[audioUrl,audioBlob,activeTab])
+
+  useEffect(()=>{
+    setAudioUrl('');
+    setAudioBlob(null)
+  },[activeTab]);
+
+
 
   const changeFormat = useCallback(async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newFormat = e.target.value as OutputFormat;
@@ -473,7 +486,8 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
             )}
             
             {/* Toggle for using FFmpeg or uploading original recording */}
-            {activeTab !== 'url' && (
+
+            {isFormatable && (
               <div>
                 <label className="flex items-center">
                   <input
@@ -488,7 +502,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
             )}
 
             {/* Output Format Selection */}
-            {useFFmpeg && activeTab !== 'url' && (
+            {useFFmpeg && isFormatable && (
               <div>
                 {!ffmpegLoaded && (
                   <div className="space-y-6">
