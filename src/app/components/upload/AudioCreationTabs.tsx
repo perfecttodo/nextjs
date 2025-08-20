@@ -13,7 +13,7 @@ interface AudioCreationTabsProps {
   onUploadSuccess: () => void;
 }
 
-type TabType = 'upload' | 'record' | 'ffmpeg' | 'url';
+type TabType = 'upload' | 'record' | 'url';
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
@@ -28,7 +28,6 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   const [isTransitioning, setIsTransitioning] = useState(false);
   const { user, loading: userLoading } = useUser();
 
-  // Shared form state that persists across tab switches
   const [sharedFormData, setSharedFormData] = useState({
     title: '',
     status: 'draft' as AudioStatus,
@@ -39,14 +38,12 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   });
 
   // Recording state
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
-  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [currentSize, setCurrentSize] = useState(0);
   const [duration, setDuration] = useState(0);
   const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
   const [ffmpegLoading, setFfmpegLoading] = useState(false);
@@ -56,12 +53,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   const [m3u8ContentLoading, setM3u8ContentLoading] = useState(false);
   const [useFFmpeg, setUseFFmpeg] = useState(false);
 
-  // Refs
-  const mediaStreamRef = useRef<MediaStream | null>(null);
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const startTimeRef = useRef<number | null>(null);
-  const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   const ffmpegRef = useRef<any>(null);
   const curSizeRef = useRef(0);
   const oriBlob = useRef<Blob>(null);
@@ -155,8 +147,8 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   async function processRecording(format: 'm3u8' | 'mp3' | 'm4a') {
     if (!oriBlob.current) return;
     const blob = oriBlob.current;
-    setRecordingBlob(oriBlob.current);
-    setRecordingUrl(URL.createObjectURL(blob));
+    setAudioBlob(oriBlob.current);
+    setAudioUrl(URL.createObjectURL(blob));
 
     // Process with FFmpeg if loaded
     if (ffmpegRef.current) {
@@ -303,14 +295,14 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
         type: format === 'm3u8' ? 'application/x-mpegURL' : 'audio/mpeg'
       });
 
-      setRecordingBlob(processedBlob);
+      setAudioBlob(processedBlob);
 
       // Update URL
-      if (recordingUrl) {
-        URL.revokeObjectURL(recordingUrl);
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
       }
       const newUrl = format === 'm3u8' ? oriBlob.current && URL.createObjectURL(oriBlob.current) : URL.createObjectURL(processedBlob);
-      setRecordingUrl(newUrl);
+      setAudioUrl(newUrl);
 
     } catch (error) {
       console.error('FFmpeg processing error:', error);
@@ -321,7 +313,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   };
 
   const uploadRecording = async () => {
-    if (!recordingBlob) {
+    if (!audioBlob) {
       setError('Please record audio before uploading.');
       return;
     }
@@ -346,12 +338,12 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   };
 
   const uploadStandardRecording = async () => {
-    if (!recordingBlob) {
+    if (!audioBlob) {
       throw new Error('No recording available for upload');
     }
     const ext = outputFormat;
     const mimeType = outputFormat === 'mp3' ? 'audio/mpeg' : 'audio/mp4';
-    const file = new File([recordingBlob], `recording.${ext}`, { type: mimeType });
+    const file = new File([audioBlob], `recording.${ext}`, { type: mimeType });
 
     // 1) Request presigned URL
     const presign = await presignUploadSingle(file.name, file.type);
@@ -564,16 +556,15 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
 
   const resetAfterUpload = () => {
     // Reset
-    setRecordingBlob(null);
-    if (recordingUrl) URL.revokeObjectURL(recordingUrl);
-    setRecordingUrl(null);
+    setAudioBlob(null);
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+    setAudioUrl(null);
     setSharedFormData(prev => ({
       ...prev,
       description: '',
       originalWebsite: '',
     }));
     curSizeRef.current = 0;
-    setCurrentSize(0);
     setDuration(0);
   };
 
@@ -610,14 +601,14 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
 
   const handleProvideBlogSuccess = (blob: Blob | string | null): void => {
 
-    setRecordingBlob(oriBlob.current);
+    setAudioBlob(oriBlob.current);
 
     if (blob instanceof Blob) {
-      setRecordingUrl(URL.createObjectURL(blob));
+      setAudioUrl(URL.createObjectURL(blob));
       oriBlob.current = blob;
 
     } else if (typeof blob === 'string') {
-      setRecordingUrl(blob); // Use the string directly
+      setAudioUrl(blob); // Use the string directly
       oriBlob.current = null;
 
     }
@@ -645,17 +636,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     }
   }, [useFFmpeg]);
 
-  useEffect(() => {
-    return () => {
-      if (recordingUrl) URL.revokeObjectURL(recordingUrl);
-      if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach(track => track.stop());
-      }
-      if (durationIntervalRef.current) {
-        clearInterval(durationIntervalRef.current);
-      }
-    };
-  }, [recordingUrl]);
+
 
   // Show loading state while user is being fetched
   if (userLoading) {
@@ -816,18 +797,18 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                 </div>
               )}
 
-              {recordingUrl && (
+              {audioUrl && (
                 <div className="space-y-2">
-                  <audio controls src={recordingUrl} className="w-full" loop />
+                  <audio controls src={audioUrl} className="w-full" loop />
                   <div className="text-xs text-gray-500">
-                    Type: {recordingBlob?.type || 'unknown'} |
-                    Size: {recordingBlob ? formatFileSize(recordingBlob.size) : 'unknown'} |
+                    Type: {audioBlob?.type || 'unknown'} |
+                    Size: {audioBlob ? formatFileSize(audioBlob.size) : 'unknown'} |
                     Duration: {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, '0')} |
                     Format: {outputFormat.toUpperCase()}
                   </div>
 
                   {/* M3U8 Content Display */}
-                  {outputFormat === 'm3u8' && (
+                  {activeTab !='url'&&outputFormat === 'm3u8' && (
                     <div className="mt-4">
                       <button
                         onClick={async () => {
@@ -845,7 +826,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                         {m3u8ContentLoading ? 'Loading...' : (showM3U8Content ? 'Hide' : 'Show')} M3U8 Content
                       </button>
 
-                      {showM3U8Content && (
+                      {useFFmpeg&&showM3U8Content && (
                         <div className="mt-2 p-3 bg-gray-100 rounded text-xs font-mono overflow-x-auto">
                           <div className="text-gray-600 mb-2">M3U8 Playlist Content:</div>
                           <pre className="whitespace-pre-wrap break-words">
@@ -859,7 +840,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
               )}
 
               {/* Common Form Fields - only show when there's a recording */}
-              {recordingBlob && (
+              {audioBlob && (
                 <div>
                   <AudioFormFields
                     title={sharedFormData.title}
@@ -880,11 +861,11 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                 </div>
               )}
 
-              {recordingBlob && (
+              {audioBlob && (
                 <button
                   disabled={isUploading}
                   onClick={uploadRecording}
-                  className={`w-full px-4 py-3 rounded ${!recordingBlob || isUploading
+                  className={`w-full px-4 py-3 rounded ${!audioBlob || isUploading
                     ? 'bg-gray-300 text-gray-600'
                     : 'bg-green-600 hover:bg-green-700 text-white'
                     }`}
