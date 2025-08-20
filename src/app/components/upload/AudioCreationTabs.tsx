@@ -78,13 +78,6 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       shortLabel: 'Record'
     },
     {
-      id: 'ffmpeg' as TabType,
-      label: 'FFmpeg Recorder',
-      description: 'Advanced recording with M3U8 HLS support',
-      icon: '⚡',
-      shortLabel: 'FFmpeg'
-    },
-    {
       id: 'url' as TabType,
       label: 'Audio URL',
       description: 'Submit audio from external URLs',
