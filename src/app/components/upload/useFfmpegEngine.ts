@@ -158,7 +158,11 @@ export function useFfmpegEngine(): UseFfmpegEngine {
     if (format === 'm3u8') finalOutputData = ensureM3U8EndTag(outputData);
 
     const mime = format === 'm3u8' ? 'application/x-mpegURL' : format === 'mp3' ? 'audio/mpeg' : 'audio/mp4';
-    return new Blob([finalOutputData], { type: mime });
+    const arrayBuffer = finalOutputData.buffer.slice(
+      finalOutputData.byteOffset,
+      finalOutputData.byteOffset + finalOutputData.byteLength
+    ) as ArrayBuffer;
+    return new Blob([arrayBuffer], { type: mime });
   }, [ensureM3U8EndTag]);
 
   const getM3U8Content = useCallback(async (): Promise<string> => {

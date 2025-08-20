@@ -292,7 +292,11 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
           const xhr = new XMLHttpRequest();
           xhr.open('PUT', uploadUrl);
           xhr.setRequestHeader('Content-Type', f.type);
-          const blob = new Blob([f.data], { type: f.type });
+          const arrayBuffer = f.data.buffer.slice(
+            f.data.byteOffset,
+            f.data.byteOffset + f.data.byteLength
+          ) as ArrayBuffer;
+          const blob = new Blob([arrayBuffer], { type: f.type });
           
           xhr.upload.onprogress = (e) => {
             if (e.lengthComputable) {
