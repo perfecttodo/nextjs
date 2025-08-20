@@ -128,10 +128,6 @@ export default function AudioUpload({
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        Audio File
-      </label>
-
       <div
         className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
           dragActive
