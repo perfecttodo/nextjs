@@ -20,9 +20,6 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
   const [editLanguage, setEditLanguage] = useState<string>('');
   const [editDescription, setEditDescription] = useState<string>('');
   const [editOriginalWebsite, setEditOriginalWebsite] = useState<string>('');
-  const [editCategoryId, setEditCategoryId] = useState<string | undefined>('');
-  const [editSubcategoryId, setEditSubcategoryId] = useState<string | undefined>('');
-  const [editGroupId, setEditGroupId] = useState<string>('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'draft' | 'published'>('all');
   const { setAudio, setAudioFiles: updateAudioFiles, audio: currentAudio, togglePlay, isPlaying } = useAudioPlayerStore();
@@ -73,9 +70,7 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
     setEditLanguage(audio.language || '');
     setEditDescription(audio.description || '');
     setEditOriginalWebsite(audio.originalWebsite || '');
-    setEditCategoryId(audio.categoryId || '');
-    setEditSubcategoryId(audio.subcategoryId || '');
-    setEditGroupId(audio.groupId || '');
+    setAlbum(audio?.album?.id||'');
   };
 
   const handleSave = async () => {
@@ -92,6 +87,7 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
           language: editLanguage || null,
           description: editDescription || null,
           originalWebsite: editOriginalWebsite || null,
+          albumId:album||null
         }),
       });
 
@@ -103,8 +99,6 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
       setEditLanguage('');
       setEditDescription('');
       setEditOriginalWebsite('');
-      setEditCategoryId('');
-      setEditSubcategoryId('');
       fetchAudioFiles();
       onRefresh();
     } catch (error) {
@@ -117,8 +111,6 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
     setEditingId(null);
     setEditTitle('');
     setEditStatus('draft');
-    setEditCategoryId('');
-    setEditSubcategoryId('');
   };
 
   const handleDelete = async (id: string) => {
@@ -222,7 +214,7 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
         </div>
       ) : (
         <div className="space-y-8">
-              {/* Audio Files in this Category */}
+              {/* Episodes in this Category */}
               <div className="divide-y divide-gray-100">
                 {episodes.map((audio) => (
                   <div
@@ -301,20 +293,8 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
                                 )}
                               </div>
                               <div>Uploaded: {formatDate(audio.createdAt)}</div>
-                              {/* Display Labels */}
-                              {audio.labels && audio.labels.length > 0 && (
-                                <div className="flex flex-wrap gap-1">
-                                  <span className="text-xs text-gray-400">Labels:</span>
-                                  {audio.labels.map((label) => (
-                                    <span
-                                      key={label.id}
-                                      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200"
-                                    >
-                                      {label.name}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
+                              <div>Album: {audio?.album?.name}</div>
+                                              
                             </div>
                           </div>
 

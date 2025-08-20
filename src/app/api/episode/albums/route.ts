@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// GET /api/episode/albums - Fetch albums for a user
+// GET /api/episode/albums - Fetch albums (optionally filtered by owner) with pagination
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -9,20 +9,19 @@ export async function GET(request: NextRequest) {
     const subcategoryId = searchParams.get('subcategoryId');
     const ownerId = searchParams.get('ownerId');
     const groupId = searchParams.get('groupId');
+    const pageParam = searchParams.get('page');
+    const pageSizeParam = searchParams.get('pageSize');
 
-    if (!ownerId) {
-      return NextResponse.json(
-        { error: 'Owner ID is required' },
-        { status: 400 }
-      );
-    }
+    const page = Math.max(parseInt(pageParam || '1', 10) || 1, 1);
+    const pageSize = Math.min(Math.max(parseInt(pageSizeParam || '12', 10) || 12, 1), 50);
 
-    // Build where clause
-    const where: any = {
-      ownerId,
-    };
+    // Build where clause (ownerId optional for public listing)
+    const where: any = {};
+    if (ownerId) where.ownerId = ownerId;
 
 
+
+    const total = await prisma.album.count({ where });
 
     const albums = await prisma.album.findMany({
       where,
@@ -36,9 +35,17 @@ export async function GET(request: NextRequest) {
       orderBy: {
         createdAt: 'desc',
       },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
 
-    return NextResponse.json({ albums });
+    return NextResponse.json({
+      albums,
+      page,
+      pageSize,
+      total,
+      totalPages: Math.max(Math.ceil(total / pageSize), 1),
+    });
   } catch (error) {
     console.error('Error fetching albums:', error);
     return NextResponse.json(

@@ -13,7 +13,7 @@ The Albums feature allows users to organize their episodes into collections. Eac
 - **Unique Naming**: Album names are unique per user within the same category
 
 ### Audio File Organization
-- **Album Assignment**: Audio files can be assigned to specific albums
+- **Album Assignment**: Episodes can be assigned to specific albums
 - **Default Album**: If no album is selected, episodes are marked as "Single" (individual files)
 - **Album Filtering**: Albums are filtered by category and group selection
 

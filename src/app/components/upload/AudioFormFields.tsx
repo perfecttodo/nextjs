@@ -36,7 +36,6 @@ export default function AudioFormFields({
   ownerId
 }: AudioFormFieldsProps) {
   console.log('ownerId', ownerId);
-  console.log('ownerId', ownerId);
   return (
     <div className="space-y-6">
       {/* Title Input */}

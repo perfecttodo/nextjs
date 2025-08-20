@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import AlbumsListClient from './AlbumsListClient';
 
 export default async function AlbumsPage() {
 
@@ -16,6 +17,7 @@ export default async function AlbumsPage() {
               <span className="ml-2 text-gray-600">Loading albums...</span>
             </div>
           }>
+            <AlbumsListClient />
           </Suspense>
         </div>
       </div>

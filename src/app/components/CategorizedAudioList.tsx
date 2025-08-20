@@ -33,7 +33,7 @@ export default function CategorizedAudioList({
 
   return (
     <div className="space-y-8">
-          {/* Audio Files in this Category */}
+          {/* Episodes in this Category */}
           <div className="divide-y divide-gray-100">
             {episodes.map((audio) => (
               <div

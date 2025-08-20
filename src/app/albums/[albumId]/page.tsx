@@ -23,12 +23,14 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
   // Fetch album details
   const album = await prisma.album.findFirst({
     where: {
-      id: resolved.albumId,
-      ownerId: user.sub,
+      id: resolved.albumId
     },
     include: {
 
       episodes: {
+        where: {
+          status: 'published' 
+        },
         select: {
           id: true,
           title: true,

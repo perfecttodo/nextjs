@@ -59,7 +59,7 @@ export default function AudioPlayerPage() {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">All Audio Files</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">All Episodes</h1>
               <p className="text-gray-600">Browse and listen to all published episodes</p>
             </div>
 
@@ -70,7 +70,7 @@ export default function AudioPlayerPage() {
           {/* Audio Section */}
 
           
-          {/* Audio List Section */}
+          {/* Album Section */}
           <div className="lg:col-span-2">
           {loading ? (
               <div className="flex justify-center items-center h-48">

@@ -86,37 +86,7 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
     return statusClasses[status as keyof typeof statusClasses] || statusClasses.draft;
   };
 
-  const handleRemoveFromAlbum = async (episodeId: string) => {
-    if (!confirm('Are you sure you want to remove this audio file from the album?')) {
-      return;
-    }
 
-    setIsRemoving(episodeId);
-    try {
-      const response = await fetch(`/api/episode/${episodeId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          albumId: null,
-        }),
-      });
-
-      if (response.ok) {
-        // Refresh the page to show updated data
-        window.location.reload();
-      } else {
-        const error = await response.json();
-        alert(`Error removing audio from album: ${error.error}`);
-      }
-    } catch (error) {
-      console.error('Error removing audio from album:', error);
-      alert('Failed to remove audio from album');
-    } finally {
-      setIsRemoving(null);
-    }
-  };
 
   if (episodes.length === 0) {
     return (
@@ -138,12 +108,12 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
 
   return (
     <div className="space-y-6">
-      {/* Audio Files List */}
+      {/* Episodes List */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium text-gray-900">
-              Audio Files ({episodes.length})
+              Episodes ({episodes.length})
             </h3>
             <Link
               href={`/my/submit/episode?album=${album.id}`}
@@ -222,13 +192,7 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
                   >
                     View
                   </Link>
-                  <button
-                    onClick={() => handleRemoveFromAlbum(audio.id)}
-                    disabled={isRemoving === audio.id}
-                    className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200 disabled:opacity-50"
-                  >
-                    {isRemoving === audio.id ? 'Removing...' : 'Remove'}
-                  </button>
+      
                 </div>
               </div>
             </div>
@@ -236,24 +200,6 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
         </div>
       </div>
 
-      {/* Album Actions */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Album Actions</h3>
-        <div className="flex items-center space-x-4">
-          <Link
-            href="/albums"
-            className="px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700"
-          >
-            ← Back to Albums
-          </Link>
-          <Link
-            href={`/albums/${album.id}/edit`}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
-          >
-            Edit Album
-          </Link>
-        </div>
-      </div>
     </div>
   );
 }
