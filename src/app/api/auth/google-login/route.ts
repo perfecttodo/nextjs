@@ -18,7 +18,8 @@ export async function POST(req: NextRequest) {
 
     // Issue a simple session JWT cookie (httpOnly) for demo purposes
     const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "dev-secret");
-    const token = await new SignJWT({ sub: payload.sub, email: payload.email, name: payload.name })
+    const id = `google_${payload.sub}`;
+    const token = await new SignJWT({ sub: id, email: payload.email, name: payload.name })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("7d")
       .setIssuedAt()
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     // ensure user exists
     await prisma.user.upsert({
-      where: { id: `google_${payload.sub}` },
+      where: { id: id },
       create: {
         id: `google_${payload.sub}`,
         email: payload.email,
