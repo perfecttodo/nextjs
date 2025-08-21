@@ -197,20 +197,24 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
                       // Edit Mode
                       <div className="space-y-3">
                         <AudioFormFields
-                          title={editTitle}
-                          url={editUrl}
-                          onUrl={setEditUrl}
-                          status={editStatus}
-                          language={editLanguage}
-                          description={editDescription}
-                          originalWebsite={editOriginalWebsite}
-                          selectedAlbumId={album}
-                          onTitleChange={setEditTitle}
-                          onStatusChange={setEditStatus}
-                          onLanguageChange={setEditLanguage}
-                          onDescriptionChange={setEditDescription}
-                          onOriginalWebsiteChange={setEditOriginalWebsite}
-                          onAlbumChange={setAlbum}
+                          audio={{
+                            title: editTitle,
+                            url: editUrl,
+                            status: editStatus,
+                            language: editLanguage,
+                            description: editDescription,
+                            originalWebsite: editOriginalWebsite,
+                            albumId: album,
+                          }}
+                          onChange={(patch) => {
+                            if (patch.title !== undefined) setEditTitle(patch.title);
+                            if (patch.url !== undefined) setEditUrl(patch.url);
+                            if (patch.status !== undefined) setEditStatus(patch.status);
+                            if (patch.language !== undefined) setEditLanguage(patch.language);
+                            if (patch.description !== undefined) setEditDescription(patch.description);
+                            if (patch.originalWebsite !== undefined) setEditOriginalWebsite(patch.originalWebsite);
+                            if (patch.albumId !== undefined) setAlbum(patch.albumId);
+                          }}
                           showStatusHelp={false}
                           ownerId={user?.id}
                         />

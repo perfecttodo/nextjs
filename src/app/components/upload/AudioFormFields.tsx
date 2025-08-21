@@ -4,44 +4,27 @@ import { AudioStatus, Label } from '@/types/audio';
 
 import AlbumSelector from '../AlbumSelector';
 
-interface AudioFormFieldsProps {
+interface AudioFields {
   title: string;
-  url:string,
+  url: string;
   status: AudioStatus;
   language?: string;
   description?: string;
   originalWebsite?: string;
-  selectedAlbumId: string;
-  onTitleChange: (title: string) => void;
-  onUrl:(url:string)=>void;
-  onStatusChange: (status: AudioStatus) => void;
-  onLanguageChange: (language: string) => void;
-  onDescriptionChange: (description: string) => void;
-  onOriginalWebsiteChange: (originalWebsite: string) => void;
-  onAlbumChange: (albumId: string) => void;
+  albumId: string;
   format?: string;
-  onFormatChange?: (format: string) => void;
+}
+
+interface AudioFormFieldsProps {
+  audio: AudioFields;
+  onChange: (patch: Partial<AudioFields>) => void;
   showStatusHelp?: boolean;
   ownerId?: string;
 }
 
 export default function AudioFormFields({
-  title,
-  url,
-  status,
-  language,
-  description,
-  originalWebsite,
-  selectedAlbumId,
-  onTitleChange,
-  onUrl,
-  onStatusChange,
-  onLanguageChange,
-  onDescriptionChange,
-  onOriginalWebsiteChange,
-  onAlbumChange,
-  format,
-  onFormatChange,
+  audio,
+  onChange,
   showStatusHelp = true,
   ownerId
 }: AudioFormFieldsProps) {
@@ -56,8 +39,8 @@ export default function AudioFormFields({
         <input
           type="text"
           id="url"
-          value={url || ''}
-          onChange={(e) => onUrl(e.target.value)}
+          value={audio.url || ''}
+          onChange={(e) => onChange({ url: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="e.g."
         />
@@ -71,8 +54,8 @@ export default function AudioFormFields({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <select
             id="format"
-            value={format || ''}
-            onChange={(e) => onFormatChange && onFormatChange(e.target.value)}
+            value={audio.format || ''}
+            onChange={(e) => onChange({ format: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Auto-detect</option>
@@ -87,8 +70,8 @@ export default function AudioFormFields({
           <input
             type="text"
             placeholder="Or type custom (e.g., webm)"
-            value={format || ''}
-            onChange={(e) => onFormatChange && onFormatChange(e.target.value.toLowerCase())}
+            value={audio.format || ''}
+            onChange={(e) => onChange({ format: e.target.value.toLowerCase() })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -103,8 +86,8 @@ export default function AudioFormFields({
         <input
           type="text"
           id="language"
-          value={language || ''}
-          onChange={(e) => onLanguageChange(e.target.value)}
+          value={audio.language || ''}
+          onChange={(e) => onChange({ language: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="e.g., English, Spanish"
         />
@@ -117,8 +100,8 @@ export default function AudioFormFields({
         <input
           type="text"
           id="title"
-          value={title}
-          onChange={(e) => onTitleChange(e.target.value)}
+          value={audio.title}
+          onChange={(e) => onChange({ title: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="Enter audio title"
           required
@@ -134,8 +117,8 @@ export default function AudioFormFields({
         </label>
         <textarea
           id="description"
-          value={description || ''}
-          onChange={(e) => onDescriptionChange(e.target.value)}
+          value={audio.description || ''}
+          onChange={(e) => onChange({ description: e.target.value })}
           rows={3}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="Describe the audio content..."
@@ -150,8 +133,8 @@ export default function AudioFormFields({
         <input
           type="url"
           id="originalWebsite"
-          value={originalWebsite || ''}
-          onChange={(e) => onOriginalWebsiteChange(e.target.value)}
+          value={audio.originalWebsite || ''}
+          onChange={(e) => onChange({ originalWebsite: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="https://example.com"
         />
@@ -164,8 +147,8 @@ export default function AudioFormFields({
         </label>
         <select
           id="status"
-          value={status}
-          onChange={(e) => onStatusChange(e.target.value as AudioStatus)}
+          value={audio.status}
+          onChange={(e) => onChange({ status: e.target.value as AudioStatus })}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
           <option value="draft">Draft</option>
@@ -182,8 +165,8 @@ export default function AudioFormFields({
 
       {/* Album Selection */}
       <AlbumSelector
-        selectedAlbumId={selectedAlbumId}
-        onAlbumChange={onAlbumChange}
+        selectedAlbumId={audio.albumId}
+        onAlbumChange={(albumId) => onChange({ albumId })}
         ownerId={ownerId}
       />
     </div>

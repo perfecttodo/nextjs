@@ -56,6 +56,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     originalWebsite: '',
     albumId: '',
     format: '',
+    url: '',
   });
 
   // Audio state
@@ -219,7 +220,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        url: finalUrl,
+        url: sharedFormData.url || finalUrl,
         title: sharedFormData.title.trim() || 'New recording',
         status: sharedFormData.status,
         language: sharedFormData.language || '',
@@ -390,6 +391,15 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     }));
   }, []);
 
+  const handleAudioFieldsChange = useCallback((patch: Partial<typeof sharedFormData>) => {
+    setSharedFormData(prev => ({ ...prev, ...patch }));
+    if (patch.url !== undefined) {
+      const newUrl = patch.url || '';
+      setAudioUrl(newUrl || null);
+      oriBlob.current = null;
+    }
+  }, []);
+
   const handleUploadSuccess = useCallback(() => {
     setSharedFormData({
       title: '',
@@ -399,6 +409,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       originalWebsite: '',
       albumId: '',
       format: '',
+      url: '',
     });
     onUploadSuccess();
   }, [onUploadSuccess]);
@@ -633,22 +644,17 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
             {audioUrl && (
               <div>
                 <AudioFormFields
-                  title={sharedFormData.title}
-                  url={audioUrl || ''}
-                  status={sharedFormData.status}
-                  language={sharedFormData.language}
-                  description={sharedFormData.description}
-                  originalWebsite={sharedFormData.originalWebsite}
-                  selectedAlbumId={sharedFormData.albumId}
-                  onTitleChange={(title: string) => updateSharedFormData('title', title)}
-                  onUrl={(url: string) => { setAudioUrl(url); }}
-                  onStatusChange={(status: AudioStatus) => updateSharedFormData('status', status)}
-                  onLanguageChange={(language: string) => updateSharedFormData('language', language)}
-                  onDescriptionChange={(description: string) => updateSharedFormData('description', description)}
-                  onOriginalWebsiteChange={(originalWebsite: string) => updateSharedFormData('originalWebsite', originalWebsite)}
-                  onAlbumChange={(albumId: string) => updateSharedFormData('albumId', albumId)}
-                  format={sharedFormData.format}
-                  onFormatChange={(format: string) => updateSharedFormData('format', format)}
+                  audio={{
+                    title: sharedFormData.title,
+                    url: sharedFormData.url || audioUrl || '',
+                    status: sharedFormData.status,
+                    language: sharedFormData.language,
+                    description: sharedFormData.description,
+                    originalWebsite: sharedFormData.originalWebsite,
+                    albumId: sharedFormData.albumId,
+                    format: sharedFormData.format,
+                  }}
+                  onChange={handleAudioFieldsChange}
                   showStatusHelp={true}
                   ownerId={user?.id || ''}
                 />
