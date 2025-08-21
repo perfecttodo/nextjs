@@ -32,7 +32,7 @@ export async function GET(
         },
         _count: {
           select: {
-            episodes: true,
+            episodes: {where:{status:'published'}},
           },
         },
       },

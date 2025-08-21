@@ -50,7 +50,11 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
       },
       _count: {
         select: {
-          episodes: true,
+          episodes: {
+            where: {
+              status: 'published' 
+            }
+          },
         },
       },
     },
