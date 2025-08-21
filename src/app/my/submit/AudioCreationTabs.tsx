@@ -9,6 +9,7 @@ import UploadProvider from '../../components/upload/UploadProvider';
 import UrlProvider from '../../components/upload/UrlProvider';
 import RecordingProvider from '../../components/upload/RecordingProvider';
 import { useFfmpegEngine } from '../../components/upload/useFfmpegEngine';
+import { formatFileSize,formatDuration } from '@/lib/audio';
 
 interface AudioCreationTabsProps {
   onUploadSuccess: () => void;
@@ -24,24 +25,11 @@ interface TabConfig {
   shortLabel: string;
 }
 
-// Constants
 
 const OUTPUT_FORMATS = ['m3u8', 'mp3', 'm4a'] as const;
 type OutputFormat = typeof OUTPUT_FORMATS[number];
 
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
 
-function formatDuration(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
 
 export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>('upload');
@@ -122,7 +110,6 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   const processRecording = useCallback(async (format: OutputFormat) => {
     if (!oriBlob.current) return;
 
-    // Default to original blob preview
     setAudioBlob(oriBlob.current);
     setAudioUrl(URL.createObjectURL(oriBlob.current));
 
@@ -163,7 +150,6 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     await processRecording(newFormat);
   }, [processRecording]);
 
-  // removed inline FFmpeg processing in favor of hook
 
   
 
@@ -214,14 +200,16 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     if (!putRes.ok) throw new Error('Direct upload to storage failed');
     finalUrl =presign.publicUrl;
 
-  }else finalUrl = audioUrl;
-    // 3) Finalize by creating episode using the public URL
+  }else{
+     finalUrl = audioUrl;
+  }
+
     const finalizeRes = await fetch('/api/episode/upload-url', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         url: sharedFormData.url || finalUrl,
-        title: sharedFormData.title.trim() || 'New recording',
+        title: sharedFormData.title.trim(),
         status: sharedFormData.status,
         language: sharedFormData.language || '',
         description: sharedFormData.description || '',
@@ -640,7 +628,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                 <EpisodeForm
                   audio={{
                     title: sharedFormData.title,
-                    url: sharedFormData.url || audioUrl || '',
+                    url: sharedFormData.url  || '',
                     status: sharedFormData.status,
                     language: sharedFormData.language,
                     description: sharedFormData.description,
