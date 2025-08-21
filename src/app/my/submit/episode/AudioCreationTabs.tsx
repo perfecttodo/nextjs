@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { AudioStatus } from '@/types/audio';
 import { useUser } from '../../../hooks/useUser';
 import { presignUploadSingle, presignUploadBatch } from '@/lib/presign';
 import EpisodeForm from './EpisodeForm';
@@ -9,36 +8,49 @@ import UploadProvider from '../../../components/upload/UploadProvider';
 import UrlProvider from '../../../components/upload/UrlProvider';
 import RecordingProvider from '../../../components/upload/RecordingProvider';
 import { useFfmpegEngine } from '../../../components/upload/useFfmpegEngine';
-import { formatFileSize,formatDuration } from '@/lib/audio';
+import { formatFileSize, formatDuration } from '@/lib/audio';
 import TabNavigation from './TabNavigation';
-interface AudioCreationTabsProps {
-  onUploadSuccess: () => void;
-}
+import {
+  AudioCreationTabsProps,
+  TabType,
+  TabConfig,
+  SharedFormData,
+  OutputFormat,
+  AudioProcessingState
+} from './types';
 
-type TabType = 'upload' | 'record' | 'url';
-
-interface TabConfig {
-  id: TabType;
-  label: string;
-  description: string;
-  icon: string;
-  shortLabel: string;
-}
-
-
-const OUTPUT_FORMATS = ['m3u8', 'mp3', 'm4a'] as const;
-type OutputFormat = typeof OUTPUT_FORMATS[number];
-
-
+const TABS: TabConfig[] = [
+  {
+    id: 'upload',
+    label: 'Upload File',
+    description: 'Upload Episodes from your device',
+    icon: '📁',
+    shortLabel: 'Upload'
+  },
+  {
+    id: 'record',
+    label: 'Record Audio',
+    description: 'Record audio directly in your browser',
+    icon: '🎙️',
+    shortLabel: 'Record'
+  },
+  {
+    id: 'url',
+    label: 'Audio URL',
+    description: 'Submit audio from external URLs',
+    icon: '🔗',
+    shortLabel: 'URL'
+  }
+];
 
 export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>('upload');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const { user, loading: userLoading } = useUser();
 
-  const [sharedFormData, setSharedFormData] = useState({
+  const [sharedFormData, setSharedFormData] = useState<SharedFormData>({
     title: '',
-    status: 'draft' as AudioStatus,
+    status: 'draft',
     language: '',
     description: '',
     originalWebsite: '',
@@ -47,15 +59,23 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     url: '',
   });
 
-  // Audio state
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [error, setError] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
-  
+  // Audio state using the new interface
+  const [audioState, setAudioState] = useState<AudioProcessingState>({
+    audioBlob: null,
+    audioUrl: null,
+    error: '',
+    isUploading: false,
+    isProcessing: false,
+    uploadProgress: 0,
+    duration: 0,
+    outputFormat: 'm3u8',
+    showM3U8Content: false,
+    m3u8Content: '',
+    m3u8ContentLoading: false,
+    useFFmpeg: false,
+    isFormatable: false,
+  });
+
   // FFmpeg engine
   const {
     ffmpegLoaded,
@@ -67,142 +87,107 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     collectHlsFiles,
     cleanupFiles,
   } = useFfmpegEngine();
-  const [outputFormat, setOutputFormat] = useState<OutputFormat>('m3u8');
-  const [showM3U8Content, setShowM3U8Content] = useState(false);
-  const [m3u8Content, setM3u8Content] = useState<string>('');
-  const [m3u8ContentLoading, setM3u8ContentLoading] = useState(false);
-  const [useFFmpeg, setUseFFmpeg] = useState(false);
-  const [isFormatable, setIsFormatable] = useState(false);
 
   const oriBlob = useRef<Blob | null>(null);
 
-  const TABS: TabConfig[] = [
-    {
-      id: 'upload',
-      label: 'Upload File',
-      description: 'Upload Episodes from your device',
-      icon: '📁',
-      shortLabel: 'Upload'
-    },
-    {
-      id: 'record',
-      label: 'Record Audio',
-      description: 'Record audio directly in your browser',
-      icon: '🎙️',
-      shortLabel: 'Record'
-    },
-    {
-      id: 'url',
-      label: 'Audio URL',
-      description: 'Submit audio from external URLs',
-      icon: '🔗',
-      shortLabel: 'URL'
-    }
-  ];
+  // Helper function to update audio state
+  const updateAudioState = useCallback((updates: Partial<AudioProcessingState>) => {
+    setAudioState(prev => ({ ...prev, ...updates }));
+  }, []);
 
   // Memoized callbacks
   const getM3U8Content = useCallback(async (): Promise<string> => {
-    if (outputFormat !== 'm3u8') return 'FFmpeg not available';
+    if (audioState.outputFormat !== 'm3u8') return 'FFmpeg not available';
     return engineGetM3U8Content();
-  }, [engineGetM3U8Content, outputFormat]);
+  }, [engineGetM3U8Content, audioState.outputFormat]);
 
   const processConvert = useCallback(async (format: OutputFormat) => {
     if (!oriBlob.current) return;
 
-    setAudioBlob(oriBlob.current);
-    setAudioUrl(URL.createObjectURL(oriBlob.current));
+    updateAudioState({ 
+      audioBlob: oriBlob.current, 
+      audioUrl: URL.createObjectURL(oriBlob.current) 
+    });
 
-    if (useFFmpeg && ffmpegLoaded) {
+    if (audioState.useFFmpeg && ffmpegLoaded) {
       try {
-        setIsProcessing(true);
+        updateAudioState({ isProcessing: true });
         const processed = await convertBlobToformat(oriBlob.current, format);
-        setAudioBlob(processed);
-        // For m3u8, keep previewing the original blob; otherwise preview processed
-        if (audioUrl) URL.revokeObjectURL(audioUrl);
+        updateAudioState({ audioBlob: processed });
+        
+        if (audioState.audioUrl) URL.revokeObjectURL(audioState.audioUrl);
         const preview = format === 'm3u8' ? oriBlob.current : processed;
-        setAudioUrl(URL.createObjectURL(preview));
+        updateAudioState({ audioUrl: URL.createObjectURL(preview) });
         
       } catch (e) {
         console.error('FFmpeg processing error:', e);
-        setError('Failed to process audio. Please try again.');
+        updateAudioState({ error: 'Failed to process audio. Please try again.' });
       } finally {
-        setIsProcessing(false);
+        updateAudioState({ isProcessing: false });
       }
     }
-  }, [audioUrl, ffmpegLoaded, convertBlobToformat, useFFmpeg]);
+  }, [audioState.useFFmpeg, audioState.audioUrl, ffmpegLoaded, convertBlobToformat, updateAudioState]);
 
+  useEffect(() => {
+    updateAudioState({ 
+      isFormatable: activeTab !== 'url' && audioState.audioBlob !== null 
+    });
+  }, [activeTab, audioState.audioBlob, updateAudioState]);
 
-  useEffect(()=>{
-    setIsFormatable(activeTab!='url' && audioBlob!=null);
-  },[audioUrl,audioBlob,activeTab])
-
-  useEffect(()=>{
-    setAudioUrl('');
-    setAudioBlob(null)
-  },[activeTab]);
-
-
+  useEffect(() => {
+    updateAudioState({ audioUrl: '', audioBlob: null });
+  }, [activeTab, updateAudioState]);
 
   const changeFormat = useCallback(async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newFormat = e.target.value as OutputFormat;
-    setOutputFormat(newFormat);
+    updateAudioState({ outputFormat: newFormat });
     await new Promise(resolve => setTimeout(resolve, 100));
     await processConvert(newFormat);
-  }, [processConvert]);
-
-
-  
+  }, [processConvert, updateAudioState]);
 
   const uploadStandardEpisode = useCallback(async () => {
-
     let finalUrl;
-    if(activeTab!='url'){
+    if (activeTab !== 'url') {
+      if (!audioState.audioBlob) {
+        throw new Error('No data available for upload');
+      }
+      
+      const ext = audioState.outputFormat;
+      const mimeType = audioState.outputFormat === 'mp3' ? 'audio/mpeg' : 'audio/mp4';
+      const file = new File([audioState.audioBlob], `episode.${ext}`, { type: mimeType });
 
+      const presign = await presignUploadSingle(file.name, file.type);
 
-
-    if (!audioBlob) {
-      throw new Error('No data available for upload');
+      const putRes = await new Promise<Response>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', presign.uploadUrl);
+        xhr.setRequestHeader('Content-Type', file.type);
+        
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            updateAudioState({ uploadProgress: percent });
+          }
+        };
+        
+        xhr.onerror = () => reject(new Error('Network error during upload'));
+        xhr.onload = () => {
+          const status = xhr.status;
+          const statusText = xhr.statusText;
+          const headers = new Headers();
+          const res = new Response(xhr.response, { status, statusText, headers });
+          resolve(res);
+        };
+        
+        xhr.onabort = () => reject(new Error('Upload aborted'));
+        xhr.send(file);
+      });
+      
+      if (!putRes.ok) throw new Error('Direct upload to storage failed');
+      finalUrl = presign.publicUrl;
+    } else {
+      finalUrl = audioState.audioUrl;
     }
-    
-    const ext = outputFormat;
-    const mimeType = outputFormat === 'mp3' ? 'audio/mpeg' : 'audio/mp4';
-    const file = new File([audioBlob], `episode.${ext}`, { type: mimeType });
-
-    // 1) Request presigned URL
-    const presign = await presignUploadSingle(file.name, file.type);
-
-    // 2) Upload file directly to R2 via PUT
-    const putRes = await new Promise<Response>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('PUT', presign.uploadUrl);
-      xhr.setRequestHeader('Content-Type', file.type);
-      
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) {
-          const percent = Math.round((e.loaded / e.total) * 100);
-          setUploadProgress(percent);
-        }
-      };
-      
-      xhr.onerror = () => reject(new Error('Network error during upload'));
-      xhr.onload = () => {
-        const status = xhr.status;
-        const statusText = xhr.statusText;
-        const headers = new Headers();
-        const res = new Response(xhr.response, { status, statusText, headers });
-        resolve(res);
-      };
-      
-      xhr.onabort = () => reject(new Error('Upload aborted'));
-      xhr.send(file);
-    });
-    
-    if (!putRes.ok) throw new Error('Direct upload to storage failed');
-    finalUrl =presign.publicUrl;
-
-  }else{
-     finalUrl = audioUrl;
-  }
 
     const finalizeRes = await fetch('/api/episode/upload-url', {
       method: 'POST',
@@ -214,7 +199,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
         language: sharedFormData.language || '',
         description: sharedFormData.description || '',
         originalWebsite: sharedFormData.originalWebsite || '',
-        duration,
+        duration: audioState.duration,
         albumId: sharedFormData.albumId || undefined,
         format: sharedFormData.format || undefined,
       })
@@ -225,10 +210,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
 
     handleUploadSuccess();
     resetAfterUpload();
-  }, [activeTab, audioBlob, audioUrl, duration, outputFormat, sharedFormData]);
-
-
-
+  }, [activeTab, audioState.audioBlob, audioState.audioUrl, audioState.duration, audioState.outputFormat, sharedFormData, updateAudioState]);
 
   const uploadHLSRecording = useCallback(async () => {
     try {
@@ -237,16 +219,12 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
         throw new Error('FFmpeg file system is not healthy. Please try refreshing the page.');
       }
 
-      // Gather files from FFmpeg FS via engine
       const filesToUpload = await collectHlsFiles();
-
-      // 1) Ask server for presigned URLs for all files
       const presign = await presignUploadBatch(
         sharedFormData.title.trim() || 'New recording',
         filesToUpload.map(f => ({ name: f.name, contentType: f.type }))
       );
 
-      // 2) Upload each file via PUT
       const nameToUploadUrl = new Map<string, string>(
         presign.files.map((f: any) => [f.name, f.uploadUrl])
       );
@@ -273,7 +251,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
               const currentFileUploaded = e.loaded;
               const otherBytes = uploadedBytes;
               const percent = Math.round(((otherBytes + currentFileUploaded) / totalBytes) * 100);
-              setUploadProgress(percent);
+              updateAudioState({ uploadProgress: percent });
             }
           };
           
@@ -281,7 +259,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
           xhr.onload = () => {
             if (xhr.status >= 200 && xhr.status < 300) {
               uploadedBytes += f.data.byteLength;
-              setUploadProgress(Math.round((uploadedBytes / totalBytes) * 100));
+              updateAudioState({ uploadProgress: Math.round((uploadedBytes / totalBytes) * 100) });
               resolve();
             } else {
               reject(new Error(`Failed to upload ${f.name}`));
@@ -293,7 +271,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
         });
       }
 
-      const finalizeRes = await fetch('/api/episode/finalize-hls', {
+      const finalizeRes = await fetch('/api/episode/upload-url', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -303,7 +281,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
           language: sharedFormData.language || '',
           description: sharedFormData.description || '',
           originalWebsite: sharedFormData.originalWebsite || '',
-          duration,
+          duration: audioState.duration,
           albumId: sharedFormData.albumId || undefined
         })
       });
@@ -318,48 +296,44 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       console.error('HLS upload error:', error);
       throw new Error(`Failed to upload HLS files: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [sharedFormData, duration, checkFS, collectHlsFiles, cleanupFiles]);
-
-  // removed inline FS helpers in favor of hook
+  }, [sharedFormData, audioState.duration, checkFS, collectHlsFiles, cleanupFiles, updateAudioState]);
 
   const resetAfterUpload = useCallback(() => {
-    setAudioBlob(null);
-    if (audioUrl) URL.revokeObjectURL(audioUrl);
-    setAudioUrl(null);
+    updateAudioState({ 
+      audioBlob: null,
+      audioUrl: null
+    });
+    if (audioState.audioUrl) URL.revokeObjectURL(audioState.audioUrl);
     setSharedFormData(prev => ({
       ...prev,
       description: '',
       originalWebsite: '',
     }));
-    setDuration(0);
-  }, [audioUrl]);
+    updateAudioState({ duration: 0 });
+  }, [audioState.audioUrl, updateAudioState]);
 
   const submitEpisode = useCallback(async () => {
-    if (!audioUrl) {
-      setError('Please record or upload audio before uploading.');
+    if (!audioState.audioUrl) {
+      updateAudioState({ error: 'Please record or upload audio before uploading.' });
       return;
     }
 
     try {
-      setIsUploading(true);
-      setUploadProgress(0);
-      setError('');
+      updateAudioState({ isUploading: true, uploadProgress: 0, error: '' });
       
-      if (activeTab!='url'&&outputFormat === 'm3u8') {
+      if (activeTab !== 'url' && audioState.outputFormat === 'm3u8') {
         await uploadHLSRecording();
       } else {
         await uploadStandardEpisode();
       }
 
-      setAudioBlob(null);
-      setAudioUrl('');
+      updateAudioState({ audioBlob: null, audioUrl: '' });
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Upload failed');
+      updateAudioState({ error: e instanceof Error ? e.message : 'Upload failed' });
     } finally {
-      setIsUploading(false);
-      setUploadProgress(0);
+      updateAudioState({ isUploading: false, uploadProgress: 0 });
     }
-  }, [audioUrl, outputFormat, activeTab, uploadHLSRecording, uploadStandardEpisode]);
+  }, [audioState.audioUrl, audioState.outputFormat, activeTab, uploadHLSRecording, uploadStandardEpisode, updateAudioState]);
 
   const handleTabChange = useCallback((newTab: TabType) => {
     if (newTab === activeTab) return;
@@ -371,15 +345,14 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     }, 150);
   }, [activeTab]);
 
-
-  const handleAudioFieldsChange = useCallback((patch: Partial<typeof sharedFormData>) => {
+  const handleAudioFieldsChange = useCallback((patch: Partial<SharedFormData>) => {
     setSharedFormData(prev => ({ ...prev, ...patch }));
     if (patch.url !== undefined) {
       const newUrl = patch.url || '';
-      setAudioUrl(newUrl || null);
+      updateAudioState({ audioUrl: newUrl || null });
       oriBlob.current = null;
     }
-  }, []);
+  }, [updateAudioState]);
 
   const handleUploadSuccess = useCallback(() => {
     setSharedFormData({
@@ -397,14 +370,19 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
 
   const handleProvideBlogSuccess = useCallback((blob: Blob | string | null): void => {
     if (blob instanceof Blob) {
-      setAudioBlob(blob);
-      setAudioUrl(URL.createObjectURL(blob));
+      updateAudioState({ 
+        audioBlob: blob, 
+        audioUrl: URL.createObjectURL(blob) 
+      });
       oriBlob.current = blob;
     } else if (typeof blob === 'string') {
-      setAudioUrl(blob);
+      updateAudioState({ 
+        audioUrl: blob,
+        audioBlob: null 
+      });
       oriBlob.current = null;
     }
-  }, []);
+  }, [updateAudioState]);
 
   const renderTabContent = useCallback(() => {
     switch (activeTab) {
@@ -419,14 +397,12 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     }
   }, [activeTab, handleProvideBlogSuccess]);
 
-  // Effects
   useEffect(() => {
-    if (useFFmpeg) {
+    if (audioState.useFFmpeg) {
       loadFFmpeg();
     }
-  }, [useFFmpeg, loadFFmpeg]);
+  }, [audioState.useFFmpeg, loadFFmpeg]);
 
-  // Show loading state while user is being fetched
   if (userLoading) {
     return (
       <div className="bg-white rounded-lg shadow-lg p-6">
@@ -440,7 +416,6 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
 
   return (
     <div className="bg-white rounded-lg shadow-lg">
-      {/* Tab Navigation */}
       <TabNavigation
         tabs={TABS}
         activeTab={activeTab}
@@ -448,28 +423,24 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
         isTransitioning={isTransitioning}
       />
 
-      {/* Tab Content with Animation */}
       <div className="p-4 sm:p-6">
         <div className={`transition-opacity duration-200 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
-   
-          
-          {/* Form */}
           {renderTabContent()}
           
           <div className="space-y-6">
-            {error && (
-              <div className="p-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded">{error}</div>
+            {audioState.error && (
+              <div className="p-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded">
+                {audioState.error}
+              </div>
             )}
             
-            {/* Toggle for using FFmpeg or uploading original recording */}
-
-            {isFormatable && (
+            {audioState.isFormatable && (
               <div>
                 <label className="flex items-center">
                   <input
                     type="checkbox"
-                    checked={useFFmpeg}
-                    onChange={(e) => setUseFFmpeg(e.target.checked)}
+                    checked={audioState.useFFmpeg}
+                    onChange={(e) => updateAudioState({ useFFmpeg: e.target.checked })}
                     className="mr-2"
                   />
                   <span>Use FFmpeg for conversion</span>
@@ -477,8 +448,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
               </div>
             )}
 
-            {/* Output Format Selection */}
-            {useFFmpeg && isFormatable && (
+            {audioState.useFFmpeg && audioState.isFormatable && (
               <div>
                 {!ffmpegLoaded && (
                   <div className="space-y-6">
@@ -502,7 +472,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                   </label>
                   <select
                     id="outputFormat"
-                    value={outputFormat}
+                    value={audioState.outputFormat}
                     onChange={changeFormat}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
@@ -511,9 +481,9 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                     <option value="m4a">M4A (AAC)</option>
                   </select>
                   <p className="text-xs text-gray-500 mt-1">
-                    {outputFormat === 'm3u8' && 'HLS format for streaming, creates multiple segments'}
-                    {outputFormat === 'mp3' && 'MP3 format for compatibility'}
-                    {outputFormat === 'm4a' && 'M4A format with AAC codec for quality'}
+                    {audioState.outputFormat === 'm3u8' && 'HLS format for streaming, creates multiple segments'}
+                    {audioState.outputFormat === 'mp3' && 'MP3 format for compatibility'}
+                    {audioState.outputFormat === 'm4a' && 'M4A format with AAC codec for quality'}
                   </p>
                 </div>
 
@@ -528,59 +498,55 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
               </div>
             )}
 
-            {/* Processing indicator */}
-            {isProcessing && (
+            {audioState.isProcessing && (
               <div className="text-center py-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
                 <p className="text-gray-600">Processing audio with FFmpeg...</p>
               </div>
             )}
 
-            {/* Upload progress */}
-            {isUploading && (
+            {audioState.isUploading && (
               <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div
                   className="bg-green-600 h-2.5 rounded-full transition-all duration-300"
-                  style={{ width: `${uploadProgress}%` }}
+                  style={{ width: `${audioState.uploadProgress}%` }}
                 ></div>
-                <div className="text-xs text-gray-600 mt-1">Uploading {uploadProgress}%</div>
+                <div className="text-xs text-gray-600 mt-1">Uploading {audioState.uploadProgress}%</div>
               </div>
             )}
 
-            {audioUrl && (
+            {audioState.audioUrl && (
               <div className="space-y-2">
-                <audio controls src={audioUrl} className="w-full" loop />
+                <audio controls src={audioState.audioUrl} className="w-full" loop />
                 <div className="text-xs text-gray-500">
-                  Type: {audioBlob?.type || 'unknown'} |
-                  Size: {audioBlob ? formatFileSize(audioBlob.size) : 'unknown'} |
-                  Duration: {formatDuration(duration)} |
-                  Format: {outputFormat.toUpperCase()}
+                  Type: {audioState.audioBlob?.type || 'unknown'} |
+                  Size: {audioState.audioBlob ? formatFileSize(audioState.audioBlob.size) : 'unknown'} |
+                  Duration: {formatDuration(audioState.duration)} |
+                  Format: {audioState.outputFormat.toUpperCase()}
                 </div>
 
-                {/* M3U8 Content Display */}
-                {activeTab !== 'url' && outputFormat === 'm3u8' && (
+                {activeTab !== 'url' && audioState.outputFormat === 'm3u8' && (
                   <div className="mt-4">
                     <button
                       onClick={async () => {
-                        if (!showM3U8Content) {
-                          setM3u8ContentLoading(true);
+                        if (!audioState.showM3U8Content) {
+                          updateAudioState({ m3u8ContentLoading: true });
                           const content = await getM3U8Content();
-                          setM3u8Content(content);
-                          setM3u8ContentLoading(false);
+                          updateAudioState({ m3u8Content: content, m3u8ContentLoading: false });
                         }
-                        setShowM3U8Content(!showM3U8Content);
+                        updateAudioState({ showM3U8Content: !audioState.showM3U8Content });
                       }}
                       className="text-sm text-blue-600 hover:text-blue-800 underline"
-                      disabled={m3u8ContentLoading}
+                      disabled={audioState.m3u8ContentLoading}
                     >
-                      {m3u8ContentLoading ? 'Loading...' : (showM3U8Content ? 'Hide' : 'Show')} M3U8 Content
+                      {audioState.m3u8ContentLoading ? 'Loading...' : (audioState.showM3U8Content ? 'Hide' : 'Show')} M3U8 Content
                     </button>
 
-                    {useFFmpeg && showM3U8Content && (
+                    {audioState.useFFmpeg && audioState.showM3U8Content && (
                       <div className="mt-2 p-3 bg-gray-100 rounded text-xs font-mono overflow-x-auto">
                         <div className="text-gray-600 mb-2">M3U8 Playlist Content:</div>
                         <pre className="whitespace-pre-wrap break-words">
-                          {m3u8Content}
+                          {audioState.m3u8Content}
                         </pre>
                       </div>
                     )}
@@ -589,14 +555,13 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
               </div>
             )}
 
-            {/* Common Form Fields - only show when there's a recording */}
-            {audioUrl && (
+            {audioState.audioUrl && (
               <div>
                 <EpisodeForm
                   audio={{
-                    id:'',
+                    id: '',
                     title: sharedFormData.title,
-                    blobUrl: sharedFormData.url  || '',
+                    blobUrl: sharedFormData.url || '',
                     status: sharedFormData.status,
                     language: sharedFormData.language,
                     description: sharedFormData.description,
@@ -611,17 +576,17 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
               </div>
             )}
 
-            {audioUrl && (
+            {audioState.audioUrl && (
               <button
-                disabled={isUploading}
+                disabled={audioState.isUploading}
                 onClick={submitEpisode}
                 className={`w-full px-4 py-3 rounded ${
-                  !audioUrl || isUploading
+                  !audioState.audioUrl || audioState.isUploading
                     ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
                     : 'bg-green-600 hover:bg-green-700 text-white'
                 } transition-colors duration-200`}
               >
-                {isUploading ? 'Uploading...' : `Upload`}
+                {audioState.isUploading ? 'Uploading...' : `Upload`}
               </button>
             )}
           </div>
