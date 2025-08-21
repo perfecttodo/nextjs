@@ -211,12 +211,16 @@ export default function FixedAudioPlayer() {
 
   function getType(audio: Episode) {
     switch (audio.format) {
+      case 'mp3':
+        return 'audio/mp3';
       case 'm4a':
         return 'audio/mp4';
       case 'm3u8':
         return 'application/x-mpegURL';
+        case 'mpd':
+          return 'application/dash+xml';
       default:
-        return 'audio/mpeg';
+        return audio.format;
     }
   }
   // Handle user interaction for autoplay policies

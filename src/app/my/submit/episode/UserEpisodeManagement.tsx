@@ -17,10 +17,11 @@ export default function UserEpisodeManagement({ onRefresh }: UserEpisodeManageme
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
-  const [editUrl, setEditUrl] = useState('');
+  const [editBlobUrl, setEditBlobUrl] = useState('');
   const [editStatus, setEditStatus] = useState<AudioStatus>('draft');
   const [editLanguage, setEditLanguage] = useState<string>('');
   const [editDescription, setEditDescription] = useState<string>('');
+  const [editFormat, setEditFormat] = useState<string>('');
   const [editOriginalWebsite, setEditOriginalWebsite] = useState<string>('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'draft' | 'published'>('all');
@@ -60,12 +61,13 @@ export default function UserEpisodeManagement({ onRefresh }: UserEpisodeManageme
   const handleEdit = (audio: Episode) => {
     setEditingId(audio.id);
     setEditTitle(audio.title);
-    setEditUrl(audio.blobUrl);
+    setEditBlobUrl(audio.blobUrl);
     setEditStatus(audio.status);
     setEditLanguage(audio.language || '');
     setEditDescription(audio.description || '');
     setEditOriginalWebsite(audio.originalWebsite || '');
     setAlbum(audio?.album?.id||'');
+    setEditFormat(audio?.format)
   };
 
   const handleSave = async () => {
@@ -82,7 +84,9 @@ export default function UserEpisodeManagement({ onRefresh }: UserEpisodeManageme
           language: editLanguage || null,
           description: editDescription || null,
           originalWebsite: editOriginalWebsite || null,
-          albumId:album||null
+          albumId:album||null,
+          format:editFormat||null,
+          blobUrl:editBlobUrl
         }),
       });
 
@@ -199,21 +203,25 @@ export default function UserEpisodeManagement({ onRefresh }: UserEpisodeManageme
                         <EpisodeForm
                           audio={{
                             title: editTitle,
-                            url: editUrl,
+                            blobUrl: editBlobUrl,
                             status: editStatus,
                             language: editLanguage,
                             description: editDescription,
                             originalWebsite: editOriginalWebsite,
                             albumId: album,
+                            format:editFormat,
+                            id:audio.id
                           }}
                           onChange={(patch) => {
                             if (patch.title !== undefined) setEditTitle(patch.title);
-                            if (patch.url !== undefined) setEditUrl(patch.url);
+                            if (patch.blobUrl !== undefined) setEditBlobUrl(patch.blobUrl);
                             if (patch.status !== undefined) setEditStatus(patch.status);
                             if (patch.language !== undefined) setEditLanguage(patch.language);
                             if (patch.description !== undefined) setEditDescription(patch.description);
                             if (patch.originalWebsite !== undefined) setEditOriginalWebsite(patch.originalWebsite);
                             if (patch.albumId !== undefined) setAlbum(patch.albumId);
+                            if (patch.format !== undefined) setEditFormat(patch.format);
+                            
                           }}
                           showStatusHelp={false}
                           ownerId={user?.id}

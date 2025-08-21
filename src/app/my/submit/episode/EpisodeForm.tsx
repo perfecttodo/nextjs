@@ -5,8 +5,9 @@ import { AudioStatus } from '@/types/audio';
 import AlbumSelector from '../../../components/AlbumSelector';
 
 interface AudioFields {
+  id:string,
   title: string;
-  url: string;
+  blobUrl: string;
   status: AudioStatus;
   language?: string;
   description?: string;
@@ -32,19 +33,19 @@ export default function EpisodeForm({
   return (
     <div className="space-y-6">
 
-        <div>
+       {audio.id&&(<div>
         <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-2">
           URL
         </label>
         <input
           type="text"
           id="url"
-          value={audio.url || ''}
-          onChange={(e) => onChange({ url: e.target.value })}
+          value={audio.blobUrl || ''}
+          onChange={(e) => onChange({ blobUrl: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="e.g."
         />
-      </div>
+      </div>)} 
 
       {/* Format Selection/Input */}
       <div>

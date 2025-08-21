@@ -81,7 +81,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, title, status, language, description, originalWebsite, albumId } = body;
+    const { id, title, status, language, description, originalWebsite, albumId,format,blobUrl } = body;
 
     if (!id || !title) {
       return NextResponse.json(
@@ -117,6 +117,8 @@ export async function PUT(request: NextRequest) {
         ...(description !== undefined && { description }),
         ...(originalWebsite !== undefined && { originalWebsite }),
         ...(albumId !== undefined && { albumId }),
+        ...(format !== undefined && { format }),
+        ...(blobUrl !== undefined && { blobUrl }),
         
         // category/subcategory not on Episode in current model
         updatedAt: new Date(),
