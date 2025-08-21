@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { AudioStatus,Episode } from '../../types/audio';
-import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
+import PlayButton from './PlayButton';
 
 
 interface AudioManagementProps {
@@ -17,24 +17,12 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
   const [editStatus, setEditStatus] = useState<AudioStatus>('draft');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'draft' | 'published'>('all');
-  const { setAudio,setAudioFiles:updateAudioFiles,audio:currentAudio,togglePlay,isPlaying} = useAudioPlayerStore();
 
   useEffect(() => {
     fetchAudioFiles();
   }, [filter]);
 
-  const onPlayAudio = (audio: Episode) => {
 
-    if(currentAudio?.id === audio.id){
-      togglePlay();
-
-    }else{
-      setAudio(audio)
-      updateAudioFiles(episodes);
-    }
-
-
-  };
 
   
   const fetchAudioFiles = async () => {
@@ -275,22 +263,7 @@ export default function AudioManagement({ onRefresh }: AudioManagementProps) {
                       >
                         {deletingId === audio.id ? '🗑️' : '🗑️'}
                       </button>
-
-                                    {/* Play Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onPlayAudio(audio);
-                        }}
-                        className={`p-2 rounded-full transition-colors ${
-                          currentAudio?.id === audio.id
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-                        }`}
-                        title={currentAudio?.id === audio.id ? 'Currently Playing' : 'Play Audio'}
-                      >
-                        {currentAudio?.id === audio.id && isPlaying ? '⏸️' : '▶️'}
-                      </button>
+                      <PlayButton episode={audio} episodes={episodes}/>
 
                     </div>
                   </div>

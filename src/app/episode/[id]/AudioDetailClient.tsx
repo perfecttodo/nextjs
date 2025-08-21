@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Episode } from '@/types/audio';
-import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 import { PulseLoader } from 'react-spinners';
+import PlayButton from '@/app/components/PlayButton';
 
 interface AudioDetailClientProps {
   audioId: string;
@@ -15,7 +15,6 @@ export default function AudioDetailClient({ audioId }: AudioDetailClientProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { setAudio, setAudioFiles, audio: currentAudio, togglePlay, isPlaying } = useAudioPlayerStore();
 
   useEffect(() => {
     if (!audioId) return;
@@ -38,7 +37,7 @@ export default function AudioDetailClient({ audioId }: AudioDetailClientProps) {
     };
 
     fetchAudioDetails();
-  }, [audioId, setAudio, setAudioFiles]);
+  }, [audioId]);
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
@@ -136,17 +135,7 @@ export default function AudioDetailClient({ audioId }: AudioDetailClientProps) {
               <h1 className="text-3xl font-bold text-gray-800 mb-2">{audio.title}</h1>
               <p className="text-gray-600 text-lg mb-4">{audio.originalName}</p>
               
-              {/* Play/Pause Button */}
-              <button
-                onClick={() => setAudio(audio)}
-                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                  currentAudio?.id === audio.id && isPlaying
-                    ? 'bg-red-500 hover:bg-red-600 text-white'
-                    : 'bg-blue-500 hover:bg-blue-600 text-white'
-                }`}
-              >
-                {currentAudio?.id === audio.id && isPlaying ? '⏸️ Pause' : '▶️ Play'}
-              </button>
+              <PlayButton episode={audio} episodes={null} />
             </div>
           </div>
         </div>

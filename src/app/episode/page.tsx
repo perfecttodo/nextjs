@@ -4,13 +4,11 @@ import { Suspense, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 const CategorizedAudioList = dynamic(() => import('@/app/components/EpisodeList'), { ssr: false });
 import { Episode } from '@/types/audio';
-import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 import { PulseLoader } from 'react-spinners';
 
 export default function AudioPlayerPage() {
   const [episodes, setAudioFiles] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(true);
-  const { setAudio,setAudioFiles:updateAudioFiles,audio:currentAudio,togglePlay,isPlaying} = useAudioPlayerStore();
   const [error, setError] = useState<string | null>(null);
 
   // Fetch published episodes from API
@@ -43,14 +41,7 @@ export default function AudioPlayerPage() {
     fetchAudioFiles();
   }, []);
 
-  const handleAudioSelect = (audio: Episode) => {
-    if(currentAudio?.id===audio.id){
-      togglePlay();
-    }else{
-      setAudio(audio)
-      updateAudioFiles(episodes);
-    }
-  };
+
 
   return (
     <div className=" p-6 pb-32">
@@ -91,9 +82,6 @@ export default function AudioPlayerPage() {
             }>
               <CategorizedAudioList
                 episodes={episodes}
-                currentAudio={currentAudio}
-                onAudioSelect={handleAudioSelect}
-                isPlaying={isPlaying}
               />
             </Suspense>
             )}

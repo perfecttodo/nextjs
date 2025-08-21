@@ -2,23 +2,20 @@
 
 import { Episode } from '@/types/audio';
 import { useRouter } from 'next/navigation';
+import PlayButton from './PlayButton';
+import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 
 interface CategorizedAudioListProps {
   episodes: Episode[];
-  currentAudio: Episode | null;
-  onAudioSelect: (audio: Episode) => void;
-  isPlaying: boolean;
 }
 
 
 export default function CategorizedAudioList({
-  episodes,
-  currentAudio,
-  onAudioSelect,
-  isPlaying
+  episodes
 }: CategorizedAudioListProps) {
   const router = useRouter();
 
+  const {  audio: currentAudio } = useAudioPlayerStore();
 
 
 
@@ -72,20 +69,7 @@ export default function CategorizedAudioList({
                   {new Date(audio.createdAt).toLocaleDateString()}
                 </div>
 
-                {/* Play Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAudioSelect(audio);
-                  }}
-                  className={`p-2 rounded-full transition-colors ${currentAudio?.id === audio.id
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-                    }`}
-                  title={currentAudio?.id === audio.id ? 'Currently Playing' : 'Play Audio'}
-                >
-                  {currentAudio?.id === audio.id && isPlaying ? '⏸️' : '▶️'}
-                </button>
+                <PlayButton episode={audio} episodes={episodes} />
               </div>
             </div>
           </div>

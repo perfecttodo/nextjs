@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
-import { getSessionUser } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
 import AlbumAudioClient from './AlbumAudioClient';
 
