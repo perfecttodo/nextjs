@@ -14,6 +14,15 @@ export default function ProfileClient({ user }: ProfileClientProps) {
   const [email] = useState(user.email); // Email shouldn't be editable for now
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+  
+  // Password management states
+  const [isPasswordEditing, setIsPasswordEditing] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isPasswordLoading, setIsPasswordLoading] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState('');
+  
   const router = useRouter();
 
   const handleSave = async () => {
@@ -49,6 +58,48 @@ export default function ProfileClient({ user }: ProfileClientProps) {
     setName(user.name || '');
     setIsEditing(false);
     setMessage('');
+  };
+
+  const handlePasswordSave = async () => {
+    setIsPasswordLoading(true);
+    setPasswordMessage('');
+    
+    try {
+      const response = await fetch('/api/profile/password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentPassword: currentPassword || undefined,
+          newPassword,
+          confirmPassword,
+        }),
+      });
+
+      if (response.ok) {
+        setPasswordMessage('Password updated successfully!');
+        setIsPasswordEditing(false);
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        const error = await response.json();
+        setPasswordMessage(error.error || 'Failed to update password');
+      }
+    } catch (error) {
+      setPasswordMessage('An error occurred while updating password');
+    } finally {
+      setIsPasswordLoading(false);
+    }
+  };
+
+  const handlePasswordCancel = () => {
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setIsPasswordEditing(false);
+    setPasswordMessage('');
   };
 
   return (
@@ -159,6 +210,119 @@ export default function ProfileClient({ user }: ProfileClientProps) {
                 </button>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Password Management Card */}
+        <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
+          <h3 className="text-xl font-semibold text-gray-800 mb-6">Password Management</h3>
+          
+          <div className="space-y-6">
+            {/* Current Password Status */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password Status
+              </label>
+              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-600">
+                {user.sub.startsWith('local_') ? 'Local account with password' : 'OAuth account (GitHub/Google)'}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {user.sub.startsWith('local_') 
+                  ? 'You can change your password below' 
+                  : 'You can set a password to enable email/password login'}
+              </p>
+            </div>
+
+            {/* Password Form */}
+            {isPasswordEditing ? (
+              <div className="space-y-4">
+                {/* Current Password Field (only show if user has a password) */}
+                {user.sub.startsWith('local_') && (
+                  <div>
+                    <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                      Current Password
+                    </label>
+                    <input
+                      type="password"
+                      id="currentPassword"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter your current password"
+                    />
+                  </div>
+                )}
+
+                {/* New Password Field */}
+                <div>
+                  <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    id="newPassword"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter your new password"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Password must be at least 6 characters long</p>
+                </div>
+
+                {/* Confirm Password Field */}
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                    Confirm New Password
+                  </label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Confirm your new password"
+                  />
+                </div>
+
+                {/* Password Message Display */}
+                {passwordMessage && (
+                  <div className={`p-3 rounded-md ${
+                    passwordMessage.includes('successfully') 
+                      ? 'bg-green-50 text-green-800 border border-green-200' 
+                      : 'bg-red-50 text-red-800 border border-red-200'
+                  }`}>
+                    {passwordMessage}
+                  </div>
+                )}
+
+                {/* Password Action Buttons */}
+                <div className="flex space-x-4 pt-4">
+                  <button
+                    onClick={handlePasswordSave}
+                    disabled={isPasswordLoading || !newPassword || !confirmPassword || newPassword !== confirmPassword}
+                    className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isPasswordLoading ? 'Updating...' : 'Update Password'}
+                  </button>
+                  <button
+                    onClick={handlePasswordCancel}
+                    disabled={isPasswordLoading}
+                    className="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => setIsPasswordEditing(true)}
+                  className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+                >
+                  {user.sub.startsWith('local_') ? 'Change Password' : 'Set Password'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

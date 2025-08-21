@@ -95,6 +95,7 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
             <AlbumAudioClient 
               album={album as any} 
               episodes={album.episodes as any}
+              userId={null}
             />
           </Suspense>
         </div>
