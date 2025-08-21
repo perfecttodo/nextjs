@@ -58,9 +58,7 @@ export default function FixedAudioPlayer() {
   };
 
   const handleEnded = () => {
-    console.log('end')
     ended();
-
   };
 
 
@@ -99,6 +97,7 @@ export default function FixedAudioPlayer() {
       player.on('timeupdate', handleTimeUpdate);
       player.on('loadedmetadata', handleLoadedMetadata);
       player.on('ended', handleEnded);
+      player.on('error', handleEnded);
       player.on('play', play);
       player.on('pause', pause);
 
@@ -107,15 +106,13 @@ export default function FixedAudioPlayer() {
 
         navigator.mediaSession.setActionHandler('play', () => {
           if (playerRef.current) {
-            playerRef.current.play().catch((e: Error) => console.error('MediaSession play error:', e));
-            play();
+            togglePlay();
           }
         });
 
         navigator.mediaSession.setActionHandler('pause', () => {
           if (playerRef.current) {
-            playerRef.current.pause();
-            pause();
+            togglePlay();
           }
         });
 
@@ -283,7 +280,7 @@ export default function FixedAudioPlayer() {
   useEffect(() => {
     if (!playerRef.current) return;
 
-    if (isPlaying) {
+    if (!playerRef.current.paused()) {
       playerRef.current.pause()
       pause();
     } else {
