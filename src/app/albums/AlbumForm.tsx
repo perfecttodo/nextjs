@@ -24,16 +24,12 @@ export default function AlbumForm({
 }: AlbumFormProps) {
   const [albumName, setAlbumName] = useState(editingAlbum?.name || '');
   const [albumDescription, setAlbumDescription] = useState(editingAlbum?.description || '');
-  const [selectedCategoryId, setSelectedCategoryId] = useState(editingAlbum?.categoryId || '');
-  const [selectedGroupId, setSelectedGroupId] = useState(editingAlbum?.groupId || '');
   const [albumColor, setAlbumColor] = useState(editingAlbum?.color || '#3B82F6');
 
   const handleSubmit = () => {
     const albumData = {
       name: albumName.trim(),
       description: albumDescription.trim() || undefined,
-      categoryId: selectedCategoryId || undefined,
-      groupId: selectedGroupId || undefined,
       color: albumColor,
     };
     

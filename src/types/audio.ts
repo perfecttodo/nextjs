@@ -1,50 +1,6 @@
-export type AudioFormat = 'mp3' | 'm4a' | 'wav' | 'ogg'|'m3u8';
 
 export type AudioStatus = 'draft' | 'published';
 
-export interface Category {
-  id: string;
-  name: string;
-  description?: string;
-  color?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Subcategory {
-  id: string;
-  name: string;
-  description?: string;
-  categoryId: string;
-  category: Category;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Label {
-  id: string;
-  name: string;
-  color?: string;
-  description?: string;
-  ownerId?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Group {
-  id: string;
-  name: string;
-  description?: string;
-  color?: string;
-  ownerId: string;
-  episodes?: Episode[];
-  albums?: Album[]; // Add albums relationship
-  _count?: {
-    episodes: number;
-  };
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface Album {
   id: string;
@@ -52,12 +8,6 @@ export interface Album {
   description?: string;
   color?: string;
   ownerId: string;
-  groupId?: string;
-  group?: Group;
-  categoryId?: string;
-  category?: Category;
-  subcategoryId?: string;
-  subcategory?: Subcategory;
   episodes?: Episode[];
   _count?: {
     episodes: number;
@@ -72,7 +22,7 @@ export interface Episode {
   originalName: string;
   blobUrl: string;
   blobId: string;
-  format: AudioFormat;
+  format: string;
   duration?: number; // in seconds
   fileSize: number; // in bytes
   status: AudioStatus;
@@ -80,13 +30,6 @@ export interface Episode {
   description?: string; // Description of the audio content
   originalWebsite?: string; // Original website where audio was found (optional)
   ownerId: string;
-  categoryId?: string;
-  category?: Category;
-  subcategoryId?: string;
-  subcategory?: Subcategory;
-  labels?: Label[];
-  groupId?: string;
-  group?: Group;
   albumId?: string; // Add album relationship
   album?: Album;
   createdAt: string;

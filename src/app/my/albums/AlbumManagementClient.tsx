@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Album, Category, Group } from '@/types/audio';
+import { Album } from '@/types/audio';
 import Link from 'next/link';
 import AlbumForm from '@/app/components/AlbumForm';
 
@@ -194,16 +194,7 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
                         <h4 className="text-lg font-medium text-gray-900">
                           {album.name}
                         </h4>
-                        {album.category && (
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                            {album.category.name}
-                          </span>
-                        )}
-                        {album.group && (
-                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
-                            {album.group.name}
-                          </span>
-                        )}
+
                       </div>
                       {album.description && (
                         <p className="text-sm text-gray-600 mt-1">{album.description}</p>

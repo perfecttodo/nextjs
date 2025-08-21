@@ -150,9 +150,7 @@ export default function AlbumSelector({
                   {album.description && (
                     <div className="text-xs text-gray-500">{album.description}</div>
                   )}
-                  <div className="text-xs text-gray-400">
-                    {album.group ? `Group: ${album.group.name}` : 'Personal'}
-                  </div>
+         
                 </div>
               </label>
             ))}

@@ -245,11 +245,7 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
                               <span className={getStatusBadge(audio.status)}>
                                 {audio.status}
                               </span>
-                              {(audio.album?.subcategory || audio.subcategory) && (
-                                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                                  {(audio.album?.subcategory || audio.subcategory)!.name}
-                                </span>
-                              )}
+                             
                             </div>
 
                             <div className="text-sm text-gray-500 space-y-1">

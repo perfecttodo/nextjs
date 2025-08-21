@@ -1,6 +1,6 @@
 'use client';
 
-import { AudioStatus, Label } from '@/types/audio';
+import { AudioStatus } from '@/types/audio';
 
 import AlbumSelector from '../AlbumSelector';
 
