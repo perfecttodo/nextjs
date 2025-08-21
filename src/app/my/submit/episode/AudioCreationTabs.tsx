@@ -10,8 +10,6 @@ import RecordingProvider from '../../../components/upload/RecordingProvider';
 import { useFfmpegEngine } from '../../../components/upload/useFfmpegEngine';
 import { formatFileSize, formatDuration } from '@/lib/audio';
 import TabNavigation from './TabNavigation';
-import { useAudioProcessing } from './useAudioProcessing';
-import { useAudioUpload } from './useAudioUpload';
 import {
   AudioCreationTabsProps,
   TabType,
@@ -60,7 +58,6 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     format: '',
     url: '',
   });
-  const blobProcessing = useAudioProcessing();
   // Audio state using the new interface
   const [audioState, setAudioState] = useState<AudioProcessingState>({
     audioBlob: null,
