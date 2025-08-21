@@ -3,8 +3,8 @@
 import { Suspense, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useUser } from '@/app/hooks/useUser';
-const AudioCreationTabs = dynamic(() => import('@/app/components/upload/AudioCreationTabs'), { ssr: false });
-const UserEpisodeManagement = dynamic(() => import('@/app/my/UserEpisodeManagement'), { ssr: false });
+const AudioCreationTabs = dynamic(() => import('@/app/my/submit/AudioCreationTabs'), { ssr: false });
+const UserEpisodeManagement = dynamic(() => import('@/app/my/submit/episode/UserEpisodeManagement'), { ssr: false });
 
 export default function AudioManagePage() {
   const [refreshKey, setRefreshKey] = useState(0);

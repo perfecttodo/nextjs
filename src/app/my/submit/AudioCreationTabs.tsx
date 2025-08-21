@@ -4,11 +4,11 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { AudioStatus } from '@/types/audio';
 import { useUser } from '../../hooks/useUser';
 import { presignUploadSingle, presignUploadBatch } from '@/lib/presign';
-import AudioFormFields from './AudioFormFields';
-import UploadProvider from './UploadProvider';
-import UrlProvider from './UrlProvider';
-import RecordingProvider from './RecordingProvider';
-import { useFfmpegEngine } from './useFfmpegEngine';
+import AudioFormFields from '../../components/upload/AudioFormFields';
+import UploadProvider from '../../components/upload/UploadProvider';
+import UrlProvider from '../../components/upload/UrlProvider';
+import RecordingProvider from '../../components/upload/RecordingProvider';
+import { useFfmpegEngine } from '../../components/upload/useFfmpegEngine';
 
 interface AudioCreationTabsProps {
   onUploadSuccess: () => void;

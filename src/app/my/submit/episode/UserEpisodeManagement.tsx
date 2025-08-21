@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AudioStatus, Episode } from '../../types/audio';
-import AudioFormFields from '../components/upload/AudioFormFields';
-import { useUser } from '../hooks/useUser';
-import PlayButton from '../components/PlayButton';
+import { AudioStatus, Episode } from '../../../../types/audio';
+import AudioFormFields from '../../../components/upload/AudioFormFields';
+import { useUser } from '../../../hooks/useUser';
+import PlayButton from '../../../components/PlayButton';
 
 interface CategorizedAudioManagementProps {
   onRefresh: () => void;
