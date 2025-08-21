@@ -39,7 +39,6 @@ interface AlbumAudioClientProps {
 }
 
 export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudioClientProps) {
-  const [isRemoving, setIsRemoving] = useState<string | null>(null);
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -152,21 +151,6 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
                       )}
                     </div>
                     <div>Uploaded: {formatDate(audio.createdAt)}</div>
-                    
-                    {/* Display Labels */}
-                    {audio.labels && audio.labels.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        <span className="text-xs text-gray-400">Labels:</span>
-                        {audio.labels.map((label) => (
-                          <span
-                            key={label.id}
-                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200"
-                          >
-                            {label.name}
-                          </span>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </div>
 
