@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// GET /api/episode/albums - Fetch albums (optionally filtered by owner) with pagination
+// GET /api/albums - Fetch albums (optionally filtered by owner) with pagination
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const categoryId = searchParams.get('categoryId');
-    const subcategoryId = searchParams.get('subcategoryId');
     const ownerId = searchParams.get('ownerId');
-    const groupId = searchParams.get('groupId');
     const pageParam = searchParams.get('page');
     const pageSizeParam = searchParams.get('pageSize');
 
@@ -28,7 +25,10 @@ export async function GET(request: NextRequest) {
       include: {
         _count: {
           select: {
-            episodes: true,
+            episodes: {
+              where: { status: 'published' }
+            },
+            
           },
         },
       },
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/episode/albums - Create a new album
+// POST /api/albums - Create a new album
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

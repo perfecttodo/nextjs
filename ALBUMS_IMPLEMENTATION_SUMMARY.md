@@ -60,26 +60,26 @@ model Episode {
 
 ## 🔧 **API Endpoints Added/Updated**
 
-### 1. **GET /api/episode/albums**
+### 1. **GET /api/albums**
 - Fetches albums for a user
 - Optional filtering by category and group
 - Returns albums with full details
 
-### 2. **POST /api/episode/albums**
+### 2. **POST /api/albums**
 - Creates new albums
 - Validates user ownership
 - Optional category and group association
 
-### 3. **GET /api/episode/albums/[albumId]**
+### 3. **GET /api/albums/[albumId]**
 - Gets individual album details
 - Includes episodes and metadata
 
-### 4. **PUT /api/episode/albums/[albumId]**
+### 4. **PUT /api/albums/[albumId]**
 - Updates existing albums
 - Validates user ownership
 - Prevents duplicate names
 
-### 5. **DELETE /api/episode/albums/[albumId]**
+### 5. **DELETE /api/albums/[albumId]**
 - Deletes albums
 - Safely removes album associations from episodes
 

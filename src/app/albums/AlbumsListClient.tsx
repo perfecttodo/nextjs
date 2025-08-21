@@ -34,7 +34,7 @@ export default function AlbumsListClient({ initialPage = 1, pageSize = 12 }: Alb
     const fetchAlbums = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/episode/albums?page=${page}&pageSize=${pageSize}`);
+        const res = await fetch(`/api/albums?page=${page}&pageSize=${pageSize}`);
         if (!res.ok) throw new Error('Failed to load albums');
         const data = await res.json();
         setAlbums(data.albums || []);

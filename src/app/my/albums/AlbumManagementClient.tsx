@@ -24,7 +24,7 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const albumsResponse = await fetch(`/api/episode/albums?ownerId=${userId}`);
+      const albumsResponse = await fetch(`/api/albums?ownerId=${userId}`);
       if (albumsResponse.ok) {
         const albumsData = await albumsResponse.json();
         setAlbums(albumsData.albums || []);
@@ -41,7 +41,7 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
     if (!albumData.name) return;
 
     try {
-      const response = await fetch('/api/episode/albums', {
+      const response = await fetch('/api/albums', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
     if (!editingAlbum) return;
 
     try {
-      const response = await fetch(`/api/episode/albums/${editingAlbum.id}`, {
+      const response = await fetch(`/api/albums/${editingAlbum.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -102,7 +102,7 @@ export default function AlbumManagementClient({ userId }: AlbumManagementClientP
     }
 
     try {
-      const response = await fetch(`/api/episode/albums/${albumId}`, {
+      const response = await fetch(`/api/albums/${albumId}`, {
         method: 'DELETE',
       });
 

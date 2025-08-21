@@ -60,7 +60,7 @@ model Episode {
 
 ## API Endpoints
 
-### GET /api/episode/albums
+### GET /api/albums
 Fetches albums for a user based on category and optional group.
 
 **Query Parameters:**
@@ -90,7 +90,7 @@ Fetches albums for a user based on category and optional group.
 }
 ```
 
-### POST /api/episode/albums
+### POST /api/albums
 Creates a new album.
 
 **Request Body:**

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
 
-// GET /api/episode/albums/[albumId] - Get album details
+// GET /api/albums/[albumId] - Get album details
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ albumId: string }> }
@@ -16,6 +16,7 @@ export async function GET(
       include: {
 
         episodes: {
+          where:{status:'published'},
           select: {
             id: true,
             title: true,
@@ -54,7 +55,7 @@ export async function GET(
   }
 }
 
-// PUT /api/episode/albums/[albumId] - Update album
+// PUT /api/albums/[albumId] - Update album
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ albumId: string }> }
@@ -141,7 +142,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/episode/albums/[albumId] - Delete album
+// DELETE /api/albums/[albumId] - Delete album
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ albumId: string }> }

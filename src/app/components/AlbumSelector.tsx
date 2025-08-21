@@ -33,7 +33,7 @@ export default function AlbumSelector({
         
        
 
-        const response = await fetch(`/api/episode/albums?${params}`);
+        const response = await fetch(`/api/albums?${params}`);
         if (response.ok) {
           const data = await response.json();
           setAlbums(data.albums || []);
@@ -53,7 +53,7 @@ export default function AlbumSelector({
 
     setIsCreating(true);
     try {
-      const response = await fetch('/api/episode/albums', {
+      const response = await fetch('/api/albums', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
