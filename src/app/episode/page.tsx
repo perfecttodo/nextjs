@@ -65,7 +65,7 @@ export default function AudioPlayerPage() {
 
           </div>
         </div>
-        
+        <div className='bg-white rounded-lg shadow-sm border border-gray-200'>
         <div className="grid grid-cols-1">
           {/* Audio Section */}
 
@@ -99,7 +99,7 @@ export default function AudioPlayerPage() {
             )}
           </div>
         </div>
-
+        </div>
       </div>
     </div>
   );
