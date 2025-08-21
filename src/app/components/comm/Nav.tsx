@@ -9,7 +9,6 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/', label: 'Pomodoro' },
   { href: '/episode', label: 'Episode' },
   { href: '/albums', label: 'Albums' },
 ];
