@@ -61,7 +61,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     ffmpegLoaded,
     ffmpegLoading,
     loadFFmpeg,
-    processBlob,
+    convertBlobToformat,
     getM3U8Content: engineGetM3U8Content,
     checkFS,
     collectHlsFiles,
@@ -106,7 +106,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     return engineGetM3U8Content();
   }, [engineGetM3U8Content, outputFormat]);
 
-  const processRecording = useCallback(async (format: OutputFormat) => {
+  const processConvert = useCallback(async (format: OutputFormat) => {
     if (!oriBlob.current) return;
 
     setAudioBlob(oriBlob.current);
@@ -115,12 +115,13 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     if (useFFmpeg && ffmpegLoaded) {
       try {
         setIsProcessing(true);
-        const processed = await processBlob(oriBlob.current, format);
+        const processed = await convertBlobToformat(oriBlob.current, format);
         setAudioBlob(processed);
         // For m3u8, keep previewing the original blob; otherwise preview processed
         if (audioUrl) URL.revokeObjectURL(audioUrl);
         const preview = format === 'm3u8' ? oriBlob.current : processed;
         setAudioUrl(URL.createObjectURL(preview));
+        
       } catch (e) {
         console.error('FFmpeg processing error:', e);
         setError('Failed to process audio. Please try again.');
@@ -128,7 +129,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
         setIsProcessing(false);
       }
     }
-  }, [audioUrl, ffmpegLoaded, processBlob, useFFmpeg]);
+  }, [audioUrl, ffmpegLoaded, convertBlobToformat, useFFmpeg]);
 
 
   useEffect(()=>{
@@ -146,8 +147,8 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     const newFormat = e.target.value as OutputFormat;
     setOutputFormat(newFormat);
     await new Promise(resolve => setTimeout(resolve, 100));
-    await processRecording(newFormat);
-  }, [processRecording]);
+    await processConvert(newFormat);
+  }, [processConvert]);
 
 
   

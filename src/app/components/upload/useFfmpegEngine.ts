@@ -21,7 +21,7 @@ export interface UseFfmpegEngine {
   ffmpegLoading: boolean;
   error: string;
   loadFFmpeg: () => Promise<void>;
-  processBlob: (inputBlob: Blob, format: OutputFormat) => Promise<Blob>;
+  convertBlobToformat: (inputBlob: Blob, format: OutputFormat) => Promise<Blob>;
   getM3U8Content: () => Promise<string>;
   checkFS: () => Promise<boolean>;
   collectHlsFiles: () => Promise<HlsFile[]>;
@@ -67,7 +67,7 @@ export function useFfmpegEngine(): UseFfmpegEngine {
     }
   }, []);
 
-  const processBlob = useCallback(async (inputBlob: Blob, format: OutputFormat): Promise<Blob> => {
+  const convertBlobToformat = useCallback(async (inputBlob: Blob, format: OutputFormat): Promise<Blob> => {
     if (!ffmpegRef.current) {
       throw new Error('FFmpeg not loaded');
     }
@@ -253,7 +253,7 @@ export function useFfmpegEngine(): UseFfmpegEngine {
     ffmpegLoading,
     error,
     loadFFmpeg,
-    processBlob,
+    convertBlobToformat,
     getM3U8Content,
     checkFS,
     collectHlsFiles,
