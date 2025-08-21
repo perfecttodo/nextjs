@@ -5,6 +5,7 @@ import { AudioStatus, Episode } from '../../../../types/audio';
 import AudioFormFields from '../../../components/upload/AudioFormFields';
 import { useUser } from '../../../hooks/useUser';
 import PlayButton from '../../../components/PlayButton';
+import { formatDate,formatDuration,formatFileSize } from '@/lib/audio';
 
 interface CategorizedAudioManagementProps {
   onRefresh: () => void;
@@ -132,30 +133,7 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
 
 
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const formatDuration = (seconds: number | null) => {
-    if (!seconds) return 'Unknown';
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+ 
 
   const getStatusBadge = (status: AudioStatus) => {
     const baseClasses = 'px-2 py-1 rounded-full text-xs font-medium';
