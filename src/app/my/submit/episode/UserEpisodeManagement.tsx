@@ -7,12 +7,12 @@ import { useUser } from '../../../hooks/useUser';
 import PlayButton from '../../../components/PlayButton';
 import { formatDate,formatDuration,formatFileSize } from '@/lib/audio';
 
-interface CategorizedAudioManagementProps {
+interface UserEpisodeManagementProps {
   onRefresh: () => void;
 }
 
 
-export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioManagementProps) {
+export default function UserEpisodeManagement({ onRefresh }: UserEpisodeManagementProps) {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
