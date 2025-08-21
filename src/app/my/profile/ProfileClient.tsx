@@ -52,7 +52,7 @@ export default function ProfileClient({ user }: ProfileClientProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 pb-32">
+    <div className=" p-6 pb-32">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">

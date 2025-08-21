@@ -7,7 +7,7 @@ export default async function AlbumsPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className=" flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h1>
           <p className="text-gray-600">Please sign in to manage your albums.</p>
@@ -17,7 +17,7 @@ export default async function AlbumsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="">
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="mb-8">

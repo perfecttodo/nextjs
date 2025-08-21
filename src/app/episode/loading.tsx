@@ -2,7 +2,7 @@
 
 export default function LoadingAudioList() {
   return (
-    <div className="min-h-screen bg-gray-100 p-6 pb-32">
+    <div className=" p-6 pb-32">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="animate-pulse space-y-4">

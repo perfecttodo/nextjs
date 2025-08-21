@@ -81,7 +81,7 @@ export default function AudioDetailClient({ audioId }: AudioDetailClientProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 p-6 pb-32">
+      <div className=" p-6 pb-32">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <PulseLoader color="#3498db" loading={loading} size={15} />
@@ -94,7 +94,7 @@ export default function AudioDetailClient({ audioId }: AudioDetailClientProps) {
 
   if (error || !audio) {
     return (
-      <div className="min-h-screen bg-gray-100 p-6 pb-32">
+      <div className=" p-6 pb-32">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <div className="text-red-500 text-6xl mb-4">❌</div>
@@ -113,7 +113,7 @@ export default function AudioDetailClient({ audioId }: AudioDetailClientProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 pb-32">
+    <div className=" p-6 pb-32">
       <div className="max-w-4xl mx-auto">
         {/* Back Button */}
         <div className="mb-6">

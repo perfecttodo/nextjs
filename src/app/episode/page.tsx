@@ -53,7 +53,7 @@ export default function AudioPlayerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 pb-32">
+    <div className=" p-6 pb-32">
       <div className="max-w-6xl mx-auto">
         {/* Header with Navigation */}
         <div className="mb-8">
