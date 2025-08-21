@@ -384,12 +384,6 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     }, 150);
   }, [activeTab]);
 
-  const updateSharedFormData = useCallback((field: keyof typeof sharedFormData, value: string | AudioStatus) => {
-    setSharedFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  }, []);
 
   const handleAudioFieldsChange = useCallback((patch: Partial<typeof sharedFormData>) => {
     setSharedFormData(prev => ({ ...prev, ...patch }));
