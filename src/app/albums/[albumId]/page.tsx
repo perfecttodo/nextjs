@@ -8,17 +8,7 @@ import AlbumAudioClient from './AlbumAudioClient';
 
 export default async function AlbumPage({ params }: { params: Promise<{ albumId: string }> }) {
   const resolved = await params;
-  const user = await getSessionUser();
-  if (!user) {
-    return (
-      <div className=" flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h1>
-          <p className="text-gray-600">Please sign in to view this album.</p>
-        </div>
-      </div>
-    );
-  }
+
 
   // Fetch album details
   const album = await prisma.album.findFirst({
@@ -105,7 +95,6 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
             <AlbumAudioClient 
               album={album as any} 
               episodes={album.episodes as any}
-              userId={user.sub}
             />
           </Suspense>
         </div>

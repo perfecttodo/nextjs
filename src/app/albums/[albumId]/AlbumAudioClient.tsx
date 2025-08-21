@@ -50,7 +50,7 @@ type AlbumWithAudio = {
 interface AlbumAudioClientProps {
   album: AlbumWithAudio;
   episodes: AlbumWithAudio['episodes'];
-  userId: string;
+  userId: string|null;
 }
 
 export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudioClientProps) {
