@@ -6,40 +6,95 @@ import AlbumSelector from '../AlbumSelector';
 
 interface AudioFormFieldsProps {
   title: string;
+  url:string,
   status: AudioStatus;
   language?: string;
   description?: string;
   originalWebsite?: string;
   selectedAlbumId: string;
   onTitleChange: (title: string) => void;
+  onUrl:(url:string)=>void;
   onStatusChange: (status: AudioStatus) => void;
   onLanguageChange: (language: string) => void;
   onDescriptionChange: (description: string) => void;
   onOriginalWebsiteChange: (originalWebsite: string) => void;
   onAlbumChange: (albumId: string) => void;
+  format?: string;
+  onFormatChange?: (format: string) => void;
   showStatusHelp?: boolean;
   ownerId?: string;
 }
 
 export default function AudioFormFields({
   title,
+  url,
   status,
   language,
   description,
   originalWebsite,
   selectedAlbumId,
   onTitleChange,
+  onUrl,
   onStatusChange,
   onLanguageChange,
   onDescriptionChange,
   onOriginalWebsiteChange,
   onAlbumChange,
+  format,
+  onFormatChange,
   showStatusHelp = true,
   ownerId
 }: AudioFormFieldsProps) {
   console.log('ownerId', ownerId);
   return (
     <div className="space-y-6">
+
+        <div>
+        <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-2">
+          URL
+        </label>
+        <input
+          type="text"
+          id="url"
+          value={url || ''}
+          onChange={(e) => onUrl(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="e.g."
+        />
+      </div>
+
+      {/* Format Selection/Input */}
+      <div>
+        <label htmlFor="format" className="block text-sm font-medium text-gray-700 mb-2">
+          Format
+        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <select
+            id="format"
+            value={format || ''}
+            onChange={(e) => onFormatChange && onFormatChange(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Auto-detect</option>
+            <option value="mp3">MP3</option>
+            <option value="m4a">M4A</option>
+            <option value="wav">WAV</option>
+            <option value="ogg">OGG</option>
+            <option value="m3u8">M3U8</option>
+            <option value="flv">FLV</option>
+            <option value="mpd">MPD</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Or type custom (e.g., webm)"
+            value={format || ''}
+            onChange={(e) => onFormatChange && onFormatChange(e.target.value.toLowerCase())}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <p className="text-xs text-gray-500 mt-1">Leave empty to detect from URL or filename.</p>
+      </div>
+
       {/* Language Input */}
       <div>
         <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-2">

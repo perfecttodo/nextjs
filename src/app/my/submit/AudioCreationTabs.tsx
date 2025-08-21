@@ -55,6 +55,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     description: '',
     originalWebsite: '',
     albumId: '',
+    format: '',
   });
 
   // Audio state
@@ -226,6 +227,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
         originalWebsite: sharedFormData.originalWebsite || '',
         duration,
         albumId: sharedFormData.albumId || undefined,
+        format: sharedFormData.format || undefined,
       })
     });
     
@@ -396,6 +398,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       description: '',
       originalWebsite: '',
       albumId: '',
+      format: '',
     });
     onUploadSuccess();
   }, [onUploadSuccess]);
@@ -631,17 +634,21 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
               <div>
                 <AudioFormFields
                   title={sharedFormData.title}
+                  url={audioUrl || ''}
                   status={sharedFormData.status}
                   language={sharedFormData.language}
                   description={sharedFormData.description}
                   originalWebsite={sharedFormData.originalWebsite}
                   selectedAlbumId={sharedFormData.albumId}
                   onTitleChange={(title: string) => updateSharedFormData('title', title)}
+                  onUrl={(url: string) => { setAudioUrl(url); }}
                   onStatusChange={(status: AudioStatus) => updateSharedFormData('status', status)}
                   onLanguageChange={(language: string) => updateSharedFormData('language', language)}
                   onDescriptionChange={(description: string) => updateSharedFormData('description', description)}
                   onOriginalWebsiteChange={(originalWebsite: string) => updateSharedFormData('originalWebsite', originalWebsite)}
                   onAlbumChange={(albumId: string) => updateSharedFormData('albumId', albumId)}
+                  format={sharedFormData.format}
+                  onFormatChange={(format: string) => updateSharedFormData('format', format)}
                   showStatusHelp={true}
                   ownerId={user?.id || ''}
                 />

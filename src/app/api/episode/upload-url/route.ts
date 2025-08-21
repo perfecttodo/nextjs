@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Changed from formData to JSON parsing since the frontend sends JSON
-    const { url, title, status = 'draft', language, description, originalWebsite, duration = 0, categoryId, subcategoryId, groupId, albumId, labelIds = [] } = await request.json();
+    const { url, title, status = 'draft', language, description, originalWebsite, duration = 0, categoryId, subcategoryId, groupId, albumId, labelIds = [], format: providedFormat } = await request.json();
 
     if (!url || !title) {
       return NextResponse.json(
@@ -60,13 +60,22 @@ export async function POST(request: NextRequest) {
     // Extract file extension for format
     const urlObj = new URL(url);
     const pathname = urlObj.pathname.toLowerCase();
-    let format: 'mp3' | 'm4a' | 'wav' | 'ogg'|'webm'|'m3u8'|'';
+    let format: 'mp3' | 'm4a' | 'wav' | 'ogg'|'webm'|'m3u8'|'flv'|'mpd'|'';
 
-    if (pathname.endsWith('.mp3')) format = 'mp3';
+    if (providedFormat && typeof providedFormat === 'string') {
+      const f = providedFormat.toLowerCase();
+      if (['mp3','m4a','wav','ogg','webm','m3u8','flv','mpd'].includes(f)) {
+        format = f as any;
+      } else {
+        format = '';
+      }
+    } else if (pathname.endsWith('.mp3')) format = 'mp3';
     else if (pathname.endsWith('.m4a') || pathname.endsWith('.mp4')) format = 'm4a';
     else if (pathname.endsWith('.wav')) format = 'wav';
     else if (pathname.endsWith('.ogg')) format = 'ogg';
     else if (pathname.endsWith('.m3u8')) format = 'm3u8';
+    else if (pathname.endsWith('.flv')) format = 'flv';
+    else if (pathname.endsWith('.mpd')) format = 'mpd';
     else format = '';
 
     // Validate labels if provided

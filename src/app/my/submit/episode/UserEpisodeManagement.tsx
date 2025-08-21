@@ -17,6 +17,7 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
+  const [editUrl, setEditUrl] = useState('');
   const [editStatus, setEditStatus] = useState<AudioStatus>('draft');
   const [editLanguage, setEditLanguage] = useState<string>('');
   const [editDescription, setEditDescription] = useState<string>('');
@@ -59,6 +60,7 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
   const handleEdit = (audio: Episode) => {
     setEditingId(audio.id);
     setEditTitle(audio.title);
+    setEditUrl(audio.blobUrl);
     setEditStatus(audio.status);
     setEditLanguage(audio.language || '');
     setEditDescription(audio.description || '');
@@ -196,6 +198,8 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
                       <div className="space-y-3">
                         <AudioFormFields
                           title={editTitle}
+                          url={editUrl}
+                          onUrl={setEditUrl}
                           status={editStatus}
                           language={editLanguage}
                           description={editDescription}
