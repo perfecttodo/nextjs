@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import PlayButton from '@/app/components/PlayButton';
+import { Episode } from '@/types/audio';
 
 // Type for the album data from Prisma
 type AlbumWithAudio = {
@@ -24,24 +26,7 @@ type AlbumWithAudio = {
     name: string;
     color: string | null;
   } | null;
-  episodes: {
-    id: string;
-    title: string;
-    originalName: string;
-    format: string;
-    duration: number | null;
-    fileSize: number;
-    status: string;
-    language: string | null;
-    description: string | null;
-    originalWebsite: string | null;
-    createdAt: Date;
-    labels: {
-      id: string;
-      name: string;
-      color: string | null;
-    }[];
-  }[];
+  episodes: Episode[];
   _count: {
     episodes: number;
   };
@@ -166,7 +151,7 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
                         <span>Duration: {formatDuration(audio.duration)}</span>
                       )}
                     </div>
-                    <div>Uploaded: {formatDate(audio.createdAt.toISOString())}</div>
+                    <div>Uploaded: {formatDate(audio.createdAt)}</div>
                     
                     {/* Display Labels */}
                     {audio.labels && audio.labels.length > 0 && (
@@ -192,6 +177,7 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
                   >
                     View
                   </Link>
+                  <PlayButton episode={audio} episodes={episodes} />
       
                 </div>
               </div>
