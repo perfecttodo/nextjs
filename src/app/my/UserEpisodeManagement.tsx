@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { AudioStatus, Episode } from '../../types/audio';
-import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 import AudioFormFields from '../components/upload/AudioFormFields';
 import { useUser } from '../hooks/useUser';
+import PlayButton from '../components/PlayButton';
 
 interface CategorizedAudioManagementProps {
   onRefresh: () => void;
@@ -22,7 +22,6 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
   const [editOriginalWebsite, setEditOriginalWebsite] = useState<string>('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'draft' | 'published'>('all');
-  const { setAudio, setAudioFiles: updateAudioFiles, audio: currentAudio, togglePlay, isPlaying } = useAudioPlayerStore();
   const [album,setAlbum] =useState('');
 
   const { user, loading: userLoading } = useUser();
@@ -34,14 +33,7 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
     fetchAudioFiles();
   }, [filter]);
 
-  const onPlayAudio = (audio: Episode) => {
-    if (currentAudio?.id === audio.id) {
-      togglePlay();
-    } else {
-      setAudio(audio);
-      updateAudioFiles(episodes);
-    }
-  };
+
 
   const fetchAudioFiles = async () => {
     try {
@@ -315,21 +307,8 @@ export default function UserEpisodeManagement({ onRefresh }: CategorizedAudioMan
                               {deletingId === audio.id ? '🗑️' : '🗑️'}
                             </button>
 
-                            {/* Play Button */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onPlayAudio(audio);
-                              }}
-                              className={`p-2 rounded-full transition-colors ${
-                                currentAudio?.id === audio.id
-                                  ? 'bg-blue-500 text-white'
-                                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-                              }`}
-                              title={currentAudio?.id === audio.id ? 'Currently Playing' : 'Play Audio'}
-                            >
-                              {currentAudio?.id === audio.id && isPlaying ? '⏸️' : '▶️'}
-                            </button>
+                            <PlayButton episode={audio} episodes={episodes}/>
+                          
                           </div>
                         </div>
                       </div>
