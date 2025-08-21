@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Changed from formData to JSON parsing since the frontend sends JSON
-    const { url, title, status = 'draft', description, originalWebsite, duration = 0, categoryId, subcategoryId, groupId, albumId, labelIds = [] } = await request.json();
+    const { url, title, status = 'draft', language, description, originalWebsite, duration = 0, categoryId, subcategoryId, groupId, albumId, labelIds = [] } = await request.json();
 
     if (!url || !title) {
       return NextResponse.json(
@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
         status,
         ownerId: user.sub,
         description: description || null,
+        language: language || null,
         originalWebsite: originalWebsite || null,
         duration: typeof duration === 'string' ? parseInt(duration) : duration,
         albumId: albumId || null,

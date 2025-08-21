@@ -24,11 +24,13 @@ interface AudioFormFieldsProps {
 export default function AudioFormFields({
   title,
   status,
+  language,
   description,
   originalWebsite,
   selectedAlbumId,
   onTitleChange,
   onStatusChange,
+  onLanguageChange,
   onDescriptionChange,
   onOriginalWebsiteChange,
   onAlbumChange,
@@ -38,6 +40,20 @@ export default function AudioFormFields({
   console.log('ownerId', ownerId);
   return (
     <div className="space-y-6">
+      {/* Language Input */}
+      <div>
+        <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-2">
+          Language
+        </label>
+        <input
+          type="text"
+          id="language"
+          value={language || ''}
+          onChange={(e) => onLanguageChange(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="e.g., English, Spanish"
+        />
+      </div>
       {/* Title Input */}
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">

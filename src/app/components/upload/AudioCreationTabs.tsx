@@ -163,32 +163,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
 
   // removed inline FFmpeg processing in favor of hook
 
-  const submitEpisode = useCallback(async () => {
-    if (!audioUrl) {
-      setError('Please record or upload audio before uploading.');
-      return;
-    }
-
-    try {
-      setIsUploading(true);
-      setUploadProgress(0);
-      setError('');
-      
-      if (activeTab!='url'&&outputFormat === 'm3u8') {
-        await uploadHLSRecording();
-      } else {
-        await uploadStandardEpisode();
-      }
-
-      setAudioBlob(null);
-      setAudioUrl('');
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Upload failed');
-    } finally {
-      setIsUploading(false);
-      setUploadProgress(0);
-    }
-  }, [audioUrl, outputFormat]);
+  
 
   const uploadStandardEpisode = useCallback(async () => {
 
@@ -246,6 +221,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
         url: finalUrl,
         title: sharedFormData.title.trim() || 'New recording',
         status: sharedFormData.status,
+        language: sharedFormData.language || '',
         description: sharedFormData.description || '',
         originalWebsite: sharedFormData.originalWebsite || '',
         duration,
@@ -258,7 +234,10 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
 
     handleUploadSuccess();
     resetAfterUpload();
-  }, [audioBlob, outputFormat, sharedFormData, duration,activeTab,audioUrl]);
+  }, [activeTab, audioBlob, audioUrl, duration, outputFormat, sharedFormData]);
+
+
+
 
   const uploadHLSRecording = useCallback(async () => {
     try {
@@ -364,6 +343,33 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     }));
     setDuration(0);
   }, [audioUrl]);
+
+  const submitEpisode = useCallback(async () => {
+    if (!audioUrl) {
+      setError('Please record or upload audio before uploading.');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setUploadProgress(0);
+      setError('');
+      
+      if (activeTab!='url'&&outputFormat === 'm3u8') {
+        await uploadHLSRecording();
+      } else {
+        await uploadStandardEpisode();
+      }
+
+      setAudioBlob(null);
+      setAudioUrl('');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Upload failed');
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  }, [audioUrl, outputFormat, activeTab, uploadHLSRecording, uploadStandardEpisode]);
 
   const handleTabChange = useCallback((newTab: TabType) => {
     if (newTab === activeTab) return;

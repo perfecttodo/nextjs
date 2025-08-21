@@ -236,6 +236,7 @@ export default function FixedAudioPlayer() {
 
     let url = audio.blobUrl
     let type = getType(audio);
+    
 
     player.src({
       src: url,
