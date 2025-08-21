@@ -76,9 +76,9 @@ export default function UserDropdown({ user }: UserDropdownProps) {
         <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
           {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
         </div>
-        
 
-        
+
+
         {/* Dropdown Arrow */}
         <svg
           className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
@@ -123,7 +123,7 @@ export default function UserDropdown({ user }: UserDropdownProps) {
                 </svg>
                 Profile
               </Link>
-              
+
               <Link
                 href="/my/albums"
                 className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
@@ -141,12 +141,13 @@ export default function UserDropdown({ user }: UserDropdownProps) {
                 onClick={() => setIsOpen(false)}
               >
                 <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.5L14.5 7l-9 9H3v-2.5l9-9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16.5 7.5L20 4l-2.5-2.5L14 5l2.5 2.5z" />
                 </svg>
-                Manage Episodes
+                Creation
               </Link>
-              
-              {(false&&<Link
+
+              {(false && <Link
                 href="/todo"
                 className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                 onClick={() => setIsOpen(false)}
