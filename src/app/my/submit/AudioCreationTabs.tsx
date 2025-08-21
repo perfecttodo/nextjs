@@ -293,7 +293,6 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
         });
       }
 
-      // 3) Finalize by creating the episode pointing to the playlist URL
       const finalizeRes = await fetch('/api/episode/finalize-hls', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -627,8 +626,9 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
               <div>
                 <EpisodeForm
                   audio={{
+                    id:'',
                     title: sharedFormData.title,
-                    url: sharedFormData.url  || '',
+                    blobUrl: sharedFormData.url  || '',
                     status: sharedFormData.status,
                     language: sharedFormData.language,
                     description: sharedFormData.description,
