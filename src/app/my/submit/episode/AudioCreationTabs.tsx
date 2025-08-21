@@ -10,6 +10,8 @@ import RecordingProvider from '../../../components/upload/RecordingProvider';
 import { useFfmpegEngine } from '../../../components/upload/useFfmpegEngine';
 import { formatFileSize, formatDuration } from '@/lib/audio';
 import TabNavigation from './TabNavigation';
+import { useAudioProcessing } from './useAudioProcessing';
+import { useAudioUpload } from './useAudioUpload';
 import {
   AudioCreationTabsProps,
   TabType,
@@ -58,7 +60,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     format: '',
     url: '',
   });
-
+  const blobProcessing = useAudioProcessing();
   // Audio state using the new interface
   const [audioState, setAudioState] = useState<AudioProcessingState>({
     audioBlob: null,
@@ -189,27 +191,8 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       finalUrl = audioState.audioUrl;
     }
 
-    const finalizeRes = await fetch('/api/episode/upload-url', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: sharedFormData.url || finalUrl,
-        title: sharedFormData.title.trim(),
-        status: sharedFormData.status,
-        language: sharedFormData.language || '',
-        description: sharedFormData.description || '',
-        originalWebsite: sharedFormData.originalWebsite || '',
-        duration: audioState.duration,
-        albumId: sharedFormData.albumId || undefined,
-        format: sharedFormData.format || undefined,
-      })
-    });
-    
-    const finalizeData = await finalizeRes.json();
-    if (!finalizeRes.ok) throw new Error(finalizeData.error || 'Failed to save episode');
+    return finalUrl
 
-    handleUploadSuccess();
-    resetAfterUpload();
   }, [activeTab, audioState.audioBlob, audioState.audioUrl, audioState.duration, audioState.outputFormat, sharedFormData, updateAudioState]);
 
   const uploadHLSRecording = useCallback(async () => {
@@ -271,27 +254,9 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
         });
       }
 
-      const finalizeRes = await fetch('/api/episode/upload-url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          playlistUrl: presign.playlistPublicUrl,
-          title: sharedFormData.title.trim() || 'New recording',
-          status: sharedFormData.status,
-          language: sharedFormData.language || '',
-          description: sharedFormData.description || '',
-          originalWebsite: sharedFormData.originalWebsite || '',
-          duration: audioState.duration,
-          albumId: sharedFormData.albumId || undefined
-        })
-      });
-      
-      const finalize = await finalizeRes.json();
-      if (!finalizeRes.ok) throw new Error(finalize.error || 'Failed to save HLS episode');
+      return presign.playlistPublicUrl;
 
-      handleUploadSuccess();
-      resetAfterUpload();
-      await cleanupFiles();
+
     } catch (error) {
       console.error('HLS upload error:', error);
       throw new Error(`Failed to upload HLS files: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -320,12 +285,36 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
 
     try {
       updateAudioState({ isUploading: true, uploadProgress: 0, error: '' });
-      
+      let finalUrl;
       if (activeTab !== 'url' && audioState.outputFormat === 'm3u8') {
-        await uploadHLSRecording();
+        finalUrl = await uploadHLSRecording();
       } else {
-        await uploadStandardEpisode();
+        finalUrl = await uploadStandardEpisode();
       }
+
+      const finalizeRes = await fetch('/api/episode/upload-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: sharedFormData.url || finalUrl,
+          title: sharedFormData.title.trim(),
+          status: sharedFormData.status,
+          language: sharedFormData.language || '',
+          description: sharedFormData.description || '',
+          originalWebsite: sharedFormData.originalWebsite || '',
+          duration: audioState.duration,
+          albumId: sharedFormData.albumId || undefined,
+          format: sharedFormData.format || undefined,
+        })
+      });
+      
+      const finalizeData = await finalizeRes.json();
+      if (!finalizeRes.ok) throw new Error(finalizeData.error || 'Failed to save episode');
+  
+      handleUploadSuccess();
+      resetAfterUpload();
+
+      if (activeTab !== 'url' && audioState.outputFormat === 'm3u8') await cleanupFiles();
 
       updateAudioState({ audioBlob: null, audioUrl: '' });
     } catch (e) {
