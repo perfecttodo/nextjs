@@ -286,7 +286,8 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     try {
       updateAudioState({ isUploading: true, uploadProgress: 0, error: '' });
       let finalUrl;
-      if (activeTab !== 'url' && audioState.outputFormat === 'm3u8') {
+      const isHls = activeTab !== 'url' && audioState.outputFormat === 'm3u8';
+      if (isHls) {
         finalUrl = await uploadHLSRecording();
       } else {
         finalUrl = await uploadStandardEpisode();
@@ -314,7 +315,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       handleUploadSuccess();
       resetAfterUpload();
 
-      if (activeTab !== 'url' && audioState.outputFormat === 'm3u8') await cleanupFiles();
+      if (isHls) await cleanupFiles();
 
       updateAudioState({ audioBlob: null, audioUrl: '' });
     } catch (e) {
