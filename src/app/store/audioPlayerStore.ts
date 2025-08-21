@@ -10,6 +10,7 @@ type PlayerCallback = (state: AudioPlayerState) => void;
 interface AudioPlayerState {
   audio: Episode | null;
   isPlaying: boolean;
+  isToggle:boolean;
   playMode: PlayMode;
   episodes: Episode[];
   currentIndex: number;
@@ -60,6 +61,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
   return {
     audio: null,
     isPlaying: false,
+    isToggle:false,
     playMode: 'sequence',
     episodes: [],
     currentIndex: -1,
@@ -82,7 +84,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
     set({ episodes, currentIndex: -1 });
   },
   togglePlay: () => {
-    set((state) => ({ isPlaying: !state.isPlaying }));
+    set((state) => ({ isToggle: !state.isToggle }));
     get().callback?.(get());
   },
   

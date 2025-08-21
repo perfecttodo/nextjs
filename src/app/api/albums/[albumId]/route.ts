@@ -10,7 +10,6 @@ export async function GET(
   try {
     const resolved = await params;
     const albumId = resolved.albumId;
-    console.log(albumId)
     const album = await prisma.album.findUnique({
       where: { id: albumId },
       include: {
@@ -25,6 +24,7 @@ export async function GET(
             fileSize: true,
             status: true,
             createdAt: true,
+            blobUrl:true,
           },
           orderBy: {
             createdAt: 'desc',

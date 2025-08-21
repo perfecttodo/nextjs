@@ -32,6 +32,7 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
           description: true,
           originalWebsite: true,
           createdAt: true,
+          blobUrl:true,
         },
         orderBy: {
           createdAt: 'desc',

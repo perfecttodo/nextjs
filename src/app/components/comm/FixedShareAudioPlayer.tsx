@@ -27,10 +27,12 @@ export default function FixedAudioPlayer() {
     setAudio,
     removeTrack,
     removeFromHistory,
-    clearHistory,
+    clearHistory,isToggle,togglePlay
   } = useAudioPlayerStore();
 
   const [showPlaylist, setShowPlaylist] = useState(false);
+  const [url, setUrl] = useState<string|null>(null);
+  const [type, setType] = useState<string|null>(null);
   const [viewMode, setViewMode] = useState<'playlist' | 'history'>('playlist');
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -232,38 +234,31 @@ export default function FixedAudioPlayer() {
     return () => document.removeEventListener('click', handleInteraction);
   }, []);
 
+  useEffect(() => {
+    if (!audio) return;
+    setUrl(audio.blobUrl);
+    let type = getType(audio);
+    setType(type);
+  }, [audio]);
+
   // Handle audio source changes
   useEffect(() => {
-    if (!playerRef.current || !audio) return;
+    if (!playerRef.current || !url) return;
 
     const player = playerRef.current;
 
-    let url = audio.blobUrl
-    let type = getType(audio);
-    
 
     player.src({
       src: url,
       type
     });
+    player.play();
 
 
 
-  }, [audio, userInteracted]);
+  }, [url,type, userInteracted]);
 
-  // Handle play/pause state changes
-  useEffect(() => {
-    if (!playerRef.current) return;
-
-    if (isPlaying && userInteracted) {
-      playerRef.current.play().catch((e: Error) => {
-        console.error("Playback failed:", e);
-        //  pause();
-      });
-    } else {
-      playerRef.current.pause();
-    }
-  }, [isPlaying, userInteracted]);
+ 
 
   // Format time helper
   const formatTime = (time: number) => {
@@ -285,10 +280,23 @@ export default function FixedAudioPlayer() {
     }
   };
 
+  useEffect(() => {
+    if (!playerRef.current) return;
+
+    if (isPlaying) {
+      playerRef.current.pause()
+      pause();
+    } else {
+      playerRef.current.play();
+      play();
+    }
+  }, [isToggle, userInteracted]);
+
   // Toggle play/pause
   const togglePlayPause = () => {
-    isPlaying ? pause() : play();
+    togglePlay();
   };
+
 
   if (!audio) return null;
 
