@@ -2,7 +2,7 @@
 
 import { AudioStatus } from '@/types/audio';
 
-import AlbumSelector from '../AlbumSelector';
+import AlbumSelector from '../../../components/AlbumSelector';
 
 interface AudioFields {
   title: string;
@@ -15,19 +15,19 @@ interface AudioFields {
   format?: string;
 }
 
-interface AudioFormFieldsProps {
+interface EpisodeFormProps {
   audio: AudioFields;
   onChange: (patch: Partial<AudioFields>) => void;
   showStatusHelp?: boolean;
   ownerId?: string;
 }
 
-export default function AudioFormFields({
+export default function EpisodeForm({
   audio,
   onChange,
   showStatusHelp = true,
   ownerId
-}: AudioFormFieldsProps) {
+}: EpisodeFormProps) {
   console.log('ownerId', ownerId);
   return (
     <div className="space-y-6">

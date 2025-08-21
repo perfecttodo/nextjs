@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { AudioStatus } from '@/types/audio';
 import { useUser } from '../../hooks/useUser';
 import { presignUploadSingle, presignUploadBatch } from '@/lib/presign';
-import AudioFormFields from '../../components/upload/AudioFormFields';
+import EpisodeForm from './episode/EpisodeForm';
 import UploadProvider from '../../components/upload/UploadProvider';
 import UrlProvider from '../../components/upload/UrlProvider';
 import RecordingProvider from '../../components/upload/RecordingProvider';
@@ -637,7 +637,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
             {/* Common Form Fields - only show when there's a recording */}
             {audioUrl && (
               <div>
-                <AudioFormFields
+                <EpisodeForm
                   audio={{
                     title: sharedFormData.title,
                     url: sharedFormData.url || audioUrl || '',

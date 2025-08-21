@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { AudioStatus, Episode } from '../../../../types/audio';
-import AudioFormFields from '../../../components/upload/AudioFormFields';
+import EpisodeForm from './EpisodeForm';
 import { useUser } from '../../../hooks/useUser';
 import PlayButton from '../../../components/PlayButton';
 import { formatDate,formatDuration,formatFileSize } from '@/lib/audio';
@@ -196,7 +196,7 @@ export default function UserEpisodeManagement({ onRefresh }: UserEpisodeManageme
                     {editingId === audio.id ? (
                       // Edit Mode
                       <div className="space-y-3">
-                        <AudioFormFields
+                        <EpisodeForm
                           audio={{
                             title: editTitle,
                             url: editUrl,
