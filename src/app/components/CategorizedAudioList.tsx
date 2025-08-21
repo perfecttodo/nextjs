@@ -61,29 +61,8 @@ export default function CategorizedAudioList({
                           <span>{audio.duration ? `${Math.floor(audio.duration / 60)}:${(audio.duration % 60).toString().padStart(2, '0')}` : 'Unknown duration'}</span>
                           <span>•</span>
                           <span>{audio.status}</span>
-                          {/* Prefer album.subcategory display if present */}
-                          {(audio.album?.subcategory || audio.subcategory) && (
-                            <>
-                              <span>•</span>
-                              <span className="px-2 py-1 bg-gray-100 rounded text-xs">
-                                {(audio.album?.subcategory || audio.subcategory)!.name}
-                              </span>
-                            </>
-                          )}
+                          {audio?.album?.id&&(<a href={`/albums/${audio?.album?.id}`}>album: <span>{audio?.album?.name}</span></a>)}
                         </div>
-                        {/* Display Labels */}
-                        {audio.labels && audio.labels.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {audio.labels.map((label) => (
-                              <span
-                                key={label.id}
-                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200"
-                              >
-                                {label.name}
-                              </span>
-                            ))}
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>

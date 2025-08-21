@@ -122,7 +122,7 @@ export default function AudioDetailClient({ audioId }: AudioDetailClientProps) {
             className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors"
           >
             <span>←</span>
-            <span>Back to Album</span>
+            <span>Back</span>
           </button>
         </div>
 
