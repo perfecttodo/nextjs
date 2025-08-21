@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-const CategorizedAudioList = dynamic(() => import('@/app/components/CategorizedAudioList'), { ssr: false });
+const CategorizedAudioList = dynamic(() => import('@/app/components/EpisodeList'), { ssr: false });
 import { Episode } from '@/types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 import { PulseLoader } from 'react-spinners';
