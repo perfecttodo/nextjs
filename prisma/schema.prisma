@@ -28,7 +28,7 @@ enum Status {
 
 model User {
   id        String        @id
-  email     String        @unique
+  email     String        
   name      String?
   password  String?       // For email/password auth
   githubId  String?       @unique // For GitHub OAuth
@@ -38,30 +38,6 @@ model User {
   
   @@index([githubId])
 }
-
-
-
-model Label {
-  id          String     @id @default(uuid())
-  name        String
-  color       String?    
-  description String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  @@unique([name]) 
-}
-
-model AlbumLabel {
-  id          String     @id @default(uuid())
-  labelId        String
-  albumId        String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  @@unique([labelId,albumId]) 
-}
-
 
 
 model Album {
