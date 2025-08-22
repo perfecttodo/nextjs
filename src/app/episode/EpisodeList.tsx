@@ -35,7 +35,7 @@ export default function CategorizedAudioList({
         {episodes.map((audio) => (
           <div
             key={audio.id}
-            className={`px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer ${currentAudio?.id === audio.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+            className={`px-6 py-4 hover:bg-gray-50 transition-colors ${currentAudio?.id === audio.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
               }`}
 
           >
@@ -48,16 +48,16 @@ export default function CategorizedAudioList({
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-gray-900 truncate" onClick={() => router.push(`/episode/${audio.id}`)}>
+                    <h4 className="text-sm font-medium text-gray-900 truncate mb-2 cursor-pointer " onClick={() => router.push(`/episode/${audio.id}`)}>
                       {audio.title}
                     </h4>
                     <div className="flex items-center space-x-2 text-xs text-gray-500">
-                      <span>{audio.format.toUpperCase()}</span>
+                      <span className='truncate'>{audio.format.toUpperCase()}</span>
                       <span>•</span>
                       <span>{audio.duration ? `${Math.floor(audio.duration / 60)}:${(audio.duration % 60).toString().padStart(2, '0')}` : 'Unknown duration'}</span>
                       <span>•</span>
                       <span>{audio.status}</span>
-                      {audio?.album?.id && (<a href={`/albums/${audio?.album?.id}`}>album: <span>{audio?.album?.name}</span></a>)}
+                      {audio?.album?.id && ( <>lbum:<a  onClick={() => router.push(`/albums/${audio?.album?.id}`)} ><span className='font-bold cursor-pointer '>{audio?.album?.name}</span></a></>)}
                     </div>
                   </div>
                 </div>
@@ -68,7 +68,6 @@ export default function CategorizedAudioList({
                 <div className="text-xs text-gray-400">
                   {new Date(audio.createdAt).toLocaleDateString()}
                 </div>
-
                 <PlayButton episode={audio} episodes={episodes} />
               </div>
             </div>
