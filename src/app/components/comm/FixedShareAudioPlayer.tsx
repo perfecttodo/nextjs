@@ -34,10 +34,25 @@ export default function FixedAudioPlayer() {
   const [url, setUrl] = useState<string|null>(null);
   const [type, setType] = useState<string|null>(null);
   const [viewMode, setViewMode] = useState<'playlist' | 'history'>('playlist');
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<any>(null);
   const [userInteracted, setUserInteracted] = useState(false);
+
+  // Function to handle clear history with confirmation
+  const handleClearHistory = () => {
+    if (!showClearConfirm) {
+      // First click - show confirmation
+      setShowClearConfirm(true);
+      // Auto-hide confirmation after 5 seconds
+      setTimeout(() => setShowClearConfirm(false), 5000);
+    } else {
+      // Second click - actually clear history
+      clearHistory();
+      setShowClearConfirm(false);
+    }
+  };
 
   const handleTimeUpdate = () => {
     if (!playerRef.current) return;
@@ -91,9 +106,6 @@ export default function FixedAudioPlayer() {
       });
       playerRef.current = player;
 
-
-
-
       player.on('timeupdate', handleTimeUpdate);
       player.on('loadedmetadata', handleLoadedMetadata);
       player.on('ended', handleEnded);
@@ -102,8 +114,6 @@ export default function FixedAudioPlayer() {
       player.on('pause', pause);
 
       if ('mediaSession' in navigator) {
-
-
         navigator.mediaSession.setActionHandler('play', () => {
           if (playerRef.current) {
             togglePlay();
@@ -143,8 +153,6 @@ export default function FixedAudioPlayer() {
               ));
             }
           });
-
-
         } catch (error) {
           console.log('Seek actions not supported:', error);
         }
@@ -153,11 +161,7 @@ export default function FixedAudioPlayer() {
           setCurrentTime(0);
           setDuration(player.duration());
         });
-
-
-
       }
-
     }
     // Set up Media Session API for background control
     if ('mediaSession' in navigator && audio) {
@@ -166,16 +170,9 @@ export default function FixedAudioPlayer() {
         artist: 'Unknown Artist',
         album: 'Unknown Album'
       });
-
-
-
-
-
     }
 
-    return () => {
-
-    };
+    return () => {};
   }, [audio]);
 
   useEffect(() => {
@@ -203,7 +200,6 @@ export default function FixedAudioPlayer() {
     };
   }, []);
 
-
   function getType(audio: Episode) {
     switch (audio.format) {
       case 'mp3':
@@ -218,6 +214,7 @@ export default function FixedAudioPlayer() {
         return audio.format;
     }
   }
+
   // Handle user interaction for autoplay policies
   useEffect(() => {
     const handleInteraction = () => {
@@ -246,12 +243,7 @@ export default function FixedAudioPlayer() {
       type
     });
     player.play();
-
-
-
   }, [url,type, userInteracted]);
-
- 
 
   // Format time helper
   const formatTime = (time: number) => {
@@ -289,7 +281,6 @@ export default function FixedAudioPlayer() {
   const togglePlayPause = () => {
     togglePlay();
   };
-
 
   if (!audio) return null;
 
@@ -497,14 +488,37 @@ export default function FixedAudioPlayer() {
                   </div>
                 ))}
 
-                {/* Clear History Button */}
+                {/* Clear History Button with Confirmation */}
                 <div className="pt-2 border-t border-gray-100">
-                  <button
-                    onClick={clearHistory}
-                    className="w-full px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
-                  >
-                    🗑️ Clear All History
-                  </button>
+                  {showClearConfirm ? (
+                    <div className="flex flex-col space-y-2">
+                      <p className="text-sm text-red-600 font-medium text-center">
+                        Are you sure? This cannot be undone.
+                      </p>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={handleClearHistory}
+                          className="flex-1 px-3 py-2 text-sm bg-red-600 text-white hover:bg-red-700 rounded-md transition-colors"
+                        >
+                          Yes, Clear All
+                        </button>
+                        <button
+                          onClick={() => setShowClearConfirm(false)}
+                          className="flex-1 px-3 py-2 text-sm bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-md transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleClearHistory}
+                      className="w-full px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors flex items-center justify-center"
+                    >
+                      <span>🗑️</span>
+                      <span className="ml-2">Clear All History</span>
+                    </button>
+                  )}
                 </div>
               </div>
             )
