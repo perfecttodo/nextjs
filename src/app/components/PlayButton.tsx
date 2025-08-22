@@ -19,20 +19,20 @@ export default function PlayButton({ episode, episodes }: PlayButtonProps) {
   };
 
   return (
-    <>
-      {/* Play Button */}
+      <div className={`inline ${currentAudio?.id === episode.id&&status==''?"spinner":''}`}>
       <button
         onClick={(e) => {
           e.stopPropagation();
           onPlayAudio(episode);
         }}
-        className={`rounded-full transition-colors ${currentAudio?.id === episode.id&&status==''?"spinner":''} ${currentAudio?.id === episode.id
+        className={`rounded-full transition-colors  ${currentAudio?.id === episode.id
             ? ' text-white'
             : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
           }`}
         title={currentAudio?.id === episode.id ? 'Currently Playing' : 'Play Audio'}
       >
         {currentAudio?.id === episode.id && isPlaying ? '⏸️' : '▶️'}
-      </button></>
+      </button>
+      </div>
   );
 }
