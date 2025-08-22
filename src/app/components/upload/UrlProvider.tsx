@@ -14,12 +14,24 @@ export default function AudioUrlUpload({
   const [error, setError] = useState('');
 
  
-  useEffect(()=>{
-    onSuccess(audioUrl);
-  },[audioUrl]);
+  async function detectUrl(url:string){
+    setAudioUrl(url);
+    onSuccess('');
+    setError('')
+    if(!url.trim())return;
 
- 
-
+    try {
+      const response = await fetch(`/api/episode/detect?url=${encodeURIComponent(url)}`);
+      const data = await response.json();
+      if(data.success){
+       return  onSuccess(audioUrl);
+      }
+    } catch (error) {
+     
+    } finally {
+    }
+    setError('format not support.')
+  }
   return (
     <div>
       <div>
@@ -30,7 +42,7 @@ export default function AudioUrlUpload({
           type="url"
           id="audioUrl"
           value={audioUrl}
-          onChange={(e) => setAudioUrl(e.target.value)}
+          onChange={(e) => detectUrl(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="https://example.com/audio.mp3"
           required

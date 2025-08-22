@@ -47,36 +47,20 @@ export default function EpisodeForm({
         />
       </div>)} 
 
-      {/* Format Selection/Input */}
-      <div>
-        <label htmlFor="format" className="block text-sm font-medium text-gray-700 mb-2">
-          Format
+       {/* Title Input */}
+       <div>
+        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+          Title *
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <select
-            id="format"
-            value={audio.format || ''}
-            onChange={(e) => onChange({ format: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Auto-detect</option>
-            <option value="mp3">MP3</option>
-            <option value="m4a">M4A</option>
-            <option value="wav">WAV</option>
-            <option value="ogg">OGG</option>
-            <option value="m3u8">M3U8</option>
-            <option value="flv">FLV</option>
-            <option value="mpd">MPD</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Or type custom (e.g., webm)"
-            value={audio.format || ''}
-            onChange={(e) => onChange({ format: e.target.value.toLowerCase() })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        <p className="text-xs text-gray-500 mt-1">Leave empty to detect from URL or filename.</p>
+        <input
+          type="text"
+          id="title"
+          value={audio.title}
+          onChange={(e) => onChange({ title: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="Enter audio title"
+          required
+        />
       </div>
 
       {/* Language Input */}
@@ -93,21 +77,7 @@ export default function EpisodeForm({
           placeholder="e.g., English, Spanish"
         />
       </div>
-      {/* Title Input */}
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-          Title *
-        </label>
-        <input
-          type="text"
-          id="title"
-          value={audio.title}
-          onChange={(e) => onChange({ title: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Enter audio title"
-          required
-        />
-      </div>
+
 
 
 
