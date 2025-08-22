@@ -4,10 +4,10 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useUser } from '../../../hooks/useUser';
 import { presignUploadSingle, presignUploadBatch } from '@/lib/presign';
 import EpisodeForm from './EpisodeForm';
-import UploadProvider from '../../../components/upload/UploadProvider';
-import UrlProvider from '../../../components/upload/UrlProvider';
-import RecordingProvider from '../../../components/upload/RecordingProvider';
-import { useFfmpegEngine } from '../../../components/upload/useFfmpegEngine';
+import UploadProvider from './upload/UploadProvider';
+import UrlProvider from './upload/UrlProvider';
+import RecordingProvider from './upload/RecordingProvider';
+import { useFfmpegEngine } from './upload/useFfmpegEngine';
 import { formatFileSize, formatDuration } from '@/lib/audio';
 import TabNavigation from './TabNavigation';
 import {
