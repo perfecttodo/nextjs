@@ -35,7 +35,7 @@ type AlbumWithAudio = {
 interface AlbumAudioClientProps {
   album: AlbumWithAudio;
   episodes: AlbumWithAudio['episodes'];
-  userId: string|null;
+  userId: string | null;
 }
 
 export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudioClientProps) {
@@ -81,8 +81,8 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
           This album is empty. Add episodes to get started.
         </p>
         <Link
-              href="/my/submit/episode"
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+          href="/my/submit/episode"
+          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
         >
           Submit Episode
         </Link>
@@ -99,12 +99,7 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
             <h3 className="text-lg font-medium text-gray-900">
               Episodes ({episodes.length})
             </h3>
-            <Link
-              href={`/my/submit/episode?album=${album.id}`}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
-            >
-              + Add More Episode
-            </Link>
+
           </div>
         </div>
 
@@ -115,15 +110,18 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2 mb-1">
                     <h5 className="font-medium text-gray-800 truncate">
-                      {audio.title}
+                      <Link
+                        href={`/episode/${audio.id}`}
+                        className="py-1 text-blue-700 rounded text-sm "
+                      >
+                        {audio.title}
+                      </Link>
+
                     </h5>
-                    <span className={getStatusBadge(audio.status as any)}>
-                      {audio.status}
-                    </span>
+
                   </div>
 
                   <div className="text-sm text-gray-500 space-y-1">
-                    <div>Original: {audio.originalName}</div>
                     {audio.language && (
                       <div>Language: {audio.language}</div>
                     )}
@@ -132,11 +130,11 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
                     )}
                     {audio.originalWebsite && (
                       <div>
-                        Website: 
-                        <a 
-                          href={audio.originalWebsite} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
+                        Website:
+                        <a
+                          href={audio.originalWebsite}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="text-blue-600 hover:underline ml-1"
                         >
                           {audio.originalWebsite}
@@ -155,14 +153,9 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
                 </div>
 
                 <div className="flex items-center space-x-2 ml-4">
-                  <Link
-                    href={`/episode/${audio.id}`}
-                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200"
-                  >
-                    View
-                  </Link>
+
                   <PlayButton episode={audio} episodes={episodes} />
-      
+
                 </div>
               </div>
             </div>
