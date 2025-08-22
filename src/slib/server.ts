@@ -32,7 +32,7 @@ export function detectAudioFormat(url: string): Promise<AudioFormatDetection> {
           return resolve({
             url,
             format: 'm3u8',
-            mimeType: contentType || null,
+            mimeType: contentType || '',
             contentLength: contentLength ? parseInt(contentLength) : null,
             isStream: true,
             success: true
@@ -40,7 +40,7 @@ export function detectAudioFormat(url: string): Promise<AudioFormatDetection> {
         }
   
         let detectedFormat: AudioFormat = 'unknown';
-        let mimeType: string | null = null;
+        let mimeType: string | '' = '';
   
         if (contentType) {
           mimeType = Array.isArray(contentType) ? contentType[0] : contentType;
