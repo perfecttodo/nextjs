@@ -169,11 +169,7 @@ export default function FixedAudioPlayer() {
 
 
 
-      //player.load();
-      player.play().catch((e: Error) => {
-        console.error("Initial playback failed:", e);
-        // pause();
-      });
+
 
     }
 
@@ -244,7 +240,7 @@ export default function FixedAudioPlayer() {
 
     const player = playerRef.current;
 
-
+    if(!player.paused())player.pause();
     player.src({
       src: url,
       type
