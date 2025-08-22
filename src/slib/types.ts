@@ -14,7 +14,7 @@ export type AudioFormat =
 export interface AudioFormatDetection {
   url: string;
   format: AudioFormat;
-  mimeType: string | null;
+  mimeType: string | '';
   contentLength: number | null;
   isStream: boolean;
   success: boolean;

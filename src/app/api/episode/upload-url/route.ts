@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
+import { detectAudioFormat } from '@/slib/server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,27 +58,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract file extension for format
-    const urlObj = new URL(url);
-    const pathname = urlObj.pathname.toLowerCase();
-    let format: 'mp3' | 'm4a' | 'wav' | 'ogg'|'webm'|'m3u8'|'flv'|'mpd'|'';
-
-    if (providedFormat && typeof providedFormat === 'string') {
-      const f = providedFormat.toLowerCase();
-      if (['mp3','m4a','wav','ogg','webm','m3u8','flv','mpd'].includes(f)) {
-        format = f as any;
-      } else {
-        format = '';
-      }
-    } else if (pathname.endsWith('.mp3')) format = 'mp3';
-    else if (pathname.endsWith('.m4a') || pathname.endsWith('.mp4')) format = 'm4a';
-    else if (pathname.endsWith('.wav')) format = 'wav';
-    else if (pathname.endsWith('.ogg')) format = 'ogg';
-    else if (pathname.endsWith('.m3u8')) format = 'm3u8';
-    else if (pathname.endsWith('.flv')) format = 'flv';
-    else if (pathname.endsWith('.mpd')) format = 'mpd';
-    else format = '';
-
+   
+    let format =  await detectAudioFormat(url)
  
 
     // Save to database
@@ -88,7 +70,7 @@ export async function POST(request: NextRequest) {
         originalName: title.trim(),
         blobUrl: url,
         blobId: `url-${Date.now()}`, // Create a unique ID for URL-based files
-        format,
+        format:format.mimeType,
         fileSize: 0, // Can't determine size without downloading
         status,
         ownerId: user.sub,
