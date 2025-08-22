@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-const CategorizedAudioList = dynamic(() => import('@/app/components/EpisodeList'), { ssr: false });
+const EpisodeList = dynamic(() => import('./EpisodeList'), { ssr: false });
 import { Episode } from '@/types/audio';
 import { PulseLoader } from 'react-spinners';
 
@@ -80,7 +80,7 @@ export default function AudioPlayerPage() {
                 </div>
               </div>
             }>
-              <CategorizedAudioList
+              <EpisodeList
                 episodes={episodes}
               />
             </Suspense>
