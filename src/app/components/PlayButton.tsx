@@ -8,7 +8,7 @@ interface PlayButtonProps {
   episodes: Episode[] | null;
 }
 export default function PlayButton({ episode, episodes }: PlayButtonProps) {
-  const { setAudio, setAudioFiles: updateAudioFiles, audio: currentAudio, togglePlay, isPlaying } = useAudioPlayerStore();
+  const { setAudio, setAudioFiles: updateAudioFiles, audio: currentAudio, togglePlay, isPlaying,status } = useAudioPlayerStore();
   const onPlayAudio = (audio: Episode) => {
     if (currentAudio?.id === audio.id) {
       togglePlay();
@@ -26,8 +26,8 @@ export default function PlayButton({ episode, episodes }: PlayButtonProps) {
           e.stopPropagation();
           onPlayAudio(episode);
         }}
-        className={`p-2 rounded-full transition-colors ${currentAudio?.id === episode.id
-            ? 'bg-blue-500 text-white'
+        className={`rounded-full transition-colors ${currentAudio?.id === episode.id&&status==''?"spinner":''} ${currentAudio?.id === episode.id
+            ? ' text-white'
             : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
           }`}
         title={currentAudio?.id === episode.id ? 'Currently Playing' : 'Play Audio'}

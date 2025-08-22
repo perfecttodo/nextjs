@@ -5,6 +5,7 @@ import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 import { Episode } from '@/types/audio';
+import PlayButton from '@/app/components/PlayButton'
 
 export default function FixedAudioPlayer() {
   const {
@@ -27,7 +28,8 @@ export default function FixedAudioPlayer() {
     setAudio,
     removeTrack,
     removeFromHistory,
-    clearHistory,isToggle,togglePlay
+    clearHistory,isToggle,togglePlay,
+    setStatus,
   } = useAudioPlayerStore();
 
   const [showPlaylist, setShowPlaylist] = useState(false);
@@ -70,11 +72,17 @@ export default function FixedAudioPlayer() {
     if (!playerRef.current) return;
     const dur = playerRef.current.duration();
     if (typeof dur === 'number') setDuration(dur);
+    setStatus('loaded');
+
   };
 
   const handleEnded = () => {
     ended();
   };
+  const handleError = () =>{
+    setStatus('error');
+    ended();
+  }
 
 
   // Initialize VideoJS player and handle events
@@ -109,7 +117,7 @@ export default function FixedAudioPlayer() {
       player.on('timeupdate', handleTimeUpdate);
       player.on('loadedmetadata', handleLoadedMetadata);
       player.on('ended', handleEnded);
-      player.on('error', handleEnded);
+      player.on('error', handleError);
       player.on('play', play);
       player.on('pause', pause);
 
@@ -238,6 +246,8 @@ export default function FixedAudioPlayer() {
     const player = playerRef.current;
 
     if(!player.paused())player.pause();
+    setStatus('');
+
     player.src({
       src: url,
       type
@@ -577,12 +587,7 @@ export default function FixedAudioPlayer() {
             <button onClick={previous} className="p-2 text-gray-600 hover:text-gray-900">
               ⏮️
             </button>
-            <button
-              onClick={togglePlayPause}
-              className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600"
-            >
-              {isPlaying ? '⏸️' : '▶️'}
-            </button>
+            <PlayButton episode={audio} episodes={null}/>
             <button onClick={next} className="p-2 text-gray-600 hover:text-gray-900">
               ⏭️
             </button>

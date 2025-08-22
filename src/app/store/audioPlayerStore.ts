@@ -10,6 +10,7 @@ type PlayerCallback = (state: AudioPlayerState) => void;
 interface AudioPlayerState {
   audio: Episode | null;
   isPlaying: boolean;
+  status:string,
   isToggle:boolean;
   playMode: PlayMode;
   episodes: Episode[];
@@ -42,6 +43,7 @@ interface AudioPlayerState {
   
   // Callback management
   setCallback: (callback: PlayerCallback | null) => void;
+  setStatus:(s:string)=>void;
 }
 
 export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
@@ -61,6 +63,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
   return {
     audio: null,
     isPlaying: false,
+    status:'',
     isToggle:false,
     playMode: 'sequence',
     episodes: [],
@@ -96,6 +99,9 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
   pause: () => {
     set({ isPlaying: false });
     get().callback?.(get());
+  },
+  setStatus(b:string){
+    set({status:b})
   },
   
   next: () => {
