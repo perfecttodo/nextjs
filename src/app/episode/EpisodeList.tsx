@@ -57,7 +57,7 @@ export default function CategorizedAudioList({
                       <span>{audio.duration ? `${Math.floor(audio.duration / 60)}:${(audio.duration % 60).toString().padStart(2, '0')}` : 'Unknown duration'}</span>
                       <span>•</span>
                       <span>{audio.status}</span>
-                      {audio?.album?.id && ( <>lbum:<a  onClick={() => router.push(`/albums/${audio?.album?.id}`)} ><span className='font-bold cursor-pointer '>{audio?.album?.name}</span></a></>)}
+                      {audio?.album?.id && ( <>Album:<a  onClick={() => router.push(`/albums/${audio?.album?.id}`)} ><span className='font-bold cursor-pointer '>{audio?.album?.name}</span></a></>)}
                     </div>
                   </div>
                 </div>
