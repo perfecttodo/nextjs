@@ -24,7 +24,7 @@ export default function AudioUrlUpload({
       const response = await fetch(`/api/episode/detect?url=${encodeURIComponent(url)}`);
       const data = await response.json();
       if(data.success){
-       return  onSuccess(audioUrl);
+       return  onSuccess(url);
       }
     } catch (error) {
      

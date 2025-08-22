@@ -15,7 +15,7 @@ export default function CategorizedAudioList({
 }: CategorizedAudioListProps) {
   const router = useRouter();
 
-  const {  audio: currentAudio } = useAudioPlayerStore();
+  const { audio: currentAudio } = useAudioPlayerStore();
 
 
 
@@ -52,12 +52,9 @@ export default function CategorizedAudioList({
                       {audio.title}
                     </h4>
                     <div className="flex items-center space-x-2 text-xs text-gray-500">
-                      <span className='truncate'>{audio.format.toUpperCase()}</span>
-                      <span>•</span>
-                      <span>{audio.duration ? `${Math.floor(audio.duration / 60)}:${(audio.duration % 60).toString().padStart(2, '0')}` : 'Unknown duration'}</span>
-                      <span>•</span>
-                      <span>{audio.status}</span>
-                      {audio?.album?.id && ( <>Album:<a  onClick={() => router.push(`/albums/${audio?.album?.id}`)} ><span className='font-bold cursor-pointer '>{audio?.album?.name}</span></a></>)}
+                      {audio.duration && audio.duration > 0 && (<><span>{`${Math.floor(audio.duration / 60)}:${(audio.duration % 60).toString().padStart(2, '0')}`}</span>  <span>•</span> </>)||null}
+
+                      {audio?.album?.id && (<>Album:<a onClick={() => router.push(`/albums/${audio?.album?.id}`)} ><span className='font-bold cursor-pointer '>{audio?.album?.name}</span></a></>)}
                     </div>
                   </div>
                 </div>
