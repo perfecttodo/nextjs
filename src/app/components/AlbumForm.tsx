@@ -31,7 +31,7 @@ export default function AlbumForm({
       description: albumDescription.trim() || undefined,
       color: albumColor,
     };
-    
+      
     if (editingAlbum) {
       onUpdate(albumData);
     } else {

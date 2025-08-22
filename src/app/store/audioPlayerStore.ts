@@ -49,7 +49,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
   let initialPlayHistory: Episode[] = [];
   try {
     if (typeof window !== 'undefined') {
-      const savedHistory = localStorage.getItem('audioPlayHistory');
+      const savedHistory = localStorage.getItem('localPlayHistory');
       if (savedHistory) {
         initialPlayHistory = JSON.parse(savedHistory);
       }
@@ -207,7 +207,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
     
     // Save to localStorage
     try {
-      localStorage.setItem('audioPlayHistory', JSON.stringify(newHistory));
+      localStorage.setItem('localPlayHistory', JSON.stringify(newHistory));
     } catch (error) {
       console.error('Failed to save play history to localStorage:', error);
     }
@@ -220,7 +220,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
     
     // Clear from localStorage
     try {
-      localStorage.removeItem('audioPlayHistory');
+      localStorage.removeItem('localPlayHistory');
     } catch (error) {
       console.error('Failed to clear play history from localStorage:', error);
     }
@@ -237,7 +237,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
     
     // Update localStorage
     try {
-      localStorage.setItem('audioPlayHistory', JSON.stringify(newHistory));
+      localStorage.setItem('localPlayHistory', JSON.stringify(newHistory));
     } catch (error) {
       console.error('Failed to update play history in localStorage:', error);
     }
