@@ -78,16 +78,7 @@ export async function POST(request: NextRequest) {
     else if (pathname.endsWith('.mpd')) format = 'mpd';
     else format = '';
 
-    // Validate labels if provided
-    if (labelIds.length > 0) {
-      const labels = await prisma.label.findMany({ where: { id: { in: labelIds } } });
-      if (labels.length !== labelIds.length) {
-        return NextResponse.json(
-          { error: 'One or more invalid labels' },
-          { status: 400 }
-        );
-      }
-    }
+ 
 
     // Save to database
     console.error('user.sub',user.sub)

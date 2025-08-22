@@ -28,7 +28,7 @@ enum Status {
 
 model User {
   id        String        @id
-  email     String        
+  email     String        @unique
   name      String?
   password  String?       // For email/password auth
   githubId  String?       @unique // For GitHub OAuth
