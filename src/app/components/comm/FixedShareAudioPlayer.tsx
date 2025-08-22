@@ -598,16 +598,7 @@ export default function FixedAudioPlayer() {
             title={showPlaylist ? 'Hide playlist' : 'Show playlist'}
           >
             {viewMode === 'history' ? '⏰' : '📋'}
-            {episodes.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {episodes.length}
-              </span>
-            )}
-            {playHistory.length > 0 && (
-              <span className="absolute -top-1 -left-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {playHistory.length}
-              </span>
-            )}
+      
           </button>
 
           {/* Play mode */}
