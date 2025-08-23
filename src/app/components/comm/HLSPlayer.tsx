@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import videojs from 'video.js';
 import Hls from 'hls.js';
 import { Episode } from '@/types/audio';
+import { formatDuration } from '@/lib/audio';
 
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 interface HLSPlayerProps {
@@ -23,13 +24,16 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
         pause,
         ended,
         setAudio,
-        currentIndex, setStatus,isToggle
+        currentIndex, setStatus, isToggle, currentTime,setCurrentTime,setDuration,
+        duration, playMode,
+
     } = useAudioPlayerStore();
 
     const onEnded = () => {
-        console.log('onEnd')
+        ended();
     }
     const onPlay = () => {
+        handleLoadedMetadata();
         setStatus('loaded');
         console.log('onPlay')
         play();
@@ -45,6 +49,50 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
     const isHlsSupportFormat = (): boolean => {
         return audio?.format != null && (audio?.format.indexOf('m3u8') > -1 || audio?.format.indexOf('mpegurl') > -1);
     }
+    const handleTimeUpdate = () => {
+        if (videoJsPlayerRef.current){
+            const time = videoJsPlayerRef.current.currentTime();
+            if (typeof time === 'number') {
+              setCurrentTime(time);
+              const playerDuration = videoJsPlayerRef.current.duration();
+              if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
+                ended();
+              }
+            }
+        }else if(videoRef.current){
+            const time = videoRef.current.currentTime;
+            if (typeof time === 'number') {
+                setCurrentTime(time);
+                const playerDuration = videoRef.current;
+              if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
+                ended();
+              }
+            }
+        }
+
+      };
+
+      const handleLoadedMetadata = () => {
+        if (videoJsPlayerRef.current){
+        const dur = videoJsPlayerRef.current.duration();
+        if (typeof dur === 'number') setDuration(dur);
+        }else if(videoRef.current){
+            const dur = videoRef.current.duration;
+
+            if (typeof dur === 'number') setDuration(dur);
+        }
+        setStatus('loaded');
+    
+      };
+    // Seek handler
+    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const time = parseFloat(e.target.value);
+        if (videoJsPlayerRef.current) {
+            videoJsPlayerRef.current.currentTime(time);
+        } else if (videoRef.current) {
+            videoRef.current.currentTime = time;
+        }
+    };
     function getType(audio: Episode) {
         switch (audio.format) {
             case 'mp3':
@@ -66,34 +114,34 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
     }, [audio]);
 
 
-    useEffect(()=>{
+    useEffect(() => {
         const video = videoRef.current;
-        if(video){
-            if(isHlsSupportFormat()){
-                if(video.paused){
+        if (video) {
+            if (isHlsSupportFormat()) {
+                if (video.paused) {
                     video.play();
-                }else{
+                } else {
                     video.pause();
                 }
-               
 
-            }else if(videoJsPlayerRef.current){
-                if(videoJsPlayerRef.current.paused()){
+
+            } else if (videoJsPlayerRef.current) {
+                if (videoJsPlayerRef.current.paused()) {
                     videoJsPlayerRef.current.play();
                     play();
 
-                }else{
+                } else {
                     videoJsPlayerRef.current.pause();
                     pause();
 
                 }
-                    
+
             }
         }
 
 
 
-    },[isToggle]);
+    }, [isToggle]);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -105,6 +153,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                 hlsRef.current.attachMedia(video);
                 hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
                     video.play();
+                    handleLoadedMetadata();
                 });
 
                 hlsRef.current.on(Hls.Events.ERROR, (event, data) => {
@@ -116,6 +165,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                 video.addEventListener('ended', onEnded);
                 video.addEventListener('pause', onPause);
                 video.addEventListener('play', onPlay);
+                video.addEventListener('progress',handleTimeUpdate);
             }
             if (url) {
                 if (hlsRef.current) {
@@ -149,6 +199,8 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                 });
 
                 videoJsPlayerRef.current.on('loadedmetadata', onPlay);
+                videoJsPlayerRef.current.on('timeupdate', handleTimeUpdate);
+
                 if (audio != null) {
                     let type = getType(audio);
                     videoJsPlayerRef.current.src({
@@ -167,8 +219,12 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                 hlsRef.current = null;
             }
             if (videoJsPlayerRef.current) {
+                videoJsPlayerRef.current.off('loadedmetadata', onPlay);
+                videoJsPlayerRef.current.off('timeupdate', handleTimeUpdate);
+
                 videoJsPlayerRef.current.dispose();
                 videoJsPlayerRef.current = null;
+
             }
             video.removeEventListener('ended', onEnded);
             video.removeEventListener('pause', onPause);
@@ -176,7 +232,28 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
     }, [url]);
 
     return (
-        <video ref={videoRef} className="video-js vjs-default-skin" controls playsInline webkit-playsinline="true" />
+        <div>
+            <div className="absolute -top-1 left-0 right-0">
+                <div className="flex items-center px-2 text-xs text-gray-500">
+                    <span className="w-10 text-right">{formatDuration(currentTime)}</span>
+                    <input
+                        type="range"
+                        min="0"
+                        max={duration || 100}
+                        value={currentTime}
+                        onChange={handleSeek}
+                        className="flex-1 mx-2 h-1 bg-gray-200 rounded-full appearance-none cursor-pointer"
+                        style={{
+                            background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(currentTime / (duration || 1)) * 100}%, #e5e7eb ${(currentTime / (duration || 1)) * 100}%, #e5e7eb 100%)`
+                        }}
+                    />
+                    <span className="w-10 text-left">{formatDuration(duration)}</span>
+                </div>
+            </div>
+            <div className='hidden'>
+            <video ref={videoRef} className="video-js vjs-default-skin" controls playsInline webkit-playsinline="true" />
+            </div>
+        </div>
     );
 };
 

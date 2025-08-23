@@ -99,8 +99,10 @@ export function formatFileSize (bytes: number)  {
 
 export function formatDuration (seconds: number | null) {
   if (!seconds) return 'Unknown';
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
+  const roundedSeconds = Math.round(seconds);
+
+  const minutes = Math.floor(roundedSeconds / 60);
+  const remainingSeconds = roundedSeconds % 60;
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 

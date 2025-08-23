@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
-import { Episode } from '@/types/audio';
 import PlayButton from '@/app/components/PlayButton'
 import HLSPlayer from './HLSPlayer'
 
@@ -24,7 +23,7 @@ export default function FixedAudioPlayer() {
     setAudio,
     removeTrack,
     removeFromHistory,
-    clearHistory,isToggle,togglePlay,
+    clearHistory,isToggle,togglePlay,setStatus
   } = useAudioPlayerStore();
 
   const [showPlaylist, setShowPlaylist] = useState(false);
@@ -60,13 +59,7 @@ export default function FixedAudioPlayer() {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Seek handler
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = parseFloat(e.target.value);
-    if (playerRef.current) {
-      playerRef.current.currentTime(time);
-    }
-  };
+
 
   useEffect(() => {
     if (!playerRef.current) return;
@@ -111,12 +104,8 @@ export default function FixedAudioPlayer() {
         }
       `}</style>
 
-      {/* Video.js player (hidden) */}
-      <div data-vjs-player style={{ display: 'none' }}>
       <HLSPlayer/>
-      </div>
 
-      {/* Playlist Sidebar - Now slides from right */}
       <div
         className={`fixed right-0 top-16 bottom-20 w-80 bg-white border-l border-gray-200 z-40 overflow-y-auto transition-all duration-300 ease-in-out transform ${showPlaylist
           ? 'translate-x-0 shadow-2xl'
@@ -331,24 +320,8 @@ export default function FixedAudioPlayer() {
 
       {/* Player UI */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
-        {/* Progress bar */}
-        <div className="absolute -top-1 left-0 right-0">
-          <div className="flex items-center px-2 text-xs text-gray-500">
-            <span className="w-10 text-right">{formatTime(currentTime)}</span>
-            <input
-              type="range"
-              min="0"
-              max={duration || 100}
-              value={currentTime}
-              onChange={handleSeek}
-              className="flex-1 mx-2 h-1 bg-gray-200 rounded-full appearance-none cursor-pointer"
-              style={{
-                background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(currentTime / (duration || 1)) * 100}%, #e5e7eb ${(currentTime / (duration || 1)) * 100}%, #e5e7eb 100%)`
-              }}
-            />
-            <span className="w-10 text-left">{formatTime(duration)}</span>
-          </div>
-        </div>
+          <HLSPlayer/>
+
 
         <div className="flex items-center justify-between px-4 py-3">
           {/* Track info */}
