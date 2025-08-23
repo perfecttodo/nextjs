@@ -2,6 +2,7 @@
 
 import { Episode } from '@/types/audio';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
+import { useEffect } from 'react';
 
 interface PlayButtonProps {
   episode: Episode;
@@ -17,6 +18,10 @@ export default function PlayButton({ episode, episodes }: PlayButtonProps) {
       if (episodes) updateAudioFiles(episodes);
     }
   };
+
+  useEffect(()=>{
+    console.log(isPlaying)
+  },[isPlaying])
 
   return (
       <div className={`inline ${currentAudio?.id === episode.id&&status==''?"spinner":''}`}>

@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import videojs from 'video.js';
+import 'video.js/dist/video-js.css';
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 import { Episode } from '@/types/audio';
 import PlayButton from '@/app/components/PlayButton'
-import HLSPlayer from './HLSPlayer'
 
 export default function FixedAudioPlayer() {
   const {
@@ -20,17 +21,24 @@ export default function FixedAudioPlayer() {
     pause,
     next,
     previous,
+    ended,
     cyclePlayMode,
+    setCurrentTime,
+    setDuration,
     setAudio,
     removeTrack,
     removeFromHistory,
     clearHistory,isToggle,togglePlay,
+    setStatus,
   } = useAudioPlayerStore();
 
   const [showPlaylist, setShowPlaylist] = useState(false);
+  const [url, setUrl] = useState<string|null>(null);
+  const [type, setType] = useState<string|null>(null);
   const [viewMode, setViewMode] = useState<'playlist' | 'history'>('playlist');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
+  const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<any>(null);
   const [userInteracted, setUserInteracted] = useState(false);
 
@@ -47,6 +55,205 @@ export default function FixedAudioPlayer() {
       setShowClearConfirm(false);
     }
   };
+
+  const handleTimeUpdate = () => {
+    if (!playerRef.current) return;
+    const time = playerRef.current.currentTime();
+    if (typeof time === 'number') {
+      setCurrentTime(time);
+      const playerDuration = playerRef.current.duration();
+      if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
+        ended();
+      }
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (!playerRef.current) return;
+    const dur = playerRef.current.duration();
+    if (typeof dur === 'number') setDuration(dur);
+    setStatus('loaded');
+
+  };
+
+  const handleEnded = () => {
+    ended();
+  };
+  const handleError = () =>{
+    setStatus('error');
+    ended();
+  }
+
+
+  // Initialize VideoJS player and handle events
+  useEffect(() => {
+    if (!videoRef.current) return;
+
+    let player = playerRef.current;
+
+    if (player) return;
+
+    if (!player) {
+      player = videojs(videoRef.current, {
+        html5: {
+          vhs: {
+            enableLowInitialPlaylist: true,
+            smoothQualityChange: true,
+            overrideNative: true
+          }
+        },
+        controls: false,
+        autoplay: false,
+        preload: 'metadata',
+        fluid: true,
+        responsive: true,
+        playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
+        controlBar: {
+          children: []
+        }
+      });
+      playerRef.current = player;
+
+      player.on('timeupdate', handleTimeUpdate);
+      player.on('loadedmetadata', handleLoadedMetadata);
+      player.on('ended', handleEnded);
+      player.on('error', handleError);
+      player.on('play', play);
+      player.on('pause', pause);
+
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', () => {
+          if (playerRef.current) {
+            togglePlay();
+          }
+        });
+
+        navigator.mediaSession.setActionHandler('pause', () => {
+          if (playerRef.current) {
+            togglePlay();
+          }
+        });
+
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+          console.log('MediaSession next track');
+          next();
+        });
+
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+          console.log('MediaSession previous track');
+          previous();
+        });
+
+        try {
+          navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+            const skipTime = details.seekOffset || 10;
+            if (playerRef.current) {
+              playerRef.current.currentTime(Math.max(0, playerRef.current.currentTime() - skipTime));
+            }
+          });
+
+          navigator.mediaSession.setActionHandler('seekforward', (details) => {
+            const skipTime = details.seekOffset || 10;
+            if (playerRef.current) {
+              playerRef.current.currentTime(Math.min(
+                playerRef.current.duration(),
+                playerRef.current.currentTime() + skipTime
+              ));
+            }
+          });
+        } catch (error) {
+          console.log('Seek actions not supported:', error);
+        }
+
+        player.one('loadedmetadata', () => {
+          setCurrentTime(0);
+          setDuration(player.duration());
+        });
+      }
+    }
+    // Set up Media Session API for background control
+    if ('mediaSession' in navigator && audio) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: audio.title || 'Unknown',
+        artist: 'Unknown Artist',
+        album: 'Unknown Album'
+      });
+    }
+
+    return () => {};
+  }, [audio]);
+
+  useEffect(() => {
+    return () => {
+      if (playerRef.current) {
+        let player = playerRef.current;
+        player.off('timeupdate', handleTimeUpdate);
+        player.off('loadedmetadata', handleLoadedMetadata);
+        player.off('ended', handleEnded);
+        player.off('play', play);
+        player.off('pause', pause);
+
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.setActionHandler('play', null);
+          navigator.mediaSession.setActionHandler('pause', null);
+          navigator.mediaSession.setActionHandler('nexttrack', null);
+          navigator.mediaSession.setActionHandler('previoustrack', null);
+          navigator.mediaSession.setActionHandler('seekbackward', null);
+          navigator.mediaSession.setActionHandler('seekforward', null);
+        }
+
+        playerRef.current.dispose();
+        playerRef.current = null;
+      }
+    };
+  }, []);
+
+  function getType(audio: Episode) {
+    switch (audio.format) {
+      case 'mp3':
+        return 'audio/mp3';
+      case 'm4a':
+        return 'audio/mp4';
+      case 'm3u8':
+        return 'application/x-mpegURL';
+        case 'mpd':
+          return 'application/dash+xml';
+      default:
+        return audio.format;
+    }
+  }
+
+  // Handle user interaction for autoplay policies
+  useEffect(() => {
+    const handleInteraction = () => {
+      setUserInteracted(true);
+    };
+    document.addEventListener('click', handleInteraction);
+    return () => document.removeEventListener('click', handleInteraction);
+  }, []);
+
+  useEffect(() => {
+    if (!audio) return;
+    setUrl(audio.blobUrl);
+    let type = getType(audio);
+    setType(type);
+  }, [audio]);
+
+  // Handle audio source changes
+  useEffect(() => {
+    if (!playerRef.current || !url) return;
+
+    const player = playerRef.current;
+
+    if(!player.paused())player.pause();
+    setStatus('');
+
+    player.src({
+      src: url,
+      type
+    });
+    player.play();
+  }, [url,type, userInteracted]);
 
   // Format time helper
   const formatTime = (time: number) => {
@@ -80,6 +287,10 @@ export default function FixedAudioPlayer() {
     }
   }, [isToggle, userInteracted]);
 
+  // Toggle play/pause
+  const togglePlayPause = () => {
+    togglePlay();
+  };
 
   if (!audio) return null;
 
@@ -113,7 +324,12 @@ export default function FixedAudioPlayer() {
 
       {/* Video.js player (hidden) */}
       <div data-vjs-player style={{ display: 'none' }}>
-      <HLSPlayer/>
+        <video
+          ref={videoRef}
+          className="video-js vjs-default-skin"
+          playsInline
+          webkit-playsinline="true"
+        />
       </div>
 
       {/* Playlist Sidebar - Now slides from right */}

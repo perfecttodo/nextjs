@@ -87,6 +87,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
     set({ episodes, currentIndex: -1 });
   },
   togglePlay: () => {
+    console.log(get());
     set((state) => ({ isToggle: !state.isToggle }));
     get().callback?.(get());
   },
