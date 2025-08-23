@@ -84,7 +84,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
 
                 }else{
                     videoJsPlayerRef.current.pause();
-                    video.pause();
+                    pause();
 
                 }
                     
@@ -105,7 +105,6 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                 hlsRef.current.attachMedia(video);
                 hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
                     video.play();
-                    onPlay();
                 });
 
                 hlsRef.current.on(Hls.Events.ERROR, (event, data) => {
@@ -116,6 +115,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
 
                 video.addEventListener('ended', onEnded);
                 video.addEventListener('pause', onPause);
+                video.addEventListener('play', onPlay);
             }
             if (url) {
                 if (hlsRef.current) {
