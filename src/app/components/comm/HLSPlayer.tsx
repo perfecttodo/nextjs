@@ -167,7 +167,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                     video.addEventListener('ended', onEnded);
                     video.addEventListener('pause', onPause);
                     video.addEventListener('play', onPlay);
-                    video.addEventListener('progress', handleTimeUpdate);
+                    video.addEventListener('timeupdate', handleTimeUpdate);
                 }
                 if (url) {
                     if (hlsRef.current) {
