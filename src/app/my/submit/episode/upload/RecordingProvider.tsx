@@ -4,9 +4,10 @@ import { useState, useRef, useEffect } from 'react';
 
 interface RecordProvider {
   onSuccess: (blob: Blob) => void;
+  onStart?: () => void;
 }
 
-export default function AudioRecord({ onSuccess }: RecordProvider) {
+export default function AudioRecord({ onSuccess,onStart }: RecordProvider) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [audioSize, setAudioSize] = useState<string>('0 KB');
@@ -73,6 +74,7 @@ export default function AudioRecord({ onSuccess }: RecordProvider) {
 
       mediaRecorderRef.current.start(1000); // Collect data every second for better progress
       setIsRecording(true);
+      onStart?.();
 
       // Start duration timer
       timerRef.current = setInterval(() => {

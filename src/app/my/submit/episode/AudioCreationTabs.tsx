@@ -89,6 +89,8 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
 
   const oriBlob = useRef<Blob | null>(null);
 
+  const audioRef = useRef<HTMLAudioElement>(null);
+
   // Helper function to update audio state
   const updateAudioState = useCallback((updates: Partial<AudioProcessingState>) => {
     setAudioState(prev => ({ ...prev, ...updates }));
@@ -375,9 +377,9 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   const renderTabContent = useCallback(() => {
     switch (activeTab) {
       case 'upload':
-        return <UploadProvider onSuccess={handleProvideBlogSuccess} />;
+        return <UploadProvider onSuccess={handleProvideBlogSuccess}  />;
       case 'record':
-        return <RecordingProvider onSuccess={handleProvideBlogSuccess} />;
+        return <RecordingProvider onSuccess={handleProvideBlogSuccess} onStart={()=>{ audioRef.current?.pause()}} />;
       case 'url':
         return <UrlProvider onSuccess={handleProvideBlogSuccess} />;
       default:
@@ -505,7 +507,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
 
             {audioState.audioUrl && (
               <div className="space-y-2">
-                <audio controls src={audioState.audioUrl} className="w-full" loop />
+                <audio controls src={audioState.audioUrl} className="w-full" loop ref={audioRef} />
                 <div className="text-xs text-gray-500">
                   Type: {audioState.audioBlob?.type || 'unknown'} |
                   Size: {audioState.audioBlob ? formatFileSize(audioState.audioBlob.size) : 'unknown'} |
