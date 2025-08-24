@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 
 interface UploadProvider {
-  onSuccess: (blob: Blob) => void;
+  onSuccess: (blob: Blob,filename?:any) => void;
 }
 
 export default function AudioUpload({
@@ -69,16 +69,16 @@ export default function AudioUpload({
 
   const handleFileSelect = async (file: File) => {
     // Validate file type
-    const allowedTypes = ['audio/mp3', 'audio/mp4', 'audio/x-m4a', 'audio/m4a', 'audio/wav', 'audio/ogg'];
+    const allowedTypes = ['audio/mp3','audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/m4a', 'audio/wav', 'audio/ogg'];
     if (!allowedTypes.includes(file.type)) {
-      setError('Invalid file type. Only MP3, x-m4a, WAV, and OGG files are allowed.');
+      setError('Invalid file type. Only MP3, x-m4a, WAV, and OGG files are allowed.'+file.type);
       return;
     }
   
     // Validate file size (max 30MB)
-    const maxSize = 30 * 1024 * 1024; // 30MB
+    const maxSize = 100 * 1024 * 1024; // 30MB
     if (file.size > maxSize) {
-      setError('File size too large. Maximum size is 30MB.');
+      setError('File size too large. Maximum size is 100MB.');
       return;
     }
   
@@ -93,7 +93,7 @@ export default function AudioUpload({
       setSelectedFile(file);
       
       // Call onSuccess with the file as a Blob
-      onSuccess(new Blob([file], { type: file.type }));
+      onSuccess(new Blob([file], { type: file.type }),file.name.replace(/\.[^/.]+$/, ""));
     } catch (err) {
       setError('Failed to process audio file. Please try another file.');
       console.error('Error processing audio:', err);

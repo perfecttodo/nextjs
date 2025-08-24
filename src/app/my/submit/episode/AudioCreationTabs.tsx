@@ -18,6 +18,7 @@ import {
   OutputFormat,
   AudioProcessingState
 } from './types';
+import { blob } from 'stream/consumers';
 
 const TABS: TabConfig[] = [
   {
@@ -105,9 +106,9 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   const processConvert = useCallback(async (format: OutputFormat) => {
     if (!oriBlob.current) return;
 
-    updateAudioState({ 
-      audioBlob: oriBlob.current, 
-      audioUrl: URL.createObjectURL(oriBlob.current) 
+    updateAudioState({
+      audioBlob: oriBlob.current,
+      audioUrl: URL.createObjectURL(oriBlob.current)
     });
 
     if (audioState.useFFmpeg && ffmpegLoaded) {
@@ -115,11 +116,11 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
         updateAudioState({ isProcessing: true });
         const processed = await convertBlobToformat(oriBlob.current, format);
         updateAudioState({ audioBlob: processed });
-        
+
         if (audioState.audioUrl) URL.revokeObjectURL(audioState.audioUrl);
         const preview = format === 'm3u8' ? oriBlob.current : processed;
         updateAudioState({ audioUrl: URL.createObjectURL(preview) });
-        
+
       } catch (e) {
         console.error('FFmpeg processing error:', e);
         updateAudioState({ error: 'Failed to process audio. Please try again.' });
@@ -130,8 +131,8 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   }, [audioState.useFFmpeg, audioState.audioUrl, ffmpegLoaded, convertBlobToformat, updateAudioState]);
 
   useEffect(() => {
-    updateAudioState({ 
-      isFormatable: activeTab !== 'url' && audioState.audioBlob !== null 
+    updateAudioState({
+      isFormatable: activeTab !== 'url' && audioState.audioBlob !== null
     });
   }, [activeTab, audioState.audioBlob, updateAudioState]);
 
@@ -142,50 +143,49 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   const changeFormat = useCallback(async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newFormat = e.target.value as OutputFormat;
     updateAudioState({ outputFormat: newFormat });
-    await new Promise(resolve => setTimeout(resolve, 100));
-    await processConvert(newFormat);
-  }, [processConvert, updateAudioState]);
+
+  }, [updateAudioState]);
 
   const uploadStandardEpisode = useCallback(async () => {
     let finalUrl;
-      if (!audioState.audioBlob) {
-        throw new Error('No data available for upload');
-      }
-      
-      const ext = audioState.outputFormat;
-      const mimeType = audioState.outputFormat === 'mp3' ? 'audio/mpeg' : 'audio/mp4';
-      const file = new File([audioState.audioBlob], `episode.${ext}`, { type: mimeType });
+    if (!audioState.audioBlob) {
+      throw new Error('No data available for upload');
+    }
 
-      const presign = await presignUploadSingle(file.name, file.type);
+    const ext = audioState.outputFormat;
+    const mimeType = audioState.outputFormat === 'mp3' ? 'audio/mpeg' : 'audio/mp4';
+    const file = new File([audioState.audioBlob], `episode.${ext}`, { type: mimeType });
 
-      const putRes = await new Promise<Response>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('PUT', presign.uploadUrl);
-        xhr.setRequestHeader('Content-Type', file.type);
-        
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) {
-            const percent = Math.round((e.loaded / e.total) * 100);
-            updateAudioState({ uploadProgress: percent });
-          }
-        };
-        
-        xhr.onerror = () => reject(new Error('Network error during upload'));
-        xhr.onload = () => {
-          const status = xhr.status;
-          const statusText = xhr.statusText;
-          const headers = new Headers();
-          const res = new Response(xhr.response, { status, statusText, headers });
-          resolve(res);
-        };
-        
-        xhr.onabort = () => reject(new Error('Upload aborted'));
-        xhr.send(file);
-      });
-      
-      if (!putRes.ok) throw new Error('Direct upload to storage failed');
-      finalUrl = presign.publicUrl;
-   
+    const presign = await presignUploadSingle(file.name, file.type);
+
+    const putRes = await new Promise<Response>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', presign.uploadUrl);
+      xhr.setRequestHeader('Content-Type', file.type);
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          updateAudioState({ uploadProgress: percent });
+        }
+      };
+
+      xhr.onerror = () => reject(new Error('Network error during upload'));
+      xhr.onload = () => {
+        const status = xhr.status;
+        const statusText = xhr.statusText;
+        const headers = new Headers();
+        const res = new Response(xhr.response, { status, statusText, headers });
+        resolve(res);
+      };
+
+      xhr.onabort = () => reject(new Error('Upload aborted'));
+      xhr.send(file);
+    });
+
+    if (!putRes.ok) throw new Error('Direct upload to storage failed');
+    finalUrl = presign.publicUrl;
+
 
     return finalUrl
 
@@ -207,10 +207,10 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       const nameToUploadUrl = new Map<string, string>(
         presign.files.map((f: any) => [f.name, f.uploadUrl])
       );
-      
+
       let uploadedBytes = 0;
       const totalBytes = filesToUpload.reduce((sum, file) => sum + file.data.byteLength, 0);
-      
+
       for (const f of filesToUpload) {
         const uploadUrl = nameToUploadUrl.get(f.name);
         if (!uploadUrl) throw new Error(`Missing upload URL for ${f.name}`);
@@ -224,7 +224,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
             f.data.byteOffset + f.data.byteLength
           ) as ArrayBuffer;
           const blob = new Blob([arrayBuffer], { type: f.type });
-          
+
           xhr.upload.onprogress = (e) => {
             if (e.lengthComputable) {
               const currentFileUploaded = e.loaded;
@@ -233,7 +233,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
               updateAudioState({ uploadProgress: percent });
             }
           };
-          
+
           xhr.onerror = () => reject(new Error(`Network error during upload of ${f.name}`));
           xhr.onload = () => {
             if (xhr.status >= 200 && xhr.status < 300) {
@@ -244,7 +244,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
               reject(new Error(`Failed to upload ${f.name}`));
             }
           };
-          
+
           xhr.onabort = () => reject(new Error(`Upload of ${f.name} aborted`));
           xhr.send(blob);
         });
@@ -260,7 +260,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   }, [sharedFormData, audioState.duration, checkFS, collectHlsFiles, cleanupFiles, updateAudioState]);
 
   const resetAfterUpload = useCallback(() => {
-    updateAudioState({ 
+    updateAudioState({
       audioBlob: null,
       audioUrl: null
     });
@@ -284,9 +284,9 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       let finalUrl = audioState.audioUrl;
       const isHls = activeTab !== 'url' && audioState.outputFormat === 'm3u8';
 
-      if(activeTab !== 'url'){
+      if (activeTab !== 'url') {
         if (isHls) {
-          finalUrl = await uploadHLSRecording()||'';
+          finalUrl = await uploadHLSRecording() || '';
         } else {
           finalUrl = await uploadStandardEpisode();
         }
@@ -308,10 +308,10 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
           format: sharedFormData.format || undefined,
         })
       });
-      
+
       const finalizeData = await finalizeRes.json();
       if (!finalizeRes.ok) throw new Error(finalizeData.error || 'Failed to save episode');
-  
+
       handleUploadSuccess();
       resetAfterUpload();
 
@@ -360,15 +360,15 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
 
   const handleProvideBlogSuccess = useCallback((blob: Blob | string | null): void => {
     if (blob instanceof Blob) {
-      updateAudioState({ 
-        audioBlob: blob, 
-        audioUrl: URL.createObjectURL(blob) 
+      updateAudioState({
+        audioBlob: blob,
+        audioUrl: URL.createObjectURL(blob)
       });
       oriBlob.current = blob;
     } else if (typeof blob === 'string') {
-      updateAudioState({ 
+      updateAudioState({
         audioUrl: blob,
-        audioBlob: null 
+        audioBlob: null
       });
       oriBlob.current = null;
     }
@@ -377,13 +377,18 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   const renderTabContent = useCallback(() => {
     switch (activeTab) {
       case 'upload':
-        return <UploadProvider onSuccess={handleProvideBlogSuccess}  />;
+        return <UploadProvider onSuccess={(blob, filename) => {
+          handleProvideBlogSuccess(blob);
+          handleAudioFieldsChange({ title: filename || '' });
+        }} />;
       case 'record':
-        return <RecordingProvider onSuccess={handleProvideBlogSuccess} onStart={()=>{ audioRef.current?.pause(); 
-        updateAudioState({ 
-        audioUrl: null,
-        audioBlob: null 
-      });}} />;
+        return <RecordingProvider onSuccess={handleProvideBlogSuccess} onStart={() => {
+          audioRef.current?.pause();
+          updateAudioState({
+            audioUrl: null,
+            audioBlob: null
+          });
+        }} />;
       case 'url':
         return <UrlProvider onSuccess={handleProvideBlogSuccess} />;
       default:
@@ -420,14 +425,14 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       <div className="p-4 sm:p-6">
         <div className={`transition-opacity duration-200 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
           {renderTabContent()}
-          
+
           <div className="space-y-6">
             {audioState.error && (
               <div className="p-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded">
                 {audioState.error}
               </div>
             )}
-            
+
             {audioState.isFormatable && (
               <div>
                 <label className="flex items-center">
@@ -459,7 +464,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                     </div>
                   </div>
                 )}
-                
+
                 <div>
                   <label htmlFor="outputFormat" className="block text-sm font-medium text-gray-700 mb-2">
                     Output Format
@@ -474,6 +479,14 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                     <option value="mp3">MP3</option>
                     <option value="m4a">M4A (AAC)</option>
                   </select>
+                  <div className="mt-2">
+                    <button
+                      onClick={() => processConvert(audioState.outputFormat as OutputFormat)}
+                      className="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none"
+                    >
+                      Convert
+                    </button>
+                  </div>
                   <p className="text-xs text-gray-500 mt-1">
                     {audioState.outputFormat === 'm3u8' && 'HLS format for streaming, creates multiple segments'}
                     {audioState.outputFormat === 'mp3' && 'MP3 format for compatibility'}
@@ -574,11 +587,10 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
               <button
                 disabled={audioState.isUploading}
                 onClick={submitEpisode}
-                className={`w-full px-4 py-3 rounded ${
-                  !audioState.audioUrl || audioState.isUploading
+                className={`w-full px-4 py-3 rounded ${!audioState.audioUrl || audioState.isUploading
                     ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
                     : 'bg-green-600 hover:bg-green-700 text-white'
-                } transition-colors duration-200`}
+                  } transition-colors duration-200`}
               >
                 {audioState.isUploading ? 'Uploading...' : `Upload`}
               </button>
