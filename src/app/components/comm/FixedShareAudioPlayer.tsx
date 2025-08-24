@@ -77,34 +77,9 @@ export default function FixedAudioPlayer() {
   if (!audio) return null;
 
   return (
-    <div style={{ marginTop: '60px' }}>
-      {/* CSS Animations */}
-      <style jsx>{`
-        @keyframes slideInBounce {
-          0% {
-            transform: translateX(100%);
-          }
-          70% {
-            transform: translateX(-5%);
-          }
-          100% {
-            transform: translateX(0%);
-          }
-        }
-        
-        @keyframes fadeInUp {
-          0% {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
+    <div style={{ marginTop: '80px' }}>
 
-      <HLSPlayer/>
+
 
       <div
         className={`fixed right-0 top-16 bottom-20 w-80 bg-white border-l border-gray-200 z-40 overflow-y-auto transition-all duration-300 ease-in-out transform ${showPlaylist

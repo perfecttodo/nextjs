@@ -54,14 +54,6 @@ export default function Header({ user }: { user: any }) {
           )}
         </div>
       </header>
-      <div style={{ paddingTop: headerHeight }}>
-        {/* Main content goes here */}
-      </div>
-      <style jsx>{`
-        header {
-          will-change: transform;
-        }
-      `}</style>
     </>
   );
 }

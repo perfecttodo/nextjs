@@ -108,7 +108,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
         }
     }
     useEffect(() => {
-
+        console.log('audio', audio)
         setUrl(audio?.blobUrl);
 
     }, [audio]);
@@ -145,78 +145,83 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
 
     useEffect(() => {
         const video = videoRef.current;
-        if (!video) return;
-        setStatus('');
-        if (isHlsSupportFormat()) {
-            if (Hls.isSupported() && !hlsRef.current) {
-                hlsRef.current = new Hls();
-                hlsRef.current.attachMedia(video);
-                hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
-                    video.play();
-                    handleLoadedMetadata();
-                });
+        if (video && url){
+            setStatus('');
 
-                hlsRef.current.on(Hls.Events.ERROR, (event, data) => {
-                    if (data.fatal) {
-                        onError(`HLS Error: ${data.fatal}`);
-                    }
-                });
-
-                video.addEventListener('ended', onEnded);
-                video.addEventListener('pause', onPause);
-                video.addEventListener('play', onPlay);
-                video.addEventListener('progress',handleTimeUpdate);
-            }
-            if (url) {
-                if (hlsRef.current) {
-                    hlsRef.current.loadSource(url);
-
-                } else {
-                    video.src = url; // Fallback for native support
-                }
-            }
-        } else {
-
-            if (videoRef.current) {
-
-                videoJsPlayerRef.current = videojs(videoRef.current, {
-                    html5: {
-                        vhs: {
-                            enableLowInitialPlaylist: true,
-                            smoothQualityChange: true,
-                            overrideNative: true
-                        }
-                    },
-                    controls: false,
-                    autoplay: false,
-                    preload: 'metadata',
-                    fluid: true,
-                    responsive: true,
-                    playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
-                    controlBar: {
-                        children: []
-                    }
-                });
-
-                videoJsPlayerRef.current.on('loadedmetadata', onPlay);
-                videoJsPlayerRef.current.on('timeupdate', handleTimeUpdate);
-
-                if (audio != null) {
-                    let type = getType(audio);
-                    videoJsPlayerRef.current.src({
-                        src: url,
-                        type
+            if (isHlsSupportFormat()) {
+                if (Hls.isSupported() && !hlsRef.current) {
+                    hlsRef.current = new Hls();
+                    hlsRef.current.attachMedia(video);
+                    hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
+                        video.play();
+                        handleLoadedMetadata();
                     });
-                    videoJsPlayerRef.current.play();
+    
+                    hlsRef.current.on(Hls.Events.ERROR, (event, data) => {
+                        if (data.fatal) {
+                            onError(`HLS Error: ${data.fatal}`);
+                        }
+                    });
+    
+                    video.addEventListener('ended', onEnded);
+                    video.addEventListener('pause', onPause);
+                    video.addEventListener('play', onPlay);
+                    video.addEventListener('progress',handleTimeUpdate);
+                }
+                if (url) {
+                    if (hlsRef.current) {
+                        hlsRef.current.loadSource(url);
+    
+                    } else {
+                        video.src = url; // Fallback for native support
+                    }
+                }
+            } else {
+    
+                if (videoRef.current) {
+    
+                    videoJsPlayerRef.current = videojs(videoRef.current, {
+                        html5: {
+                            vhs: {
+                                enableLowInitialPlaylist: true,
+                                smoothQualityChange: true,
+                                overrideNative: true
+                            }
+                        },
+                        controls: false,
+                        autoplay: false,
+                        preload: 'metadata',
+                        fluid: true,
+                        responsive: true,
+                        playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
+                        controlBar: {
+                            children: []
+                        }
+                    });
+    
+                    videoJsPlayerRef.current.on('loadedmetadata', onPlay);
+                    videoJsPlayerRef.current.on('timeupdate', handleTimeUpdate);
+    
+                    if (audio != null) {
+                        let type = getType(audio);
+                        videoJsPlayerRef.current.src({
+                            src: url,
+                            type
+                        });
+                        videoJsPlayerRef.current.play();
+                    }
                 }
             }
-        }
+        } 
+
 
 
         return () => {
-            if (hlsRef.current) {
+            if (hlsRef.current&&video) {
                 hlsRef.current.destroy();
                 hlsRef.current = null;
+                video.removeEventListener('ended', onEnded);
+                video.removeEventListener('pause', onPause);
             }
             if (videoJsPlayerRef.current) {
                 videoJsPlayerRef.current.off('loadedmetadata', onPlay);
@@ -226,8 +231,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                 videoJsPlayerRef.current = null;
 
             }
-            video.removeEventListener('ended', onEnded);
-            video.removeEventListener('pause', onPause);
+
         };
     }, [url]);
 
