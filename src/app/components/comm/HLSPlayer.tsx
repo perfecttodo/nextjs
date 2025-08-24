@@ -14,10 +14,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const hlsRef = useRef<Hls | null>(null);
     const videoJsPlayerRef = useRef<any>(null);
-
     const [url, setUrl] = useState<string>();
-
-
     const {
         audio,
         play,
