@@ -148,7 +148,27 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                 const video = videoRef.current;
                 if (video == null) return;
                 if (Hls.isSupported() && !hlsRef.current) {
-                    hlsRef.current = new Hls();
+                    hlsRef.current = new Hls({
+                    // Buffering optimization settings
+                    maxBufferLength: 30,          // Maximum buffer length in seconds
+                    maxMaxBufferLength: 60,       // Absolute maximum buffer length
+                    maxBufferSize: 60 * 1000 * 1000, // 60MB buffer size
+                    maxBufferHole: 0.5,           // Maximum gap between buffered ranges
+                    highBufferWatchdogPeriod: 3,
+                    nudgeOffset: 0.1,             // Small nudge for seeking
+                    nudgeMaxRetry: 3,
+                    
+                    // ABR (Adaptive Bitrate) settings
+                    abrEwmaDefaultEstimate: 500000, // Default bandwidth estimate (500kbps)
+                    abrEwmaSlowVoD: 5,            // Slow VoD bandwidth estimate factor
+                    abrEwmaFastVoD: 3,            // Fast VoD bandwidth estimate factor
+                    
+                    // Fragment loading optimization
+                    fragLoadingTimeOut: 20000,    // Fragment loading timeout
+                    fragLoadingMaxRetry: 6,
+                    fragLoadingRetryDelay: 1000,
+                    fragLoadingMaxRetryTimeout: 64000,
+                });
                     hlsRef.current.attachMedia(video);
                     hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
                         video.play();
