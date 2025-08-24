@@ -379,7 +379,11 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       case 'upload':
         return <UploadProvider onSuccess={handleProvideBlogSuccess}  />;
       case 'record':
-        return <RecordingProvider onSuccess={handleProvideBlogSuccess} onStart={()=>{ audioRef.current?.pause()}} />;
+        return <RecordingProvider onSuccess={handleProvideBlogSuccess} onStart={()=>{ audioRef.current?.pause(); 
+        updateAudioState({ 
+        audioUrl: null,
+        audioBlob: null 
+      });}} />;
       case 'url':
         return <UrlProvider onSuccess={handleProvideBlogSuccess} />;
       default:
