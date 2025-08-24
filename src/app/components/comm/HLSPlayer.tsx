@@ -1,14 +1,12 @@
 // HLSPlayer.tsx
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import videojs from 'video.js';
 import Hls from 'hls.js';
 import { Episode } from '@/types/audio';
 import { formatDuration } from '@/lib/audio';
-
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
-interface HLSPlayerProps {
 
-}
+interface HLSPlayerProps {}
 
 const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -17,83 +15,95 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
 
     const [url, setUrl] = useState<string>();
 
-
     const {
         audio,
         play,
         pause,
         ended,
         setAudio,
-        currentIndex, setStatus, isToggle, currentTime,setCurrentTime,setDuration,
-        duration, playMode,
-
+        currentIndex, 
+        setStatus, 
+        isToggle, 
+        currentTime,
+        setCurrentTime,
+        setDuration,
+        duration, 
+        playMode,
     } = useAudioPlayerStore();
 
-    const onEnded = () => {
+    // Memoize event handlers to prevent unnecessary re-renders
+    const onEnded = useCallback(() => {
         ended();
-    }
-    const onPlay = () => {
+    }, [ended]);
+
+    const onPlay = useCallback(() => {
         handleLoadedMetadata();
         setStatus('loaded');
-        console.log('onPlay')
+        console.log('onPlay');
         play();
+    }, [setStatus, play]);
 
-    }
-    const onPause = () => {
-        console.log('onPause')
+    const onPause = useCallback(() => {
+        console.log('onPause');
         pause();
-    }
-    const onError = (error: string) => {
-        console.log('onError' + error)
-    }
-    const isHlsSupportFormat = (): boolean => {
-        return audio?.format != null && (audio?.format.indexOf('m3u8') > -1 || audio?.format.indexOf('mpegurl') > -1);
-    }
-    const handleTimeUpdate = () => {
-        if (videoJsPlayerRef.current){
+    }, [pause]);
+
+    const onError = useCallback((error: string) => {
+        console.log('onError' + error);
+        setStatus('error');
+    }, [setStatus]);
+
+    const isHlsSupportFormat = useCallback((): boolean => {
+        return audio?.format != null && 
+               (audio?.format.indexOf('m3u8') > -1 || 
+                audio?.format.indexOf('mpegurl') > -1);
+    }, [audio?.format]);
+
+    const handleTimeUpdate = useCallback(() => {
+        if (videoJsPlayerRef.current) {
             const time = videoJsPlayerRef.current.currentTime();
             if (typeof time === 'number') {
-              setCurrentTime(time);
-              const playerDuration = videoJsPlayerRef.current.duration();
-              if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
-                ended();
-              }
+                setCurrentTime(time);
+                const playerDuration = videoJsPlayerRef.current.duration();
+                if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
+                    onEnded();
+                }
             }
-        }else if(videoRef.current){
+        } else if (videoRef.current) {
             const time = videoRef.current.currentTime;
             if (typeof time === 'number') {
                 setCurrentTime(time);
-                const playerDuration = videoRef.current;
-              if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
-                ended();
-              }
+                const playerDuration = videoRef.current.duration;
+                if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
+                    onEnded();
+                }
             }
         }
+    }, [setCurrentTime, onEnded]);
 
-      };
-
-      const handleLoadedMetadata = () => {
-        if (videoJsPlayerRef.current){
-        const dur = videoJsPlayerRef.current.duration();
-        if (typeof dur === 'number') setDuration(dur);
-        }else if(videoRef.current){
+    const handleLoadedMetadata = useCallback(() => {
+        if (videoJsPlayerRef.current) {
+            const dur = videoJsPlayerRef.current.duration();
+            if (typeof dur === 'number') setDuration(dur);
+        } else if (videoRef.current) {
             const dur = videoRef.current.duration;
-
             if (typeof dur === 'number') setDuration(dur);
         }
         setStatus('loaded');
-    
-      };
+    }, [setDuration, setStatus]);
+
     // Seek handler
-    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSeek = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const time = parseFloat(e.target.value);
         if (videoJsPlayerRef.current) {
             videoJsPlayerRef.current.currentTime(time);
         } else if (videoRef.current) {
             videoRef.current.currentTime = time;
         }
-    };
-    function getType(audio: Episode) {
+        setCurrentTime(time);
+    }, [setCurrentTime]);
+
+    const getType = useCallback((audio: Episode) => {
         switch (audio.format) {
             case 'mp3':
                 return 'audio/mp3';
@@ -106,134 +116,149 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
             default:
                 return audio.format;
         }
-    }
+    }, []);
+
     useEffect(() => {
-        console.log('audio', audio)
+        console.log('audio', audio);
         setUrl(audio?.blobUrl);
-
     }, [audio]);
-
 
     useEffect(() => {
         const video = videoRef.current;
-        if (video) {
-            if (isHlsSupportFormat()) {
-                if (video.paused) {
-                    video.play();
-                } else {
-                    video.pause();
+        if (!video) return;
+
+        if (isHlsSupportFormat()) {
+            if (video.paused) {
+                video.play().catch(error => onError(error.message));
+            } else {
+                video.pause();
+            }
+        } else if (videoJsPlayerRef.current) {
+            if (videoJsPlayerRef.current.paused()) {
+                videoJsPlayerRef.current.play().catch(error => onError(error.message));
+            } else {
+                videoJsPlayerRef.current.pause();
+            }
+        }
+    }, [isToggle, isHlsSupportFormat, onError]);
+
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video || !url) return;
+
+        setStatus('loading');
+
+        if (isHlsSupportFormat()) {
+            if (Hls.isSupported()) {
+                // Clean up existing HLS instance if any
+                if (hlsRef.current) {
+                    hlsRef.current.destroy();
                 }
 
+                hlsRef.current = new Hls({
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    backBufferLength: 90
+                });
+                
+                hlsRef.current.attachMedia(video);
+                
+                hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
+                    video.play().catch(error => onError(error.message));
+                    handleLoadedMetadata();
+                });
 
-            } else if (videoJsPlayerRef.current) {
-                if (videoJsPlayerRef.current.paused()) {
-                    videoJsPlayerRef.current.play();
-                    play();
+                hlsRef.current.on(Hls.Events.ERROR, (event, data) => {
+                    console.error('HLS error:', data);
+                    if (data.fatal) {
+                        onError(`HLS Error: ${data.type}`);
+                    }
+                });
 
-                } else {
-                    videoJsPlayerRef.current.pause();
-                    pause();
+                hlsRef.current.loadSource(url);
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                // Native HLS support (Safari)
+                video.src = url;
+                video.addEventListener('loadedmetadata', handleLoadedMetadata);
+                video.play().catch(error => onError(error.message));
+            } else {
+                onError('HLS is not supported in this browser');
+            }
+        } else {
+            // Clean up existing video.js instance if any
+            if (videoJsPlayerRef.current) {
+                videoJsPlayerRef.current.dispose();
+                videoJsPlayerRef.current = null;
+            }
 
+            // Initialize video.js player
+            videoJsPlayerRef.current = videojs(video, {
+                html5: {
+                    vhs: {
+                        enableLowInitialPlaylist: true,
+                        smoothQualityChange: true,
+                        overrideNative: true
+                    }
+                },
+                controls: false,
+                autoplay: false,
+                preload: 'metadata',
+                fluid: true,
+                responsive: true,
+                playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
+                controlBar: {
+                    children: []
                 }
+            });
 
+            videoJsPlayerRef.current.on('loadedmetadata', handleLoadedMetadata);
+            videoJsPlayerRef.current.on('timeupdate', handleTimeUpdate);
+            videoJsPlayerRef.current.on('error', () => {
+                onError('Video.js player error');
+            });
+
+            if (audio) {
+                const type = getType(audio);
+                videoJsPlayerRef.current.src({
+                    src: url,
+                    type
+                });
+                
+                videoJsPlayerRef.current.play().catch(error => onError(error.message));
             }
         }
 
-
-
-    }, [isToggle]);
-
-    useEffect(() => {
-        const video = videoRef.current;
-        if (video && url){
-            setStatus('');
-
-            if (isHlsSupportFormat()) {
-                if (Hls.isSupported() && !hlsRef.current) {
-                    hlsRef.current = new Hls();
-                    hlsRef.current.attachMedia(video);
-                    hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
-                        video.play();
-                        handleLoadedMetadata();
-                    });
-    
-                    hlsRef.current.on(Hls.Events.ERROR, (event, data) => {
-                        if (data.fatal) {
-                            onError(`HLS Error: ${data.fatal}`);
-                        }
-                    });
-    
-                    video.addEventListener('ended', onEnded);
-                    video.addEventListener('pause', onPause);
-                    video.addEventListener('play', onPlay);
-                    video.addEventListener('progress',handleTimeUpdate);
-                }
-                if (url) {
-                    if (hlsRef.current) {
-                        hlsRef.current.loadSource(url);
-    
-                    } else {
-                        video.src = url; // Fallback for native support
-                    }
-                }
-            } else {
-    
-                if (videoRef.current) {
-    
-                    videoJsPlayerRef.current = videojs(videoRef.current, {
-                        html5: {
-                            vhs: {
-                                enableLowInitialPlaylist: true,
-                                smoothQualityChange: true,
-                                overrideNative: true
-                            }
-                        },
-                        controls: false,
-                        autoplay: false,
-                        preload: 'metadata',
-                        fluid: true,
-                        responsive: true,
-                        playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
-                        controlBar: {
-                            children: []
-                        }
-                    });
-    
-                    videoJsPlayerRef.current.on('loadedmetadata', onPlay);
-                    videoJsPlayerRef.current.on('timeupdate', handleTimeUpdate);
-    
-                    if (audio != null) {
-                        let type = getType(audio);
-                        videoJsPlayerRef.current.src({
-                            src: url,
-                            type
-                        });
-                        videoJsPlayerRef.current.play();
-                    }
-                }
-            }
-        } 
-
-
+        // Add event listeners for native video element
+        video.addEventListener('ended', onEnded);
+        video.addEventListener('pause', onPause);
+        video.addEventListener('play', onPlay);
+        video.addEventListener('timeupdate', handleTimeUpdate);
 
         return () => {
-            if (hlsRef.current&&video) {
+            // Clean up HLS
+            if (hlsRef.current) {
                 hlsRef.current.destroy();
                 hlsRef.current = null;
-                video.removeEventListener('ended', onEnded);
-                video.removeEventListener('pause', onPause);
             }
-            if (videoJsPlayerRef.current) {
-                videoJsPlayerRef.current.off('loadedmetadata', onPlay);
-                videoJsPlayerRef.current.off('timeupdate', handleTimeUpdate);
 
+            // Clean up video.js
+            if (videoJsPlayerRef.current) {
+                videoJsPlayerRef.current.off('loadedmetadata', handleLoadedMetadata);
+                videoJsPlayerRef.current.off('timeupdate', handleTimeUpdate);
                 videoJsPlayerRef.current.dispose();
                 videoJsPlayerRef.current = null;
-
             }
 
+            // Clean up native event listeners
+            if (video) {
+                video.removeEventListener('ended', onEnded);
+                video.removeEventListener('pause', onPause);
+                video.removeEventListener('play', onPlay);
+                video.removeEventListener('timeupdate', handleTimeUpdate);
+                video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+            }
         };
-    }, [url]);
+    }, [url, audio, isHlsSupportFormat, onEnded, onPause, onPlay, handleTimeUpdate, handleLoadedMetadata, onError, getType]);
 
     return (
         <div>
@@ -255,7 +280,13 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                 </div>
             </div>
             <div className='hidden'>
-            <video ref={videoRef} className="video-js vjs-default-skin" controls playsInline webkit-playsinline="true" />
+                <video 
+                    ref={videoRef} 
+                    className="video-js vjs-default-skin" 
+                    controls 
+                    playsInline 
+                    webkit-playsinline="true" 
+                />
             </div>
         </div>
     );
