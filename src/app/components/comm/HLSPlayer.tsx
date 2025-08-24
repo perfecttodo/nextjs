@@ -67,8 +67,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
             const duration = videoRef.current.duration;
             if (typeof time === 'number') {
                 setCurrentTime(time);
-                const playerDuration = videoRef.current;
-                if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
+                if (typeof duration === 'number' && time >= duration - 0.1) {
                     onEnded();
                 }
                 const dur = duration;
