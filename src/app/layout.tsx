@@ -34,7 +34,7 @@ export default async function RootLayout({
   const user = await getSessionUser();
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} style={{ marginTop: '60px' }}>
         <Header user={user} />
         {children}
         <FixedShareAudioPlayer />
