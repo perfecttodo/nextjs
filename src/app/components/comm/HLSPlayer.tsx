@@ -123,8 +123,6 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                 } else {
                     video.pause();
                 }
-
-
             } else if (videoJsPlayerRef.current) {
                 if (videoJsPlayerRef.current.paused()) {
                     videoJsPlayerRef.current.play();
@@ -133,13 +131,9 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                 } else {
                     videoJsPlayerRef.current.pause();
                     pause();
-
                 }
-
             }
         }
-
-
 
     }, [isToggle]);
 
@@ -189,14 +183,8 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                             }
                         },
                         controls: false,
-                        autoplay: false,
-                        preload: 'metadata',
-                        fluid: true,
-                        responsive: true,
-                        playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
-                        controlBar: {
-                            children: []
-                        }
+                        autoplay: true,
+                        preload: 'auto',
                     });
 
                     videoJsPlayerRef.current.on('loadedmetadata', onPlay);
@@ -204,17 +192,12 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
 
                     if (audio != null) {
                         let type = getType(audio);
-                        videoJsPlayerRef.current.src({
-                            src: url,
-                            type
-                        });
+                        videoJsPlayerRef.current.src({ src: url,type});
                         videoJsPlayerRef.current.play();
                     }
                 }
             }
         }
-
-
 
         return () => {
             if (hlsRef.current && video) {
@@ -226,7 +209,6 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
             if (videoJsPlayerRef.current) {
                 videoJsPlayerRef.current.off('loadedmetadata', onPlay);
                 videoJsPlayerRef.current.off('timeupdate', handleTimeUpdate);
-
                 videoJsPlayerRef.current.dispose();
                 videoJsPlayerRef.current = null;
 
