@@ -14,8 +14,9 @@ export default function PlayButton({ episode, episodes }: PlayButtonProps) {
     if (currentAudio?.id === audio.id) {
       togglePlay();
     } else {
-      setAudio(audio);
       if (episodes) updateAudioFiles(episodes);
+        setAudio(audio);
+
     }
   };
 

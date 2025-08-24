@@ -69,7 +69,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                 setCurrentTime(time);
                 const playerDuration = videoRef.current;
                 if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
-                    ended();
+                    onEnded();
                 }
                 const dur = duration;
                 if (typeof dur === 'number') setDuration(dur);
@@ -80,7 +80,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                 setCurrentTime(time);
                 const playerDuration = videoJsPlayerRef.current.duration();
                 if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
-                    ended();
+                    onEnded();
                 }
             }
         }
@@ -208,7 +208,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
 
         return () => {
 
-            if (!isHlsSupportFormat()) {
+            if (isHlsSupportFormat()) {
                 const video = videoRef.current;
 
                 if (hlsRef.current && video) {

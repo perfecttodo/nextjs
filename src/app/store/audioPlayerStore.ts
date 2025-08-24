@@ -115,7 +115,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
     } else {
       nextIndex = (currentIndex + 1) % episodes.length;
     }
-    
+    set({audio:null});
     set({
       currentIndex: nextIndex,
       audio: episodes[nextIndex],
