@@ -9,7 +9,21 @@ import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 interface HLSPlayerProps {
 
 }
-
+   function getType(audio: Episode) {
+        switch (audio.format) {
+            case 'mp3':
+                return 'audio/mp3';
+            case 'm4a':
+                return 'audio/mp4';
+            case 'm3u8':
+                return 'application/x-mpegURL';
+            case 'mpd':
+                return 'application/dash+xml';
+            default:
+                return audio.format;
+        }
+    }
+    
 const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const hlsRef = useRef<Hls | null>(null);
@@ -70,13 +84,15 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
     };
 
     const handleLoadedMetadata = () => {
-        if (videoJsPlayerRef.current) {
-            const dur = videoJsPlayerRef.current.duration();
-            if (typeof dur === 'number') setDuration(dur);
-        } else if (videoRef.current) {
-            const dur = videoRef.current.duration;
+        if (isHlsSupportFormat()) {
+            const dur = videoRef.current ? videoRef.current.duration : undefined;
 
             if (typeof dur === 'number') setDuration(dur);
+        } else {
+            if (videoJsPlayerRef.current) {
+                const dur = videoJsPlayerRef.current.duration();
+                if (typeof dur === 'number') setDuration(dur);
+            }
         }
         setStatus('loaded');
 
@@ -84,26 +100,15 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
     // Seek handler
     const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
         const time = parseFloat(e.target.value);
-        if (videoJsPlayerRef.current) {
-            videoJsPlayerRef.current.currentTime(time);
-        } else if (videoRef.current) {
+        if (isHlsSupportFormat()) {
+            if (videoRef.current == null) return;
             videoRef.current.currentTime = time;
+        } else if (videoRef.current) {
+            videoJsPlayerRef.current.currentTime(time);
+
         }
     };
-    function getType(audio: Episode) {
-        switch (audio.format) {
-            case 'mp3':
-                return 'audio/mp3';
-            case 'm4a':
-                return 'audio/mp4';
-            case 'm3u8':
-                return 'application/x-mpegURL';
-            case 'mpd':
-                return 'application/dash+xml';
-            default:
-                return audio.format;
-        }
-    }
+ 
     useEffect(() => {
         console.log('audio', audio)
         setUrl(audio?.blobUrl);
@@ -112,34 +117,35 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
 
 
     useEffect(() => {
-        const video = videoRef.current;
-        if (video) {
-            if (isHlsSupportFormat()) {
-                if (video.paused) {
-                    video.play();
-                } else {
-                    video.pause();
-                }
-            } else if (videoJsPlayerRef.current) {
-                if (videoJsPlayerRef.current.paused()) {
-                    videoJsPlayerRef.current.play();
-                    play();
+        if (isHlsSupportFormat()) {
+            const video = videoRef.current;
+            if (video == null) return;
+            if (video.paused) {
+                video.play();
+            } else {
+                video.pause();
+            }
+        } else if (videoJsPlayerRef.current) {
+            if (videoJsPlayerRef.current.paused()) {
+                videoJsPlayerRef.current.play();
+                play();
 
-                } else {
-                    videoJsPlayerRef.current.pause();
-                    pause();
-                }
+            } else {
+                videoJsPlayerRef.current.pause();
+                pause();
             }
         }
+
 
     }, [isToggle]);
 
     useEffect(() => {
-        const video = videoRef.current;
-        if (video && url) {
+        if (url) {
             setStatus('');
 
             if (isHlsSupportFormat()) {
+                const video = videoRef.current;
+                if (video == null) return;
                 if (Hls.isSupported() && !hlsRef.current) {
                     hlsRef.current = new Hls();
                     hlsRef.current.attachMedia(video);
@@ -189,7 +195,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
 
                     if (audio != null) {
                         let type = getType(audio);
-                        videoJsPlayerRef.current.src({ src: url,type});
+                        videoJsPlayerRef.current.src({ src: url, type });
                         videoJsPlayerRef.current.play();
                     }
                 }
@@ -197,19 +203,27 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
         }
 
         return () => {
-            if (hlsRef.current && video) {
-                hlsRef.current.destroy();
-                hlsRef.current = null;
-                video.removeEventListener('ended', onEnded);
-                video.removeEventListener('pause', onPause);
-            }
-            if (videoJsPlayerRef.current) {
-                videoJsPlayerRef.current.off('loadedmetadata', onPlay);
-                videoJsPlayerRef.current.off('timeupdate', handleTimeUpdate);
-                videoJsPlayerRef.current.dispose();
-                videoJsPlayerRef.current = null;
 
+            if (!isHlsSupportFormat()) {
+                const video = videoRef.current;
+
+                if (hlsRef.current && video) {
+                    hlsRef.current.destroy();
+                    hlsRef.current = null;
+                    video.removeEventListener('ended', onEnded);
+                    video.removeEventListener('pause', onPause);
+                }
+            } else {
+                if (videoJsPlayerRef.current) {
+                    videoJsPlayerRef.current.off('loadedmetadata', onPlay);
+                    videoJsPlayerRef.current.off('timeupdate', handleTimeUpdate);
+                    videoJsPlayerRef.current.dispose();
+                    videoJsPlayerRef.current = null;
+
+                }
             }
+
+
 
         };
     }, [url]);
