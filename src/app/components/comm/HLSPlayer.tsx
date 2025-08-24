@@ -67,21 +67,19 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
             const duration = videoRef.current.duration;
             if (typeof time === 'number') {
                 setCurrentTime(time);
-                if (typeof duration === 'number' && time >= duration - 0.1) {
-                    onEnded();
-                }
-                const dur = duration;
-                if (typeof dur === 'number') setDuration(dur);
             }
+
+            const dur = duration;
+            if (typeof dur === 'number') setDuration(dur);
+
         } else {
             const time = videoJsPlayerRef.current.currentTime();
             if (typeof time === 'number') {
                 setCurrentTime(time);
-                const playerDuration = videoJsPlayerRef.current.duration();
-                if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
-                    onEnded();
-                }
-            }
+                const duration = videoJsPlayerRef.current.duration();
+                    const dur = duration;
+                    if (typeof dur === 'number') setDuration(dur);
+                    }
         }
 
     };
@@ -195,6 +193,8 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
 
                     videoJsPlayerRef.current.on('loadedmetadata', onPlay);
                     videoJsPlayerRef.current.on('timeupdate', handleTimeUpdate);
+                    videoJsPlayerRef.current.on('ended', onEnded);
+                    videoJsPlayerRef.current.on('error', onEnded);
 
                     if (audio != null) {
                         let type = getType(audio);
@@ -220,6 +220,8 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                 if (videoJsPlayerRef.current) {
                     videoJsPlayerRef.current.off('loadedmetadata', onPlay);
                     videoJsPlayerRef.current.off('timeupdate', handleTimeUpdate);
+                    videoJsPlayerRef.current.off('ended', onEnded);
+                    videoJsPlayerRef.current.off('error', onEnded);
                     videoJsPlayerRef.current.dispose();
                     videoJsPlayerRef.current = null;
 
