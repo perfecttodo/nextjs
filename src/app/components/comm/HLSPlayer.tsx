@@ -26,6 +26,7 @@ function getType(audio: Episode) {
 
 const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
+    const videojsRef = useRef<HTMLVideoElement>(null);
     const hlsRef = useRef<Hls | null>(null);
     const videoJsPlayerRef = useRef<any>(null);
     const [url, setUrl] = useState<string>();
@@ -79,7 +80,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                 const duration = videoJsPlayerRef.current.duration();
                     const dur = duration;
                     if (typeof dur === 'number') setDuration(dur);
-                    }
+            }
         }
 
     };
@@ -145,6 +146,9 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
             setStatus('');
 
             if (isHlsSupportFormat()) {
+
+                if(videoJsPlayerRef.current)videoJsPlayerRef.current.pause();
+
                 const video = videoRef.current;
                 if (video == null) return;
                 if (Hls.isSupported() && !hlsRef.current) {
@@ -196,9 +200,11 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                 }
             } else {
 
-                if (videoRef.current) {
+                if(videoRef.current)videoRef.current.pause();
 
-                    videoJsPlayerRef.current = videojs(videoRef.current, {
+                if (videojsRef.current) {
+
+                    videoJsPlayerRef.current = videojs(videojsRef.current, {
                         html5: {
                             vhs: {
                                 enableLowInitialPlaylist: true,
@@ -227,7 +233,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
 
         return () => {
 
-            if (isHlsSupportFormat()) {
+           /* if (isHlsSupportFormat()) {
                 const video = videoRef.current;
 
                 if (hlsRef.current && video) {
@@ -247,7 +253,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
 
                 }
             }
-
+*/
 
 
         };
@@ -273,7 +279,9 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
                 </div>
             </div>
             <div className='hidden'>
-                <video ref={videoRef} className="video-js vjs-default-skin" controls playsInline webkit-playsinline="true" />
+                <video ref={videoRef} controls playsInline webkit-playsinline="true" />
+                <video ref={videojsRef} className="video-js vjs-default-skin" controls playsInline webkit-playsinline="true" />
+                
             </div>
         </div>
     );
