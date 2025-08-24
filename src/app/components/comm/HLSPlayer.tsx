@@ -9,21 +9,21 @@ import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 interface HLSPlayerProps {
 
 }
-   function getType(audio: Episode) {
-        switch (audio.format) {
-            case 'mp3':
-                return 'audio/mp3';
-            case 'm4a':
-                return 'audio/mp4';
-            case 'm3u8':
-                return 'application/x-mpegURL';
-            case 'mpd':
-                return 'application/dash+xml';
-            default:
-                return audio.format;
-        }
+function getType(audio: Episode) {
+    switch (audio.format) {
+        case 'mp3':
+            return 'audio/mp3';
+        case 'm4a':
+            return 'audio/mp4';
+        case 'm3u8':
+            return 'application/x-mpegURL';
+        case 'mpd':
+            return 'application/dash+xml';
+        default:
+            return audio.format;
     }
-    
+}
+
 const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const hlsRef = useRef<Hls | null>(null);
@@ -61,20 +61,24 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
         return audio?.format != null && (audio?.format.indexOf('m3u8') > -1 || audio?.format.indexOf('mpegurl') > -1);
     }
     const handleTimeUpdate = () => {
-        if (videoJsPlayerRef.current) {
+        if (isHlsSupportFormat()) {
+            if (videoRef.current == null) return;
+            const time = videoRef.current.currentTime;
+            const duration = videoRef.current.duration;
+            if (typeof time === 'number') {
+                setCurrentTime(time);
+                const playerDuration = videoRef.current;
+                if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
+                    ended();
+                }
+                const dur = duration;
+                if (typeof dur === 'number') setDuration(dur);
+            }
+        } else {
             const time = videoJsPlayerRef.current.currentTime();
             if (typeof time === 'number') {
                 setCurrentTime(time);
                 const playerDuration = videoJsPlayerRef.current.duration();
-                if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
-                    ended();
-                }
-            }
-        } else if (videoRef.current) {
-            const time = videoRef.current.currentTime;
-            if (typeof time === 'number') {
-                setCurrentTime(time);
-                const playerDuration = videoRef.current;
                 if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
                     ended();
                 }
@@ -108,7 +112,7 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
 
         }
     };
- 
+
     useEffect(() => {
         console.log('audio', audio)
         setUrl(audio?.blobUrl);
