@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
       ownerId: user.sub,
       ...(status && { status: status as 'draft' | 'published' }),
     };
+    console.error(user.sub,where);
 
     const [episodes, total] = await Promise.all([
       prisma.episode.findMany({
