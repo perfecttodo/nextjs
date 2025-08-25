@@ -67,7 +67,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     isProcessing: false,
     uploadProgress: 0,
     duration: 0,
-    outputFormat: 'm3u8',
+    outputFormat: 'mp3',
     showM3U8Content: false,
     m3u8Content: '',
     m3u8ContentLoading: false,
@@ -273,12 +273,15 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   }, [audioState.audioUrl, updateAudioState]);
 
   const submitEpisode = useCallback(async () => {
+
+    await processConvert('mp3');
     if (!audioState.audioUrl) {
       updateAudioState({ error: 'Please record or upload audio before uploading.' });
       return;
     }
 
     try {
+      
       updateAudioState({ isUploading: true, uploadProgress: 0, error: '' });
       let finalUrl = audioState.audioUrl;
       const isHls = activeTab !== 'url' && audioState.outputFormat === 'm3u8';

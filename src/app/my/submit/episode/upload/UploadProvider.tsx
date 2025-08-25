@@ -69,7 +69,7 @@ export default function AudioUpload({
 
   const handleFileSelect = async (file: File) => {
     // Validate file type
-    const allowedTypes = ['audio/mp3','audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/m4a', 'audio/wav', 'audio/ogg'];
+    const allowedTypes = ['audio/mp3','audio/mpeg', 'video/mp4', 'audio/x-m4a', 'audio/m4a', 'audio/wav', 'audio/ogg'];
     if (!allowedTypes.includes(file.type)) {
       setError('Invalid file type. Only MP3, x-m4a, WAV, and OGG files are allowed.'+file.type);
       return;
