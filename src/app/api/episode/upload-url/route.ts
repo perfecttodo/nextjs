@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
         blobUrl: url,
         blobId: `url-${Date.now()}`, // Create a unique ID for URL-based files
         format:format.mimeType,
-        fileSize: 0, // Can't determine size without downloading
+        fileSize: format?.contentLength||0, // Can't determine size without downloading
         status,
         ownerId: user.sub,
         description: description || null,
