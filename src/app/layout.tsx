@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Tayino",
-  description: "Promote your productivity",
+  description: "Collect and share your audio content with Tayino.",
 };
 
 export const viewport: Viewport = {
