@@ -170,7 +170,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete from Vercel Blob
-    await deleteAudioFile(existingFile.blobId);
+    await deleteAudioFile(existingFile.blobUrl.split(`https://${process.env.CLOUDFLARE_R2_PUBLIC_DOMAIN}/`)[1]);
 
     // Delete from database
     await prisma.episode.delete({
