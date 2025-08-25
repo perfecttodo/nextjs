@@ -18,7 +18,6 @@ import {
   OutputFormat,
   AudioProcessingState
 } from './types';
-import { blob } from 'stream/consumers';
 
 const TABS: TabConfig[] = [
   {
@@ -132,7 +131,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
 
   useEffect(() => {
     updateAudioState({
-      isFormatable: activeTab !== 'url' && audioState.audioBlob !== null
+      isFormatable: activeTab !== 'url' && audioState.audioBlob !== null,useFFmpeg: activeTab !== 'url' 
     });
   }, [activeTab, audioState.audioBlob, updateAudioState]);
 
@@ -466,25 +465,12 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                 )}
 
                 <div>
-                  <label htmlFor="outputFormat" className="block text-sm font-medium text-gray-700 mb-2">
-                    Output Format
-                  </label>
-                  <select
-                    id="outputFormat"
-                    value={audioState.outputFormat}
-                    onChange={changeFormat}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="m3u8">M3U8 (HLS Streaming)</option>
-                    <option value="mp3">MP3</option>
-                    <option value="m4a">M4A (AAC)</option>
-                  </select>
                   <div className="mt-2">
                     <button
-                      onClick={() => processConvert(audioState.outputFormat as OutputFormat)}
+                      onClick={() => processConvert('mp3' as OutputFormat)}
                       className="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none"
                     >
-                      Convert
+                      Convert to MP3
                     </button>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
@@ -532,33 +518,6 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
                   Format: {audioState.outputFormat.toUpperCase()}
                 </div>
 
-                {activeTab !== 'url' && audioState.outputFormat === 'm3u8' && (
-                  <div className="mt-4">
-                    <button
-                      onClick={async () => {
-                        if (!audioState.showM3U8Content) {
-                          updateAudioState({ m3u8ContentLoading: true });
-                          const content = await getM3U8Content();
-                          updateAudioState({ m3u8Content: content, m3u8ContentLoading: false });
-                        }
-                        updateAudioState({ showM3U8Content: !audioState.showM3U8Content });
-                      }}
-                      className="text-sm text-blue-600 hover:text-blue-800 underline"
-                      disabled={audioState.m3u8ContentLoading}
-                    >
-                      {audioState.m3u8ContentLoading ? 'Loading...' : (audioState.showM3U8Content ? 'Hide' : 'Show')} M3U8 Content
-                    </button>
-
-                    {audioState.useFFmpeg && audioState.showM3U8Content && (
-                      <div className="mt-2 p-3 bg-gray-100 rounded text-xs font-mono overflow-x-auto">
-                        <div className="text-gray-600 mb-2">M3U8 Playlist Content:</div>
-                        <pre className="whitespace-pre-wrap break-words">
-                          {audioState.m3u8Content}
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             )}
 
