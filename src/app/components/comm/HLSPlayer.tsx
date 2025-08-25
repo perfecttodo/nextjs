@@ -4,6 +4,7 @@ import videojs from 'video.js';
 import Hls from 'hls.js';
 import { Episode } from '@/types/audio';
 import { formatDuration } from '@/lib/audio';
+import { Parser } from "m3u8-parser";
 
 import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
 interface HLSPlayerProps {
@@ -22,6 +23,46 @@ function getType(audio: Episode) {
         default:
             return audio.format;
     }
+}
+
+ async function getAudioUrl(url: string) {
+
+   const response = await fetch('/api/episode/detect?url=' + encodeURIComponent(url));
+   const data = await response.json(); // Parse the response as JSON
+
+   if(data?.format !== 'm3u8') { return url; }
+
+    let manifest = await fetch(url).then((r) => r.text());
+    let parser = new Parser();
+
+    parser.push(manifest);
+    parser.end();
+
+    const parsedManifest = parser.manifest;
+
+    // Check for segments containing '.aac' in their URI
+    if (parsedManifest.segments && parsedManifest.segments.length > 0) {
+        const hasAAC = parsedManifest.segments.some(e => e.uri.includes('.aac'));
+        if (hasAAC) {
+            return url;
+        }
+    }
+
+    // Access audio media groups
+    const audioGroup = parsedManifest.mediaGroups ? parsedManifest.mediaGroups.AUDIO : undefined;
+    
+    if (!audioGroup) {
+        return url; // Return null if no audio group is found
+    }
+
+    // Extract the audio URI
+    const audio = JSON.stringify(audioGroup).replace(/[{}]/g, "").trim();
+    const match = audio.match(/uri":\s*"(.*?)"/);
+
+    if (match && match.length > 1) {
+        return  url + "/../" + match[1];
+    } 
+    return url;
 }
 
 const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
@@ -141,95 +182,101 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
 
     }, [isToggle]);
 
-    useEffect(() => {
-        if (url) {
-            setStatus('');
+    useEffect( () => {
+        (async()=>{
 
-            if (isHlsSupportFormat()) {
-
-                if(videoJsPlayerRef.current)videoJsPlayerRef.current.pause();
-
-                const video = videoRef.current;
-                if (video == null) return;
-                if (Hls.isSupported() && !hlsRef.current) {
-                    hlsRef.current = new Hls({
-                    // Buffering optimization settings
-                    maxBufferLength: 30,          // Maximum buffer length in seconds
-                    maxMaxBufferLength: 60,       // Absolute maximum buffer length
-                    maxBufferSize: 60 * 1000 * 1000, // 60MB buffer size
-                    maxBufferHole: 0.5,           // Maximum gap between buffered ranges
-                    highBufferWatchdogPeriod: 3,
-                    nudgeOffset: 0.1,             // Small nudge for seeking
-                    nudgeMaxRetry: 3,
-                    
-                    // ABR (Adaptive Bitrate) settings
-                    abrEwmaDefaultEstimate: 500000, // Default bandwidth estimate (500kbps)
-                    abrEwmaSlowVoD: 5,            // Slow VoD bandwidth estimate factor
-                    abrEwmaFastVoD: 3,            // Fast VoD bandwidth estimate factor
-                    
-                    // Fragment loading optimization
-                    fragLoadingTimeOut: 20000,    // Fragment loading timeout
-                    fragLoadingMaxRetry: 6,
-                    fragLoadingRetryDelay: 1000,
-                    fragLoadingMaxRetryTimeout: 64000,
-                });
-                    hlsRef.current.attachMedia(video);
-                    hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
-                        video.play();
-                        handleLoadedMetadata();
+            if (url) {
+                const theUrl = await getAudioUrl(url);
+                setStatus('');
+    
+                if (isHlsSupportFormat()) {
+    
+                    if(videoJsPlayerRef.current)videoJsPlayerRef.current.pause();
+    
+                    const video = videoRef.current;
+                    if (video == null) return;
+                    if (Hls.isSupported() && !hlsRef.current) {
+                        hlsRef.current = new Hls({
+                        // Buffering optimization settings
+                        maxBufferLength: 30,          // Maximum buffer length in seconds
+                        maxMaxBufferLength: 60,       // Absolute maximum buffer length
+                        maxBufferSize: 60 * 1000 * 1000, // 60MB buffer size
+                        maxBufferHole: 0.5,           // Maximum gap between buffered ranges
+                        highBufferWatchdogPeriod: 3,
+                        nudgeOffset: 0.1,             // Small nudge for seeking
+                        nudgeMaxRetry: 3,
+                        
+                        // ABR (Adaptive Bitrate) settings
+                        abrEwmaDefaultEstimate: 500000, // Default bandwidth estimate (500kbps)
+                        abrEwmaSlowVoD: 5,            // Slow VoD bandwidth estimate factor
+                        abrEwmaFastVoD: 3,            // Fast VoD bandwidth estimate factor
+                        
+                        // Fragment loading optimization
+                        fragLoadingTimeOut: 20000,    // Fragment loading timeout
+                        fragLoadingMaxRetry: 6,
+                        fragLoadingRetryDelay: 1000,
+                        fragLoadingMaxRetryTimeout: 64000,
                     });
-
-                    hlsRef.current.on(Hls.Events.ERROR, (event, data) => {
-                        if (data.fatal) {
-                            onError(`HLS Error: ${data.fatal}`);
-                        }
-                    });
-
-                    video.addEventListener('ended', onEnded);
-                    video.addEventListener('pause', onPause);
-                    video.addEventListener('play', onPlay);
-                    video.addEventListener('timeupdate', handleTimeUpdate);
-                }
-                if (url) {
-                    if (hlsRef.current) {
-                        hlsRef.current.loadSource(url);
-
-                    } else {
-                        video.src = url; // Fallback for native support
-                    }
-                }
-            } else {
-
-                if(videoRef.current)videoRef.current.pause();
-
-                if (videojsRef.current) {
-
-                    videoJsPlayerRef.current = videojs(videojsRef.current, {
-                        html5: {
-                            vhs: {
-                                enableLowInitialPlaylist: true,
-                                smoothQualityChange: true,
-                                overrideNative: true
+                        hlsRef.current.attachMedia(video);
+                        hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
+                            video.play();
+                            handleLoadedMetadata();
+                        });
+    
+                        hlsRef.current.on(Hls.Events.ERROR, (event, data) => {
+                            if (data.fatal) {
+                                onError(`HLS Error: ${data.fatal}`);
                             }
-                        },
-                        controls: false,
-                        autoplay: true,
-                        preload: 'auto',
-                    });
-
-                    videoJsPlayerRef.current.on('loadedmetadata', onPlay);
-                    videoJsPlayerRef.current.on('timeupdate', handleTimeUpdate);
-                    videoJsPlayerRef.current.on('ended', onEnded);
-                    videoJsPlayerRef.current.on('error', onEnded);
-
-                    if (audio != null) {
-                        let type = getType(audio);
-                        videoJsPlayerRef.current.src({ src: url, type });
-                        videoJsPlayerRef.current.play();
+                        });
+    
+                        video.addEventListener('ended', onEnded);
+                        video.addEventListener('pause', onPause);
+                        video.addEventListener('play', onPlay);
+                        video.addEventListener('timeupdate', handleTimeUpdate);
+                    }
+                    if (theUrl) {
+                        if (hlsRef.current) {
+                            hlsRef.current.loadSource(theUrl);
+    
+                        } else {
+                            video.src = theUrl; // Fallback for native support
+                        }
+                    }
+                } else {
+    
+                    if(videoRef.current)videoRef.current.pause();
+    
+                    if (videojsRef.current) {
+    
+                        videoJsPlayerRef.current = videojs(videojsRef.current, {
+                            html5: {
+                                vhs: {
+                                    enableLowInitialPlaylist: true,
+                                    smoothQualityChange: true,
+                                    overrideNative: true
+                                }
+                            },
+                            controls: false,
+                            autoplay: true,
+                            preload: 'auto',
+                        });
+    
+                        videoJsPlayerRef.current.on('loadedmetadata', onPlay);
+                        videoJsPlayerRef.current.on('timeupdate', handleTimeUpdate);
+                        videoJsPlayerRef.current.on('ended', onEnded);
+                        videoJsPlayerRef.current.on('error', onEnded);
+    
+                        if (audio != null) {
+                            let type = getType(audio);
+                            videoJsPlayerRef.current.src({ src: theUrl, type });
+                            videoJsPlayerRef.current.play();
+                        }
                     }
                 }
             }
-        }
+
+        })();
+  
 
         return () => {
 
