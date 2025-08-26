@@ -17,7 +17,6 @@ model TestingItem {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   ownerId     String?
-  owner       User?    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 }
 
 enum Status {
@@ -29,11 +28,12 @@ enum Status {
 model User {
   id        String        @id
   email     String        @unique
+  emailVerified Boolean?
   name      String?
   password  String?       // For email/password auth
   githubId  String?       @unique // For GitHub OAuth
-  createdAt DateTime      @default(now())
-  items     TestingItem[]
+  createdAt DateTime?      @default(now())
+  updatedAt DateTime?      @default(now())
   albums    Album[]       // User's albums
   
   @@index([githubId])
