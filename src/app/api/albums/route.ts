@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { nextIDStr } from '@/lib/ID';
 
 // GET /api/albums - Fetch albums (optionally filtered by owner) with pagination
 export async function GET(request: NextRequest) {
@@ -88,6 +89,7 @@ export async function POST(request: NextRequest) {
     // Create the album
     const album = await prisma.album.create({
       data: {
+        id:await nextIDStr(),
         name: name.trim(),
         description: description?.trim() || null,
         ownerId,

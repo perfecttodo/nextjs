@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { nextIDStr } from '@/lib/ID';
 import { getSessionUser } from '@/lib/session';
 import { detectAudioFormat } from '@/slib/server';
 
@@ -11,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Changed from formData to JSON parsing since the frontend sends JSON
-    const { url, title, status = 'draft', language, description, originalWebsite, duration = 0, categoryId, subcategoryId, groupId, albumId, labelIds = [], format: providedFormat } = await request.json();
+    const { url, title, status = 'draft', language, description, originalWebsite, duration = 0, albumId, format: providedFormat } = await request.json();
 
     if (!url || !title) {
       return NextResponse.json(
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
     console.error('user.sub',user.sub)
     const episode = await prisma.episode.create({
       data: {
+        id: await nextIDStr(),
         title: title.trim(),
         originalName: title.trim(),
         blobUrl: url,

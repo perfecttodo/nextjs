@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { SignJWT } from 'jose';
 import { prisma } from '@/lib/prisma';
+import { nextIDStr } from '@/lib/ID';
 
 export async function GET(req: NextRequest) {
   try {
@@ -77,17 +78,19 @@ export async function GET(req: NextRequest) {
     }
 
     // Create or update user
+    const githubId = 'github:' + userData.id.toString();
     const user = await prisma.user.upsert({
-      where: { githubId: userData.id.toString() },
+      where: { githubId },
       update: {
         email: primaryEmail,
         name: userData.name || userData.login,
       },
       create: {
-        id: `github_${userData.id}`,
-        githubId: userData.id.toString(),
+        id: await nextIDStr(),
+        githubId,
         email: primaryEmail,
         name: userData.name || userData.login,
+        emailVerified:true
       },
     });
 

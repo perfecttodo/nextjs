@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { OAuth2Client } from "google-auth-library";
 import { SignJWT } from "jose";
 import { prisma } from "@/lib/prisma";
+import { nextIDStr } from "@/lib/ID";
 
 const client = new OAuth2Client();
 
@@ -18,8 +19,9 @@ export async function POST(req: NextRequest) {
 
     // Issue a simple session JWT cookie (httpOnly) for demo purposes
     const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "dev-secret");
-    const id = `google_${payload.sub}`;
-    const token = await new SignJWT({ sub: id, email: payload.email, name: payload.name })
+    const githubId = `google:${payload.sub}`;
+
+    const token = await new SignJWT({ sub: githubId, email: payload.email, name: payload.name })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("7d")
       .setIssuedAt()
@@ -27,11 +29,13 @@ export async function POST(req: NextRequest) {
 
     // ensure user exists
     await prisma.user.upsert({
-      where: { id: id },
+      where: { githubId},
       create: {
-        id: `google_${payload.sub}`,
+        id: await nextIDStr(),
+        githubId,
         email: payload.email,
         name: payload.name || null,
+        emailVerified:true
       },
       update: {
         email: payload.email,
