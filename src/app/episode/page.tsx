@@ -8,7 +8,7 @@ async function fetchAudioFiles() {
   if (!apiUrl) {
     return allFiles;
   }
-  const response = await fetch(apiUrl); // Use the API URL from the environment variable
+  const response = await fetch(apiUrl, { next: { revalidate: 3600 * 12 } });
   if (!response.ok) {
     return allFiles;
   }
@@ -25,7 +25,9 @@ async function fetchAudioFiles() {
 }
 
 export default async function AudioPlayerPage({ searchParams }: { searchParams: { page?: string } }) {
-  const page = parseInt(searchParams.page as string) || 1;
+  // Await the searchParams to make sure it's fully resolved
+  const params = await searchParams;
+  const page = parseInt(params.page as string) || 1;
   const itemsPerPage = 10;
 
   let episodes: Episode[] = [];
