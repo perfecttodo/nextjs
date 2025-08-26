@@ -1,7 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { SignJWT } from 'jose';
 import { prisma } from '@/lib/prisma';
-import { nextIDStr } from '@/lib/ID';
+import { nextIDStr,login } from '@/lib/ID';
 
 export async function GET(req: NextRequest) {
   try {
@@ -94,32 +93,9 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Issue JWT token
-    const secret = new TextEncoder().encode(
-      process.env.NEXTAUTH_SECRET || 'dev-secret'
-    );
-    const token = await new SignJWT({
-      sub: user.id,
-      email: user.email,
-      name: user.name,
-    })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime('7d')
-      .setIssuedAt()
-      .sign(secret);
 
-      const signInUrl = new URL('/', req.url);
+    return login(user.id, user.email || '', user.name||'', req);
 
-    const res = NextResponse.redirect(signInUrl);
-    res.cookies.set('app_session', token, {
-      httpOnly: true,
-      path: '/',
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7,
-    });
-
-    return res;
   } catch (error) {
     console.error('GitHub callback error:', error);
 
