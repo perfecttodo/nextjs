@@ -62,7 +62,7 @@ export default function CategorizedAudioList({
 
               <div className="flex items-center space-x-2" >
 
-                <div className="text-xs text-gray-400">
+                <div className="text-xs text-gray-400" suppressHydrationWarning>
                   {new Date(audio.createdAt).toLocaleDateString()}
                 </div>
                 <PlayButton episode={audio} episodes={episodes} />

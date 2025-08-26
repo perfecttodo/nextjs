@@ -1,17 +1,21 @@
-import { Suspense } from 'react';
 import { Episode } from '@/types/audio';
-import { PulseLoader } from 'react-spinners';
 import EpisodeList from './EpisodeList'; // Import the client component
 
 async function fetchAudioFiles() {
-  const response = await fetch('https://tayino.com/api/episode/published'); // Use absolute URL
+
+  const allFiles: Episode[] = [];
+
+  const apiUrl = process.env.NEXT_PUBLISH_EPISODES_API_URL; // Access the environment variable
+  if (!apiUrl) {
+    return allFiles;
+  }
+  const response = await fetch(apiUrl); // Use the API URL from the environment variable
   if (!response.ok) {
-    throw new Error('Network response was not ok');
+    return allFiles;
   }
   const data = await response.json();
   
   // Flatten the grouped data into a single array
-  const allFiles: Episode[] = [];
   Object.values(data.episodes).forEach((dateGroup: any) => {
     dateGroup.forEach((audio: any) => {
       allFiles.push(audio);
@@ -46,27 +50,11 @@ export default async function AudioPlayerPage() {
         </div>
         <div className='bg-white rounded-lg shadow-sm border border-gray-200'>
           <div className="grid grid-cols-1">
-            {/* Album Section */}
             <div className="lg:col-span-2">
-              {!episodes.length ? (
-                <div className="flex justify-center items-center h-48">
-                  <PulseLoader color="#36D7B7" loading={true} size={16} />
-                </div>
-              ) : error ? (
+              {error ? (
                 <div className="text-red-500">{error}</div>
               ) : (
-                <Suspense fallback={
-                  <div className="bg-white rounded-lg shadow p-6">
-                    <div className="animate-pulse space-y-3">
-                      <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-                      {[...Array(6)].map((_, i) => (
-                        <div key={i} className="h-12 bg-gray-100 rounded" />
-                      ))}
-                    </div>
-                  </div>
-                }>
-                  <EpisodeList episodes={episodes} />
-                </Suspense>
+                <EpisodeList episodes={episodes} />
               )}
             </div>
           </div>
