@@ -1,10 +1,9 @@
+import Link from 'next/link';
 import { Episode } from '@/types/audio';
 import EpisodeList from './EpisodeList'; // Import the client component
 
 async function fetchAudioFiles() {
-
   const allFiles: Episode[] = [];
-
   const apiUrl = process.env.NEXT_PUBLISH_EPISODES_API_URL; // Access the environment variable
   if (!apiUrl) {
     return allFiles;
@@ -14,18 +13,21 @@ async function fetchAudioFiles() {
     return allFiles;
   }
   const data = await response.json();
-  
+
   // Flatten the grouped data into a single array
   Object.values(data.episodes).forEach((dateGroup: any) => {
     dateGroup.forEach((audio: any) => {
       allFiles.push(audio);
     });
   });
-  
+
   return allFiles;
 }
 
-export default async function AudioPlayerPage() {
+export default async function AudioPlayerPage({ searchParams }: { searchParams: { page?: string } }) {
+  const page = parseInt(searchParams.page as string) || 1;
+  const itemsPerPage = 10;
+
   let episodes: Episode[] = [];
   let error: string | null = null;
 
@@ -35,6 +37,11 @@ export default async function AudioPlayerPage() {
     console.error('Error fetching episodes:', err);
     error = 'Failed to load episodes. Please try again later.';
   }
+
+  const totalEpisodes = episodes.length;
+  const totalPages = Math.ceil(totalEpisodes / itemsPerPage);
+  const startIndex = (page - 1) * itemsPerPage;
+  const currentEpisodes = episodes.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="p-6 pb-32">
@@ -54,10 +61,19 @@ export default async function AudioPlayerPage() {
               {error ? (
                 <div className="text-red-500">{error}</div>
               ) : (
-                <EpisodeList episodes={episodes} />
+                <EpisodeList episodes={currentEpisodes} />
               )}
             </div>
           </div>
+        </div>
+        <div className="flex justify-between mt-4">
+          <Link href={`?page=${page - 1}`} passHref>
+            <button className={`px-4 py-2 bg-gray-300 rounded ${page === 1 ? 'disabled:opacity-50' : ''}`} disabled={page === 1}>Previous</button>
+          </Link>
+          <span>Page {page} of {totalPages}</span>
+          <Link href={`?page=${page + 1}`} passHref>
+            <button className={`px-4 py-2 bg-gray-300 rounded ${page === totalPages ? 'disabled:opacity-50' : ''}`} disabled={page === totalPages}>Next</button>
+          </Link>
         </div>
       </div>
     </div>
