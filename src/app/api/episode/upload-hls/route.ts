@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
           id: albumId,
           ownerId: user.sub
         },
-        select: { id: true, categoryId: true, }
+        select: { id: true }
       });
 
       if (!album) {
@@ -56,12 +56,6 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if (album.categoryId && categoryId && album.categoryId !== categoryId) {
-        return NextResponse.json(
-          { error: 'Album category does not match selected category' },
-          { status: 400 }
-        );
-      }
 
     }
 

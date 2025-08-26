@@ -119,7 +119,6 @@ export async function PUT(
       data: {
         name: name.trim(),
         description: description?.trim() || null,
-        categoryId: categoryId || null,
         color: color || null,
       },
       include: {

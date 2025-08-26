@@ -17,7 +17,6 @@ export async function GET(
         title: true,
         originalName: true,
         blobUrl: true,
-        blobId: true,
         format: true,
         duration: true,
         fileSize: true,

@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
           id: albumId,
           ownerId: user.sub
         },
-        select: { id: true, categoryId: true }
+        select: { id: true }
       });
 
       if (!album) {

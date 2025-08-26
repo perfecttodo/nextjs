@@ -71,7 +71,6 @@ export async function GET(request: NextRequest) {
             title: e.title.trim(),
             originalName: e.title.trim(),
             blobUrl: url,
-            blobId: `bot-${Date.now()}`, // Create a unique ID for URL-based files
             format: 'm3u8',
             fileSize,
             status,

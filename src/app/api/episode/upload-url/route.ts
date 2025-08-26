@@ -29,19 +29,12 @@ export async function POST(request: NextRequest) {
           id: albumId,
           ownerId: user.sub
         },
-        select: { id: true, categoryId: true }
+        select: { id: true }
       });
 
       if (!album) {
         return NextResponse.json(
           { error: 'Invalid album' },
-          { status: 400 }
-        );
-      }
-
-      if (album.categoryId && categoryId && album.categoryId !== categoryId) {
-        return NextResponse.json(
-          { error: 'Album category does not match selected category' },
           { status: 400 }
         );
       }
@@ -69,7 +62,6 @@ export async function POST(request: NextRequest) {
         title: title.trim(),
         originalName: title.trim(),
         blobUrl: url,
-        blobId: `url-${Date.now()}`, // Create a unique ID for URL-based files
         format:format.mimeType,
         fileSize: format?.contentLength||0, // Can't determine size without downloading
         status,

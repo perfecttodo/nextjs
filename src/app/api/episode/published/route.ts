@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
           title: true,
           originalName: true,
           blobUrl: true,
-          blobId: true,
           format: true,
           duration: true,
           fileSize: true,
