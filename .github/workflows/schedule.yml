@@ -1,0 +1,12 @@
+name: Scheduled GET Request
+
+on:
+  schedule:
+    - cron: '0 6/* * * *'  
+
+jobs:
+  http_request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send GET request
+        run: curl -X GET https://tayino.com/api/episode/bot
