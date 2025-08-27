@@ -3,11 +3,13 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import AlbumAudioClient from './AlbumAudioClient';
 
+// Add this export to set the revalidation time
+export const revalidate = 86400; // 24 hours in seconds
+
 // Use inferred Prisma payload types instead of manual shape
 
 export default async function AlbumPage({ params }: { params: Promise<{ albumId: string }> }) {
   const resolved = await params;
-
 
   // Fetch album details
   const album = await prisma.album.findFirst({
@@ -15,7 +17,6 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
       id: resolved.albumId
     },
     include: {
-
       episodes: {
         where: {
           status: 'published' 
@@ -32,7 +33,7 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
           description: true,
           originalWebsite: true,
           createdAt: true,
-          blobUrl:true,
+          blobUrl: true,
         },
         orderBy: {
           createdAt: 'desc',
@@ -68,8 +69,6 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{album.name}</h1>
                 <div className="flex items-center space-x-2 mt-1">
-              
-           
                   <span className="text-sm text-gray-500">
                     {album._count.episodes} episodes
                   </span>
