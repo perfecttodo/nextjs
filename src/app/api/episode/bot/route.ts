@@ -1,40 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import https from 'https';
-import http from 'http';
-import { detectAudioFormat,getMimeTypeFromUrl } from '@/slib/server';
 
+import { detectAudioFormat,getMimeTypeFromUrl,fetchJson } from '@/slib/server';
 
 const jsonUrl = process.env.BOT_NEW_JSON_URL;
 const onwerId = process.env.BOT_OWNER_ID;
 const albumId = process.env.BOT_ALBUM_ID;
-function fetchJson(url: string): Promise<any> {
-  return new Promise((resolve, reject) => {
-    console.log('Fetching URL:', url);
-    const protocol = url.startsWith('https') ? https : http;
 
-    protocol.get(url, (response) => {
-      let data = '';
-
-      response.on('data', (chunk) => {
-        data += chunk;
-      });
-
-      response.on('end', () => {
-        try {
-          console.log(data)
-
-          const jsonData = JSON.parse(data); // Parse the JSON data
-          resolve(jsonData); // Resolve the promise with parsed JSON
-        } catch (error) {
-          reject('Error parsing JSON: ' + error); // Reject if JSON parsing fails
-        }
-      });
-    }).on('error', (error) => {
-      reject('Error fetching URL: ' + error); // Reject on request error
-    });
-  });
-}
 
 function getFirst(e: { externalVideoFiles: { url: string; fileSize?: number }[] }) {
   return e.externalVideoFiles.sort((a, b) => {

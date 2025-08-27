@@ -17,11 +17,13 @@
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
     "@prisma/client": "^6.13.0",
+    "@types/axios": "^0.9.36",
     "@types/bcryptjs": "^2.4.6",
     "@types/mime": "^3.0.4",
     "@types/video.js": "^7.3.58",
     "@vercel/blob": "^1.1.1",
     "@vercel/postgres": "^0.10.0",
+    "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
     "better-auth": "^1.3.7",
     "google-auth-library": "^10.2.1",
@@ -49,6 +51,6 @@
     "prisma": "^6.13.0",
     "tailwindcss": "^4",
     "tsx": "^4.20.4",
-    "typescript": "^5"
+    "typescript": "^5.9.2"
   }
 }

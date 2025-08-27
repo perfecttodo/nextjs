@@ -98,3 +98,46 @@ export function getMimeTypeFromUrl(url: string): string {
     // Return the MIME type or a default value if not found
     return mimeType || '';
 }
+
+
+
+import axios from 'axios';
+export async function fetchJson(url: string): Promise<any> {
+  try {
+    console.log('Fetching URL:', url);
+    const response = await axios.get(url);
+    return response.data; // Automatically parses JSON
+  } catch (error) {
+    throw new Error('Error fetching URL: ' + (error as Error).message);
+  }
+}
+
+/*import https from 'https';
+import http from 'http';
+function fetchJson(url: string): Promise<any> {
+  return new Promise((resolve, reject) => {
+    console.log('Fetching URL:', url);
+    const protocol = url.startsWith('https') ? https : http;
+
+    protocol.get(url, (response) => {
+      let data = '';
+
+      response.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      response.on('end', () => {
+        try {
+          console.log(data)
+
+          const jsonData = JSON.parse(data); // Parse the JSON data
+          resolve(jsonData); // Resolve the promise with parsed JSON
+        } catch (error) {
+          reject('Error parsing JSON: ' + error); // Reject if JSON parsing fails
+        }
+      });
+    }).on('error', (error) => {
+      reject('Error fetching URL: ' + error); // Reject on request error
+    });
+  });
+}*/
