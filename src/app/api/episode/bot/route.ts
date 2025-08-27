@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import https from 'https';
 import http from 'http';
-import { detectAudioFormat } from '@/slib/server';
+import { detectAudioFormat,getMimeTypeFromUrl } from '@/slib/server';
 
 
 const jsonUrl = process.env.BOT_NEW_JSON_URL;
@@ -66,7 +66,13 @@ export async function GET(request: NextRequest) {
       const url = file.url;
       const fileSize = file.fileSize || 0;
       const status = 'published';
-      const detectFormat = await detectAudioFormat(url);
+      let format = getMimeTypeFromUrl(url);
+      if(!format){
+        const detectFormat = await detectAudioFormat(url);
+        format= detectFormat.format;
+       
+      }
+
       const duration =  e.videoMetadata.playTime;
 
       // Save to database
@@ -76,7 +82,7 @@ export async function GET(request: NextRequest) {
             title: e.title.trim(),
             originalName: e.title.trim(),
             blobUrl: url,
-            format: detectFormat.format,
+            format,
             fileSize,
             status,
             ownerId: onwerId,

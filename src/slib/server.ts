@@ -1,5 +1,7 @@
 import https from 'https';
 import http from 'http';
+import * as mime from 'mime-types';
+
 import { AudioFormatDetection, AudioFormat } from '@/slib/types';
 
 const AUDIO_FORMATS: Record<string, string[]> = {
@@ -84,3 +86,15 @@ export function detectAudioFormat(url: string): Promise<AudioFormatDetection> {
       });
     });
   }
+
+
+export function getMimeTypeFromUrl(url: string): string {
+    // Extract the file extension from the URL
+    const extension = url.split('.').pop()?.toLowerCase();
+
+    // Get the MIME type using the mime package
+    const mimeType = extension ? mime.lookup(extension) : null;
+
+    // Return the MIME type or a default value if not found
+    return mimeType || '';
+}
