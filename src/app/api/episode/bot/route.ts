@@ -20,19 +20,38 @@ function getFirst(e: { externalVideoFiles: { url: string; fileSize?: number }[] 
 async function getItems(jsonUrl: string) {
   const data = await fetchJson(jsonUrl);
 
-  return data.subCards.map((e: any) => {
-    let file = getFirst(e);
-    const url = file.url;
-    const fileSize = file.fileSize || 0;
-    const duration = e.videoMetadata.playTime;
+  if(jsonUrl.indexOf(".msn")>-1){
 
-    return {
-      title: e.title,
-      url,
-      fileSize,
-      duration
-    }
-  });
+    return data.subCards.map((e: any) => {
+      let file = getFirst(e);
+      const url = file.url;
+      const fileSize = file.fileSize || 0;
+      const duration = e.videoMetadata.playTime;
+  
+      return {
+        title: e.title,
+        url,
+        fileSize,
+        duration
+      }
+    });
+  }else   if(jsonUrl.indexOf(".cbs")>-1){
+
+    return data.items.map((e: any) => {
+      const url = e.video||e.video2;
+      const fileSize =0;
+      const duration = e.duration;
+  
+      return {
+        title: e.fulltitle,
+        url,
+        fileSize,
+        duration,
+        format: e.format
+      }
+    });
+  }
+
 
 }
 export async function GET(request: NextRequest) {
@@ -43,44 +62,49 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required environment variables' }, { status: 500 });
     }
 
-    const items = await getItems(jsonUrl);;
+    for(let url of jsonUrl.split(',')){
 
-    for (let i = 0; i < items.length; i++) {
-      let e = items[i];
+      const items = await getItems(url);;
+      console.log('Fetched items:', items.length);
 
-      const status = 'published';
-      let format = getMimeTypeFromUrl(e.url);
-      if (!format) {
-        const detectFormat = await detectAudioFormat(e.url);
-        format = detectFormat.format;
-
+      for (let i = 0; i < items.length; i++) {
+        let e = items[i];
+  
+        const status = 'published';
+        let format =e?.format || getMimeTypeFromUrl(e.url);
+        if (!format) {
+          const detectFormat = await detectAudioFormat(e.url);
+          format = detectFormat.format;
+  
+        }
+  
+  
+        // Save to database
+        try {
+          const episode = await prisma.episode.create({
+            data: {
+              title: e.title.trim(),
+              originalName: e.title.trim(),
+              blobUrl: e.url,
+              format,
+              fileSize:e.fileSize,
+              status,
+              ownerId: onwerId,
+              description: null,
+              language: null,
+              originalWebsite: null,
+              duration: typeof e.duration === 'string' ? parseInt(e.duration) : e.duration,
+              albumId: albumId || null,
+            }
+          });
+        } catch (err) {
+          console.log('err', err)
+        }
+  
+  
       }
-
-
-      // Save to database
-      try {
-        const episode = await prisma.episode.create({
-          data: {
-            title: e.title.trim(),
-            originalName: e.title.trim(),
-            blobUrl: e.url,
-            format,
-            fileSize:e.fileSize,
-            status,
-            ownerId: onwerId,
-            description: null,
-            language: null,
-            originalWebsite: null,
-            duration: typeof e.duration === 'string' ? parseInt(e.duration) : e.duration,
-            albumId: albumId || null,
-          }
-        });
-      } catch (err) {
-        console.log('err', err)
-      }
-
-
     }
+
 
     return NextResponse.json({
       success: true
