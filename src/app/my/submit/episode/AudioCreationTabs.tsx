@@ -47,6 +47,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   const [activeTab, setActiveTab] = useState<TabType>('upload');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const { user, loading: userLoading } = useUser();
+  const submiting = useRef(false);
 
   const [sharedFormData, setSharedFormData] = useState<SharedFormData>({
     title: '',
@@ -153,7 +154,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
 
     const ext = audioState.outputFormat;
     const mimeType = audioState.outputFormat === 'mp3' ? 'audio/mpeg' : 'audio/mp4';
-    const file = new File([audioState.audioBlob], `episode.${ext}`, { type: mimeType });
+    const file = new File([audioState.audioBlob], `${sharedFormData.title}.${ext}`, { type: mimeType });
 
     const presign = await presignUploadSingle(file.name, file.type);
 
@@ -274,15 +275,19 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
 
   const submitEpisode = useCallback(async () => {
 
+    if(submiting.current)return;
+    submiting.current = true;
+    updateAudioState({ isUploading: true, uploadProgress: 0, error: '' });
     await processConvert('mp3');
     if (!audioState.audioUrl) {
-      updateAudioState({ error: 'Please record or upload audio before uploading.' });
+      updateAudioState({ isUploading: false,error: 'Please record or upload audio before uploading.' });
+      submiting.current = false;
+
       return;
     }
 
     try {
       
-      updateAudioState({ isUploading: true, uploadProgress: 0, error: '' });
       let finalUrl = audioState.audioUrl;
       const isHls = activeTab !== 'url' && audioState.outputFormat === 'm3u8';
 
@@ -324,8 +329,10 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
       updateAudioState({ error: e instanceof Error ? e.message : 'Upload failed' });
     } finally {
       updateAudioState({ isUploading: false, uploadProgress: 0 });
+      submiting.current = false;
+
     }
-  }, [audioState.audioUrl, audioState.outputFormat, activeTab, uploadHLSRecording, uploadStandardEpisode, updateAudioState]);
+  }, [audioState.audioUrl, audioState.outputFormat,,audioState.isUploading, activeTab, uploadHLSRecording, uploadStandardEpisode, updateAudioState]);
 
   const handleTabChange = useCallback((newTab: TabType) => {
     if (newTab === activeTab) return;

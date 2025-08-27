@@ -1,7 +1,27 @@
 import { Suspense } from 'react';
 import AlbumsListClient from './AlbumsListClient';
 
-export default async function AlbumsPage() {
+// Revalidate every 24 hours (86400 seconds)
+export const revalidate = 86400;
+
+async function getAlbumsData(page: number = 1, pageSize: number = 12) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/albums?page=${page}&pageSize=${pageSize}`, {
+    next: { revalidate: 86400 }
+  });
+  
+  if (!res.ok) {
+    throw new Error('Failed to fetch albums');
+  }
+  
+  return res.json();
+}
+
+export default async function AlbumsPage({ searchParams }: { searchParams: { page?: string } }) {
+  const page = parseInt(searchParams.page || '1', 10);
+  const pageSize = 12;
+  
+  // Fetch data on the server with revalidation
+  const data = await getAlbumsData(page, pageSize);
 
   return (
     <div className="">
@@ -17,7 +37,13 @@ export default async function AlbumsPage() {
               <span className="ml-2 text-gray-600">Loading albums...</span>
             </div>
           }>
-            <AlbumsListClient />
+            <AlbumsListClient 
+              initialAlbums={data.albums || []}
+              initialTotal={data.total || 0}
+              initialTotalPages={data.totalPages || 1}
+              initialPage={page}
+              pageSize={pageSize}
+            />
           </Suspense>
         </div>
       </div>

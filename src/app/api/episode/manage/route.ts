@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
-import { deleteAudioFile } from '@/lib/blob';
+import { deleteAudioFile } from '@/lib/r2';
 
 // GET - List user's episodes
 export async function GET(request: NextRequest) {

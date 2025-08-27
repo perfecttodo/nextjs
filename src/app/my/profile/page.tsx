@@ -4,7 +4,6 @@ import ProfileClient from './ProfileClient';
 
 export default async function ProfilePage() {
   const user = await getSessionUser();
-  
   if (!user) {
     redirect('/auth/signin');
   }

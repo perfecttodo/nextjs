@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand, ListObjectsV2Command,DeleteObjectsCommand } from '@aws-sdk/client-s3';
 import { NextRequest } from 'next/server';
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -98,5 +98,45 @@ export async function generatePresignedUploadUrl(fileKey:string, contentType?: s
     return {fileKey,signedUrl};
   } catch (error) {
     console.error("Error generating presigned URL:", error);
+  }
+}
+
+export async function deleteAllAudioFiles(): Promise<void> {
+  try {
+    let isTruncated = true;
+    let continuationToken: string | undefined;
+
+    while (isTruncated) {
+      const listParams = {
+        Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME!,
+        ContinuationToken: continuationToken,
+      };
+
+      const listedObjects = await s3Client.send(new ListObjectsV2Command(listParams));
+
+      if (listedObjects.Contents && listedObjects.Contents.length > 0) {
+        // Create array of delete promises
+        const deletePromises = listedObjects.Contents
+          .filter(object => object.Key)
+          .map(object => 
+            s3Client.send(new DeleteObjectCommand({
+              Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME!,
+              Key: object.Key!,
+            }))
+          );
+
+        // Execute all delete operations in parallel
+        await Promise.all(deletePromises);
+        console.log(`Deleted ${listedObjects.Contents.length} objects.`);
+      }
+
+      isTruncated = listedObjects.IsTruncated || false;
+      continuationToken = listedObjects.NextContinuationToken;
+    }
+    
+    console.log('All audio files deleted successfully.');
+  } catch (error) {
+    console.error('Error deleting all audio files:', error);
+    throw new Error('Failed to delete all files');
   }
 }
