@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import https from 'https';
 import http from 'http';
+import { detectAudioFormat } from '@/slib/server';
 
 
 const jsonUrl = process.env.BOT_NEW_JSON_URL;
@@ -37,8 +38,8 @@ function fetchJson(url: string): Promise<any> {
 
 function getFirst(e: { externalVideoFiles: { url: string; fileSize?: number }[] }) {
   return e.externalVideoFiles.sort((a, b) => {
-    if (a.url.endsWith( '.m3u8')) return -1; // Move .m3u8 to the front
-    if (b.url.endsWith( '.m3u8')) return 1;  // Keep others in their original order
+    if (a.url.endsWith( '.mp4')) return -1; // Move .m3u8 to the front
+    if (b.url.endsWith( '.mp4')) return 1;  // Keep others in their original order
     return 0; // No change for other elements
   })[0]
 }
@@ -55,6 +56,8 @@ export async function GET(request: NextRequest) {
 
     const data = await fetchJson(jsonUrl);
 
+
+
     const itmes = data.subCards;
 
     for (let i = 0; i < itmes.length; i++) {
@@ -63,7 +66,9 @@ export async function GET(request: NextRequest) {
       const url = file.url;
       const fileSize = file.fileSize || 0;
       const status = 'published';
-      const duration = 0;
+      const detectFormat = await detectAudioFormat(url);
+      const duration =  e.videoMetadata.playTime;
+
       // Save to database
       try{
         const episode = await prisma.episode.create({
@@ -71,7 +76,7 @@ export async function GET(request: NextRequest) {
             title: e.title.trim(),
             originalName: e.title.trim(),
             blobUrl: url,
-            format: 'm3u8',
+            format: detectFormat.format,
             fileSize,
             status,
             ownerId: onwerId,
