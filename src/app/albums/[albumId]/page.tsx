@@ -3,18 +3,25 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import AlbumAudioClient from './AlbumAudioClient';
 
-// Add this export to set the revalidation time
 export const revalidate = 86400; // 24 hours in seconds
 
-// Use inferred Prisma payload types instead of manual shape
+interface PageProps {
+  params: Promise<{ albumId: string }>;
+  searchParams: Promise<{ page?: string }>;
+}
 
-export default async function AlbumPage({ params }: { params: Promise<{ albumId: string }> }) {
-  const resolved = await params;
+export default async function AlbumPage({ params, searchParams }: PageProps) {
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
+  
+  const currentPage = Number(resolvedSearchParams.page) || 1;
+  const itemsPerPage = 10;
+  const skip = (currentPage - 1) * itemsPerPage;
 
-  // Fetch album details
+  // Fetch album details with paginated episodes
   const album = await prisma.album.findFirst({
     where: {
-      id: resolved.albumId
+      id: resolvedParams.albumId
     },
     include: {
       episodes: {
@@ -38,6 +45,8 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
         orderBy: {
           createdAt: 'desc',
         },
+        skip: skip,
+        take: itemsPerPage,
       },
       _count: {
         select: {
@@ -55,6 +64,9 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
     notFound();
   }
 
+  const totalEpisodes = album._count.episodes;
+  const totalPages = Math.ceil(totalEpisodes / itemsPerPage);
+
   return (
     <div className="">
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -70,8 +82,13 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
                 <h1 className="text-3xl font-bold text-gray-900">{album.name}</h1>
                 <div className="flex items-center space-x-2 mt-1">
                   <span className="text-sm text-gray-500">
-                    {album._count.episodes} episodes
+                    {totalEpisodes} episodes
                   </span>
+                  {totalPages > 1 && (
+                    <span className="text-sm text-gray-400">
+                      (Page {currentPage} of {totalPages})
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -95,6 +112,9 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
               album={album as any} 
               episodes={album.episodes as any}
               userId={null}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalEpisodes={totalEpisodes}
             />
           </Suspense>
         </div>

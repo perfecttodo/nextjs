@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import PlayButton from '@/app/components/PlayButton';
 import { Episode } from '@/types/audio';
 
@@ -36,9 +37,21 @@ interface AlbumAudioClientProps {
   album: AlbumWithAudio;
   episodes: AlbumWithAudio['episodes'];
   userId: string | null;
+  currentPage: number;
+  totalPages: number;
+  totalEpisodes: number;
 }
 
-export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudioClientProps) {
+export default function AlbumAudioClient({ 
+  album, 
+  episodes, 
+  userId, 
+  currentPage, 
+  totalPages, 
+  totalEpisodes 
+}: AlbumAudioClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -70,7 +83,97 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
     return statusClasses[status as keyof typeof statusClasses] || statusClasses.draft;
   };
 
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', newPage.toString());
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
 
+  const Pagination = () => {
+    if (totalPages <= 1) return null;
+
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="text-sm text-gray-700">
+          Showing <span className="font-medium">{(currentPage - 1) * 10 + 1}</span> to{' '}
+          <span className="font-medium">
+            {Math.min(currentPage * 10, totalEpisodes)}
+          </span> of{' '}
+          <span className="font-medium">{totalEpisodes}</span> episodes
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          
+          {startPage > 1 && (
+            <>
+              <button
+                onClick={() => handlePageChange(1)}
+                className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                1
+              </button>
+              {startPage > 2 && <span className="px-2 text-gray-500">...</span>}
+            </>
+          )}
+          
+          {pageNumbers.map((page) => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={`px-3 py-1 text-sm border rounded-md ${
+                currentPage === page
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+          
+          {endPage < totalPages && (
+            <>
+              {endPage < totalPages - 1 && <span className="px-2 text-gray-500">...</span>}
+              <button
+                onClick={() => handlePageChange(totalPages)}
+                className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                {totalPages}
+              </button>
+            </>
+          )}
+          
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   if (episodes.length === 0) {
     return (
@@ -97,9 +200,8 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium text-gray-900">
-              Episodes ({episodes.length})
+              Episodes ({totalEpisodes})
             </h3>
-
           </div>
         </div>
 
@@ -116,9 +218,7 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
                       >
                         {audio.title}
                       </Link>
-
                     </h5>
-
                   </div>
 
                   <div className="text-sm text-gray-500 space-y-1">
@@ -153,16 +253,16 @@ export default function AlbumAudioClient({ album, episodes, userId }: AlbumAudio
                 </div>
 
                 <div className="flex items-center space-x-2 ml-4">
-
                   <PlayButton episode={audio} episodes={episodes} />
-
                 </div>
               </div>
             </div>
           ))}
         </div>
-      </div>
 
+        {/* Pagination Component */}
+        <Pagination />
+      </div>
     </div>
   );
 }

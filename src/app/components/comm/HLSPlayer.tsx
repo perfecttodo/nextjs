@@ -155,7 +155,6 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
     };
 
     useEffect(() => {
-        console.log('audio', audio)
         setUrl(audio?.blobUrl);
 
     }, [audio]);
