@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { Episode } from '@/types/audio';
-import EpisodeList from './EpisodeList'; // Import the client component
+import EpisodeList from './EpisodeList';
 
 async function fetchAudioFiles() {
   const allFiles: Episode[] = [];
-  const apiUrl = process.env.NEXT_PUBLISH_EPISODES_API_URL; // Access the environment variable
+  const apiUrl = process.env.NEXT_PUBLISH_EPISODES_API_URL;
   if (!apiUrl) {
     return allFiles;
   }
@@ -14,7 +14,6 @@ async function fetchAudioFiles() {
   }
   const data = await response.json();
 
-  // Flatten the grouped data into a single array
   Object.values(data.episodes).forEach((dateGroup: any) => {
     dateGroup.forEach((audio: any) => {
       allFiles.push(audio);
@@ -24,10 +23,15 @@ async function fetchAudioFiles() {
   return allFiles;
 }
 
-export default async function AudioPlayerPage({ searchParams }: { searchParams: { page?: string } }) {
-  // Await the searchParams to make sure it's fully resolved
-  const params = await searchParams;
-  const page = parseInt(params.page as string) || 1;
+// Update the interface to accept Promise for searchParams
+interface PageProps {
+  searchParams: Promise<{ page?: string }>;
+}
+
+export default async function AudioPlayerPage(props: PageProps) {
+  // Await the searchParams Promise to resolve it
+  const searchParams = await props.searchParams;
+  const page = parseInt(searchParams.page || '1');
   const itemsPerPage = 10;
 
   let episodes: Episode[] = [];
