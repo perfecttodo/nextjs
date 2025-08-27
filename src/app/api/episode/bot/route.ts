@@ -10,8 +10,8 @@ const albumId = process.env.BOT_ALBUM_ID;
 
 function getFirst(e: { externalVideoFiles: { url: string; fileSize?: number }[] }) {
   return e.externalVideoFiles.sort((a, b) => {
-    if (a.url.endsWith('.mp4')) return -1; // Move .m3u8 to the front
-    if (b.url.endsWith('.mp4')) return 1;  // Keep others in their original order
+    if (a.url.endsWith('.m3u8')) return -1; // Move .m3u8 to the front
+    if (b.url.endsWith('.m3u8')) return 1;  // Keep others in their original order
     return 0; // No change for other elements
   })[0]
 }

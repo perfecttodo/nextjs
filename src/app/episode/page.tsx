@@ -8,7 +8,7 @@ async function fetchAudioFiles() {
   if (!apiUrl) {
     return allFiles;
   }
-  const response = await fetch(apiUrl, { next: { revalidate: 3600 * 12 } });
+  const response = await fetch(apiUrl, { next: { revalidate: 0 } });
   if (!response.ok) {
     return allFiles;
   }

@@ -18,6 +18,8 @@ function getType(audio: Episode) {
             return 'audio/mp4';
         case 'm3u8':
             return 'application/x-mpegURL';
+        case 'application/mp4':
+                return 'audio/mp4';
         case 'mpd':
             return 'application/dash+xml';
         default:
@@ -246,25 +248,28 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
     
                     if(videoRef.current)videoRef.current.pause();
     
-                    if (videojsRef.current) {
+                    if (videojsRef.current ) {
     
-                        videoJsPlayerRef.current = videojs(videojsRef.current, {
-                            html5: {
-                                vhs: {
-                                    enableLowInitialPlaylist: true,
-                                    smoothQualityChange: true,
-                                    overrideNative: true
-                                }
-                            },
-                            controls: false,
-                            autoplay: true,
-                            preload: 'auto',
-                        });
-    
-                        videoJsPlayerRef.current.on('loadedmetadata', onPlay);
-                        videoJsPlayerRef.current.on('timeupdate', handleTimeUpdate);
-                        videoJsPlayerRef.current.on('ended', onEnded);
-                        videoJsPlayerRef.current.on('error', onEnded);
+                        if(!videoJsPlayerRef.current){
+                            videoJsPlayerRef.current = videojs(videojsRef.current, {
+                                html5: {
+                                    vhs: {
+                                        enableLowInitialPlaylist: true,
+                                        smoothQualityChange: true,
+                                        overrideNative: true
+                                    }
+                                },
+                                controls: false,
+                                autoplay: true,
+                                preload: 'auto',
+                            });
+        
+                            videoJsPlayerRef.current.on('loadedmetadata', onPlay);
+                            videoJsPlayerRef.current.on('timeupdate', handleTimeUpdate);
+                            videoJsPlayerRef.current.on('ended', onEnded);
+                            videoJsPlayerRef.current.on('error', onEnded);
+                        }
+
     
                         if (audio != null) {
                             let type = getType(audio);
