@@ -7,11 +7,20 @@ import type { Album } from '@/types/audio';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 interface AlbumsListClientProps {
+  initialAlbums?: Album[];
+  initialTotal?: number;
+  initialTotalPages?: number;
   initialPage?: number;
   pageSize?: number;
 }
 
-export default function AlbumsListClient({ initialPage = 1, pageSize = 12 }: AlbumsListClientProps) {
+export default function AlbumsListClient({ 
+  initialAlbums = [], 
+  initialTotal = 0, 
+  initialTotalPages = 1, 
+  initialPage = 1, 
+  pageSize = 12 
+}: AlbumsListClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -21,36 +30,40 @@ export default function AlbumsListClient({ initialPage = 1, pageSize = 12 }: Alb
   }, [searchParams, initialPage]);
 
   const [page, setPage] = useState<number>(pageFromUrl);
-  const [albums, setAlbums] = useState<Album[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [total, setTotal] = useState<number>(0);
-  const [totalPages, setTotalPages] = useState<number>(1);
+  const [albums, setAlbums] = useState<Album[]>(initialAlbums);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [total, setTotal] = useState<number>(initialTotal);
+  const [totalPages, setTotalPages] = useState<number>(initialTotalPages);
 
   useEffect(() => {
     setPage(pageFromUrl);
   }, [pageFromUrl]);
 
   useEffect(() => {
-    const fetchAlbums = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch(`/api/albums?page=${page}&pageSize=${pageSize}`);
-        if (!res.ok) throw new Error('Failed to load albums');
-        const data = await res.json();
-        setAlbums(data.albums || []);
-        setTotal(data.total || 0);
-        setTotalPages(data.totalPages || 1);
-      } catch (e) {
-        console.error(e);
-        setAlbums([]);
-        setTotal(0);
-        setTotalPages(1);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchAlbums();
-  }, [page, pageSize]);
+    // Only fetch if we don't have initial data for this page
+    // or if the page changes beyond initial data
+    if (page !== initialPage || albums.length === 0) {
+      const fetchAlbums = async () => {
+        setIsLoading(true);
+        try {
+          const res = await fetch(`/api/albums?page=${page}&pageSize=${pageSize}`);
+          if (!res.ok) throw new Error('Failed to load albums');
+          const data = await res.json();
+          setAlbums(data.albums || []);
+          setTotal(data.total || 0);
+          setTotalPages(data.totalPages || 1);
+        } catch (e) {
+          console.error(e);
+          setAlbums([]);
+          setTotal(0);
+          setTotalPages(1);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchAlbums();
+    }
+  }, [page, pageSize, initialPage, albums.length]);
 
   const onPageChange = (nextPage: number) => {
     if (nextPage < 1 || nextPage > totalPages || nextPage === page) return;
@@ -59,6 +72,8 @@ export default function AlbumsListClient({ initialPage = 1, pageSize = 12 }: Alb
     router.push(`/albums?${params.toString()}`);
     setPage(nextPage);
   };
+
+
 
   return (
     <div className="space-y-6">
