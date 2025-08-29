@@ -532,7 +532,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       setError('Failed to start recording or insert audio.');
       console.error('Insert audio error:', err);
       if (audioContext) {
-        await audioContext.close();
+       // await audioContext.close();
         audioContext = null;
       }
       if (streamRef.current) {
@@ -666,7 +666,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       setError('Failed to start recording or replace audio.');
       console.error('Replace audio error:', err);
       if (audioContext) {
-        await audioContext.close();
+        //await audioContext.close();
         audioContext = null;
       }
       if (streamRef.current) {
