@@ -11,7 +11,7 @@ interface RecordProvider {
   onStart?: () => void;
 }
 
-// Utility function to convert AudioBuffer to WAV Blob
+// Utility function to convert AudioBuffer to WAV Blob (unchanged)
 function bufferToWave(abuffer: AudioBuffer): Blob {
   const numOfChan = abuffer.numberOfChannels;
   const length = abuffer.length * numOfChan * 2 + 44;
@@ -77,7 +77,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
   const waveformRef = useRef<HTMLDivElement>(null);
   const regionsRef = useRef<any>(null);
 
-  // Initialize WaveSurfer
+  // Initialize WaveSurfer (unchanged)
   useEffect(() => {
     if (!waveformRef.current) return;
 
@@ -94,19 +94,21 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       minPxPerSec: 100,
       autoCenter: false,
       hideScrollbar: true,
-      plugins: [TimelinePlugin.create({  timeInterval: 0.1,
-        primaryLabelInterval: 1,})],
+      plugins: [
+        TimelinePlugin.create({ timeInterval: 0.1, primaryLabelInterval: 1 }),
+      ],
     });
     wavesurferRef.current = ws;
 
     regionsRef.current = ws.registerPlugin(RegionsPlugin.create());
-    ws.registerPlugin(Minimap.create({
-      height: 20,
-      waveColor: 'rgb(200, 0, 200)',
-      progressColor: 'rgb(100, 0, 100)',
+    ws.registerPlugin(
+      Minimap.create({
+        height: 20,
+        waveColor: 'rgb(200, 0, 200)',
+        progressColor: 'rgb(100, 0, 100)',
+      })
+    );
 
-    }));
-    
     ws.on('ready', () => {
       setDuration(ws.getDuration() || 0);
       setCurrentTime(0);
@@ -125,7 +127,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     };
   }, []);
 
-  // Load audio when URL changes
+  // Load audio when URL changes (unchanged)
   useEffect(() => {
     const ws = wavesurferRef.current;
     if (audioUrl && ws) {
@@ -143,7 +145,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     }
   }, [audioUrl]);
 
-  // Cleanup effect
+  // Cleanup effect (unchanged)
   useEffect(() => {
     return () => {
       if (timerRef.current) {
@@ -155,18 +157,19 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     };
   }, []);
 
+  // Start recording (unchanged)
   const startRecording = async () => {
     if (isRecording) {
       setError('Recording already in progress.');
       return;
     }
-  
+
     try {
       setError('');
       chunksRef.current = [];
       setRecordingDuration(0);
       setAudioSize('0 KB');
-  
+
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -175,22 +178,22 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
           channelCount: 1,
         },
       });
-  
+
       streamRef.current = stream;
-  
+
       const options = { mimeType: 'audio/webm;codecs=opus' };
       const recorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = recorder;
-  
+
       const mimeType = recorder.mimeType;
       setAudioFormat(mimeType.split(';')[0].split('/')[1] || 'webm');
-  
+
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
         }
       };
-  
+
       recorder.onstop = () => {
         if (chunksRef.current.length > 0) {
           const blob = new Blob(chunksRef.current, { type: mimeType });
@@ -213,17 +216,17 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
         }
         mediaRecorderRef.current = null;
       };
-  
+
       recorder.onerror = (event) => {
         console.error('MediaRecorder error:', event);
         setError('Recording failed. Please try again.');
         stopRecording();
       };
-  
+
       recorder.start(1000);
       setIsRecording(true);
       onStart?.();
-  
+
       timerRef.current = setInterval(() => {
         setRecordingDuration((prev) => prev + 1);
       }, 1000);
@@ -243,6 +246,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     }
   };
 
+  // Stop recording (unchanged)
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       try {
@@ -267,12 +271,14 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     }
   };
 
+  // Play/Pause (unchanged)
   const playPause = () => {
     if (wavesurferRef.current) {
       wavesurferRef.current.playPause();
     }
   };
 
+  // File upload (unchanged)
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -283,27 +289,26 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     }
   };
 
+  // Add region (unchanged)
   const addRegion = () => {
     const ws = wavesurferRef.current;
     const rp = regionsRef.current;
     if (!ws || !rp) return;
-  
+
     const regions = rp.getRegions();
     if (regions.length > 0) {
-      // If a region exists, clear all regions to "unmark"
       rp.clearRegions();
     } else {
-      // If no region exists, add a new one
       const dur = ws.getDuration();
       const center = ws.getCurrentTime() || 0;
       const half = 1; // 2.5 seconds on either side
-      const start = center;// Math.max(0, Math.min(dur, center - half));
+      const start = center; // Math.max(0, Math.min(dur, center - half));
       let end = Math.max(0, Math.min(dur, center + half));
       const minLen = 0.05; // Minimum region length
       if (end - start < minLen) {
         end = Math.min(dur, start + minLen);
       }
-  
+
       rp.addRegion({
         start,
         end,
@@ -314,84 +319,85 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     }
   };
 
+  // Trim audio (unchanged)
   const trimAudio = async () => {
     const ws = wavesurferRef.current;
     const regionsPlugin = regionsRef.current;
     if (!ws || !regionsPlugin) return;
-  
+
     if (ws.isPlaying()) ws.pause();
-  
+
     const regions = regionsPlugin.getRegions();
     if (!regions.length) {
       setError('No region selected to remove.');
       return;
     }
-  
+
     const region = regions[0];
     const dur = ws.getDuration();
-  
+
     const startSec = Math.max(0, Math.min(region.start, dur));
     const endSec = Math.max(0, Math.min(region.end, dur));
-  
+
     if (endSec <= startSec) {
       setError('Region length is zero. Adjust the handles and try again.');
       return;
     }
-  
+
     const audioBuffer = ws.getDecodedData();
     if (!audioBuffer) {
       setError('No audio data available for trimming.');
       return;
     }
-  
+
     try {
       const sr = audioBuffer.sampleRate;
       const totalSamples = audioBuffer.length;
-  
+
       const startSample = Math.max(0, Math.min(totalSamples, Math.round(startSec * sr)));
       const endSample = Math.max(0, Math.min(totalSamples, Math.round(endSec * sr)));
-  
+
       if (endSample <= startSample) {
         setError('Selected region too small to remove.');
         return;
       }
-  
+
       const leftLen = startSample;
       const rightLen = totalSamples - endSample;
       const newLen = leftLen + rightLen;
-  
+
       const finalLen = Math.max(newLen, 1);
-  
+
       const channels = audioBuffer.numberOfChannels;
       const out = new AudioBuffer({
         length: finalLen,
         numberOfChannels: channels,
         sampleRate: sr,
       });
-  
+
       for (let ch = 0; ch < channels; ch++) {
         if (leftLen > 0) {
           const left = new Float32Array(leftLen);
           audioBuffer.copyFromChannel(left, ch, 0);
           out.copyToChannel(left, ch, 0);
         }
-  
+
         if (rightLen > 0) {
           const right = new Float32Array(rightLen);
           audioBuffer.copyFromChannel(right, ch, endSample);
           out.copyToChannel(right, ch, leftLen);
         }
       }
-  
+
       const wavBlob = bufferToWave(out);
       const url = URL.createObjectURL(wavBlob);
-  
+
       regionsPlugin.clearRegions();
-  
+
       setAudioUrl(url);
       setAudioSize(`${(wavBlob.size / 1024).toFixed(2)} KB`);
       setAudioFormat('wav');
-  
+
       onSuccess(wavBlob);
     } catch (err) {
       console.error('Trim-remove error:', err);
@@ -399,6 +405,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     }
   };
 
+  // Insert audio at region (unchanged)
   const insertAudioAtRegion = async () => {
     const ws = wavesurferRef.current;
     const regionsPlugin = regionsRef.current;
@@ -406,27 +413,17 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       setError('WaveSurfer or regions plugin not initialized.');
       return;
     }
-  
-    /*const regions = regionsPlugin.getRegions();
-    if (!regions.length) {
-      setError('Please mark a region to insert audio.');
-      return;
-    }
-  
-    const region = regions[0];
-    const insertPosition = region.start;*/
 
     const insertPosition = ws.getCurrentTime();
-
     const originalAudioBuffer = ws.getDecodedData();
-  
+
     if (!originalAudioBuffer) {
       setError('No audio loaded to insert into.');
       return;
     }
-  
+
     let audioContext: AudioContext | null = null;
-  
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -436,30 +433,30 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
           channelCount: originalAudioBuffer.numberOfChannels,
         },
       });
-  
+
       streamRef.current = stream;
       const options = { mimeType: 'audio/webm;codecs=opus' };
       const recorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = recorder;
       chunksRef.current = [];
-  
+
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
         }
       };
-  
+
       recorder.onstop = async () => {
         if (chunksRef.current.length === 0) {
           setError('No audio recorded.');
           return;
         }
-  
+
         const newAudioBlob = new Blob(chunksRef.current, { type: options.mimeType });
         const arrayBuffer = await newAudioBlob.arrayBuffer();
         audioContext = new AudioContext();
         let newAudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-  
+
         if (newAudioBuffer.sampleRate !== originalAudioBuffer.sampleRate) {
           const offlineContext = new OfflineAudioContext(
             newAudioBuffer.numberOfChannels,
@@ -468,66 +465,66 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
             ),
             originalAudioBuffer.sampleRate
           );
-  
+
           const source = offlineContext.createBufferSource();
           source.buffer = newAudioBuffer;
           source.connect(offlineContext.destination);
           source.start();
-  
+
           newAudioBuffer = await offlineContext.startRendering();
         }
-  
+
         const newLength = originalAudioBuffer.length + newAudioBuffer.length;
         const mergedBuffer = new AudioBuffer({
           length: newLength,
           numberOfChannels: originalAudioBuffer.numberOfChannels,
           sampleRate: originalAudioBuffer.sampleRate,
         });
-  
+
         const insertSample = Math.round(insertPosition * originalAudioBuffer.sampleRate);
-  
+
         for (let ch = 0; ch < originalAudioBuffer.numberOfChannels; ch++) {
           const originalData = originalAudioBuffer.getChannelData(ch);
           const newData = newAudioBuffer.getChannelData(ch);
           const mergedData = mergedBuffer.getChannelData(ch);
-  
+
           for (let i = 0; i < insertSample; i++) {
             mergedData[i] = originalData[i] || 0;
           }
-  
+
           for (let i = 0; i < newAudioBuffer.length; i++) {
             mergedData[insertSample + i] = newData[i] || 0;
           }
-  
+
           for (let i = insertSample; i < originalAudioBuffer.length; i++) {
             mergedData[i + newAudioBuffer.length] = originalData[i] || 0;
           }
         }
-  
+
         const wavBlob = bufferToWave(mergedBuffer);
         const url = URL.createObjectURL(wavBlob);
-  
+
         setAudioUrl(url);
         setAudioSize(`${(wavBlob.size / 1024).toFixed(2)} KB`);
         setAudioFormat('wav');
         regionsPlugin.clearRegions();
         onSuccess(wavBlob);
-  
+
         stream.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
         if (audioContext) {
           await audioContext.close();
           audioContext = null;
         }
-  
+
         setIsRecording(false);
         setRecordingDuration(0);
         setAudioSize('0 KB');
       };
-  
+
       setIsRecording(true);
       recorder.start(1000);
-  
+
       timerRef.current = setInterval(() => {
         setRecordingDuration((prev) => prev + 1);
       }, 1000);
@@ -535,7 +532,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       setError('Failed to start recording or insert audio.');
       console.error('Insert audio error:', err);
       if (audioContext) {
-        //await audioContext.close();
+        await audioContext.close();
         audioContext = null;
       }
       if (streamRef.current) {
@@ -545,6 +542,141 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     }
   };
 
+  // New function: Replace audio from current position
+  const replaceAudioFromPosition = async () => {
+    const ws = wavesurferRef.current;
+    if (!ws) {
+      setError('WaveSurfer not initialized.');
+      return;
+    }
+
+    const replacePosition = ws.getCurrentTime();
+    const originalAudioBuffer = ws.getDecodedData();
+
+    if (!originalAudioBuffer) {
+      setError('No audio loaded to replace.');
+      return;
+    }
+
+    let audioContext: AudioContext | null = null;
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: originalAudioBuffer.sampleRate,
+          channelCount: originalAudioBuffer.numberOfChannels,
+        },
+      });
+
+      streamRef.current = stream;
+      const options = { mimeType: 'audio/webm;codecs=opus' };
+      const recorder = new MediaRecorder(stream, options);
+      mediaRecorderRef.current = recorder;
+      chunksRef.current = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        if (chunksRef.current.length === 0) {
+          setError('No audio recorded.');
+          return;
+        }
+
+        const newAudioBlob = new Blob(chunksRef.current, { type: options.mimeType });
+        const arrayBuffer = await newAudioBlob.arrayBuffer();
+        audioContext = new AudioContext();
+        let newAudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+        if (newAudioBuffer.sampleRate !== originalAudioBuffer.sampleRate) {
+          const offlineContext = new OfflineAudioContext(
+            newAudioBuffer.numberOfChannels,
+            Math.round(
+              (newAudioBuffer.length * originalAudioBuffer.sampleRate) / newAudioBuffer.sampleRate
+            ),
+            originalAudioBuffer.sampleRate
+          );
+
+          const source = offlineContext.createBufferSource();
+          source.buffer = newAudioBuffer;
+          source.connect(offlineContext.destination);
+          source.start();
+
+          newAudioBuffer = await offlineContext.startRendering();
+        }
+
+        const replaceSample = Math.round(replacePosition * originalAudioBuffer.sampleRate);
+        const newLength = replaceSample + newAudioBuffer.length;
+
+        const mergedBuffer = new AudioBuffer({
+          length: newLength,
+          numberOfChannels: originalAudioBuffer.numberOfChannels,
+          sampleRate: originalAudioBuffer.sampleRate,
+        });
+
+        for (let ch = 0; ch < originalAudioBuffer.numberOfChannels; ch++) {
+          const originalData = originalAudioBuffer.getChannelData(ch);
+          const newData = newAudioBuffer.getChannelData(ch);
+          const mergedData = mergedBuffer.getChannelData(ch);
+
+          // Copy original audio up to replace position
+          for (let i = 0; i < replaceSample; i++) {
+            mergedData[i] = originalData[i] || 0;
+          }
+
+          // Copy new audio from replace position
+          for (let i = 0; i < newAudioBuffer.length; i++) {
+            mergedData[replaceSample + i] = newData[i] || 0;
+          }
+        }
+
+        const wavBlob = bufferToWave(mergedBuffer);
+        const url = URL.createObjectURL(wavBlob);
+
+        setAudioUrl(url);
+        setAudioSize(`${(wavBlob.size / 1024).toFixed(2)} KB`);
+        setAudioFormat('wav');
+        regionsRef.current?.clearRegions();
+        onSuccess(wavBlob);
+
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+        if (audioContext) {
+          await audioContext.close();
+          audioContext = null;
+        }
+
+        setIsRecording(false);
+        setRecordingDuration(0);
+        setAudioSize('0 KB');
+      };
+
+      setIsRecording(true);
+      recorder.start(1000);
+
+      timerRef.current = setInterval(() => {
+        setRecordingDuration((prev) => prev + 1);
+      }, 1000);
+    } catch (err) {
+      setError('Failed to start recording or replace audio.');
+      console.error('Replace audio error:', err);
+      if (audioContext) {
+        await audioContext.close();
+        audioContext = null;
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    }
+  };
+
+  // Download audio (unchanged)
   const downloadAudio = async () => {
     const ws = wavesurferRef.current;
     if (!ws || !audioUrl) {
@@ -557,21 +689,13 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     if (audioBuffer) {
       blob = bufferToWave(audioBuffer);
     } else {
-      // Fallback to fetching the audioUrl if audioBuffer is not available
       const response = await fetch(audioUrl);
       blob = await response.blob();
     }
     onSuccess(blob);
-    /*const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `recording-${new Date().toISOString().replace(/[:.]/g, '-')}.wav`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);*/
   };
 
+  // Format duration (unchanged)
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -599,7 +723,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
             >
               {isPlaying ? '⏸️' : '▶️'}
             </button>
- 
+
             <span className="text-sm text-gray-600">
               {formatDuration(Math.floor(currentTime))} / {formatDuration(Math.floor(duration))}
             </span>
@@ -668,7 +792,13 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
             >
               Record & Insert
             </button>
-
+            <button
+              onClick={replaceAudioFromPosition}
+              className="px-4 py-2 bg-orange-600 text-white rounded-md text-sm"
+              disabled={isRecording}
+            >
+              Record & Replace
+            </button>
             <button
               onClick={downloadAudio}
               className="p-2 bg-green-600 text-white rounded-full"
@@ -676,7 +806,6 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
             >
               Update
             </button>
-
           </div>
         )}
 
