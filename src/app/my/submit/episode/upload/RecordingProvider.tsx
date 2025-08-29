@@ -209,10 +209,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
         timerRef.current = null;
       }
 
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-        streamRef.current = null;
-      }
+      // Stream cleanup is handled in the insertAudioAtRegion onstop callback if applicable
     }
   };
 
@@ -355,6 +352,158 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     }
   };
 
+  const insertAudioAtRegion = async () => {
+    const ws = wavesurferRef.current;
+    const regionsPlugin = regionsRef.current;
+    if (!ws || !regionsPlugin) {
+      setError('WaveSurfer or regions plugin not initialized.');
+      return;
+    }
+  
+    const regions = regionsPlugin.getRegions();
+    if (!regions.length) {
+      setError('Please mark a region to insert audio.');
+      return;
+    }
+  
+    const region = regions[0];
+    const insertPosition = region.start; // Insertion point in seconds
+    const originalAudioBuffer = ws.getDecodedData();
+  
+    if (!originalAudioBuffer) {
+      setError('No audio loaded to insert into.');
+      return;
+    }
+  
+    let audioContext: AudioContext | null = null;
+  
+    try {
+      // Start recording new audio
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: originalAudioBuffer.sampleRate,
+          channelCount: originalAudioBuffer.numberOfChannels,
+        },
+      });
+  
+      streamRef.current = stream;
+      const options = { mimeType: 'audio/webm;codecs=opus' };
+      const recorder = new MediaRecorder(stream, options);
+      mediaRecorderRef.current = recorder;
+      chunksRef.current = [];
+  
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+  
+      recorder.onstop = async () => {
+        if (chunksRef.current.length === 0) {
+          setError('No audio recorded.');
+          return;
+        }
+  
+        const newAudioBlob = new Blob(chunksRef.current, { type: options.mimeType });
+        const arrayBuffer = await newAudioBlob.arrayBuffer();
+        audioContext = new AudioContext();
+        let newAudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+  
+        // Resample if sample rates don't match
+        if (newAudioBuffer.sampleRate !== originalAudioBuffer.sampleRate) {
+          const offlineContext = new OfflineAudioContext(
+            newAudioBuffer.numberOfChannels,
+            Math.round(
+              (newAudioBuffer.length * originalAudioBuffer.sampleRate) / newAudioBuffer.sampleRate
+            ),
+            originalAudioBuffer.sampleRate
+          );
+  
+          const source = offlineContext.createBufferSource();
+          source.buffer = newAudioBuffer;
+          source.connect(offlineContext.destination);
+          source.start();
+  
+          newAudioBuffer = await offlineContext.startRendering();
+          // Do not close audioContext here; close it later
+        }
+  
+        // Merge audio buffers
+        const newLength = originalAudioBuffer.length + newAudioBuffer.length;
+        const mergedBuffer = new AudioBuffer({
+          length: newLength,
+          numberOfChannels: originalAudioBuffer.numberOfChannels,
+          sampleRate: originalAudioBuffer.sampleRate,
+        });
+  
+        const insertSample = Math.round(insertPosition * originalAudioBuffer.sampleRate);
+  
+        for (let ch = 0; ch < originalAudioBuffer.numberOfChannels; ch++) {
+          const originalData = originalAudioBuffer.getChannelData(ch);
+          const newData = newAudioBuffer.getChannelData(ch);
+          const mergedData = mergedBuffer.getChannelData(ch);
+  
+          for (let i = 0; i < insertSample; i++) {
+            mergedData[i] = originalData[i] || 0;
+          }
+  
+          for (let i = 0; i < newAudioBuffer.length; i++) {
+            mergedData[insertSample + i] = newData[i] || 0;
+          }
+  
+          for (let i = insertSample; i < originalAudioBuffer.length; i++) {
+            mergedData[i + newAudioBuffer.length] = originalData[i] || 0;
+          }
+        }
+  
+        // Convert merged buffer to WAV
+        const wavBlob = bufferToWave(mergedBuffer);
+        const url = URL.createObjectURL(wavBlob);
+  
+        // Update UI and WaveSurfer
+        setAudioUrl(url);
+        setAudioSize(`${(wavBlob.size / 1024).toFixed(2)} KB`);
+        setAudioFormat('wav');
+        regionsPlugin.clearRegions();
+        onSuccess(wavBlob);
+  
+        // Cleanup
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+        if (audioContext) {
+          await audioContext.close();
+          audioContext = null;
+        }
+  
+        setIsRecording(false);
+        setRecordingDuration(0);
+        setAudioSize('0 KB');
+      };
+  
+      // Start recording
+      setIsRecording(true);
+      recorder.start(1000);
+  
+      // Update duration during recording
+      timerRef.current = setInterval(() => {
+        setRecordingDuration((prev) => prev + 1);
+      }, 1000);
+    } catch (err) {
+      setError('Failed to start recording or insert audio.');
+      console.error('Insert audio error:', err);
+      if (audioContext) {
+        await audioContext.close();
+        audioContext = null;
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    }
+  };
+
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -442,6 +591,13 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
               className="px-4 py-2 bg-green-600 text-white rounded-md text-sm"
             >
               Trim Audio
+            </button>
+            <button
+              onClick={insertAudioAtRegion}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm"
+              disabled={isRecording}
+            >
+              Record & Insert
             </button>
           </div>
         )}
