@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.js';
-import Minimap from 'wavesurfer.js/dist/plugins/minimap.esm.js'
-import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.esm.js'
+import Minimap from 'wavesurfer.js/dist/plugins/minimap.esm.js';
+import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.esm.js';
+
 interface RecordProvider {
   onSuccess: (blob: Blob) => void;
   onStart?: () => void;
@@ -94,13 +95,11 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     });
     wavesurferRef.current = ws;
 
-    // Initialize regions plugin once
     regionsRef.current = ws.registerPlugin(RegionsPlugin.create());
     ws.registerPlugin(Minimap.create({
       height: 20,
       waveColor: '#ddd',
       progressColor: '#999',
-      // the Minimap takes all the same options as the WaveSurfer itself
     }));
     
     ws.on('ready', () => {
@@ -121,11 +120,10 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     };
   }, []);
 
-  // Load audio when URL changes, and wait for ready
+  // Load audio when URL changes
   useEffect(() => {
     const ws = wavesurferRef.current;
     if (audioUrl && ws) {
-      // Clear existing regions before loading new audio
       if (regionsRef.current) {
         regionsRef.current.clearRegions();
       }
@@ -153,7 +151,6 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
   }, []);
 
   const startRecording = async () => {
-    // Prevent starting a new recording if already recording
     if (isRecording) {
       setError('Recording already in progress.');
       return;
@@ -198,7 +195,6 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
           setAudioUrl(url);
           onSuccess(blob);
         }
-        // Reset state after stopping
         setIsRecording(false);
         setRecordingDuration(0);
         setAudioSize('0 KB');
@@ -216,7 +212,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       recorder.onerror = (event) => {
         console.error('MediaRecorder error:', event);
         setError('Recording failed. Please try again.');
-        stopRecording(); // Ensure cleanup on error
+        stopRecording();
       };
   
       recorder.start(1000);
@@ -251,7 +247,6 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
         setError('Failed to stop recording. Please try again.');
       }
     } else {
-      // Ensure cleanup even if MediaRecorder is not active
       setIsRecording(false);
       if (timerRef.current) {
         clearInterval(timerRef.current);
@@ -290,10 +285,10 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
 
     const dur = ws.getDuration();
     const center = ws.getCurrentTime() || 0;
-    const half = 2.5; // default ~5 seconds window
+    const half = 2.5;
     const start = Math.max(0, Math.min(dur, center - half));
     let end = Math.max(0, Math.min(dur, center + half));
-    const minLen = 0.05; // 50ms minimum
+    const minLen = 0.05;
     if (end - start < minLen) {
       end = Math.min(dur, start + minLen);
     }
@@ -314,7 +309,6 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     const regionsPlugin = regionsRef.current;
     if (!ws || !regionsPlugin) return;
   
-    // Stop playback to avoid race conditions during trimming
     if (ws.isPlaying()) ws.pause();
   
     const regions = regionsPlugin.getRegions();
@@ -323,11 +317,9 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       return;
     }
   
-    // Use the first region
     const region = regions[0];
     const dur = ws.getDuration();
   
-    // Clamp to duration and ensure valid range
     const startSec = Math.max(0, Math.min(region.start, dur));
     const endSec = Math.max(0, Math.min(region.end, dur));
   
@@ -346,7 +338,6 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       const sr = audioBuffer.sampleRate;
       const totalSamples = audioBuffer.length;
   
-      // Convert seconds to sample indices with consistent rounding
       const startSample = Math.max(0, Math.min(totalSamples, Math.round(startSec * sr)));
       const endSample = Math.max(0, Math.min(totalSamples, Math.round(endSec * sr)));
   
@@ -355,11 +346,10 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
         return;
       }
   
-      const leftLen = startSample;                 // samples before region
-      const rightLen = totalSamples - endSample;   // samples after region
+      const leftLen = startSample;
+      const rightLen = totalSamples - endSample;
       const newLen = leftLen + rightLen;
   
-      // If removing the whole audio, create a tiny silent buffer to avoid errors
       const finalLen = Math.max(newLen, 1);
   
       const channels = audioBuffer.numberOfChannels;
@@ -369,8 +359,6 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
         sampleRate: sr,
       });
   
-      // Copy left segment [0, startSample)
-      // Copy right segment [endSample, totalSamples) to position leftLen
       for (let ch = 0; ch < channels; ch++) {
         if (leftLen > 0) {
           const left = new Float32Array(leftLen);
@@ -383,22 +371,17 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
           audioBuffer.copyFromChannel(right, ch, endSample);
           out.copyToChannel(right, ch, leftLen);
         }
-  
-        // If newLen === 0, out stays as 1-sample silent buffer.
       }
   
       const wavBlob = bufferToWave(out);
       const url = URL.createObjectURL(wavBlob);
   
-      // Clear regions before loading the trimmed audio
       regionsPlugin.clearRegions();
   
-      // Update UI and WaveSurfer by replacing the audio
       setAudioUrl(url);
       setAudioSize(`${(wavBlob.size / 1024).toFixed(2)} KB`);
       setAudioFormat('wav');
   
-      // Notify parent
       onSuccess(wavBlob);
     } catch (err) {
       console.error('Trim-remove error:', err);
@@ -421,7 +404,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     }
   
     const region = regions[0];
-    const insertPosition = region.start; // Insertion point in seconds
+    const insertPosition = region.start;
     const originalAudioBuffer = ws.getDecodedData();
   
     if (!originalAudioBuffer) {
@@ -432,7 +415,6 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     let audioContext: AudioContext | null = null;
   
     try {
-      // Start recording new audio
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -465,7 +447,6 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
         audioContext = new AudioContext();
         let newAudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
   
-        // Resample if sample rates don't match
         if (newAudioBuffer.sampleRate !== originalAudioBuffer.sampleRate) {
           const offlineContext = new OfflineAudioContext(
             newAudioBuffer.numberOfChannels,
@@ -481,10 +462,8 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
           source.start();
   
           newAudioBuffer = await offlineContext.startRendering();
-          // Do not close audioContext here; close it later
         }
   
-        // Merge audio buffers
         const newLength = originalAudioBuffer.length + newAudioBuffer.length;
         const mergedBuffer = new AudioBuffer({
           length: newLength,
@@ -512,18 +491,15 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
           }
         }
   
-        // Convert merged buffer to WAV
         const wavBlob = bufferToWave(mergedBuffer);
         const url = URL.createObjectURL(wavBlob);
   
-        // Update UI and WaveSurfer
         setAudioUrl(url);
         setAudioSize(`${(wavBlob.size / 1024).toFixed(2)} KB`);
         setAudioFormat('wav');
         regionsPlugin.clearRegions();
         onSuccess(wavBlob);
   
-        // Cleanup
         stream.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
         if (audioContext) {
@@ -536,11 +512,9 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
         setAudioSize('0 KB');
       };
   
-      // Start recording
       setIsRecording(true);
       recorder.start(1000);
   
-      // Update duration during recording
       timerRef.current = setInterval(() => {
         setRecordingDuration((prev) => prev + 1);
       }, 1000);
@@ -556,6 +530,33 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
         streamRef.current = null;
       }
     }
+  };
+
+  const downloadAudio = async () => {
+    const ws = wavesurferRef.current;
+    if (!ws || !audioUrl) {
+      setError('No audio available to download.');
+      return;
+    }
+
+    let blob: Blob;
+    const audioBuffer = ws.getDecodedData();
+    if (audioBuffer) {
+      blob = bufferToWave(audioBuffer);
+    } else {
+      // Fallback to fetching the audioUrl if audioBuffer is not available
+      const response = await fetch(audioUrl);
+      blob = await response.blob();
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `recording-${new Date().toISOString().replace(/[:.]/g, '-')}.wav`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const formatDuration = (seconds: number): string => {
@@ -584,6 +585,13 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
               className="p-2 bg-blue-600 text-white rounded-full"
             >
               {isPlaying ? '⏸️' : '▶️'}
+            </button>
+            <button
+              onClick={downloadAudio}
+              className="p-2 bg-green-600 text-white rounded-full"
+              title="Download audio as WAV"
+            >
+              ⬇️
             </button>
             <span className="text-sm text-gray-600">
               {formatDuration(Math.floor(currentTime))} / {formatDuration(Math.floor(duration))}
