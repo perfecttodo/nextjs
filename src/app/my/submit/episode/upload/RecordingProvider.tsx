@@ -407,14 +407,17 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       return;
     }
   
-    const regions = regionsPlugin.getRegions();
+    /*const regions = regionsPlugin.getRegions();
     if (!regions.length) {
       setError('Please mark a region to insert audio.');
       return;
     }
   
     const region = regions[0];
-    const insertPosition = region.start;
+    const insertPosition = region.start;*/
+
+    const insertPosition = ws.getCurrentTime();
+
     const originalAudioBuffer = ws.getDecodedData();
   
     if (!originalAudioBuffer) {
