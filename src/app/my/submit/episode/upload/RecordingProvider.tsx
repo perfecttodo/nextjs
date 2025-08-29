@@ -296,8 +296,8 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       // If no region exists, add a new one
       const dur = ws.getDuration();
       const center = ws.getCurrentTime() || 0;
-      const half = 2.5; // 2.5 seconds on either side
-      const start = Math.max(0, Math.min(dur, center - half));
+      const half = 1; // 2.5 seconds on either side
+      const start = center;// Math.max(0, Math.min(dur, center - half));
       let end = Math.max(0, Math.min(dur, center + half));
       const minLen = 0.05; // Minimum region length
       if (end - start < minLen) {
