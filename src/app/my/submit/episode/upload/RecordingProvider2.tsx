@@ -6,7 +6,6 @@ interface RecordProvider {
   onSuccess: (blob: Blob) => void;
   onStart?: () => void;
 }
-
 export default function AudioRecord({ onSuccess,onStart }: RecordProvider) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
