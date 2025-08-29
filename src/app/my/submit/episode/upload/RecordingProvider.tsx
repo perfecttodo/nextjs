@@ -93,6 +93,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       normalize: true,
       minPxPerSec: 100,
       autoCenter: false,
+      hideScrollbar: true,
       plugins: [TimelinePlugin.create({  timeInterval: 0.1,
         primaryLabelInterval: 1,})],
     });
@@ -552,15 +553,15 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       const response = await fetch(audioUrl);
       blob = await response.blob();
     }
-
-    const url = URL.createObjectURL(blob);
+    onSuccess(blob);
+    /*const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `recording-${new Date().toISOString().replace(/[:.]/g, '-')}.wav`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(url);*/
   };
 
   const formatDuration = (seconds: number): string => {
@@ -590,13 +591,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
             >
               {isPlaying ? '⏸️' : '▶️'}
             </button>
-            <button
-              onClick={downloadAudio}
-              className="p-2 bg-green-600 text-white rounded-full"
-              title="Download audio as WAV"
-            >
-              ⬇️
-            </button>
+ 
             <span className="text-sm text-gray-600">
               {formatDuration(Math.floor(currentTime))} / {formatDuration(Math.floor(duration))}
             </span>
@@ -665,6 +660,15 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
             >
               Record & Insert
             </button>
+
+            <button
+              onClick={downloadAudio}
+              className="p-2 bg-green-600 text-white rounded-full"
+              title="Finish"
+            >
+              Update
+            </button>
+
           </div>
         )}
 
