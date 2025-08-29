@@ -12,7 +12,6 @@ export interface TabConfig {
   icon: string;
   shortLabel: string;
 }
-
 export interface SharedFormData {
   title: string;
   status: AudioStatus;
