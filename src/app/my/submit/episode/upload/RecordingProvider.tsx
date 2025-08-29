@@ -152,12 +152,18 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
   }, []);
 
   const startRecording = async () => {
+    // Prevent starting a new recording if already recording
+    if (isRecording) {
+      setError('Recording already in progress.');
+      return;
+    }
+  
     try {
       setError('');
       chunksRef.current = [];
       setRecordingDuration(0);
       setAudioSize('0 KB');
-
+  
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -166,22 +172,22 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
           channelCount: 1,
         },
       });
-
+  
       streamRef.current = stream;
-
+  
       const options = { mimeType: 'audio/webm;codecs=opus' };
       const recorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = recorder;
-
+  
       const mimeType = recorder.mimeType;
       setAudioFormat(mimeType.split(';')[0].split('/')[1] || 'webm');
-
+  
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
         }
       };
-
+  
       recorder.onstop = () => {
         if (chunksRef.current.length > 0) {
           const blob = new Blob(chunksRef.current, { type: mimeType });
@@ -191,32 +197,72 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
           setAudioUrl(url);
           onSuccess(blob);
         }
+        // Reset state after stopping
+        setIsRecording(false);
+        setRecordingDuration(0);
+        setAudioSize('0 KB');
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+        }
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+        mediaRecorderRef.current = null;
       };
-
+  
+      recorder.onerror = (event) => {
+        console.error('MediaRecorder error:', event);
+        setError('Recording failed. Please try again.');
+        stopRecording(); // Ensure cleanup on error
+      };
+  
       recorder.start(1000);
       setIsRecording(true);
       onStart?.();
-
+  
       timerRef.current = setInterval(() => {
         setRecordingDuration((prev) => prev + 1);
       }, 1000);
     } catch (err) {
       setError('Unable to access microphone. Please check your permissions.');
       console.error('Recording error:', err);
+      setIsRecording(false);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      mediaRecorderRef.current = null;
     }
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
+      try {
+        mediaRecorderRef.current.stop();
+      } catch (err) {
+        console.error('Error stopping MediaRecorder:', err);
+        setError('Failed to stop recording. Please try again.');
+      }
+    } else {
+      // Ensure cleanup even if MediaRecorder is not active
       setIsRecording(false);
-
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
-
-      // Stream cleanup is handled in the insertAudioAtRegion onstop callback if applicable
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+      mediaRecorderRef.current = null;
+      setRecordingDuration(0);
+      setAudioSize('0 KB');
     }
   };
 
