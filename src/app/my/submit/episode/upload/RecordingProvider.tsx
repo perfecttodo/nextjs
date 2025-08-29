@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.js';
 import Minimap from 'wavesurfer.js/dist/plugins/minimap.esm.js'
-
+import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.esm.js'
 interface RecordProvider {
   onSuccess: (blob: Blob) => void;
   onStart?: () => void;
@@ -90,6 +90,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       barGap: 2,
       height: 100,
       normalize: true,
+      plugins: [TimelinePlugin.create()],
     });
     wavesurferRef.current = ws;
 
@@ -574,7 +575,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
 
         <div className="text-gray-400 text-4xl">🎤</div>
 
-        <div ref={waveformRef} className="w-full h-24 border rounded-md"></div>
+        <div ref={waveformRef} className="w-full h-24 border rounded-md mb-12"></div>
 
         {audioUrl && (
           <div className="flex items-center space-x-4">
