@@ -15,11 +15,10 @@ function bufferToWave(abuffer: AudioBuffer): Blob {
   const length = abuffer.length * numOfChan * 2 + 44;
   const buffer = new ArrayBuffer(length);
   const view = new DataView(buffer);
-  const channels = [];
+  const channels: Float32Array[] = [];
   let sample: number;
   let offset = 0;
 
-  // Write WAV header
   const writeString = (view: DataView, offset: number, string: string) => {
     for (let i = 0; i < string.length; i++) {
       view.setUint8(offset + i, string.charCodeAt(i));
@@ -40,7 +39,6 @@ function bufferToWave(abuffer: AudioBuffer): Blob {
   writeString(view, 36, 'data');
   view.setUint32(40, abuffer.length * numOfChan * 2, true);
 
-  // Write PCM data
   for (let i = 0; i < abuffer.numberOfChannels; i++) {
     channels.push(abuffer.getChannelData(i));
   }
@@ -81,7 +79,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
   useEffect(() => {
     if (!waveformRef.current) return;
 
-    wavesurferRef.current = WaveSurfer.create({
+    const ws = WaveSurfer.create({
       container: waveformRef.current,
       waveColor: '#4F46E5',
       progressColor: '#3730A3',
@@ -91,34 +89,46 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       barGap: 2,
       height: 100,
       normalize: true,
-      plugins: [RegionsPlugin.create()],
+    });
+    wavesurferRef.current = ws;
+
+    // Initialize regions plugin once
+    regionsRef.current = ws.registerPlugin(RegionsPlugin.create());
+
+    ws.on('ready', () => {
+      setDuration(ws.getDuration() || 0);
+      setCurrentTime(0);
     });
 
-    regionsRef.current = wavesurferRef.current.registerPlugin(RegionsPlugin.create());
-
-    wavesurferRef.current.on('ready', () => {
-      setDuration(wavesurferRef.current?.getDuration() || 0);
+    ws.on('audioprocess', () => {
+      setCurrentTime(ws.getCurrentTime() || 0);
     });
 
-    wavesurferRef.current.on('audioprocess', () => {
-      setCurrentTime(wavesurferRef.current?.getCurrentTime() || 0);
-    });
-
-    wavesurferRef.current.on('play', () => setIsPlaying(true));
-    wavesurferRef.current.on('pause', () => setIsPlaying(false));
-    wavesurferRef.current.on('finish', () => setIsPlaying(false));
+    ws.on('play', () => setIsPlaying(true));
+    ws.on('pause', () => setIsPlaying(false));
+    ws.on('finish', () => setIsPlaying(false));
 
     return () => {
-      if (wavesurferRef.current) {
-        wavesurferRef.current.destroy();
-      }
+      ws.destroy();
     };
   }, []);
 
-  // Load audio when URL changes
+  // Load audio when URL changes, and wait for ready
   useEffect(() => {
-    if (audioUrl && wavesurferRef.current) {
-      wavesurferRef.current.load(audioUrl);
+    const ws = wavesurferRef.current;
+    if (audioUrl && ws) {
+      // Clear existing regions before loading new audio
+      if (regionsRef.current) {
+        regionsRef.current.clearRegions();
+      }
+
+      ws.load(audioUrl);
+
+      const onReady = () => {
+        setDuration(ws.getDuration() || 0);
+        setCurrentTime(0);
+      };
+      ws.once('ready', onReady);
     }
   }, [audioUrl]);
 
@@ -129,7 +139,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
         clearInterval(timerRef.current);
       }
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
   }, []);
@@ -153,18 +163,19 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       streamRef.current = stream;
 
       const options = { mimeType: 'audio/webm;codecs=opus' };
-      mediaRecorderRef.current = new MediaRecorder(stream, options);
+      const recorder = new MediaRecorder(stream, options);
+      mediaRecorderRef.current = recorder;
 
-      const mimeType = mediaRecorderRef.current.mimeType;
+      const mimeType = recorder.mimeType;
       setAudioFormat(mimeType.split(';')[0].split('/')[1] || 'webm');
 
-      mediaRecorderRef.current.ondataavailable = (event) => {
+      recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
         }
       };
 
-      mediaRecorderRef.current.onstop = () => {
+      recorder.onstop = () => {
         if (chunksRef.current.length > 0) {
           const blob = new Blob(chunksRef.current, { type: mimeType });
           const sizeInKB = (blob.size / 1024).toFixed(2);
@@ -175,7 +186,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
         }
       };
 
-      mediaRecorderRef.current.start(1000);
+      recorder.start(1000);
       setIsRecording(true);
       onStart?.();
 
@@ -213,7 +224,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file && wavesurferRef.current) {
+    if (file) {
       const url = URL.createObjectURL(file);
       setAudioUrl(url);
       setAudioFormat(file.type.split('/')[1] || 'audio');
@@ -222,78 +233,125 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
   };
 
   const addRegion = () => {
-    if (!wavesurferRef.current || !regionsRef.current) return;
+    const ws = wavesurferRef.current;
+    const rp = regionsRef.current;
+    if (!ws || !rp) return;
 
-    const duration = wavesurferRef.current.getDuration();
-    const start = Math.max(0, (wavesurferRef.current.getCurrentTime() || 0) - 5);
-    const end = Math.min(duration, (wavesurferRef.current.getCurrentTime() || 0) + 5);
+    const dur = ws.getDuration();
+    const center = ws.getCurrentTime() || 0;
+    const half = 2.5; // default ~5 seconds window
+    const start = Math.max(0, Math.min(dur, center - half));
+    let end = Math.max(0, Math.min(dur, center + half));
+    const minLen = 0.05; // 50ms minimum
+    if (end - start < minLen) {
+      end = Math.min(dur, start + minLen);
+    }
 
-    regionsRef.current.addRegion({
+    rp.clearRegions();
+
+    rp.addRegion({
       start,
       end,
       color: 'rgba(79, 70, 229, 0.3)',
       drag: true,
       resize: true,
     });
-
-    console.log(regionsRef.current.getRegions());
   };
 
   const trimAudio = async () => {
-    if (!wavesurferRef.current || !regionsRef.current) return;
-
-    const regions = regionsRef.current.getRegions();
-    if (regions.length === 0) {
-      setError('No region selected for trimming.');
+    const ws = wavesurferRef.current;
+    const regionsPlugin = regionsRef.current;
+    if (!ws || !regionsPlugin) return;
+  
+    // Stop playback to avoid race conditions during trimming
+    if (ws.isPlaying()) ws.pause();
+  
+    const regions = regionsPlugin.getRegions();
+    if (!regions.length) {
+      setError('No region selected to remove.');
       return;
     }
-
+  
+    // Use the first region
     const region = regions[0];
-    const start = region.start;
-    const end = region.end;
-
-    // Get the decoded audio data
-    const audioBuffer = wavesurferRef.current.getDecodedData();
+    const dur = ws.getDuration();
+  
+    // Clamp to duration and ensure valid range
+    const startSec = Math.max(0, Math.min(region.start, dur));
+    const endSec = Math.max(0, Math.min(region.end, dur));
+  
+    if (endSec <= startSec) {
+      setError('Region length is zero. Adjust the handles and try again.');
+      return;
+    }
+  
+    const audioBuffer = ws.getDecodedData();
     if (!audioBuffer) {
       setError('No audio data available for trimming.');
       return;
     }
-
-    // Create an offline audio context for trimming
-    const sampleRate = audioBuffer.sampleRate;
-    const newLength = Math.floor((end - start) * sampleRate);
-    const offlineCtx = new OfflineAudioContext(
-      audioBuffer.numberOfChannels,
-      newLength,
-      sampleRate
-    );
-
-    // Create a new buffer source
-    const source = offlineCtx.createBufferSource();
-    source.buffer = audioBuffer;
-
-    // Connect and trim
-    source.connect(offlineCtx.destination);
-    source.start(0, start, end - start);
-
-    // Render the trimmed audio
+  
     try {
-      const renderedBuffer = await offlineCtx.startRendering();
-
-      // Convert to WAV blob
-      const wavBlob = bufferToWave(renderedBuffer);
-
+      const sr = audioBuffer.sampleRate;
+      const totalSamples = audioBuffer.length;
+  
+      // Convert seconds to sample indices with consistent rounding
+      const startSample = Math.max(0, Math.min(totalSamples, Math.round(startSec * sr)));
+      const endSample = Math.max(0, Math.min(totalSamples, Math.round(endSec * sr)));
+  
+      if (endSample <= startSample) {
+        setError('Selected region too small to remove.');
+        return;
+      }
+  
+      const leftLen = startSample;                 // samples before region
+      const rightLen = totalSamples - endSample;   // samples after region
+      const newLen = leftLen + rightLen;
+  
+      // If removing the whole audio, create a tiny silent buffer to avoid errors
+      const finalLen = Math.max(newLen, 1);
+  
+      const channels = audioBuffer.numberOfChannels;
+      const out = new AudioBuffer({
+        length: finalLen,
+        numberOfChannels: channels,
+        sampleRate: sr,
+      });
+  
+      // Copy left segment [0, startSample)
+      // Copy right segment [endSample, totalSamples) to position leftLen
+      for (let ch = 0; ch < channels; ch++) {
+        if (leftLen > 0) {
+          const left = new Float32Array(leftLen);
+          audioBuffer.copyFromChannel(left, ch, 0);
+          out.copyToChannel(left, ch, 0);
+        }
+  
+        if (rightLen > 0) {
+          const right = new Float32Array(rightLen);
+          audioBuffer.copyFromChannel(right, ch, endSample);
+          out.copyToChannel(right, ch, leftLen);
+        }
+  
+        // If newLen === 0, out stays as 1-sample silent buffer.
+      }
+  
+      const wavBlob = bufferToWave(out);
       const url = URL.createObjectURL(wavBlob);
+  
+      // Clear regions before loading the trimmed audio
+      regionsPlugin.clearRegions();
+  
+      // Update UI and WaveSurfer by replacing the audio
       setAudioUrl(url);
       setAudioSize(`${(wavBlob.size / 1024).toFixed(2)} KB`);
       setAudioFormat('wav');
+  
+      // Notify parent
       onSuccess(wavBlob);
-
-      // Reload the trimmed audio into WaveSurfer
-      wavesurferRef.current.loadBlob(wavBlob);
     } catch (err) {
-      setError('Failed to trim audio. Please try again.');
-      console.error('Trimming error:', err);
+      console.error('Trim-remove error:', err);
+      setError('Failed to remove region from audio. Please try again.');
     }
   };
 
