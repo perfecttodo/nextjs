@@ -579,7 +579,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
   };
 
   return (
-    <div className="max-w-md mx-auto p-4 bg-white rounded-lg shadow-md">
+    <div className="mx-auto p-4 bg-white rounded-lg shadow-md">
       <div className="flex flex-col items-center space-y-4">
         {error && (
           <div className="w-full p-3 bg-red-50 border border-red-200 rounded-md">
@@ -635,7 +635,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
           {isRecording ? 'Stop Recording' : 'Start Recording'}
         </button>
 
-        <div className="w-full">
+        <div className="flex space-x-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Or insert existing audio
           </label>
