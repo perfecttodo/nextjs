@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.js';
+import Minimap from 'wavesurfer.js/dist/plugins/minimap.esm.js'
 
 interface RecordProvider {
   onSuccess: (blob: Blob) => void;
@@ -94,7 +95,13 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
 
     // Initialize regions plugin once
     regionsRef.current = ws.registerPlugin(RegionsPlugin.create());
-
+    ws.registerPlugin(Minimap.create({
+      height: 20,
+      waveColor: '#ddd',
+      progressColor: '#999',
+      // the Minimap takes all the same options as the WaveSurfer itself
+    }));
+    
     ws.on('ready', () => {
       setDuration(ws.getDuration() || 0);
       setCurrentTime(0);
