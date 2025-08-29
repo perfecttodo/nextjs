@@ -287,26 +287,31 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     const ws = wavesurferRef.current;
     const rp = regionsRef.current;
     if (!ws || !rp) return;
-
-    const dur = ws.getDuration();
-    const center = ws.getCurrentTime() || 0;
-    const half = 2.5;
-    const start = Math.max(0, Math.min(dur, center - half));
-    let end = Math.max(0, Math.min(dur, center + half));
-    const minLen = 0.05;
-    if (end - start < minLen) {
-      end = Math.min(dur, start + minLen);
+  
+    const regions = rp.getRegions();
+    if (regions.length > 0) {
+      // If a region exists, clear all regions to "unmark"
+      rp.clearRegions();
+    } else {
+      // If no region exists, add a new one
+      const dur = ws.getDuration();
+      const center = ws.getCurrentTime() || 0;
+      const half = 2.5; // 2.5 seconds on either side
+      const start = Math.max(0, Math.min(dur, center - half));
+      let end = Math.max(0, Math.min(dur, center + half));
+      const minLen = 0.05; // Minimum region length
+      if (end - start < minLen) {
+        end = Math.min(dur, start + minLen);
+      }
+  
+      rp.addRegion({
+        start,
+        end,
+        color: 'rgba(79, 70, 229, 0.3)',
+        drag: true,
+        resize: true,
+      });
     }
-
-    rp.clearRegions();
-
-    rp.addRegion({
-      start,
-      end,
-      color: 'rgba(79, 70, 229, 0.3)',
-      drag: true,
-      resize: true,
-    });
   };
 
   const trimAudio = async () => {
