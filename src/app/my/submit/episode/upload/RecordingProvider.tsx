@@ -91,6 +91,8 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       barGap: 2,
       height: 100,
       normalize: true,
+      minPxPerSec: 100,
+      autoCenter: false,
       plugins: [TimelinePlugin.create()],
     });
     wavesurferRef.current = ws;
@@ -98,8 +100,9 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
     regionsRef.current = ws.registerPlugin(RegionsPlugin.create());
     ws.registerPlugin(Minimap.create({
       height: 20,
-      waveColor: '#ddd',
-      progressColor: '#999',
+      waveColor: 'rgb(200, 0, 200)',
+      progressColor: 'rgb(100, 0, 100)',
+
     }));
     
     ws.on('ready', () => {
