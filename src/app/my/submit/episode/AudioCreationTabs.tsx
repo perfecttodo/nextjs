@@ -5,6 +5,7 @@ import { useUser } from '../../../hooks/useUser';
 import { presignUploadSingle, presignUploadBatch } from '@/lib/presign';
 import EpisodeForm from './EpisodeForm';
 import UploadProvider from './upload/UploadProvider';
+import RecordingProvider2 from './upload/RecordingProvider2';
 import UrlProvider from './upload/UrlProvider';
 import RecordingProvider from './upload/RecordingProvider';
 import { useFfmpegEngine } from './upload/useFfmpegEngine';
@@ -390,14 +391,22 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
           handleProvideBlogSuccess(blob);
           handleAudioFieldsChange({ title: filename || '' });
         }} />;
-      case 'record':
-        return <RecordingProvider onSuccess={handleProvideBlogSuccess} onStart={() => {
-          audioRef.current?.pause();
-          updateAudioState({
-            audioUrl: null,
-            audioBlob: null
-          });
-        }} />;
+        case 'record':
+          return <RecordingProvider onSuccess={handleProvideBlogSuccess} onStart={() => {
+            audioRef.current?.pause();
+            updateAudioState({
+              audioUrl: null,
+              audioBlob: null
+            });
+          }} />;     
+          case 'record2':
+          return <RecordingProvider2 onSuccess={handleProvideBlogSuccess} onStart={() => {
+            audioRef.current?.pause();
+            updateAudioState({
+              audioUrl: null,
+              audioBlob: null
+            });
+          }} />;
       case 'url':
         return <UrlProvider onSuccess={handleProvideBlogSuccess} />;
       default:

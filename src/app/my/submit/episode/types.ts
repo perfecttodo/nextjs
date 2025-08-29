@@ -1,6 +1,6 @@
 import { AudioStatus } from '@/types/audio';
 
-export type TabType = 'upload' | 'record' | 'url';
+export type TabType = 'upload' | 'record'| 'record2' | 'url';
 
 export const OUTPUT_FORMATS = ['m3u8', 'mp3', 'm4a'] as const;
 export type OutputFormat = typeof OUTPUT_FORMATS[number];
