@@ -4,22 +4,37 @@ import AlbumsListClient from './AlbumsListClient';
 // Revalidate every 24 hours (86400 seconds)
 export const revalidate = 86400;
 
+// Define the expected shape of searchParams after resolution
+interface SearchParams {
+  page?: string;
+}
+
+// Define the props type for the page component
+interface PageProps {
+  searchParams: Promise<SearchParams>;
+}
+
 async function getAlbumsData(page: number = 1, pageSize: number = 12) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/albums?page=${page}&pageSize=${pageSize}`, {
-    next: { revalidate: 86400 }
-  });
-  
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL}/api/albums?page=${page}&pageSize=${pageSize}`,
+    {
+      next: { revalidate: 86400 },
+    }
+  );
+
   if (!res.ok) {
     throw new Error('Failed to fetch albums');
   }
-  
+
   return res.json();
 }
 
-export default async function AlbumsPage({ searchParams }: { searchParams: { page?: string } }) {
-  const page = parseInt(searchParams.page || '1', 10);
+export default async function AlbumsPage({ searchParams }: PageProps) {
+  // Resolve the searchParams Promise
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || '1', 10);
   const pageSize = 12;
-  
+
   // Fetch data on the server with revalidation
   const data = await getAlbumsData(page, pageSize);
 
@@ -30,14 +45,16 @@ export default async function AlbumsPage({ searchParams }: { searchParams: { pag
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Hot Albums</h1>
           </div>
-          
-          <Suspense fallback={
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-2 text-gray-600">Loading albums...</span>
-            </div>
-          }>
-            <AlbumsListClient 
+
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span className="ml-2 text-gray-600">Loading albums...</span>
+              </div>
+            }
+          >
+            <AlbumsListClient
               initialAlbums={data.albums || []}
               initialTotal={data.total || 0}
               initialTotalPages={data.totalPages || 1}

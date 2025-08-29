@@ -535,7 +535,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       setError('Failed to start recording or insert audio.');
       console.error('Insert audio error:', err);
       if (audioContext) {
-        await audioContext.close();
+        //await audioContext.close();
         audioContext = null;
       }
       if (streamRef.current) {
@@ -632,7 +632,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
           }`}
           disabled={!!error}
         >
-          {isRecording ? 'Stop Recording' : 'Start Recording'}
+          {isRecording ? 'Stop Recording' : 'Start New Recording'}
         </button>
 
         <div className="flex space-x-2">
