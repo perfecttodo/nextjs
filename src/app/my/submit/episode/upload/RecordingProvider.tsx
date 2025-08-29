@@ -93,7 +93,8 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       normalize: true,
       minPxPerSec: 100,
       autoCenter: false,
-      plugins: [TimelinePlugin.create()],
+      plugins: [TimelinePlugin.create({  timeInterval: 0.1,
+        primaryLabelInterval: 1,})],
     });
     wavesurferRef.current = ws;
 
