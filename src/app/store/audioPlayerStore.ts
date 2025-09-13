@@ -47,17 +47,24 @@ interface AudioPlayerState {
 }
 
 export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
-  // Load play history from localStorage on initialization
+  // Load play history and playMode from localStorage on initialization
   let initialPlayHistory: Episode[] = [];
+  let initialPlayMode: PlayMode = 'sequence';
+  
   try {
     if (typeof window !== 'undefined') {
       const savedHistory = localStorage.getItem('localPlayHistory');
       if (savedHistory) {
         initialPlayHistory = JSON.parse(savedHistory);
       }
+      
+      const savedPlayMode = localStorage.getItem('localPlayMode');
+      if (savedPlayMode) {
+        initialPlayMode = savedPlayMode as PlayMode;
+      }
     }
   } catch (error) {
-    console.error('Failed to load play history from localStorage:', error);
+    console.error('Failed to load data from localStorage:', error);
   }
 
   return {
@@ -65,7 +72,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
     isPlaying: false,
     status:'',
     isToggle:false,
-    playMode: 'sequence',
+    playMode: initialPlayMode,
     episodes: [],
     currentIndex: -1,
     currentTime: 0,
@@ -153,7 +160,17 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => {
     const modes: PlayMode[] = ['sequence', 'loop', 'random'];
     const currentMode = get().playMode;
     const nextIndex = (modes.indexOf(currentMode) + 1) % modes.length;
-    set({ playMode: modes[nextIndex] });
+    const newPlayMode = modes[nextIndex];
+    
+    set({ playMode: newPlayMode });
+    
+    // Save to localStorage
+    try {
+      localStorage.setItem('localPlayMode', newPlayMode);
+    } catch (error) {
+      console.error('Failed to save playMode to localStorage:', error);
+    }
+    
     get().callback?.(get());
   },
   
