@@ -107,7 +107,7 @@ export default function AlbumsListClient({
                     <p className="mt-2 text-sm text-gray-600 line-clamp-3">{album.description}</p>
                   )}
                   <div className="mt-3 text-xs text-gray-500">
-                    {(album._count?.episodes || 0)} episodes • {new Date(album.createdAt).toLocaleDateString()}
+                    {(album._count?.episodes || 0)} episodes 
                   </div>
                   <div className="mt-4">
                     <Link
