@@ -85,7 +85,11 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
     } = useAudioPlayerStore();
 
     const onEnded = () => {
-         if(playModeRef.current === 'loop' ) updateTime(0);
+         if(playModeRef.current === 'loop' ) {
+            updateTime(0);
+            playVideo();
+             play();
+         }
         ended();
     }
     const onPlay = () => {
@@ -154,6 +158,15 @@ const HLSPlayer: React.FC<HLSPlayerProps> = ({ }) => {
         }
         }
 
+            function playVideo() {
+        if (isHlsSupportFormat()) {
+            if (videoRef.current == null) return;
+            videoRef.current?.play();
+        } else if (videoRef.current) {
+            videoJsPlayerRef.current.play();
+
+        }
+        }
     // Seek handler
     const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
         const time = parseFloat(e.target.value);
