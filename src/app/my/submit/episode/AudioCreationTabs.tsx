@@ -105,7 +105,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
   }, [engineGetM3U8Content, audioState.outputFormat]);
 
   const processConvert = useCallback(async (format: OutputFormat) => {
-    if (!oriBlob.current) return;
+    if (!oriBlob.current) return false;
 
     updateAudioState({
       audioBlob: oriBlob.current,
@@ -129,6 +129,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
         updateAudioState({ isProcessing: false });
       }
     }
+    return true;
   }, [audioState.useFFmpeg, audioState.audioUrl, ffmpegLoaded, convertBlobToformat, updateAudioState]);
 
   useEffect(() => {
@@ -279,7 +280,11 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
     if(submiting.current)return;
     submiting.current = true;
     updateAudioState({ isUploading: true, uploadProgress: 0, error: '' });
-    await processConvert('mp3');
+    if(!await processConvert('mp3')){
+            updateAudioState({ isUploading: false,error: 'Please record or upload audio before uploading.' });
+          submiting.current = false;
+        return;
+    }
     if (!audioState.audioUrl) {
       updateAudioState({ isUploading: false,error: 'Please record or upload audio before uploading.' });
       submiting.current = false;

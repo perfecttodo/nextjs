@@ -269,6 +269,7 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       setRecordingDuration(0);
       setAudioSize('0 KB');
     }
+    downloadAudio();
   };
 
   // Play/Pause (unchanged)
