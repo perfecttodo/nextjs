@@ -46,7 +46,7 @@
 <body>
     <canvas id="gameCanvas" width="360" height="640"></canvas>
     <div id="word-display"></div>
-    <img id="word-image" src="" alt="">
+    <img id="word-image" src="" alt="" style="display: none;">
     <audio id="explosion-sound">
         <source src="https://assets.mixkit.co/sfx/preview/mixkit-short-explosion-1696.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
@@ -144,11 +144,7 @@
         });
 
         const wordImage = document.getElementById('word-image');
-        wordImage.addEventListener('error', (e) => {
-            console.warn(`Failed to load image for word "${currentWord}" with URL "${wordImage.src}":`, e);
-            wordImage.src = 'https://via.placeholder.com/250?text=' + (currentWord || 'No+Word');
-            wordImage.style.display = 'block';
-        });
+
 
         wordImage.addEventListener('load', () => {
             console.log(`Successfully loaded image for "${currentWord}": ${wordImage.src}`);
@@ -176,28 +172,33 @@
             return `#${compR}${compG}${compB}`;
         }
 
-        function drawGrid() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (let y = 0; y < rows; y++) {
-                for (let x = 0; x < cols; x++) {
-                    if (grid[y][x]) {
-                        ctx.fillStyle = highlighting && highlightPositions.some(p => p.x === x && p.y === y) ? '#FFFF00' : grid[y][x].color;
-                        ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
-                        ctx.fillStyle = getComplementaryColor(grid[y][x].color);
-                        ctx.font = '24px Arial';
-                        ctx.fillText(grid[y][x].letter, x * gridSize + 8, y * gridSize + 28);
-                    }
-                }
+function drawGrid() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.font = '32px Arial'; // Increase font size
+    ctx.textAlign = 'center'; // Center horizontally
+    ctx.textBaseline = 'middle'; // Center vertically
+    
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+            if (grid[y][x]) {
+                ctx.fillStyle = highlighting && highlightPositions.some(p => p.x === x && p.y === y) ? '#FFFF00' : grid[y][x].color;
+                ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                ctx.fillStyle = getComplementaryColor(grid[y][x].color);
+                ctx.fillText(grid[y][x].letter, x * gridSize + gridSize / 2, y * gridSize + gridSize / 2+4); // Center text
             }
         }
+    }
+}
 
-        function drawBrick() {
-            ctx.fillStyle = currentBrick.color;
-            ctx.fillRect(brickX * gridSize, brickY * gridSize, gridSize, gridSize);
-            ctx.fillStyle = getComplementaryColor(currentBrick.color);
-            ctx.font = '24px Arial';
-            ctx.fillText(currentBrick.letter, brickX * gridSize + 8, brickY * gridSize + 28);
-        }
+function drawBrick() {
+    ctx.fillStyle = currentBrick.color;
+    ctx.fillRect(brickX * gridSize, brickY * gridSize, gridSize, gridSize);
+    ctx.fillStyle = getComplementaryColor(currentBrick.color);
+    ctx.font = '32px Arial'; // Increase font size
+    ctx.textAlign = 'center'; // Center horizontally
+    ctx.textBaseline = 'middle'; // Center vertically
+    ctx.fillText(currentBrick.letter, brickX * gridSize + gridSize / 2, brickY * gridSize + gridSize / 2+4); // Center text
+}
 
         function drawPaddle() {
             ctx.fillStyle = '#0000FF'; // Blue paddle
