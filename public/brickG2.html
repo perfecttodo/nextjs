@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alphabet Brick Game (Middle Paddle, 1/3 Width, Gravity Fix)</title>
+    <title>Optimized Alphabet Brick Game</title>
     <style>
         body { 
             display: flex; 
@@ -13,6 +13,7 @@
             margin: 0; 
             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
         }
         .game-container {
             position: relative;
@@ -35,42 +36,55 @@
             background: rgba(255, 255, 255, 0.8); 
             padding: 10px; 
             border-radius: 5px; 
-            z-index: 20; 
+            z-index: 20;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
         #word-image { 
             position: absolute; 
             left: 50%; 
             top: 50%; 
             transform: translate(-50%, -50%); 
-            width: 250px; 
-            height: auto; 
+            max-width: 200px; 
+            max-height: 200px;
             display: none; 
             z-index: 15; 
-            border: 2px solid #000; /* 测试可见性，可移除 */
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+        #score-display {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            font-size: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 10;
         }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas" width="360" height="640"></canvas>
-    <div id="word-display"></div>
-    <img id="word-image" src="" alt="" style="display: none;">
-    <audio id="explosion-sound">
+        <div id="word-display"></div>
+        <img id="word-image" src="" alt="" style="display: none;">
+    </div>
+    
+    <audio id="explosion-sound" preload="auto">
         <source src="https://assets.mixkit.co/sfx/preview/mixkit-short-explosion-1696.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
     </audio>
-    <audio id="move-sound">
+    <audio id="move-sound" preload="auto">
         <source src="https://assets.mixkit.co/sfx/preview/mixkit-quick-click-1628.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
     </audio>
-    <audio id="drop-sound">
+    <audio id="drop-sound" preload="auto">
         <source src="https://assets.mixkit.co/sfx/preview/mixkit-hard-impact-2142.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
     </audio>
-    <audio id="bg-music" loop>
+    <audio id="bg-music" loop preload="auto">
         <source src="https://assets.mixkit.co/music/preview/mixkit-tech-house-vibes-130.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
     </audio>
+
     <script>
+        // Game initialization
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const gridSize = 40;
@@ -79,14 +93,36 @@
         const grid = Array.from({ length: rows }, () => Array(cols).fill(null));
 
         // Paddle settings
-        let paddleX = (canvas.width / 2) - (canvas.width / 6); // Centered initially
-        const paddleWidth = canvas.width / 3; // 1/3 of canvas width (≈133px)
+        const paddleWidth = canvas.width / 3;
         const paddleHeight = 10;
-        const paddleY = canvas.height / 2; // Middle of canvas (400px)
-        const paddleRow = paddleY / gridSize; // Row 10
-        let paddleSpeed = 2;
-        let paddleDirection = 1; // 1 for right, -1 for left
+        const paddleY = canvas.height / 2; // Middle of canvas
+        let paddleX = (canvas.width - paddleWidth) / 2;
+        let paddleSpeed = 4; // Increased for responsiveness
+        let paddleDirection = 1;
 
+        // Game state
+        let currentBrick = generateBrick();
+        let brickX = Math.floor(cols / 2);
+        let brickY = 0;
+        let gameOver = false;
+        let score = 0;
+        let particles = [];
+        let highlighting = false;
+        let highlightPositions = [];
+        let currentWord = '';
+        let bgMusicStarted = false;
+        let lastDropTime = 0;
+        const dropInterval = 500; // ms
+
+        // Audio elements
+        const explosionAudio = document.getElementById('explosion-sound');
+        const moveAudio = document.getElementById('move-sound');
+        const dropAudio = document.getElementById('drop-sound');
+        const bgMusic = document.getElementById('bg-music');
+        const wordImage = document.getElementById('word-image');
+        const scoreDisplay = document.getElementById('score-display');
+
+        // Word lists and images
         const wordLists = {
             A: ['APPLE', 'ANT', 'ART', 'APE', 'ARM'],
             B: ['BANANA', 'BEE', 'BALL', 'BAT', 'BOX'],
@@ -94,6 +130,7 @@
             D: ['DOG', 'DOOR', 'DESK', 'DICE', 'DEER'],
             E: ['EAGLE', 'EGG', 'EYE', 'EAR', 'ELEPHANT']
         };
+
         const wordImages = {
             APPLE: 'https://cdn.pixabay.com/photo/2016/09/05/21/37/apple-1647023_640.png',
             ANT: 'https://cdn.pixabay.com/photo/2018/03/06/21/46/ant-3204771_640.png',
@@ -122,54 +159,21 @@
             ELEPHANT: 'https://cdn.pixabay.com/photo/2016/11/14/03/56/elephant-1822636_640.png'
         };
 
-        let currentBrick = generateBrick();
-        let brickX = Math.floor(cols / 2) ;
-        let brickY = 0;
-        let gameOver = false;
-        let score = 0;
-        let particles = [];
-        let highlighting = false;
-        let highlightPositions = [];
-        let currentWord = '';
-        let bgMusicStarted = false;
-        let explosionAudio = document.getElementById('explosion-sound');
-        let moveAudio = document.getElementById('move-sound');
-        let dropAudio = document.getElementById('drop-sound');
-        let bgMusic = document.getElementById('bg-music');
-
-        explosionAudio.addEventListener('error', (e) => {
-            console.warn('Failed to load explosion audio:', e);
-        });
-        moveAudio.addEventListener('error', (e) => {
-            console.warn('Failed to load move audio:', e);
-        });
-        dropAudio.addEventListener('error', (e) => {
-            console.warn('Failed to load drop audio:', e);
-        });
-        bgMusic.addEventListener('error', (e) => {
-            console.warn('Failed to load background music:', e);
-        });
-
-        const wordImage = document.getElementById('word-image');
-
-
-        wordImage.addEventListener('load', () => {
-            console.log(`Successfully loaded image for "${currentWord}": ${wordImage.src}`);
-        });
-
+        // Utility functions
         function generateBrick() {
-            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const letters = 'ABCDE'; // Reduced for demo
             const letter = letters[Math.floor(Math.random() * letters.length)];
             return { letter, color: getRandomColor() };
         }
 
         function getRandomColor() {
-            return '#' + Math.floor(Math.random() * 16777215).toString(16);
+            const colors = ['#FF5252', '#FF4081', '#E040FB', '#7C4DFF', '#536DFE', 
+                           '#448AFF', '#40C4FF', '#18FFFF', '#64FFDA', '#69F0AE'];
+            return colors[Math.floor(Math.random() * colors.length)];
         }
 
         function getComplementaryColor(hexColor) {
-            let hex = hexColor.replace('#', '');
-            if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+            const hex = hexColor.replace('#', '');
             const r = parseInt(hex.slice(0, 2), 16);
             const g = parseInt(hex.slice(2, 4), 16);
             const b = parseInt(hex.slice(4, 6), 16);
@@ -179,41 +183,56 @@
             return `#${compR}${compG}${compB}`;
         }
 
-function drawGrid() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.font = '32px Arial'; // Increase font size
     ctx.textAlign = 'center'; // Center horizontally
     ctx.textBaseline = 'middle'; // Center vertically
-    
-    for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-            if (grid[y][x]) {
+            
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    if (grid[y][x]) {
                 ctx.fillStyle = highlighting && highlightPositions.some(p => p.x === x && p.y === y) ? '#FFFF00' : grid[y][x].color;
-                ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
-                ctx.fillStyle = getComplementaryColor(grid[y][x].color);
+                        ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                        
+                        ctx.fillStyle = getComplementaryColor(grid[y][x].color);
                 ctx.fillText(grid[y][x].letter, x * gridSize + gridSize / 2, y * gridSize + gridSize / 2+4); // Center text
+                    }
+                }
             }
         }
-    }
-}
 
-function drawBrick() {
-    ctx.fillStyle = currentBrick.color;
-    ctx.fillRect(brickX * gridSize, brickY * gridSize, gridSize, gridSize);
-    ctx.fillStyle = getComplementaryColor(currentBrick.color);
+        function drawBrick() {
+            ctx.fillStyle = currentBrick.color;
+            ctx.fillRect(brickX * gridSize, brickY * gridSize, gridSize, gridSize);
+            ctx.fillStyle = getComplementaryColor(currentBrick.color);
     ctx.font = '32px Arial'; // Increase font size
     ctx.textAlign = 'center'; // Center horizontally
     ctx.textBaseline = 'middle'; // Center vertically
     ctx.fillText(currentBrick.letter, brickX * gridSize + gridSize / 2, brickY * gridSize + gridSize / 2+4); // Center text
-}
-
-        function drawPaddle() {
-            ctx.fillStyle = '#0000FF'; // Blue paddle
-            ctx.fillRect(paddleX, paddleY, paddleWidth, paddleHeight);
         }
 
+        function drawPaddle() {
+            ctx.fillStyle = '#2196F3';
+            ctx.fillRect(paddleX, paddleY, paddleWidth, paddleHeight);
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(paddleX, paddleY, paddleWidth, paddleHeight);
+        }
+
+        function drawParticles() {
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+            });
+        }
+
+        // Game logic functions
         function updatePaddle() {
             paddleX += paddleSpeed * paddleDirection;
+            
             if (paddleX + paddleWidth > canvas.width) {
                 paddleX = canvas.width - paddleWidth;
                 paddleDirection = -1;
@@ -224,79 +243,86 @@ function drawBrick() {
         }
 
         function moveDown() {
-            brickY++;
             if (collision() || paddleCollision()) {
-                if(collision() )brickY--;
                 placeBrick();
+            } else {
+                brickY++;
             }
         }
 
         function paddleCollision() {
             const brickBottom = (brickY + 1) * gridSize;
             const paddleTop = paddleY;
+            
             if (brickBottom >= paddleTop && brickBottom <= paddleTop + paddleHeight) {
                 const brickLeft = brickX * gridSize;
                 const brickRight = brickLeft + gridSize;
-                if (brickRight > paddleX && brickLeft < paddleX + paddleWidth) {
-
-                    return true;
-                }
+                return brickRight > paddleX && brickLeft < paddleX + paddleWidth;
             }
+            return false;
+        }
+
+        function collision() {
+            if (brickY + 1 >= rows) return true;
+            if (brickX < 0 || brickX >= cols) return true;
+            if (grid[brickY + 1] && grid[brickY + 1][brickX]) return true;
             return false;
         }
 
         function moveLeft() {
             brickX--;
-            if (collision()) {
+            if (brickX < 0 || (grid[brickY] && grid[brickY][brickX])) {
                 brickX++;
             } else {
-                moveAudio.play().catch(e => console.warn('Move audio playback failed:', e));
+                playSound(moveAudio);
             }
         }
 
         function moveRight() {
             brickX++;
-            if (collision()) {
+            if (brickX >= cols || (grid[brickY] && grid[brickY][brickX])) {
                 brickX--;
             } else {
-                moveAudio.play().catch(e => console.warn('Move audio playback failed:', e));
+                playSound(moveAudio);
             }
         }
 
-        function collision() {
-            if (brickX < 0 || brickX >= cols || brickY >= rows) return true;
-            if (grid[brickY][brickX]) return true;
-            return false;
-        }
-
         function placeBrick() {
-            if (brickY < 0 || brickY >= rows || brickX < 0 || brickX >= cols) return;
+            if (brickY < 0) {
+                gameOver = true;
+                return;
+            }
             
             grid[brickY][brickX] = currentBrick;
-            dropAudio.play().catch(e => console.warn('Drop audio playback failed:', e));
+            playSound(dropAudio);
             checkForSameLetter();
-            if (brickY <= 0) gameOver = true;
+            
             currentBrick = generateBrick();
-            brickX = Math.floor(cols / 2) ;
+            brickX = Math.floor(cols / 2);
             brickY = 0;
+            
+            // Check if new brick position is already occupied
+            if (grid[brickY][brickX]) {
+                gameOver = true;
+            }
         }
 
         function checkForSameLetter() {
             const letter = grid[brickY][brickX].letter;
             highlightPositions = [];
-            let hasMatch = false;
-
+            
+            // Check adjacent cells for matching letters
             const directions = [
-                { dx: -1, dy: 0 }, // left
-                { dx: 1, dy: 0 },  // right
-                { dx: 0, dy: -1 }, // up
-                { dx: 0, dy: 1 },  // down
+                { dx: -1, dy: 0 }, { dx: 1, dy: 0 }, 
+                { dx: 0, dy: -1 }, { dx: 0, dy: 1 }
             ];
-
+            
+            let hasMatch = false;
             directions.forEach(dir => {
                 const nx = brickX + dir.dx;
                 const ny = brickY + dir.dy;
-                if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && grid[ny][nx] && grid[ny][nx].letter === letter) {
+                if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && 
+                    grid[ny][nx] && grid[ny][nx].letter === letter) {
                     hasMatch = true;
                     highlightPositions.push({ x: nx, y: ny });
                 }
@@ -309,19 +335,17 @@ function drawBrick() {
         }
 
         function celebrateMatch(letter) {
-            console.log(`Match found for letter: ${letter}`);
             highlighting = true;
-            drawGrid();
-            drawBrick();
-            drawPaddle();
-
+            
+            // Speak the letter
             const letterUtterance = new SpeechSynthesisUtterance(letter.toLowerCase());
             speechSynthesis.speak(letterUtterance);
 
+            // Select a word for the letter
             const words = wordLists[letter] || [letter];
             currentWord = words[Math.floor(Math.random() * words.length)] || letter;
-            console.log(`Selected word for letter "${letter}": ${currentWord}`);
 
+            // Display word and image
             setTimeout(() => {
                 const wordUtterance = new SpeechSynthesisUtterance(currentWord.toLowerCase());
                 speechSynthesis.speak(wordUtterance);
@@ -329,93 +353,110 @@ function drawBrick() {
                 const wordDisplay = document.getElementById('word-display');
                 wordDisplay.textContent = currentWord;
                 wordDisplay.style.display = 'block';
-                console.log(`Displaying word text: ${currentWord}`);
 
-                const wordImage = document.getElementById('word-image');
-                const imageUrl = wordImages[currentWord] || 'https://via.placeholder.com/250?text=' + currentWord;
-                console.log(`Setting image src to: ${imageUrl}`);
-                wordImage.src = imageUrl;
+                wordImage.src = wordImages[currentWord] || 'https://via.placeholder.com/200?text=' + currentWord;
                 wordImage.alt = currentWord;
                 wordImage.style.display = 'block';
 
-                for (let i = 0; i < 50; i++) {
-                    particles.push({
-                        x: Math.random() * canvas.width,
-                        y: Math.random() * canvas.height,
-                        vx: (Math.random() - 0.5) * 5,
-                        vy: (Math.random() - 0.5) * 5,
-                        radius: Math.random() * 5 + 1,
-                        color: getRandomColor(),
-                        life: 100
-                    });
-                }
+                // Create particles
+                createParticles();
 
-                explosionAudio.play().catch(e => {
-                    console.warn('Audio playback failed:', e);
-                });
-            }, 500);
+                playSound(explosionAudio);
+            }, 300);
 
+            // Remove matched bricks after delay
             setTimeout(() => {
                 highlighting = false;
                 particles = [];
                 document.getElementById('word-display').style.display = 'none';
                 wordImage.style.display = 'none';
-                wordImage.src = '';
-                console.log(`Hiding image and word display for "${currentWord}"`);
                 
                 // Remove matched bricks
                 highlightPositions.forEach(pos => {
                     if (pos.y >= 0 && pos.y < rows && pos.x >= 0 && pos.x < cols) {
-                    grid[pos.y][pos.x] = null;
+                        grid[pos.y][pos.x] = null;
                     }
                 });
                 
-                applyGravity();
                 score += highlightPositions.length;
+                scoreDisplay.textContent = `Score: ${score}`;
+                applyGravity();
             }, 2000);
         }
 
+        function createParticles() {
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: brickX * gridSize + gridSize / 2,
+                    y: brickY * gridSize + gridSize / 2,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 6,
+                    radius: Math.random() * 4 + 2,
+                    color: getRandomColor(),
+                    life: 100
+                });
+            }
+        }
+
         function applyGravity() {
-            // Apply gravity to each column separately
+            // Apply gravity to each column
             for (let x = 0; x < cols; x++) {
-                // First, check if there are any bricks that need to fall through the paddle gap
-                let bricksAbovePaddle = [];
-                let bricksBelowPaddle = [];
-                
-                // Separate bricks by their position relative to the paddle
-                for (let y = 0; y < rows; y++) {
-                    if (grid[y][x]) {
-                        if (y < paddleRow) {
-                            bricksAbovePaddle.push({ y, data: grid[y][x] });
-                        } else {
-                            bricksBelowPaddle.push({ y, data: grid[y][x] });
-                        }
-                        grid[y][x] = null;
-                    }
-                }
-                
-                // Check if there's a clear path through the paddle for bricks above to fall
+                // Check if column is blocked by paddle
                 const paddleLeftCol = Math.floor(paddleX / gridSize);
                 const paddleRightCol = Math.floor((paddleX + paddleWidth) / gridSize);
-                const canFallThroughPaddle = x < paddleLeftCol || x > paddleRightCol;
-
-               {
-                    // Paddle blocks this column - bricks stay in their respective sections
-                    // Place above-paddle bricks
-                    let currentY = paddleRow - 1;
-                    for (let i = bricksAbovePaddle.length - 1; i >= 0; i--) {
-                        if (currentY >= 0) {
-                            grid[currentY][x] = bricksAbovePaddle[i].data;
-                        currentY--;
+                const isBlocked = x >= paddleLeftCol && x <= paddleRightCol;
+                
+                if (isBlocked) {
+                    // Handle bricks above and below paddle separately
+                    let abovePaddle = [];
+                    let belowPaddle = [];
+                    
+                    // Separate bricks by position relative to paddle
+                    for (let y = 0; y < rows; y++) {
+                        if (grid[y][x]) {
+                            if (y < paddleY / gridSize) {
+                                abovePaddle.push({ y, brick: grid[y][x] });
+                            } else {
+                                belowPaddle.push({ y, brick: grid[y][x] });
+                            }
+                            grid[y][x] = null;
                         }
                     }
                     
-                    // Place below-paddle bricks
+                    // Place bricks above paddle
+                    let currentY = Math.floor(paddleY / gridSize) - 1;
+                    for (let i = abovePaddle.length - 1; i >= 0; i--) {
+                        if (currentY >= 0) {
+                            grid[currentY][x] = abovePaddle[i].brick;
+                            currentY--;
+                        }
+                    }
+                    
+                    // Place bricks below paddle
                     currentY = rows - 1;
-                    for (let i = bricksBelowPaddle.length - 1; i >= 0; i--) {
-                        if (currentY >= paddleRow) {
-                            grid[currentY][x] = bricksBelowPaddle[i].data;
-                        currentY--;
+                    for (let i = belowPaddle.length - 1; i >= 0; i--) {
+                        if (currentY >= Math.floor(paddleY / gridSize)) {
+                            grid[currentY][x] = belowPaddle[i].brick;
+                            currentY--;
+                        }
+                    }
+                } else {
+                    // Column not blocked - apply normal gravity
+                    let bricksInColumn = [];
+                    
+                    // Collect all bricks in the column
+                    for (let y = 0; y < rows; y++) {
+                        if (grid[y][x]) {
+                            bricksInColumn.push(grid[y][x]);
+                            grid[y][x] = null;
+                        }
+                    }
+                    
+                    // Place bricks at the bottom
+                    for (let i = 0; i < bricksInColumn.length; i++) {
+                        const y = rows - 1 - i;
+                        if (y >= 0) {
+                            grid[y][x] = bricksInColumn[bricksInColumn.length - 1 - i];
                         }
                     }
                 }
@@ -431,26 +472,9 @@ function drawBrick() {
             particles = particles.filter(p => p.life > 0);
         }
 
-        function drawParticles() {
-            particles.forEach(p => {
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fillStyle = p.color;
-                ctx.fill();
-            });
-        }
-
-        function gameLoop() {
-            if (gameOver) {
-                alert('Game Over! Score: ' + score);
-                return;
-            }
-            updatePaddle();
-            drawGrid();
-            drawBrick();
-            drawPaddle();
-            drawParticles();
-            requestAnimationFrame(gameLoop);
+        function playSound(audio) {
+            audio.currentTime = 0;
+            audio.play().catch(e => console.warn('Audio playback failed:', e));
         }
 
         function startBackgroundMusic() {
@@ -458,27 +482,62 @@ function drawBrick() {
                 bgMusic.volume = 0.3;
                 bgMusic.play().catch(e => console.warn('Background music playback failed:', e));
                 bgMusicStarted = true;
-                console.log('Background music started');
             }
         }
 
-        document.addEventListener('keydown', e => {
-            if (highlighting) return;
-            startBackgroundMusic();
-            if (e.key === 'ArrowLeft') moveLeft();
-            if (e.key === 'ArrowRight') moveRight();
-            if (e.key === 'ArrowDown') moveDown();
+        // Game loop
+        function gameLoop(timestamp) {
+            if (gameOver) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 36px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 30);
+                ctx.font = '24px Arial';
+                ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
+                ctx.fillText('Press R to restart', canvas.width / 2, canvas.height / 2 + 60);
+                return;
+            }
+            
+            updatePaddle();
+            
+            // Auto-drop with timestamp for consistent timing
+            if (timestamp - lastDropTime > dropInterval && !highlighting) {
+                moveDown();
+                lastDropTime = timestamp;
+            }
+            
+            updateParticles();
             drawGrid();
             drawBrick();
             drawPaddle();
+            drawParticles();
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', e => {
+            if (gameOver && e.key.toLowerCase() === 'r') {
+                // Reset game
+                location.reload();
+                return;
+            }
+            
+            if (gameOver || highlighting) return;
+            
+            startBackgroundMusic();
+            
+            switch(e.key) {
+                case 'ArrowLeft': moveLeft(); break;
+                case 'ArrowRight': moveRight(); break;
+                case 'ArrowDown': moveDown(); break;
+            }
         });
 
-        setInterval(() => {
-            if (!highlighting) moveDown();
-            updateParticles();
-        }, 500);
-
-        gameLoop();
+        // Start the game
+        gameLoop(0);
     </script>
 </body>
 </html>
