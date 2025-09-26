@@ -185,21 +185,53 @@
             return `#${compR}${compG}${compB}`;
         }
 
-        // Drawing functions
         function drawGrid() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.font = '32px Arial'; // Increase font size
-    ctx.textAlign = 'center'; // Center horizontally
-    ctx.textBaseline = 'middle'; // Center vertically
+            // 绘制背景
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             
+            // 绘制网格线
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x <= canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // 设置字体
+            ctx.font = 'bold 32px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // 绘制已放置的砖块
             for (let y = 0; y < rows; y++) {
                 for (let x = 0; x < cols; x++) {
                     if (grid[y][x]) {
+                        // 绘制砖块背景
                         ctx.fillStyle = highlighting && highlightPositions.some(p => p.x === x && p.y === y) 
                             ? '#FFFF00' : grid[y][x].color;
                         ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
                         
-                        ctx.fillStyle = getComplementaryColor(grid[y][x].color);
+                        // 添加砖块内部阴影效果
+                        ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                        
+                        // 绘制文字 - 黑色字体，白色描边
+                        ctx.strokeStyle = '#000000'; // 白色描边
+                        ctx.lineWidth = 3; // 描边宽度
+                        ctx.fillStyle = '#FFFFFF'; // 黑色字体
+                        
+                        // 先绘制描边，再绘制填充文字
+                        ctx.strokeText(grid[y][x].letter, x * gridSize + gridSize / 2, y * gridSize + gridSize / 2);
                         ctx.fillText(grid[y][x].letter, x * gridSize + gridSize / 2, y * gridSize + gridSize / 2);
                     }
                 }
@@ -207,13 +239,28 @@
         }
 
         function drawBrick() {
+            // 绘制当前下落的砖块
             ctx.fillStyle = currentBrick.color;
             ctx.fillRect(brickX * gridSize, brickY * gridSize, gridSize, gridSize);
-            ctx.fillStyle = getComplementaryColor(currentBrick.color);
-    ctx.font = '32px Arial'; // Increase font size
-    ctx.textAlign = 'center'; // Center horizontally
-    ctx.textBaseline = 'middle'; // Center vertically
-    ctx.fillText(currentBrick.letter, brickX * gridSize + gridSize / 2, brickY * gridSize + gridSize / 2+4); // Center text
+            
+            // 添加砖块内部阴影效果
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(brickX * gridSize, brickY * gridSize, gridSize, gridSize);
+            
+            // 设置字体
+            ctx.font = 'bold 32px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // 绘制文字 - 黑色字体，白色描边
+            ctx.strokeStyle = '#000000'; // 白色描边
+            ctx.lineWidth = 3; // 描边宽度
+            ctx.fillStyle = '#FFFFFF'; // 黑色字体
+            
+            // 先绘制描边，再绘制填充文字
+            ctx.strokeText(currentBrick.letter, brickX * gridSize + gridSize / 2, brickY * gridSize + gridSize / 2);
+            ctx.fillText(currentBrick.letter, brickX * gridSize + gridSize / 2, brickY * gridSize + gridSize / 2);
         }
 
         function drawPaddle() {
