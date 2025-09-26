@@ -116,7 +116,7 @@
         };
 
         let currentBrick = generateBrick();
-        let brickX = Math.floor(cols / 2) - 1;
+        let brickX = Math.floor(cols / 2) ;
         let brickY = 0;
         let gameOver = false;
         let score = 0;
@@ -219,7 +219,7 @@ function drawBrick() {
         function moveDown() {
             brickY++;
             if (collision() || paddleCollision()) {
-                brickY--;
+                if(collision() )brickY--;
                 placeBrick();
             }
         }
@@ -231,7 +231,6 @@ function drawBrick() {
                 const brickLeft = brickX * gridSize;
                 const brickRight = brickLeft + gridSize;
                 if (brickRight > paddleX && brickLeft < paddleX + paddleWidth) {
-                                    brickY++;
 
                     return true;
                 }
@@ -271,7 +270,7 @@ function drawBrick() {
             checkForSameLetter();
             if (brickY <= 0) gameOver = true;
             currentBrick = generateBrick();
-            brickX = Math.floor(cols / 2) - 1;
+            brickX = Math.floor(cols / 2) ;
             brickY = 0;
         }
 
