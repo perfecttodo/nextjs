@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alphabet Brick Game (Fixed Gravity)</title>
+    <style>
+        body { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            background: #f0f0f0; 
+        }
+        canvas { 
+            border: 1px solid #000; 
+            background: #fff; 
+        }
+        #word-display { 
+            position: absolute; 
+            top: 10px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            font-size: 28px; 
+            display: none; 
+            text-align: center; 
+            background: rgba(255, 255, 255, 0.8); 
+            padding: 10px; 
+            border-radius: 5px; 
+            z-index: 20; 
+        }
+        #word-image { 
+            position: absolute; 
+            left: 50%; 
+            top: 50%; 
+            transform: translate(-50%, -50%); 
+            width: 250px; 
+            height: auto; 
+            display: none; 
+            z-index: 15; 
+            border: 2px solid #000; 
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="800"></canvas>
+    <div id="word-display"></div>
+    <img id="word-image" src="" alt="">
+    <audio id="explosion-sound">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-short-explosion-1696.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <audio id="move-sound">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-quick-click-1628.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <audio id="drop-sound">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-hard-impact-2142.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <audio id="bg-music" loop>
+        <source src="https://assets.mixkit.co/music/preview/mixkit-tech-house-vibes-130.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 40;
+        const cols = canvas.width / gridSize;
+        const rows = canvas.height / gridSize;
+        const grid = Array.from({ length: rows }, () => Array(cols).fill(null));
+
+        // Paddle settings - positioned at middle vertically
+        let paddleX = (canvas.width / 2) - (canvas.width / 6);
+        const paddleWidth = canvas.width / 3;
+        const paddleHeight = 10;
+        const paddleY = canvas.height / 2; // Middle of canvas (400px)
+        const paddleRow = Math.floor(paddleY / gridSize); // Row 10
+        let paddleSpeed = 2;
+        let paddleDirection = 1;
+
+        const wordLists = {
+            A: ['APPLE', 'ANT', 'ART', 'APE', 'ARM'],
+            B: ['BANANA', 'BEE', 'BALL', 'BAT', 'BOX'],
+            C: ['CAT', 'CAR', 'COW', 'CUP', 'CAKE'],
+            D: ['DOG', 'DOOR', 'DESK', 'DICE', 'DEER'],
+            E: ['EAGLE', 'EGG', 'EYE', 'EAR', 'ELEPHANT']
+        };
+        const wordImages = {
+            APPLE: 'https://cdn.pixabay.com/photo/2016/09/05/21/37/apple-1647023_640.png',
+            ANT: 'https://cdn.pixabay.com/photo/2018/03/06/21/46/ant-3204771_640.png',
+            ART: 'https://cdn.pixabay.com/photo/2017/08/30/12/45/painting-2697403_640.png',
+            APE: 'https://cdn.pixabay.com/photo/2014/02/05/08/51/gorilla-258913_640.png',
+            ARM: 'https://cdn.pixabay.com/photo/2016/11/29/09/14/arm-1868573_640.png',
+            BANANA: 'https://cdn.pixabay.com/photo/2017/06/27/22/21/banana-2449019_640.png',
+            BEE: 'https://cdn.pixabay.com/photo/2016/11/29/10/07/bee-1867471_640.png',
+            BALL: 'https://cdn.pixabay.com/photo/2016/11/29/05/09/ball-1867260_640.png',
+            BAT: 'https://cdn.pixabay.com/photo/2017/08/07/15/34/bat-2605696_640.png',
+            BOX: 'https://cdn.pixabay.com/photo/2016/11/29/04/17/box-1866498_640.png',
+            CAT: 'https://cdn.pixabay.com/photo/2014/11/30/14/11/cat-551554_640.png',
+            CAR: 'https://cdn.pixabay.com/photo/2016/11/18/17/46/car-1836277_640.png',
+            COW: 'https://cdn.pixabay.com/photo/2016/11/23/14/45/cow-1852955_640.png',
+            CUP: 'https://cdn.pixabay.com/photo/2016/11/29/05/08/cup-1867174_640.png',
+            CAKE: 'https://cdn.pixabay.com/photo/2016/11/29/04/19/cake-1866455_640.png',
+            DOG: 'https://cdn.pixabay.com/photo/2016/12/13/05/15/puppy-1903313_640.png',
+            DOOR: 'https://cdn.pixabay.com/photo/2016/11/19/12/44/door-1838760_640.png',
+            DESK: 'https://cdn.pixabay.com/photo/2016/11/29/04/19/desk-1866496_640.png',
+            DICE: 'https://cdn.pixabay.com/photo/2016/11/29/05/09/dice-1867261_640.png',
+            DEER: 'https://cdn.pixabay.com/photo/2016/11/14/03/56/deer-1822555_640.png',
+            EAGLE: 'https://cdn.pixabay.com/photo/2016/11/29/04/19/eagle-1866457_640.png',
+            EGG: 'https://cdn.pixabay.com/photo/2016/11/29/04/19/egg-1866458_640.png',
+            EYE: 'https://cdn.pixabay.com/photo/2016/11/29/04/19/eye-1866459_640.png',
+            EAR: 'https://cdn.pixabay.com/photo/2016/11/29/04/19/ear-1866460_640.png',
+            ELEPHANT: 'https://cdn.pixabay.com/photo/2016/11/14/03/56/elephant-1822636_640.png'
+        };
+
+        let currentBrick = generateBrick();
+        let brickX = Math.floor(cols / 2) - 1;
+        let brickY = 0;
+        let gameOver = false;
+        let score = 0;
+        let particles = [];
+        let highlighting = false;
+        let highlightPositions = [];
+        let currentWord = '';
+        let bgMusicStarted = false;
+        let explosionAudio = document.getElementById('explosion-sound');
+        let moveAudio = document.getElementById('move-sound');
+        let dropAudio = document.getElementById('drop-sound');
+        let bgMusic = document.getElementById('bg-music');
+
+        explosionAudio.addEventListener('error', (e) => {
+            console.warn('Failed to load explosion audio:', e);
+        });
+        moveAudio.addEventListener('error', (e) => {
+            console.warn('Failed to load move audio:', e);
+        });
+        dropAudio.addEventListener('error', (e) => {
+            console.warn('Failed to load drop audio:', e);
+        });
+        bgMusic.addEventListener('error', (e) => {
+            console.warn('Failed to load background music:', e);
+        });
+
+        const wordImage = document.getElementById('word-image');
+        wordImage.addEventListener('error', (e) => {
+            console.warn(`Failed to load image for word "${currentWord}" with URL "${wordImage.src}":`, e);
+            wordImage.src = 'https://via.placeholder.com/250?text=' + (currentWord || 'No+Word');
+            wordImage.style.display = 'block';
+        });
+
+        wordImage.addEventListener('load', () => {
+            console.log(`Successfully loaded image for "${currentWord}": ${wordImage.src}`);
+        });
+
+        function generateBrick() {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const letter = letters[Math.floor(Math.random() * letters.length)];
+            return { letter, color: getRandomColor() };
+        }
+
+        function getRandomColor() {
+            return '#' + Math.floor(Math.random() * 16777215).toString(16);
+        }
+
+        function getComplementaryColor(hexColor) {
+            let hex = hexColor.replace('#', '');
+            if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+            const r = parseInt(hex.slice(0, 2), 16);
+            const g = parseInt(hex.slice(2, 4), 16);
+            const b = parseInt(hex.slice(4, 6), 16);
+            const compR = (255 - r).toString(16).padStart(2, '0');
+            const compG = (255 - g).toString(16).padStart(2, '0');
+            const compB = (255 - b).toString(16).padStart(2, '0');
+            return `#${compR}${compG}${compB}`;
+        }
+
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    if (grid[y][x]) {
+                        ctx.fillStyle = highlighting && highlightPositions.some(p => p.x === x && p.y === y) ? '#FFFF00' : grid[y][x].color;
+                        ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                        ctx.fillStyle = getComplementaryColor(grid[y][x].color);
+                        ctx.font = '24px Arial';
+                        ctx.fillText(grid[y][x].letter, x * gridSize + 8, y * gridSize + 28);
+                    }
+                }
+            }
+        }
+
+        function drawBrick() {
+            ctx.fillStyle = currentBrick.color;
+            ctx.fillRect(brickX * gridSize, brickY * gridSize, gridSize, gridSize);
+            ctx.fillStyle = getComplementaryColor(currentBrick.color);
+            ctx.font = '24px Arial';
+            ctx.fillText(currentBrick.letter, brickX * gridSize + 8, brickY * gridSize + 28);
+        }
+
+        function drawPaddle() {
+            ctx.fillStyle = '#0000FF';
+            ctx.fillRect(paddleX, paddleY, paddleWidth, paddleHeight);
+        }
+
+        function updatePaddle() {
+            paddleX += paddleSpeed * paddleDirection;
+            if (paddleX + paddleWidth > canvas.width) {
+                paddleX = canvas.width - paddleWidth;
+                paddleDirection = -1;
+            } else if (paddleX < 0) {
+                paddleX = 0;
+                paddleDirection = 1;
+            }
+        }
+
+        function moveDown() {
+            brickY++;
+            if (collision() || paddleCollision()) {
+                brickY--;
+                placeBrick();
+            }
+        }
+
+        function paddleCollision() {
+            const brickBottom = (brickY + 1) * gridSize;
+            const paddleTop = paddleY;
+            if (brickBottom >= paddleTop && brickBottom <= paddleTop + paddleHeight) {
+                const brickLeft = brickX * gridSize;
+                const brickRight = brickLeft + gridSize;
+                if (brickRight > paddleX && brickLeft < paddleX + paddleWidth) {
+                                    brickY++;
+
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function moveLeft() {
+            brickX--;
+            if (collision()) {
+                brickX++;
+            } else {
+                moveAudio.play().catch(e => console.warn('Move audio playback failed:', e));
+            }
+        }
+
+        function moveRight() {
+            brickX++;
+            if (collision()) {
+                brickX--;
+            } else {
+                moveAudio.play().catch(e => console.warn('Move audio playback failed:', e));
+            }
+        }
+
+        function collision() {
+            if (brickX < 0 || brickX >= cols || brickY >= rows) return true;
+            if (brickY >= 0 && grid[brickY][brickX]) return true;
+            return false;
+        }
+
+        function placeBrick() {
+            if (brickY < 0 || brickY >= rows || brickX < 0 || brickX >= cols) return;
+            
+            grid[brickY][brickX] = currentBrick;
+            dropAudio.play().catch(e => console.warn('Drop audio playback failed:', e));
+            checkForSameLetter();
+            if (brickY <= 0) gameOver = true;
+            currentBrick = generateBrick();
+            brickX = Math.floor(cols / 2) - 1;
+            brickY = 0;
+        }
+
+        function checkForSameLetter() {
+            const letter = grid[brickY][brickX].letter;
+            highlightPositions = [];
+            let hasMatch = false;
+
+            const directions = [
+                { dx: -1, dy: 0 }, // left
+                { dx: 1, dy: 0 },  // right
+                { dx: 0, dy: -1 }, // up
+                { dx: 0, dy: 1 },  // down
+            ];
+
+            directions.forEach(dir => {
+                const nx = brickX + dir.dx;
+                const ny = brickY + dir.dy;
+                if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && grid[ny][nx] && grid[ny][nx].letter === letter) {
+                    hasMatch = true;
+                    highlightPositions.push({ x: nx, y: ny });
+                }
+            });
+
+            if (hasMatch) {
+                highlightPositions.push({ x: brickX, y: brickY });
+                celebrateMatch(letter);
+            }
+        }
+
+        function celebrateMatch(letter) {
+            console.log(`Match found for letter: ${letter}`);
+            highlighting = true;
+            drawGrid();
+            drawBrick();
+            drawPaddle();
+
+            const letterUtterance = new SpeechSynthesisUtterance(letter.toLowerCase());
+            speechSynthesis.speak(letterUtterance);
+
+            const words = wordLists[letter] || [letter];
+            currentWord = words[Math.floor(Math.random() * words.length)] || letter;
+            console.log(`Selected word for letter "${letter}": ${currentWord}`);
+
+            setTimeout(() => {
+                const wordUtterance = new SpeechSynthesisUtterance(currentWord.toLowerCase());
+                speechSynthesis.speak(wordUtterance);
+
+                const wordDisplay = document.getElementById('word-display');
+                wordDisplay.textContent = currentWord;
+                wordDisplay.style.display = 'block';
+                console.log(`Displaying word text: ${currentWord}`);
+
+                const wordImage = document.getElementById('word-image');
+                const imageUrl = wordImages[currentWord] || 'https://via.placeholder.com/250?text=' + currentWord;
+                console.log(`Setting image src to: ${imageUrl}`);
+                wordImage.src = imageUrl;
+                wordImage.alt = currentWord;
+                wordImage.style.display = 'block';
+
+                for (let i = 0; i < 50; i++) {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        vx: (Math.random() - 0.5) * 5,
+                        vy: (Math.random() - 0.5) * 5,
+                        radius: Math.random() * 5 + 1,
+                        color: getRandomColor(),
+                        life: 100
+                    });
+                }
+
+                explosionAudio.play().catch(e => {
+                    console.warn('Audio playback failed:', e);
+                });
+            }, 500);
+
+            setTimeout(() => {
+                highlighting = false;
+                particles = [];
+                document.getElementById('word-display').style.display = 'none';
+                wordImage.style.display = 'none';
+                wordImage.src = '';
+                console.log(`Hiding image and word display for "${currentWord}"`);
+                
+                // Remove matched bricks
+                highlightPositions.forEach(pos => {
+                    if (pos.y >= 0 && pos.y < rows && pos.x >= 0 && pos.x < cols) {
+                        grid[pos.y][pos.x] = null;
+                    }
+                });
+                
+                applyGravity();
+                score += highlightPositions.length;
+            }, 2000);
+        }
+
+        function applyGravity() {
+            // Apply gravity to each column separately
+            for (let x = 0; x < cols; x++) {
+                // First, check if there are any bricks that need to fall through the paddle gap
+                let bricksAbovePaddle = [];
+                let bricksBelowPaddle = [];
+                
+                // Separate bricks by their position relative to the paddle
+                for (let y = 0; y < rows; y++) {
+                    if (grid[y][x]) {
+                        if (y < paddleRow) {
+                            bricksAbovePaddle.push({ y, data: grid[y][x] });
+                        } else {
+                            bricksBelowPaddle.push({ y, data: grid[y][x] });
+                        }
+                        grid[y][x] = null;
+                    }
+                }
+                
+                // Check if there's a clear path through the paddle for bricks above to fall
+                const paddleLeftCol = Math.floor(paddleX / gridSize);
+                const paddleRightCol = Math.floor((paddleX + paddleWidth) / gridSize);
+                const canFallThroughPaddle = x < paddleLeftCol || x > paddleRightCol;
+                
+               {
+                    // Paddle blocks this column - bricks stay in their respective sections
+                    // Place above-paddle bricks
+                    let currentY = paddleRow - 1;
+                    for (let i = bricksAbovePaddle.length - 1; i >= 0; i--) {
+                        if (currentY >= 0) {
+                            grid[currentY][x] = bricksAbovePaddle[i].data;
+                            currentY--;
+                        }
+                    }
+                    
+                    // Place below-paddle bricks
+                    currentY = rows - 1;
+                    for (let i = bricksBelowPaddle.length - 1; i >= 0; i--) {
+                        if (currentY >= paddleRow) {
+                            grid[currentY][x] = bricksBelowPaddle[i].data;
+                            currentY--;
+                        }
+                    }
+                }
+            }
+        }
+
+        function updateParticles() {
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+            });
+            particles = particles.filter(p => p.life > 0);
+        }
+
+        function drawParticles() {
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+            });
+        }
+
+        function gameLoop() {
+            if (gameOver) {
+                alert('Game Over! Score: ' + score);
+                return;
+            }
+            updatePaddle();
+            drawGrid();
+            drawBrick();
+            drawPaddle();
+            drawParticles();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function startBackgroundMusic() {
+            if (!bgMusicStarted) {
+                bgMusic.volume = 0.3;
+                bgMusic.play().catch(e => console.warn('Background music playback failed:', e));
+                bgMusicStarted = true;
+                console.log('Background music started');
+            }
+        }
+
+        document.addEventListener('keydown', e => {
+            if (highlighting) return;
+            startBackgroundMusic();
+            if (e.key === 'ArrowLeft') moveLeft();
+            if (e.key === 'ArrowRight') moveRight();
+            if (e.key === 'ArrowDown') moveDown();
+            drawGrid();
+            drawBrick();
+            drawPaddle();
+        });
+
+        setInterval(() => {
+            if (!highlighting) moveDown();
+            updateParticles();
+        }, 500);
+
+        gameLoop();
+    </script>
+</body>
+</html>

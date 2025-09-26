@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字母砖块游戏</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        #game {
+            display: grid;
+            grid-template-columns: repeat(10, 90px);
+            grid-template-rows: repeat(20, 90px);
+            gap: 1px;
+            background-color: #000;
+        }
+.block {
+    width: 90px;
+    height: 90px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 30px;
+    background-position: center; /* Center the background image */
+    background-size: cover; /* Scale image to cover the block */
+    background-repeat: no-repeat; /* Prevent image repetition */
+}
+        .empty {
+            background-color: #000;
+        }
+        .current {
+            background-color: #FF5722;
+            border: 2px solid yellow;
+        }
+        #score {
+            margin: 20px;
+            font-size: 24px;
+        }
+        #hint, #dictUpload, #shareButton {
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="score">得分: 0</div>
+    <div id="game"></div>
+    <button id="hint">提示</button>
+    <input type="file" id="dictUpload">
+    <button id="shareButton">分享分数</button>
+
+    <script>
+        const gameElement = document.getElementById('game');
+        const scoreElement = document.getElementById('score');
+        const COLS = 10;
+        const ROWS = 20;
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let grid = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+        let currentLetter = getRandomLetter();
+        let currentX = Math.floor(COLS / 2);
+        let currentY = 0;
+        let score = 0;
+        let customWords = [];
+        let dropInterval;
+
+        // Mapping of letters to background images
+        const letterImages = {
+            'A': 'url(path/to/imageA.png)',
+            'B': 'url(path/to/imageB.png)',
+            'C': 'url(path/to/imageC.png)',
+            // Add images for all letters
+            'Z': 'url(path/to/imageZ.png)'
+        };
+
+        function getRandomLetter() {
+            return letters[Math.floor(Math.random() * letters.length)];
+        }
+
+        function drawGrid() {
+            gameElement.innerHTML = '';
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const block = document.createElement('div');
+                    block.className = 'block ' + (grid[r][c] ? '' : 'empty');
+                    if (grid[r][c]) {
+                        block.style.backgroundImage =/* s[grid[r][c]]+*/'a.png'; // Set background image
+                        block.textContent = grid[r][c]; // Show the letter
+                    }
+                    gameElement.appendChild(block);
+                }
+            }
+            // Draw current letter
+            if (currentY < ROWS) {
+                const currentBlock = gameElement.children[currentY * COLS + currentX];
+                currentBlock.className = 'block current';
+                currentBlock.style.backgroundImage ='a.png'; // letterImages[currentLetter]; // Set background image for current letter
+                currentBlock.textContent = currentLetter;
+            }
+        }
+
+        async function isValidWord(word) {
+            const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+            return response.ok;
+        }
+
+        async function placeLetter() {
+            if (currentY < ROWS && currentX >= 0 && currentX < COLS) {
+                if (grid[0][currentX]) {
+                    alert(`游戏结束! 最终得分: ${score}`);
+                    clearInterval(dropInterval);
+                    document.location.reload();
+                    return;
+                }
+
+                grid[currentY][currentX] = currentLetter;
+                await checkForWords();
+                dropBricks();
+                currentLetter = getRandomLetter();
+                currentX = Math.floor(COLS / 2);
+                currentY = 0;
+                drawGrid();
+            }
+        }
+
+        async function checkForWords() {
+            // Horizontal and vertical checks as before...
+        }
+
+        function removeWord(startRow, startCol, direction) {
+            // Remove word logic as before...
+        }
+
+        function updateScore(points) {
+            score += points;
+            scoreElement.textContent = `得分: ${score}`;
+        }
+
+        function canMove(x, y) {
+            return x >= 0 && x < COLS && y < ROWS && grid[y][x] === null;
+        }
+
+        function drop() {
+            if (canMove(currentX, currentY + 1)) {
+                currentY++;
+            } else {
+                placeLetter();
+            }
+            drawGrid();
+        }
+
+        function dropBricks() {
+            // Drop bricks logic as before...
+        }
+
+        document.addEventListener('keydown', (e) => {
+            // Keydown handling as before...
+        });
+
+        document.getElementById('hint').addEventListener('click', async () => {
+            const words = await findWordsInGrid(); // Need to implement this function
+            alert(`可以组成的单词: ${words.join(', ')}`);
+        });
+
+        document.getElementById('dictUpload').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                customWords = e.target.result.split('\n').map(word => word.trim());
+                alert('自定义字典加载成功！');
+            };
+            reader.readAsText(file);
+        });
+
+        document.getElementById('shareButton').addEventListener('click', () => {
+            const url = `https://twitter.com/intent/tweet?text=我在字母砖块游戏中的得分是 ${score}!`;
+            window.open(url, '_blank');
+        });
+
+        dropInterval = setInterval(drop, 1000);
+        drawGrid();
+    </script>
+</body>
+</html>
