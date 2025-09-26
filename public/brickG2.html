@@ -65,7 +65,9 @@
     </style>
 </head>
 <body>
+    <div class="game-container">
     <canvas id="gameCanvas" width="360" height="640"></canvas>
+       <div id="score-display">Score: 0</div>
         <div id="word-display"></div>
         <img id="word-image" src="" alt="" style="display: none;">
     </div>
@@ -95,9 +97,9 @@
         // Paddle settings
         const paddleWidth = canvas.width / 3;
         const paddleHeight = 10;
-        const paddleY = canvas.height / 2; // Middle of canvas
+        const paddleY = canvas.height / 2;
         let paddleX = (canvas.width - paddleWidth) / 2;
-        let paddleSpeed = 4; // Increased for responsiveness
+        let paddleSpeed = 4;
         let paddleDirection = 1;
 
         // Game state
@@ -112,7 +114,7 @@
         let currentWord = '';
         let bgMusicStarted = false;
         let lastDropTime = 0;
-        const dropInterval = 500; // ms
+        const dropInterval = 500;
 
         // Audio elements
         const explosionAudio = document.getElementById('explosion-sound');
@@ -161,7 +163,7 @@
 
         // Utility functions
         function generateBrick() {
-            const letters = 'ABCDE'; // Reduced for demo
+            const letters = 'ABCDE';
             const letter = letters[Math.floor(Math.random() * letters.length)];
             return { letter, color: getRandomColor() };
         }
@@ -183,6 +185,7 @@
             return `#${compR}${compG}${compB}`;
         }
 
+        // Drawing functions
         function drawGrid() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.font = '32px Arial'; // Increase font size
@@ -192,11 +195,12 @@
             for (let y = 0; y < rows; y++) {
                 for (let x = 0; x < cols; x++) {
                     if (grid[y][x]) {
-                ctx.fillStyle = highlighting && highlightPositions.some(p => p.x === x && p.y === y) ? '#FFFF00' : grid[y][x].color;
+                        ctx.fillStyle = highlighting && highlightPositions.some(p => p.x === x && p.y === y) 
+                            ? '#FFFF00' : grid[y][x].color;
                         ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
                         
                         ctx.fillStyle = getComplementaryColor(grid[y][x].color);
-                ctx.fillText(grid[y][x].letter, x * gridSize + gridSize / 2, y * gridSize + gridSize / 2+4); // Center text
+                        ctx.fillText(grid[y][x].letter, x * gridSize + gridSize / 2, y * gridSize + gridSize / 2);
                     }
                 }
             }
@@ -301,7 +305,6 @@
             brickX = Math.floor(cols / 2);
             brickY = 0;
             
-            // Check if new brick position is already occupied
             if (grid[brickY][brickX]) {
                 gameOver = true;
             }
@@ -311,7 +314,6 @@
             const letter = grid[brickY][brickX].letter;
             highlightPositions = [];
             
-            // Check adjacent cells for matching letters
             const directions = [
                 { dx: -1, dy: 0 }, { dx: 1, dy: 0 }, 
                 { dx: 0, dy: -1 }, { dx: 0, dy: 1 }
@@ -337,15 +339,15 @@
         function celebrateMatch(letter) {
             highlighting = true;
             
-            // Speak the letter
             const letterUtterance = new SpeechSynthesisUtterance(letter.toLowerCase());
             speechSynthesis.speak(letterUtterance);
 
-            // Select a word for the letter
             const words = wordLists[letter] || [letter];
             currentWord = words[Math.floor(Math.random() * words.length)] || letter;
 
-            // Display word and image
+            // 为每个匹配的字母位置创建粒子
+            createParticlesFromMatchedLetters();
+
             setTimeout(() => {
                 const wordUtterance = new SpeechSynthesisUtterance(currentWord.toLowerCase());
                 speechSynthesis.speak(wordUtterance);
@@ -358,20 +360,15 @@
                 wordImage.alt = currentWord;
                 wordImage.style.display = 'block';
 
-                // Create particles
-                createParticles();
-
                 playSound(explosionAudio);
             }, 300);
 
-            // Remove matched bricks after delay
             setTimeout(() => {
                 highlighting = false;
                 particles = [];
                 document.getElementById('word-display').style.display = 'none';
                 wordImage.style.display = 'none';
                 
-                // Remove matched bricks
                 highlightPositions.forEach(pos => {
                     if (pos.y >= 0 && pos.y < rows && pos.x >= 0 && pos.x < cols) {
                         grid[pos.y][pos.x] = null;
@@ -384,34 +381,39 @@
             }, 2000);
         }
 
-        function createParticles() {
-            for (let i = 0; i < 30; i++) {
-                particles.push({
-                    x: brickX * gridSize + gridSize / 2,
-                    y: brickY * gridSize + gridSize / 2,
-                    vx: (Math.random() - 0.5) * 6,
-                    vy: (Math.random() - 0.5) * 6,
-                    radius: Math.random() * 4 + 2,
-                    color: getRandomColor(),
-                    life: 100
-                });
-            }
+        function createParticlesFromMatchedLetters() {
+            // 为每个匹配的字母位置创建粒子
+            highlightPositions.forEach(position => {
+                const centerX = position.x * gridSize + gridSize / 2;
+                const centerY = position.y * gridSize + gridSize / 2;
+                
+                // 为每个匹配位置创建10-15个粒子
+                const particleCount = 10 + Math.floor(Math.random() * 6);
+                
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push({
+                        x: centerX,
+                        y: centerY,
+                        vx: (Math.random() - 0.5) * 8, // 更快的速度
+                        vy: (Math.random() - 0.5) * 8,
+                        radius: Math.random() * 5 + 2,
+                        color: getRandomColor(),
+                        life: 80 + Math.floor(Math.random() * 40) // 随机生命周期
+                    });
+                }
+            });
         }
 
         function applyGravity() {
-            // Apply gravity to each column
             for (let x = 0; x < cols; x++) {
-                // Check if column is blocked by paddle
                 const paddleLeftCol = Math.floor(paddleX / gridSize);
                 const paddleRightCol = Math.floor((paddleX + paddleWidth) / gridSize);
                 const isBlocked = x >= paddleLeftCol && x <= paddleRightCol;
                 
                 if (isBlocked) {
-                    // Handle bricks above and below paddle separately
                     let abovePaddle = [];
                     let belowPaddle = [];
                     
-                    // Separate bricks by position relative to paddle
                     for (let y = 0; y < rows; y++) {
                         if (grid[y][x]) {
                             if (y < paddleY / gridSize) {
@@ -423,7 +425,6 @@
                         }
                     }
                     
-                    // Place bricks above paddle
                     let currentY = Math.floor(paddleY / gridSize) - 1;
                     for (let i = abovePaddle.length - 1; i >= 0; i--) {
                         if (currentY >= 0) {
@@ -432,7 +433,6 @@
                         }
                     }
                     
-                    // Place bricks below paddle
                     currentY = rows - 1;
                     for (let i = belowPaddle.length - 1; i >= 0; i--) {
                         if (currentY >= Math.floor(paddleY / gridSize)) {
@@ -441,10 +441,8 @@
                         }
                     }
                 } else {
-                    // Column not blocked - apply normal gravity
                     let bricksInColumn = [];
                     
-                    // Collect all bricks in the column
                     for (let y = 0; y < rows; y++) {
                         if (grid[y][x]) {
                             bricksInColumn.push(grid[y][x]);
@@ -452,7 +450,6 @@
                         }
                     }
                     
-                    // Place bricks at the bottom
                     for (let i = 0; i < bricksInColumn.length; i++) {
                         const y = rows - 1 - i;
                         if (y >= 0) {
@@ -494,7 +491,7 @@
                 ctx.font = 'bold 36px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 30);
-                ctx.font = '24px Arial';
+                ctx.font = '36px Arial';
                 ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
                 ctx.fillText('Press R to restart', canvas.width / 2, canvas.height / 2 + 60);
                 return;
@@ -502,7 +499,6 @@
             
             updatePaddle();
             
-            // Auto-drop with timestamp for consistent timing
             if (timestamp - lastDropTime > dropInterval && !highlighting) {
                 moveDown();
                 lastDropTime = timestamp;
@@ -520,7 +516,6 @@
         // Event listeners
         document.addEventListener('keydown', e => {
             if (gameOver && e.key.toLowerCase() === 'r') {
-                // Reset game
                 location.reload();
                 return;
             }
