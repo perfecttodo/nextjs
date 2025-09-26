@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alphabet Brick Game (Fixed Gravity)</title>
+    <title>Alphabet Brick Game (Middle Paddle, 1/3 Width, Gravity Fix)</title>
     <style>
         body { 
             display: flex; 
@@ -39,12 +39,12 @@
             height: auto; 
             display: none; 
             z-index: 15; 
-            border: 2px solid #000; 
+            border: 2px solid #000; /* 测试可见性，可移除 */
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="400" height="800"></canvas>
+    <canvas id="gameCanvas" width="360" height="640"></canvas>
     <div id="word-display"></div>
     <img id="word-image" src="" alt="">
     <audio id="explosion-sound">
@@ -71,14 +71,14 @@
         const rows = canvas.height / gridSize;
         const grid = Array.from({ length: rows }, () => Array(cols).fill(null));
 
-        // Paddle settings - positioned at middle vertically
-        let paddleX = (canvas.width / 2) - (canvas.width / 6);
-        const paddleWidth = canvas.width / 3;
+        // Paddle settings
+        let paddleX = (canvas.width / 2) - (canvas.width / 6); // Centered initially
+        const paddleWidth = canvas.width / 3; // 1/3 of canvas width (≈133px)
         const paddleHeight = 10;
         const paddleY = canvas.height / 2; // Middle of canvas (400px)
-        const paddleRow = Math.floor(paddleY / gridSize); // Row 10
+        const paddleRow = paddleY / gridSize; // Row 10
         let paddleSpeed = 2;
-        let paddleDirection = 1;
+        let paddleDirection = 1; // 1 for right, -1 for left
 
         const wordLists = {
             A: ['APPLE', 'ANT', 'ART', 'APE', 'ARM'],
@@ -200,7 +200,7 @@
         }
 
         function drawPaddle() {
-            ctx.fillStyle = '#0000FF';
+            ctx.fillStyle = '#0000FF'; // Blue paddle
             ctx.fillRect(paddleX, paddleY, paddleWidth, paddleHeight);
         }
 
@@ -258,7 +258,7 @@
 
         function collision() {
             if (brickX < 0 || brickX >= cols || brickY >= rows) return true;
-            if (brickY >= 0 && grid[brickY][brickX]) return true;
+            if (grid[brickY][brickX]) return true;
             return false;
         }
 
@@ -359,7 +359,7 @@
                 // Remove matched bricks
                 highlightPositions.forEach(pos => {
                     if (pos.y >= 0 && pos.y < rows && pos.x >= 0 && pos.x < cols) {
-                        grid[pos.y][pos.x] = null;
+                    grid[pos.y][pos.x] = null;
                     }
                 });
                 
@@ -391,7 +391,7 @@
                 const paddleLeftCol = Math.floor(paddleX / gridSize);
                 const paddleRightCol = Math.floor((paddleX + paddleWidth) / gridSize);
                 const canFallThroughPaddle = x < paddleLeftCol || x > paddleRightCol;
-                
+
                {
                     // Paddle blocks this column - bricks stay in their respective sections
                     // Place above-paddle bricks
@@ -399,7 +399,7 @@
                     for (let i = bricksAbovePaddle.length - 1; i >= 0; i--) {
                         if (currentY >= 0) {
                             grid[currentY][x] = bricksAbovePaddle[i].data;
-                            currentY--;
+                        currentY--;
                         }
                     }
                     
@@ -408,7 +408,7 @@
                     for (let i = bricksBelowPaddle.length - 1; i >= 0; i--) {
                         if (currentY >= paddleRow) {
                             grid[currentY][x] = bricksBelowPaddle[i].data;
-                            currentY--;
+                        currentY--;
                         }
                     }
                 }
