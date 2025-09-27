@@ -20,18 +20,17 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             border-radius: 10px;
             overflow: hidden;
+                        cursor: none; /* Hides the cursor */
+
         }
         canvas { 
             display: block;
             background: #111;
         }
         #word-display { 
-            position: absolute; 
             top: 10px; 
             left: 50%; 
-            transform: translateX(-50%); 
             font-size: 28px; 
-            display: none; 
             text-align: center; 
             background: rgba(255, 255, 255, 0.8); 
             padding: 10px; 
@@ -39,17 +38,29 @@
             z-index: 20;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
-        #word-image { 
+        #info-panel { 
             position: absolute; 
             left: 50%; 
             top: 50%; 
-            transform: translate(-50%, -50%); 
+            transform: translate(-50%, -50%) scale(0); /* Start scaled down */
             max-width: 200px; 
             max-height: 200px;
             display: none; 
             z-index: 15; 
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, opacity 0.3s ease; /* Smooth transition */
+            opacity: 0; /* Start invisible */
+        }
+         #info-panel img{
+            max-width: 200px; 
+            max-height: 200px;
+         }
+
+        #info-panel.show {
+            display: block; /* Make it visible */
+            transform: translate(-50%, -50%) scale(1); /* Scale to normal size */
+            opacity: 1; /* Fade in */
         }
         #score-display {
             position: absolute;
@@ -66,10 +77,12 @@
 </head>
 <body>
     <div class="game-container">
-    <canvas id="gameCanvas" width="360" height="640"></canvas>
-       <div id="score-display">Score: 0</div>
+        <canvas id="gameCanvas" width="360" height="640"></canvas>
+        <div id="score-display">Score: 0</div>
+        <div id="info-panel">
         <div id="word-display"></div>
-        <img id="word-image" src="" alt="" style="display: none;">
+        <img id="word-image" src="" alt=""  >
+        </div>
     </div>
     
     <audio id="explosion-sound" preload="auto">
@@ -122,9 +135,11 @@
         const dropAudio = document.getElementById('drop-sound');
         const bgMusic = document.getElementById('bg-music');
         const wordImage = document.getElementById('word-image');
+        const infoPanel = document.getElementById('info-panel');
+        
         const scoreDisplay = document.getElementById('score-display');
 
-        // Word lists and images
+        // Word lists and images - Updated to use Icons8 images
         const wordLists = {
             A: ['APPLE', 'ANT', 'ART', 'APE', 'ARM'],
             B: ['BANANA', 'BEE', 'BALL', 'BAT', 'BOX'],
@@ -134,31 +149,31 @@
         };
 
         const wordImages = {
-            APPLE: 'https://cdn.pixabay.com/photo/2016/09/05/21/37/apple-1647023_640.png',
-            ANT: 'https://cdn.pixabay.com/photo/2018/03/06/21/46/ant-3204771_640.png',
-            ART: 'https://cdn.pixabay.com/photo/2017/08/30/12/45/painting-2697403_640.png',
-            APE: 'https://cdn.pixabay.com/photo/2014/02/05/08/51/gorilla-258913_640.png',
-            ARM: 'https://cdn.pixabay.com/photo/2016/11/29/09/14/arm-1868573_640.png',
-            BANANA: 'https://cdn.pixabay.com/photo/2017/06/27/22/21/banana-2449019_640.png',
-            BEE: 'https://cdn.pixabay.com/photo/2016/11/29/10/07/bee-1867471_640.png',
-            BALL: 'https://cdn.pixabay.com/photo/2016/11/29/05/09/ball-1867260_640.png',
-            BAT: 'https://cdn.pixabay.com/photo/2017/08/07/15/34/bat-2605696_640.png',
-            BOX: 'https://cdn.pixabay.com/photo/2016/11/29/04/17/box-1866498_640.png',
-            CAT: 'https://cdn.pixabay.com/photo/2014/11/30/14/11/cat-551554_640.png',
-            CAR: 'https://cdn.pixabay.com/photo/2016/11/18/17/46/car-1836277_640.png',
-            COW: 'https://cdn.pixabay.com/photo/2016/11/23/14/45/cow-1852955_640.png',
-            CUP: 'https://cdn.pixabay.com/photo/2016/11/29/05/08/cup-1867174_640.png',
-            CAKE: 'https://cdn.pixabay.com/photo/2016/11/29/04/19/cake-1866455_640.png',
-            DOG: 'https://cdn.pixabay.com/photo/2016/12/13/05/15/puppy-1903313_640.png',
-            DOOR: 'https://cdn.pixabay.com/photo/2016/11/19/12/44/door-1838760_640.png',
-            DESK: 'https://cdn.pixabay.com/photo/2016/11/29/04/19/desk-1866496_640.png',
-            DICE: 'https://cdn.pixabay.com/photo/2016/11/29/05/09/dice-1867261_640.png',
-            DEER: 'https://cdn.pixabay.com/photo/2016/11/14/03/56/deer-1822555_640.png',
-            EAGLE: 'https://cdn.pixabay.com/photo/2016/11/29/04/19/eagle-1866457_640.png',
-            EGG: 'https://cdn.pixabay.com/photo/2016/11/29/04/19/egg-1866458_640.png',
-            EYE: 'https://cdn.pixabay.com/photo/2016/11/29/04/19/eye-1866459_640.png',
-            EAR: 'https://cdn.pixabay.com/photo/2016/11/29/04/19/ear-1866460_640.png',
-            ELEPHANT: 'https://cdn.pixabay.com/photo/2016/11/14/03/56/elephant-1822636_640.png'
+            APPLE: 'https://img.icons8.com/color/512/apple.png',
+            ANT: 'https://img.icons8.com/color/512/ant.png',
+            ART: 'https://img.icons8.com/color/512/painting.png',
+            APE: 'https://img.icons8.com/color/512/gorilla.png',
+            ARM: 'https://img.icons8.com/color/512/muscle.png',
+            BANANA: 'https://img.icons8.com/color/512/banana.png',
+            BEE: 'https://img.icons8.com/color/512/bee.png',
+            BALL: 'https://img.icons8.com/color/512/soccer-ball.png',
+            BAT: 'https://img.icons8.com/color/512/baseball-bat.png',
+            BOX: 'https://img.icons8.com/color/512/package.png',
+            CAT: 'https://img.icons8.com/color/512/cat.png',
+            CAR: 'https://img.icons8.com/color/512/car.png',
+            COW: 'https://img.icons8.com/color/512/cow.png',
+            CUP: 'https://img.icons8.com/color/512/coffee-cup.png',
+            CAKE: 'https://img.icons8.com/color/512/cake.png',
+            DOG: 'https://img.icons8.com/color/512/dog.png',
+            DOOR: 'https://img.icons8.com/color/512/door.png',
+            DESK: 'https://img.icons8.com/color/512/desk.png',
+            DICE: 'https://img.icons8.com/color/512/dice.png',
+            DEER: 'https://img.icons8.com/color/512/deer.png',
+            EAGLE: 'https://img.icons8.com/color/512/eagle.png',
+            EGG: 'https://img.icons8.com/color/512/egg.png',
+            EYE: 'https://img.icons8.com/color/512/eye.png',
+            EAR: 'https://img.icons8.com/color/512/ear.png',
+            ELEPHANT: 'https://img.icons8.com/color/512/elephant.png'
         };
 
         // Utility functions
@@ -186,11 +201,11 @@
         }
 
         function drawGrid() {
-            // 绘制背景
+            // Draw background
             ctx.fillStyle = '#111';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // 绘制网格线
+            // Draw grid lines
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
             ctx.lineWidth = 1;
             for (let x = 0; x <= canvas.width; x += gridSize) {
@@ -206,31 +221,31 @@
                 ctx.stroke();
             }
             
-            // 设置字体
+            // Set font
             ctx.font = 'bold 32px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
-            // 绘制已放置的砖块
+            // Draw placed bricks
             for (let y = 0; y < rows; y++) {
                 for (let x = 0; x < cols; x++) {
                     if (grid[y][x]) {
-                        // 绘制砖块背景
+                        // Draw brick background
                         ctx.fillStyle = highlighting && highlightPositions.some(p => p.x === x && p.y === y) 
                             ? '#FFFF00' : grid[y][x].color;
                         ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
                         
-                        // 添加砖块内部阴影效果
+                        // Add inner shadow effect
                         ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
                         ctx.lineWidth = 2;
                         ctx.strokeRect(x * gridSize, y * gridSize, gridSize, gridSize);
                         
-                        // 绘制文字 - 黑色字体，白色描边
-                        ctx.strokeStyle = '#000000'; // 白色描边
-                        ctx.lineWidth = 3; // 描边宽度
-                        ctx.fillStyle = '#FFFFFF'; // 黑色字体
+                        // Draw text - black font with white outline
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 3;
+                        ctx.fillStyle = '#FFFFFF';
                         
-                        // 先绘制描边，再绘制填充文字
+                        // Draw outline first, then fill text
                         ctx.strokeText(grid[y][x].letter, x * gridSize + gridSize / 2, y * gridSize + gridSize / 2);
                         ctx.fillText(grid[y][x].letter, x * gridSize + gridSize / 2, y * gridSize + gridSize / 2);
                     }
@@ -239,26 +254,26 @@
         }
 
         function drawBrick() {
-            // 绘制当前下落的砖块
+            // Draw current falling brick
             ctx.fillStyle = currentBrick.color;
             ctx.fillRect(brickX * gridSize, brickY * gridSize, gridSize, gridSize);
             
-            // 添加砖块内部阴影效果
+            // Add inner shadow effect
             ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
             ctx.lineWidth = 2;
             ctx.strokeRect(brickX * gridSize, brickY * gridSize, gridSize, gridSize);
             
-            // 设置字体
+            // Set font
             ctx.font = 'bold 32px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
-            // 绘制文字 - 黑色字体，白色描边
-            ctx.strokeStyle = '#000000'; // 白色描边
-            ctx.lineWidth = 3; // 描边宽度
-            ctx.fillStyle = '#FFFFFF'; // 黑色字体
+            // Draw text - black font with white outline
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 3;
+            ctx.fillStyle = '#FFFFFF';
             
-            // 先绘制描边，再绘制填充文字
+            // Draw outline first, then fill text
             ctx.strokeText(currentBrick.letter, brickX * gridSize + gridSize / 2, brickY * gridSize + gridSize / 2);
             ctx.fillText(currentBrick.letter, brickX * gridSize + gridSize / 2, brickY * gridSize + gridSize / 2);
         }
@@ -392,7 +407,7 @@
             const words = wordLists[letter] || [letter];
             currentWord = words[Math.floor(Math.random() * words.length)] || letter;
 
-            // 为每个匹配的字母位置创建粒子
+            // Create particles for each matched letter position
             createParticlesFromMatchedLetters();
 
             setTimeout(() => {
@@ -405,7 +420,7 @@
 
                 wordImage.src = wordImages[currentWord] || 'https://via.placeholder.com/200?text=' + currentWord;
                 wordImage.alt = currentWord;
-                wordImage.style.display = 'block';
+                infoPanel.classList.add('show');
 
                 playSound(explosionAudio);
             }, 300);
@@ -413,9 +428,8 @@
             setTimeout(() => {
                 highlighting = false;
                 particles = [];
-                document.getElementById('word-display').style.display = 'none';
-                wordImage.style.display = 'none';
-                
+                 infoPanel.classList.remove('show');
+
                 highlightPositions.forEach(pos => {
                     if (pos.y >= 0 && pos.y < rows && pos.x >= 0 && pos.x < cols) {
                         grid[pos.y][pos.x] = null;
@@ -425,27 +439,27 @@
                 score += highlightPositions.length;
                 scoreDisplay.textContent = `Score: ${score}`;
                 applyGravity();
-            }, 2000);
+            }, 3000);
         }
 
         function createParticlesFromMatchedLetters() {
-            // 为每个匹配的字母位置创建粒子
+            // Create particles for each matched letter position
             highlightPositions.forEach(position => {
                 const centerX = position.x * gridSize + gridSize / 2;
                 const centerY = position.y * gridSize + gridSize / 2;
                 
-                // 为每个匹配位置创建10-15个粒子
+                // Create 10-15 particles for each matched position
                 const particleCount = 10 + Math.floor(Math.random() * 6);
                 
                 for (let i = 0; i < particleCount; i++) {
                     particles.push({
                         x: centerX,
                         y: centerY,
-                        vx: (Math.random() - 0.5) * 8, // 更快的速度
+                        vx: (Math.random() - 0.5) * 8, // Faster speed
                         vy: (Math.random() - 0.5) * 8,
                         radius: Math.random() * 5 + 2,
                         color: getRandomColor(),
-                        life: 80 + Math.floor(Math.random() * 40) // 随机生命周期
+                        life: 80 + Math.floor(Math.random() * 40) // Random lifespan
                     });
                 }
             });
