@@ -21,6 +21,7 @@
             border-radius: 10px;
             overflow: hidden;
             cursor: none; /* Hides the cursor */
+            caret-color: transparent;
         }
         canvas { 
             display: block;
@@ -81,7 +82,7 @@
 </head>
 <body>
     <div class="game-container">
-        <canvas id="gameCanvas" width="360" height="640"></canvas>
+        <canvas id="gameCanvas" width="640" height="360"></canvas>
         <div id="score-display">Score: 0</div>
         <div id="info-panel">
         <div id="word-display"></div>
@@ -115,7 +116,7 @@
         // Paddle settings
         const paddleWidth = canvas.width / 3;
         const paddleHeight = 10;
-        const paddleY = canvas.height / 2;
+        const paddleY = gridSize*Math.ceil(rows/2)//canvas.height / 2;
         let paddleX = (canvas.width - paddleWidth) / 2;
         let paddleSpeed = 4;
         let paddleDirection = 1;
@@ -334,9 +335,10 @@
 
         function paddleCollision() {
             const brickBottom = (brickY + 1) * gridSize;
+            const brickTop = (brickY) * gridSize;
             const paddleTop = paddleY;
             
-            if (brickBottom >= paddleTop && brickBottom <= paddleTop + paddleHeight) {
+            if (brickBottom >= paddleTop && brickTop < paddleTop) {
                 const brickLeft = brickX * gridSize;
                 const brickRight = brickLeft + gridSize;
                 return brickRight > paddleX && brickLeft < paddleX + paddleWidth;
@@ -535,7 +537,7 @@
 
         function startBackgroundMusic() {
             if (!bgMusicStarted) {
-                bgMusic.volume = 0.3;
+                bgMusic.volume = 0.1;
                 bgMusic.play().catch(e => console.warn('Background music playback failed:', e));
                 bgMusicStarted = true;
             }
