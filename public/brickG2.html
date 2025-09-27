@@ -20,8 +20,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             border-radius: 10px;
             overflow: hidden;
-                        cursor: none; /* Hides the cursor */
-
+            cursor: none; /* Hides the cursor */
         }
         canvas { 
             display: block;
@@ -43,7 +42,7 @@
             left: 50%; 
             top: 50%; 
             transform: translate(-50%, -50%) scale(0);
-background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.5);
             z-index: 15; 
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
@@ -144,65 +143,57 @@ background: rgba(255, 255, 255, 0.5);
         const scoreDisplay = document.getElementById('score-display');
 
         function showInfoPanel() {
-    const infoPanel = document.getElementById('info-panel');
-    infoPanel.classList.remove('hide');
-    infoPanel.classList.add('show');
-    infoPanel.style.display = 'block'; // Make it visible
-}
+            const infoPanel = document.getElementById('info-panel');
+            infoPanel.classList.remove('hide');
+            infoPanel.classList.add('show');
+            infoPanel.style.display = 'block'; // Make it visible
+        }
 
-function hideInfoPanel() {
-    const infoPanel = document.getElementById('info-panel');
-    infoPanel.classList.remove('show');
-    infoPanel.classList.add('hide');
-    
-    // Delay hiding the element until the animation is complete
-    setTimeout(() => {
-        infoPanel.style.display = 'none'; // Hide it completely
-        infoPanel.classList.remove('hide'); // Reset class for future use
-    }, 300); // Match this duration with your CSS transition time
-}
+        function hideInfoPanel() {
+            const infoPanel = document.getElementById('info-panel');
+            infoPanel.classList.remove('show');
+            infoPanel.classList.add('hide');
+            
+            // Delay hiding the element until the animation is complete
+            setTimeout(() => {
+                infoPanel.style.display = 'none'; // Hide it completely
+                infoPanel.classList.remove('hide'); // Reset class for future use
+            }, 300); // Match this duration with your CSS transition time
+        }
 
+      // 全局变量声明
+    let wordLists = {};
+    let wordImages = {};
+    let gameDataLoaded = false;
 
-        // Word lists and images - Updated to use Icons8 images
-        const wordLists = {
-            A: ['APPLE', 'ANT', 'ART', 'APE', 'ARM'],
-            B: ['BANANA', 'BEE', 'BALL', 'BAT', 'BOX'],
-            C: ['CAT', 'CAR', 'COW', 'CUP', 'CAKE'],
-            D: ['DOG', 'DOOR', 'DESK', 'DICE', 'DEER'],
-            E: ['EAGLE', 'EGG', 'EYE', 'EAR', 'ELEPHANT']
-        };
-
-        const wordImages = {
-            APPLE: 'https://img.icons8.com/color/512/apple.png',
-            ANT: 'https://img.icons8.com/color/512/ant.png',
-            ART: 'https://img.icons8.com/color/512/painting.png',
-            APE: 'https://img.icons8.com/color/512/gorilla.png',
-            ARM: 'https://img.icons8.com/color/512/muscle.png',
-            BANANA: 'https://img.icons8.com/color/512/banana.png',
-            BEE: 'https://img.icons8.com/color/512/bee.png',
-            BALL: 'https://img.icons8.com/color/512/soccer-ball.png',
-            BAT: 'https://img.icons8.com/color/512/baseball-bat.png',
-            BOX: 'https://img.icons8.com/color/512/package.png',
-            CAT: 'https://img.icons8.com/color/512/cat.png',
-            CAR: 'https://img.icons8.com/color/512/car.png',
-            COW: 'https://img.icons8.com/color/512/cow.png',
-            CUP: 'https://img.icons8.com/color/512/coffee-cup.png',
-            CAKE: 'https://img.icons8.com/color/512/cake.png',
-            DOG: 'https://img.icons8.com/color/512/dog.png',
-            DOOR: 'https://img.icons8.com/color/512/door.png',
-            DESK: 'https://img.icons8.com/color/512/desk.png',
-            DICE: 'https://img.icons8.com/color/512/dice.png',
-            DEER: 'https://img.icons8.com/color/512/deer.png',
-            EAGLE: 'https://img.icons8.com/color/512/eagle.png',
-            EGG: 'https://img.icons8.com/color/512/egg.png',
-            EYE: 'https://img.icons8.com/color/512/eye.png',
-            EAR: 'https://img.icons8.com/color/512/ear.png',
-            ELEPHANT: 'https://img.icons8.com/color/512/elephant.png'
-        };
+    // 加载游戏数据
+    async function loadGameData() {
+        try {
+            const response = await fetch('wordData.json');
+            const data = await response.json();
+            
+            wordLists = data.wordLists;
+            wordImages = data.wordImages;
+            gameDataLoaded = true;
+            
+            console.log('游戏数据加载完成');
+            startGame();
+        } catch (error) {
+            console.error('加载游戏数据失败:', error);
+            // 可以在这里设置默认数据或显示错误信息
+            alert('游戏数据加载失败，请刷新页面重试');
+        }
+    }
+    function startGame() {
+            if (gameDataLoaded) {
+                gameLoop(0);
+            }
+     }
+    loadGameData();
 
         // Utility functions
         function generateBrick() {
-            const letters = 'ABCDE';
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             const letter = letters[Math.floor(Math.random() * letters.length)];
             return { letter, color: getRandomColor() };
         }
@@ -598,8 +589,7 @@ function hideInfoPanel() {
             }
         });
 
-        // Start the game
-        gameLoop(0);
+  
     </script>
 </body>
 </html>
