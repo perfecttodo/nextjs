@@ -38,30 +38,35 @@
             z-index: 20;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
-        #info-panel { 
+        #info-panel {
             position: absolute; 
             left: 50%; 
             top: 50%; 
-            transform: translate(-50%, -50%) scale(0); /* Start scaled down */
-            max-width: 200px; 
-            max-height: 200px;
-            display: none; 
+            transform: translate(-50%, -50%) scale(0);
+background: rgba(255, 255, 255, 0.5);
             z-index: 15; 
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            transition: transform 0.3s ease, opacity 0.3s ease; /* Smooth transition */
-            opacity: 0; /* Start invisible */
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            display: none; /* Hidden by default */
         }
-         #info-panel img{
-            max-width: 200px; 
-            max-height: 200px;
-         }
 
         #info-panel.show {
             display: block; /* Make it visible */
             transform: translate(-50%, -50%) scale(1); /* Scale to normal size */
             opacity: 1; /* Fade in */
         }
+
+        #info-panel.hide {
+            transform: translate(-50%, -50%) scale(0); /* Scale down */
+            opacity: 0; /* Fade out */
+        }
+
+         #info-panel img{
+            max-width: 200px; 
+            max-height: 200px;
+         }
         #score-display {
             position: absolute;
             top: 10px;
@@ -135,9 +140,28 @@
         const dropAudio = document.getElementById('drop-sound');
         const bgMusic = document.getElementById('bg-music');
         const wordImage = document.getElementById('word-image');
-        const infoPanel = document.getElementById('info-panel');
         
         const scoreDisplay = document.getElementById('score-display');
+
+        function showInfoPanel() {
+    const infoPanel = document.getElementById('info-panel');
+    infoPanel.classList.remove('hide');
+    infoPanel.classList.add('show');
+    infoPanel.style.display = 'block'; // Make it visible
+}
+
+function hideInfoPanel() {
+    const infoPanel = document.getElementById('info-panel');
+    infoPanel.classList.remove('show');
+    infoPanel.classList.add('hide');
+    
+    // Delay hiding the element until the animation is complete
+    setTimeout(() => {
+        infoPanel.style.display = 'none'; // Hide it completely
+        infoPanel.classList.remove('hide'); // Reset class for future use
+    }, 300); // Match this duration with your CSS transition time
+}
+
 
         // Word lists and images - Updated to use Icons8 images
         const wordLists = {
@@ -420,15 +444,14 @@
 
                 wordImage.src = wordImages[currentWord] || 'https://via.placeholder.com/200?text=' + currentWord;
                 wordImage.alt = currentWord;
-                infoPanel.classList.add('show');
-
+                showInfoPanel();
                 playSound(explosionAudio);
             }, 300);
 
             setTimeout(() => {
                 highlighting = false;
                 particles = [];
-                 infoPanel.classList.remove('show');
+                hideInfoPanel();
 
                 highlightPositions.forEach(pos => {
                     if (pos.y >= 0 && pos.y < rows && pos.x >= 0 && pos.x < cols) {
@@ -471,7 +494,6 @@
                 const paddleRightCol = Math.floor((paddleX + paddleWidth) / gridSize);
                 const isBlocked = x >= paddleLeftCol && x <= paddleRightCol;
                 
-                if (isBlocked) {
                     let abovePaddle = [];
                     let belowPaddle = [];
                     
@@ -501,23 +523,7 @@
                             currentY--;
                         }
                     }
-                } else {
-                    let bricksInColumn = [];
-                    
-                    for (let y = 0; y < rows; y++) {
-                        if (grid[y][x]) {
-                            bricksInColumn.push(grid[y][x]);
-                            grid[y][x] = null;
-                        }
-                    }
-                    
-                    for (let i = 0; i < bricksInColumn.length; i++) {
-                        const y = rows - 1 - i;
-                        if (y >= 0) {
-                            grid[y][x] = bricksInColumn[bricksInColumn.length - 1 - i];
-                        }
-                    }
-                }
+              
             }
         }
 
