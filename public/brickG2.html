@@ -435,9 +435,18 @@
                 const wordDisplay = document.getElementById('word-display');
                 wordDisplay.textContent = currentWord;
                 wordDisplay.style.display = 'block';
+                
 
+                wordImage.style.display = 'none'; // Initially hide the image
                 wordImage.src = wordImages[currentWord] || 'https://via.placeholder.com/200?text=' + currentWord;
                 wordImage.alt = currentWord;
+                wordImage.onload = () => {
+                    wordImage.style.display = 'block'; // Show image on successful load
+                };
+                wordImage.onerror = () => {
+                    wordImage.style.display = 'none'; // Keep hidden on error
+                };
+
                 showInfoPanel();
                 playSound(explosionAudio);
             }, 300);
