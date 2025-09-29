@@ -78,15 +78,82 @@
             border-radius: 5px;
             z-index: 10;
         }
+        
+        /* Start screen styles */
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s ease;
+        }
+        
+        #start-screen h1 {
+            color: white;
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        #start-screen p {
+            color: white;
+            font-size: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 80%;
+        }
+        
+        #start-button {
+            background: linear-gradient(to bottom, #4CAF50, #45a049);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            font-size: 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        #start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        #start-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        #controls-info {
+            margin-top: 30px;
+            color: #ccc;
+            font-size: 16px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <canvas id="gameCanvas" width="640" height="360"></canvas>
+        <canvas id="gameCanvas" width="1152" height="648"></canvas>
         <div id="score-display">Score: 0</div>
         <div id="info-panel">
         <div id="word-display"></div>
         <img id="word-image" src="" alt=""  >
+        </div>
+        
+        <!-- Start Screen -->
+        <div id="start-screen">
+            <h1>Alphabet Brick Game</h1>
+            <button id="start-button">Start Game</button>
+  
         </div>
     </div>
     
@@ -108,7 +175,7 @@
         // Game initialization
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const gridSize = 40;
+        const gridSize = 40*1.5*1.2;
         const cols = canvas.width / gridSize;
         const rows = canvas.height / gridSize;
         const grid = Array.from({ length: rows }, () => Array(cols).fill(null));
@@ -126,6 +193,7 @@
         let brickX = Math.floor(cols / 2);
         let brickY = 0;
         let gameOver = false;
+        let gameStarted = false;
         let score = 0;
         let particles = [];
         let highlighting = false;
@@ -143,6 +211,8 @@
         const wordImage = document.getElementById('word-image');
         
         const scoreDisplay = document.getElementById('score-display');
+        const startScreen = document.getElementById('start-screen');
+        const startButton = document.getElementById('start-button');
 
         function showInfoPanel() {
             const infoPanel = document.getElementById('info-panel');
@@ -163,6 +233,21 @@
             }, 300); // Match this duration with your CSS transition time
         }
 
+        // Start game function
+        function startGame() {
+            if (gameDataLoaded) {
+                gameStarted = true;
+                startScreen.style.opacity = '0';
+                setTimeout(() => {
+                    startScreen.style.display = 'none';
+                    gameLoop(0);
+                }, 500);
+            }
+        }
+
+        // Event listener for start button
+        startButton.addEventListener('click', startGame);
+
       // 全局变量声明
     let wordLists = {};
     let wordImages = {};
@@ -179,18 +264,14 @@
             gameDataLoaded = true;
             
             console.log('游戏数据加载完成');
-            startGame();
+            // Don't start the game automatically anymore
         } catch (error) {
             console.error('加载游戏数据失败:', error);
             // 可以在这里设置默认数据或显示错误信息
             alert('游戏数据加载失败，请刷新页面重试');
         }
     }
-    function startGame() {
-            if (gameDataLoaded) {
-                gameLoop(0);
-            }
-     }
+
     loadGameData();
 
         // Utility functions
@@ -435,7 +516,7 @@
                 const wordDisplay = document.getElementById('word-display');
                 wordDisplay.textContent = currentWord;
                 wordDisplay.style.display = 'block';
-                
+
 
                 wordImage.style.display = 'none'; // Initially hide the image
                 wordImage.src = wordImages[currentWord] || 'https://via.placeholder.com/200?text=' + currentWord;
@@ -554,6 +635,13 @@
 
         // Game loop
         function gameLoop(timestamp) {
+            if (!gameStarted) {
+                // Draw start screen if game hasn't started
+                drawStartScreen();
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            
             if (gameOver) {
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -583,8 +671,22 @@
             requestAnimationFrame(gameLoop);
         }
 
+        // Draw start screen
+        function drawStartScreen() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 48px Arial';
+            ctx.textAlign = 'center';
+            
+            ctx.font = '24px Arial';
+        }
+
         // Event listeners
         document.addEventListener('keydown', e => {
+            if (!gameStarted) return;
+            
             if (gameOver && e.key.toLowerCase() === 'r') {
                 location.reload();
                 return;
@@ -601,7 +703,8 @@
             }
         });
 
-  
+        // Initial draw
+        drawStartScreen();
     </script>
 </body>
 </html>

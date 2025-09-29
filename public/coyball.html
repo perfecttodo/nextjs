@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字母升降机动画</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        h1 {
+            margin: 20px 0;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            font-size: 2.5rem;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            width: 100%;
+        }
+        
+        .control-group {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            min-width: 200px;
+        }
+        
+        .control-group h3 {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        input, select, button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            margin: 5px 0;
+            width: 100%;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .animation-area {
+            position: relative;
+            width: 960px;
+            height: 540px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+        }
+        
+        .conveyor {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-content: space-between;
+        }
+        
+        .conveyor-belt {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
+            overflow: hidden;
+            visibility: hidden;
+        }
+        
+        .belt-top {
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+        }
+        
+        .belt-right {
+            top: 0;
+            right: 0;
+            width: 60px;
+            height: 100%;
+        }
+        
+        .belt-bottom {
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+        }
+        
+        .belt-left {
+            top: 0;
+            left: 0;
+            width: 60px;
+            height: 100%;
+        }
+        
+        /* 底部删除区域 */
+        .delete-zone {
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 0, 0, 0.3);
+            border-top: 2px dashed red;
+            z-index: 5;
+        }
+        
+        /* 水流效果 */
+        .water-flow {
+            position: absolute;
+            background: linear-gradient(90deg, transparent, rgba(64, 164, 223, 0.6), transparent);
+            animation: waterFlow 2s linear infinite;
+            z-index: 2;
+        }
+        
+        .belt-top .water-flow {
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: -100%;
+            background: linear-gradient(90deg, transparent, rgba(64, 164, 223, 0.4), transparent);
+        }
+        
+        .belt-right .water-flow {
+            width: 100%;
+            height: 100%;
+            top: -100%;
+            left: 0;
+            background: linear-gradient(180deg, transparent, rgba(64, 164, 223, 0.4), transparent);
+            animation: waterFlowVertical 2s linear infinite;
+        }
+        
+        .belt-bottom .water-flow {
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 100%;
+            background: linear-gradient(90deg, transparent, rgba(64, 164, 223, 0.4), transparent);
+            animation: waterFlowReverse 2s linear infinite;
+        }
+        
+        .belt-left .water-flow {
+            width: 100%;
+            height: 100%;
+            top: 100%;
+            left: 0;
+            background: linear-gradient(180deg, transparent, rgba(64, 164, 223, 0.4), transparent);
+            animation: waterFlowVerticalReverse 2s linear infinite;
+        }
+        
+        @keyframes waterFlow {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        @keyframes waterFlowReverse {
+            0% { left: 100%; }
+            100% { left: -100%; }
+        }
+        
+        @keyframes waterFlowVertical {
+            0% { top: -100%; }
+            100% { top: 100%; }
+        }
+        
+        @keyframes waterFlowVerticalReverse {
+            0% { top: 100%; }
+            100% { top: -100%; }
+        }
+        
+        .letter-ball {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+            z-index: 10;
+            cursor: pointer;
+            user-select: none;
+            z-index: 1000;
+        }
+        
+        .letter-ball.selected {
+            box-shadow: 0 0 0 3px #FFD700, 0 0 20px #FFD700;
+            transform: scale(1.1);
+            z-index: 100;
+        }
+        
+        .letter-ball.dragging {
+            transition: none;
+            box-shadow: 0 0 0 4px #FF6B6B, 0 0 25px #FF6B6B;
+        }
+        
+        .letter-ball.falling {
+            transition: all 1s ease-in-out;
+            z-index: 15;
+        }
+        
+        .letter-ball.deleting {
+            animation: deleteAnimation 0.5s ease-in forwards;
+        }
+        
+        @keyframes deleteAnimation {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(0.5);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(0) translateY(20px);
+                opacity: 0;
+            }
+        }
+        
+        .letter-container {
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            min-width: 300px;
+            justify-content: center;
+            z-index: 10;
+        }
+        
+        .letter-slot {
+            width: 40px;
+            height: 40px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .letter-slot.filled {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: white;
+        }
+        
+        .switches {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 20;
+            visibility: hidden;
+        }
+        
+        .switch {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .switch.active {
+            background: #4CAF50;
+            transform: scale(1.1);
+            animation: switchPulse 1s infinite;
+        }
+        
+        @keyframes switchPulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+        
+        .status {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+            min-height: 30px;
+        }
+        
+        .score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .deleted-count {
+            font-size: 1.2rem;
+            margin: 5px 0;
+            color: #FF6B6B;
+        }
+        
+        @keyframes float {
+            0%, 100% { 
+                transform: translateY(0); 
+            }
+            50% { 
+                transform: translateY(-8px); 
+            }
+        }
+        
+        .floating {
+            animation: float 2s ease-in-out infinite;
+        }
+        
+        /* 水花效果 */
+        .splash {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(64, 164, 223, 0.6);
+            border-radius: 50%;
+            opacity: 0;
+            z-index: 5;
+        }
+        
+        @keyframes splash {
+            0% {
+                transform: scale(0);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        .inner{
+            position: absolute;
+            top: 60px;
+            left: 60px;
+            right: 60px;
+            bottom: 60px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>字母升降机动画 - 自动掉落功能</h1>
+    
+    <div class="container">
+        <div class="controls">
+            <div class="control-group">
+                <h3>目标单词</h3>
+                <input type="text" id="targetWord" placeholder="输入目标单词" value="Apple">
+                <button id="setWord">设置单词</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>游戏控制</h3>
+                <button id="startBtn">开始游戏</button>
+                <button id="resetBtn">重置游戏</button>
+                <button id="toggleAuto">自动模式: <span id="autoStatus">开启</span></button>
+            </div>
+            
+            <div class="control-group">
+                <h3>游戏状态</h3>
+                <div class="score">得分: <span id="score">0</span></div>
+                <div class="deleted-count">已删除: <span id="deletedCount">0</span></div>
+                <div class="status" id="status">准备开始游戏</div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <p>💡 提示: 在自动模式下，正确的字母球到达对应开关时会自动掉落到字母槽！</p>
+            <p>⚠️ 注意: 字母球从顶部落到底部时会被自动删除！</p>
+        </div>
+        
+        <div class="animation-area" id="animationArea">
+            <div class="conveyor">
+                <div class="inner"></div>
+                <div class="conveyor-belt belt-top">
+                    <div class="water-flow"></div>
+                </div>
+                <div class="conveyor-belt belt-right">
+                    <div class="water-flow"></div>
+                </div>
+                <div class="conveyor-belt belt-bottom">
+                    <div class="water-flow"></div>
+                </div>
+                <div class="conveyor-belt belt-left">
+                    <div class="water-flow"></div>
+                </div>
+            </div>
+            
+            <!-- 底部删除区域 -->
+            
+            <div class="switches" id="switches"></div>
+            
+            <div class="letter-container" id="letterContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态变量
+        let targetWord = "Apple";
+        let currentLetters = [];
+        let score = 0;
+        let deletedCount = 0;
+        let gameActive = false;
+        let letterBalls = [];
+        let ballInterval;
+        let switches = [];
+        let selectedBall = null;
+        let isDragging = false;
+        let autoMode = true;
+        
+        // DOM元素
+        const targetWordInput = document.getElementById('targetWord');
+        const setWordBtn = document.getElementById('setWord');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const toggleAutoBtn = document.getElementById('toggleAuto');
+        const autoStatusSpan = document.getElementById('autoStatus');
+        const scoreElement = document.getElementById('score');
+        const deletedCountElement = document.getElementById('deletedCount');
+        const statusElement = document.getElementById('status');
+        const letterContainer = document.getElementById('letterContainer');
+        const switchesContainer = document.getElementById('switches');
+        const animationArea = document.getElementById('animationArea');
+        
+        // 彩虹颜色
+        const rainbowColors = [
+            '#FF0000', // 红
+            '#FF7F00', // 橙
+            '#FFFF00', // 黄
+            '#00FF00', // 绿
+            '#0000FF', // 蓝
+            '#4B0082', // 靛
+            '#9400D3'  // 紫
+        ];
+        
+        // 初始化游戏
+        function initGame() {
+            // 重置游戏状态
+            currentLetters = [];
+            score = 0;
+            deletedCount = 0;
+            gameActive = false;
+            letterBalls = [];
+            selectedBall = null;
+            isDragging = false;
+            clearInterval(ballInterval);
+            
+            // 更新UI
+            scoreElement.textContent = score;
+            deletedCountElement.textContent = deletedCount;
+            statusElement.textContent = "准备开始游戏";
+            
+            // 清除字母球
+            document.querySelectorAll('.letter-ball').forEach(ball => ball.remove());
+            
+            // 设置目标单词
+            setupTargetWord();
+            
+            // 设置开关
+            setupSwitches();
+        }
+        
+        // 设置目标单词
+        function setupTargetWord() {
+            // 清除容器
+            letterContainer.innerHTML = '';
+            
+            // 创建字母槽
+            for (let i = 0; i < targetWord.length; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'letter-slot';
+                slot.textContent = targetWord[i].toUpperCase();
+                letterContainer.appendChild(slot);
+            }
+        }
+        
+        // 设置开关
+        function setupSwitches() {
+            // 清除开关
+            switchesContainer.innerHTML = '';
+            switches = [];
+            
+            // 创建开关
+            for (let i = 0; i < targetWord.length; i++) {
+                const switchElement = document.createElement('div');
+                switchElement.className = 'switch';
+                switchElement.textContent = targetWord[i].toUpperCase();
+                switchElement.dataset.index = i;
+                switchElement.dataset.letter = targetWord[i].toUpperCase();
+                
+                // 添加点击事件
+                switchElement.addEventListener('click', () => {
+                    if (gameActive && !autoMode) {
+                        toggleSwitch(i);
+                    }
+                });
+                
+                switchesContainer.appendChild(switchElement);
+                switches.push({
+                    element: switchElement,
+                    active: false,
+                    letter: targetWord[i].toUpperCase(),
+                    index: i
+                });
+            }
+        }
+        
+        // 切换开关状态
+        function toggleSwitch(index) {
+            const switchObj = switches[index];
+            switchObj.active = !switchObj.active;
+            
+            if (switchObj.active) {
+                switchObj.element.classList.add('active');
+            } else {
+                switchObj.element.classList.remove('active');
+            }
+        }
+        
+        // 自动激活开关
+        function autoActivateSwitches() {
+            if (!autoMode || currentLetters.length >= targetWord.length) return;
+            
+            const targetLetter = targetWord[currentLetters.length].toUpperCase();
+            const switchIndex = currentLetters.length;
+            const switchObj = switches[switchIndex];
+            
+            // 如果开关未激活，自动激活
+            if (!switchObj.active) {
+                switchObj.active = true;
+                switchObj.element.classList.add('active');
+            }
+        }
+        
+        // 选中字母球
+        function selectBall(ball) {
+            // 取消之前选中的球
+            if (selectedBall) {
+                selectedBall.element.classList.remove('selected', 'dragging');
+            }
+            
+            // 选中新球
+            selectedBall = ball;
+            ball.element.classList.add('selected');
+            statusElement.textContent = `已选中字母: ${ball.letter}`;
+        }
+        
+        // 取消选中
+        function deselectBall() {
+            if (selectedBall) {
+                selectedBall.element.classList.remove('selected', 'dragging');
+                selectedBall = null;
+                statusElement.textContent = "已取消选中";
+            }
+        }
+        
+        // 删除字母球
+        function deleteBall(ball, index) {
+            if (ball.deleting) return;
+            
+            ball.deleting = true;
+            ball.element.classList.add('deleting');
+            ball.element.classList.remove('floating', 'selected', 'dragging', 'falling');
+            
+            // 更新删除计数
+            deletedCount++;
+            deletedCountElement.textContent = deletedCount;
+            
+            statusElement.textContent = `字母 ${ball.letter} 从顶部落到底部已被删除`;
+            
+            // 动画完成后移除元素
+            setTimeout(() => {
+                if (ball.element.parentNode) {
+                    ball.element.remove();
+                }
+                const ballIndex = letterBalls.indexOf(ball);
+                if (ballIndex > -1) {
+                    letterBalls.splice(ballIndex, 1);
+                }
+                
+                // 如果删除的是选中的球，取消选中
+                if (selectedBall === ball) {
+                    deselectBall();
+                }
+            }, 500);
+        }
+        
+        // 检查是否从顶部落到底部
+        function checkTopToBottomDelete(ball, index) {
+            // 只有当球从顶部传送带移动到底部传送带时才删除
+            if (ball.direction === 'down' && 
+                ball.basePosition.y <= 10 && // 接近底部
+                ball.wasOnTop) { // 之前是在顶部传送带
+                
+                deleteBall(ball, index);
+                return true;
+            }
+            return false;
+        }
+        
+        // 自动掉落字母球到对应位置
+        function autoDropBallToSlot(ball, switchIndex) {
+            if (ball.dropping || ball.deleting) return;
+            
+            // 检查是否是下一个需要的字母
+            if (currentLetters.length < targetWord.length && 
+                ball.letter === targetWord[currentLetters.length].toUpperCase()) {
+                
+                ball.dropping = true;
+                ball.element.classList.remove('floating', 'selected');
+                ball.element.classList.add('falling');
+                
+                // 获取对应字母槽的位置
+                const slots = document.querySelectorAll('.letter-slot');
+                const targetSlot = slots[currentLetters.length];
+                const slotRect = targetSlot.getBoundingClientRect();
+                const areaRect = animationArea.getBoundingClientRect();
+                
+                // 计算字母球应该掉落到的位置
+                const targetX = slotRect.left + slotRect.width/2 - areaRect.left - 20;
+                const targetY = areaRect.bottom - slotRect.top - slotRect.height/2 - 20;
+                
+                // 设置掉落动画 - 正常速度 (1秒)
+                ball.element.style.transition = 'all 1s ease-in-out';
+                ball.element.style.left = `${targetX}px`;
+                ball.element.style.bottom = `${targetY}px`;
+                
+                statusElement.textContent = `自动掉落: 字母 ${ball.letter} 正在落入位置`;
+                
+                // 动画完成后处理
+                setTimeout(() => {
+                    // 添加到当前字母数组
+                    currentLetters.push(ball.letter);
+                    
+                    // 更新UI
+                    targetSlot.classList.add('filled');
+                    
+                    // 移除字母球
+                    
+                    // 关闭对应的开关
+                    const switchObj = switches[switchIndex];
+                    if (switchObj.active) {
+                        switchObj.active = false;
+                        switchObj.element.classList.remove('active');
+                    }
+                    
+                    // 检查是否完成单词
+                    if (currentLetters.length === targetWord.length) {
+                        completeWord();
+                    } else {
+                        statusElement.textContent = `正确! 下一个字母: ${targetWord[currentLetters.length].toUpperCase()}`;
+                    }
+                }, 1000);
+                
+                return true;
+            }
+            return false;
+        }
+        
+        // 开始游戏
+        function startGame() {
+            if (gameActive) return;
+            
+            gameActive = true;
+            statusElement.textContent = autoMode ? 
+                "自动模式进行中... 正确的字母会自动掉落" : 
+                "手动模式进行中... 点击字母球可以拖动";
+            
+            // 开始生成字母球
+            ballInterval = setInterval(createLetterBall, 700);
+            
+            // 开始移动字母球
+            moveLetterBalls();
+        }
+        
+        // 创建字母球
+        function createLetterBall() {
+            if (!gameActive) return;
+            
+            // 随机选择字母
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const letter = letters[Math.floor(Math.random() * letters.length)];
+            
+            // 创建字母球元素
+            const ball = document.createElement('div');
+            ball.className = 'letter-ball floating';
+            ball.textContent = letter;
+            
+            // 设置随机彩虹颜色
+            const colorIndex = Math.floor(Math.random() * rainbowColors.length);
+            ball.style.backgroundColor = rainbowColors[colorIndex];
+            
+            // 设置初始位置
+            const areaWidth = animationArea.offsetWidth;
+            const areaHeight = animationArea.offsetHeight;
+            const ballSize = 40;
+            
+            ball.style.left = `${areaWidth / 2 - ballSize / 2}px`;
+            ball.style.bottom = `10px`;
+            
+            // 添加点击事件
+            ball.addEventListener('mousedown', startDrag);
+            ball.addEventListener('touchstart', startDrag);
+            
+            // 添加到动画区域
+            animationArea.appendChild(ball);
+            
+            // 存储字母球信息
+            const ballObj = {
+                element: ball,
+                letter: letter,
+                basePosition: {
+                    x: areaWidth / 2 - ballSize / 2,
+                    y: 10
+                },
+                direction: 'right',
+                speed: 1,
+                dropping: false,
+                selected: false,
+                deleting: false,
+                wasOnTop: false // 标记是否曾经在顶部传送带
+            };
+            
+            letterBalls.push(ballObj);
+        }
+        
+        // 开始拖动
+        function startDrag(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (!gameActive) return;
+            
+            const ballElement = e.target;
+            const ball = letterBalls.find(b => b.element === ballElement);
+            
+            if (!ball || ball.dropping || ball.deleting) return;
+            
+            selectBall(ball);
+            isDragging = true;
+            ball.dropping = true; // 停止自动移动
+            
+            ball.element.classList.add('dragging');
+            ball.element.classList.remove('floating');
+            
+            // 鼠标/触摸移动事件
+            const moveHandler = (moveEvent) => {
+                if (!isDragging || !selectedBall) return;
+                
+                const clientX = moveEvent.clientX || (moveEvent.touches && moveEvent.touches[0].clientX);
+                const clientY = moveEvent.clientY || (moveEvent.touches && moveEvent.touches[0].clientY);
+                
+                if (clientX && clientY) {
+                    const areaRect = animationArea.getBoundingClientRect();
+                    const ballSize = 40;
+                    
+                    const x = clientX - areaRect.left - ballSize / 2;
+                    const y = areaRect.bottom - clientY - ballSize / 2;
+                    
+                    // 限制在动画区域内
+                    const boundedX = Math.max(0, Math.min(x, areaRect.width - ballSize));
+                    const boundedY = Math.max(0, Math.min(y, areaRect.height - ballSize));
+                    
+                    ball.element.style.left = `${boundedX}px`;
+                    ball.element.style.bottom = `${boundedY}px`;
+                    
+                    // 更新基础位置
+                    ball.basePosition.x = boundedX;
+                    ball.basePosition.y = boundedY;
+                }
+            };
+            
+            // 停止拖动
+            const stopHandler = () => {
+                isDragging = false;
+                if (selectedBall && !selectedBall.deleting) {
+                    selectedBall.element.classList.remove('dragging');
+                    
+                    // 检查是否与开关碰撞
+                    checkSwitchCollision(selectedBall, letterBalls.indexOf(selectedBall));
+                    
+                    // 如果没有碰撞，恢复浮动动画
+                    if (!selectedBall.dropping) {
+                        selectedBall.element.classList.add('floating');
+                    }
+                }
+                
+                // 移除事件监听器
+                document.removeEventListener('mousemove', moveHandler);
+                document.removeEventListener('touchmove', moveHandler);
+                document.removeEventListener('mouseup', stopHandler);
+                document.removeEventListener('touchend', stopHandler);
+            };
+            
+            // 添加事件监听器
+            document.addEventListener('mousemove', moveHandler);
+            document.addEventListener('touchmove', moveHandler);
+            document.addEventListener('mouseup', stopHandler);
+            document.addEventListener('touchend', stopHandler);
+        }
+        
+        // 移动字母球（自动移动）
+        function moveLetterBalls() {
+            if (!gameActive) return;
+            
+            const areaWidth = animationArea.offsetWidth;
+            const areaHeight = animationArea.offsetHeight;
+            const ballSize = 40;
+            const beltWidth = 60;
+            const margin = 8;
+            
+            // 自动模式下激活对应开关
+            if (autoMode) {
+                autoActivateSwitches();
+            }
+            
+            // 更新每个字母球的位置
+            letterBalls.forEach((ball, index) => {
+                // 如果球被选中、正在拖动、正在删除或正在掉落，跳过自动移动
+                if (ball.dropping || ball === selectedBall || ball.deleting) return;
+                
+                // 记录是否在顶部传送带
+                if (ball.direction === 'left' && ball.basePosition.y >= areaHeight - ballSize - beltWidth - margin) {
+                    ball.wasOnTop = true;
+                }
+                
+                // 根据方向移动
+                switch (ball.direction) {
+                    case 'right':
+                        ball.basePosition.x += ball.speed;
+                        if (ball.basePosition.x >= areaWidth - ballSize - beltWidth) {
+                            ball.direction = 'up';
+                            ball.basePosition.x = areaWidth - ballSize;
+                            ball.basePosition.y = margin;
+                        }
+                        break;
+                    case 'up':
+                        ball.basePosition.y += ball.speed;
+                        if (ball.basePosition.y >= areaHeight - ballSize - beltWidth - margin) {
+                            ball.direction = 'left';
+                            ball.basePosition.y = areaHeight - ballSize - margin;
+                            ball.basePosition.x = areaWidth - ballSize - beltWidth;
+                        }
+                        break;
+                    case 'left':
+                        ball.basePosition.x -= ball.speed;
+                        if (ball.basePosition.x <= beltWidth + margin) {
+                            ball.direction = 'down';
+                            ball.basePosition.x = margin;
+                            ball.basePosition.y = areaHeight - ballSize - beltWidth;
+                        }
+                        break;
+                    case 'down':
+                        ball.basePosition.y -= ball.speed;
+                        if (ball.basePosition.y <= margin) {
+                            // 检查是否从顶部落到底部
+                            if (ball.wasOnTop) {
+                                checkTopToBottomDelete(ball, index);
+                            } else {
+                                ball.direction = 'right';
+                                ball.basePosition.y = margin;
+                                ball.basePosition.x = beltWidth;
+                            }
+                        }
+                        break;
+                }
+                
+                // 更新元素位置
+                ball.element.style.left = `${ball.basePosition.x}px`;
+                ball.element.style.bottom = `${ball.basePosition.y}px`;
+                
+                // 自动模式下检查是否应该掉落
+                if (autoMode) {
+                    checkAutoDrop(ball, index);
+                }
+            });
+            
+            // 继续动画
+            requestAnimationFrame(moveLetterBalls);
+        }
+        
+        // 检查自动掉落
+        let lastIndex = -1;
+        function checkAutoDrop(ball, ballIndex) {
+            if (ball.dropping || ball.deleting) return;
+            
+            const ballRect = ball.element.getBoundingClientRect();
+            
+            switches.forEach((switchObj, switchIndex) => {
+                if (!switchObj.active) return;
+                
+                const switchRect = switchObj.element.getBoundingClientRect();
+                
+                // 碰撞检测
+                if (ball.direction=='left'&&ballRect.left < switchRect.right &&
+                    ballRect.right > switchRect.left &&
+                    ballRect.top < switchRect.bottom 
+                   ) {
+                    
+                    // 检查字母是否匹配
+                    if (ball.letter === targetWord[switchIndex].toUpperCase() && lastIndex !== switchIndex) {
+                        // 字母匹配，自动掉落
+                        lastIndex = switchIndex;
+                        autoDropBallToSlot(ball, switchIndex);
+                    }
+                }
+            });
+        }
+        
+        // 检查开关碰撞（手动模式）
+        function checkSwitchCollision(ball, ballIndex) {
+            if (ball.dropping || ball.deleting || autoMode) return;
+            
+            const ballRect = ball.element.getBoundingClientRect();
+            
+            switches.forEach((switchObj, switchIndex) => {
+                if (!switchObj.active) return;
+                
+                const switchRect = switchObj.element.getBoundingClientRect();
+                
+                // 碰撞检测
+                if (ballRect.left < switchRect.right &&
+                    ballRect.right > switchRect.left &&
+                    ballRect.top < switchRect.bottom &&
+                    ballRect.bottom > switchRect.top) {
+                    
+                    // 检查字母是否匹配
+                    if (ball.letter === targetWord[switchIndex].toUpperCase()) {
+                        // 字母匹配，添加到容器
+                        addLetterToContainer(ball, ballIndex, switchIndex);
+                    } else {
+                        // 字母不匹配，移除字母球
+                        removeLetterBall(ballIndex);
+                        statusElement.textContent = `错误字母: ${ball.letter}`;
+                    }
+                }
+            });
+        }
+        
+        // 添加字母到容器（手动模式）
+        function addLetterToContainer(ball, ballIndex, switchIndex) {
+            // 检查是否是下一个需要的字母
+            if (currentLetters.length < targetWord.length && 
+                ball.letter === targetWord[currentLetters.length].toUpperCase()) {
+                
+                // 标记为正在掉落
+                ball.dropping = true;
+                
+                // 移除浮动动画和选中状态
+                ball.element.classList.remove('floating', 'selected');
+                
+                // 获取对应字母槽的位置
+                const slots = document.querySelectorAll('.letter-slot');
+                const targetSlot = slots[currentLetters.length];
+                const slotRect = targetSlot.getBoundingClientRect();
+                const areaRect = animationArea.getBoundingClientRect();
+                
+                // 计算字母球应该掉落到的位置
+                const targetX = slotRect.left + slotRect.width/2 - areaRect.left - 20;
+                const targetY = areaRect.bottom - slotRect.top - slotRect.height/2 - 20;
+                
+                // 设置掉落动画
+                ball.element.style.transition = 'all 0.5s ease-in';
+                ball.element.style.left = `${targetX}px`;
+                ball.element.style.bottom = `${targetY}px`;
+                //ball.element.style.transform = 'scale(0.5)';
+                
+                // 动画完成后处理
+                setTimeout(() => {
+                    // 添加到当前字母数组
+                    currentLetters.push(ball.letter);
+                    
+                    // 更新UI
+                    targetSlot.classList.add('filled');
+                    
+                
+                    
+                    // 检查是否完成单词
+                    if (currentLetters.length === targetWord.length) {
+                        completeWord();
+                    } else {
+                        statusElement.textContent = `正确! 下一个字母: ${targetWord[currentLetters.length].toUpperCase()}`;
+                    }
+                }, 500);
+                
+            } else {
+                // 不是正确的字母顺序
+                removeLetterBall(ballIndex);
+                statusElement.textContent = `错误顺序! 需要: ${targetWord[currentLetters.length].toUpperCase()}`;
+            }
+        }
+        
+        // 完成单词
+        function completeWord() {
+            score += targetWord.length * 10;
+            scoreElement.textContent = score;
+            statusElement.textContent = `完成单词: ${targetWord}! 得分 +${targetWord.length * 10}`;
+            
+            // 重置当前字母
+            currentLetters = [];
+            
+            // 清除容器中的填充状态
+            document.querySelectorAll('.letter-slot').forEach(slot => {
+                slot.classList.remove('filled');
+            });
+            
+            // 关闭所有开关
+            switches.forEach(switchObj => {
+                if (switchObj.active) {
+                    switchObj.active = false;
+                    switchObj.element.classList.remove('active');
+                }
+            });
+            
+            // 取消选中
+            deselectBall();
+        }
+        
+        // 移除字母球
+        function removeLetterBall(index) {
+            if (index >= 0 && index < letterBalls.length) {
+                letterBalls[index].element.remove();
+                letterBalls.splice(index, 1);
+            }
+        }
+        
+        // 点击动画区域取消选中
+        animationArea.addEventListener('click', (e) => {
+            if (e.target === animationArea && selectedBall) {
+                deselectBall();
+            }
+        });
+        
+        // 事件监听
+        setWordBtn.addEventListener('click', () => {
+            const newWord = targetWordInput.value.trim();
+            if (newWord && /^[a-zA-Z]+$/.test(newWord)) {
+                targetWord = newWord;
+                initGame();
+                statusElement.textContent = `目标单词已设置为: ${targetWord}`;
+            } else {
+                statusElement.textContent = "请输入有效的单词(仅包含字母)";
+            }
+        });
+        
+        startBtn.addEventListener('click', startGame);
+        
+        resetBtn.addEventListener('click', initGame);
+        
+        toggleAutoBtn.addEventListener('click', () => {
+            autoMode = !autoMode;
+            autoStatusSpan.textContent = autoMode ? "开启" : "关闭";
+            statusElement.textContent = autoMode ? "已切换到自动模式" : "已切换到手动模式";
+            
+            // 重置所有开关状态
+            switches.forEach(switchObj => {
+                if (switchObj.active) {
+                    switchObj.active = false;
+                    switchObj.element.classList.remove('active');
+                }
+            });
+        });
+        
+        // 初始化游戏
+        initGame();
+    </script>
+</body>
+</html>
