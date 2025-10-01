@@ -380,6 +380,7 @@ export default function AudioCreationTabs({ onUploadSuccess }: AudioCreationTabs
         audioUrl: URL.createObjectURL(blob)
       });
       oriBlob.current = blob;
+      setSharedFormData(prev => ({ ...prev, title: prev.title || 'Recording ' + new Date().toISOString().slice(0,19).replace('T',' ') }));
     } else if (typeof blob === 'string') {
       updateAudioState({
         audioUrl: blob,

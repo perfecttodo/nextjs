@@ -194,14 +194,15 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
         }
       };
 
-      recorder.onstop = () => {
+      recorder.onstop = async () => {
         if (chunksRef.current.length > 0) {
           const blob = new Blob(chunksRef.current, { type: mimeType });
           const sizeInKB = (blob.size / 1024).toFixed(2);
           setAudioSize(`${sizeInKB} KB`);
           const url = URL.createObjectURL(blob);
           setAudioUrl(url);
-          onSuccess(blob);
+         // onSuccess(blob);
+
         }
         setIsRecording(false);
         setRecordingDuration(0);
@@ -216,6 +217,8 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
         }
         mediaRecorderRef.current = null;
       };
+
+
 
       recorder.onerror = (event) => {
         console.error('MediaRecorder error:', event);
@@ -269,9 +272,11 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
       setRecordingDuration(0);
       setAudioSize('0 KB');
     }
-    downloadAudio();
   };
-
+      useEffect(() => {
+        if(audioUrl)
+           downloadAudio();
+      },[audioUrl]);
   // Play/Pause (unchanged)
   const playPause = () => {
     if (wavesurferRef.current) {
@@ -755,7 +760,6 @@ export default function AudioRecord({ onSuccess, onStart }: RecordProvider) {
               ? 'bg-red-600 hover:bg-red-700'
               : 'bg-blue-600 hover:bg-blue-700'
           }`}
-          disabled={!!error}
         >
           {isRecording ? 'Stop Recording' : 'Start New Recording'}
         </button>
