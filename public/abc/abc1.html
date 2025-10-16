@@ -454,7 +454,6 @@
             const fullscreenBtn = document.getElementById('fullscreenBtn');
             const toggleControlsBtn = document.getElementById('toggleControlsBtn');
             const controls = document.getElementById('controls');
-            const typingIndicator = document.getElementById('typingIndicator');
             
             // Game state
             let currentIndex = 0;
@@ -500,7 +499,6 @@
             function handleKeyPress(event) {
                 if (!typingMode) {
                     typingMode = true;
-                    typingIndicator.style.display = 'block';
                     
                     // If song is playing, pause it
                     if (isPlaying) {
@@ -509,6 +507,14 @@
                 }
                 
                 const key = event.key.toUpperCase();
+
+                 if (key==' ') {
+                      if (isPlaying) {
+                     pauseSong();
+                     }else{
+                        playSong();
+                     }
+                                     }else
                 
                 if (alphabet.includes(key)) {
                     const keyIndex = alphabet.indexOf(key);
@@ -524,7 +530,6 @@
                             setTimeout(() => {
                                 resetGame();
                                 typingMode = false;
-                                typingIndicator.style.display = 'none';
                             }, 2000);
                         }
                     } else {
@@ -545,7 +550,6 @@
                 startBtn.disabled = true;
                 pauseBtn.disabled = false;
                 typingMode = false;
-                typingIndicator.style.display = 'none';
                 
                 // Reset if we're at the end
                 if (currentIndex >= alphabet.length) {
@@ -592,7 +596,6 @@
                 progressBar.style.width = '0%';
                 currentLetterDisplay.textContent = 'A';
                 typingMode = false;
-                typingIndicator.style.display = 'none';
                 
                 // Remove active class from all letters
                 letterElements.forEach(el => {
