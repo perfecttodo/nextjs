@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const limit = parseInt(searchParams.get('limit') || '100');
     const offset = (page - 1) * limit;
 
     // Get published episodes ordered by upload date descending
@@ -45,16 +45,11 @@ export async function GET(request: NextRequest) {
 
 
 
-const data = episodes.map((e: { title: any; blobUrl: any;createdAt:any })=>{
-  return      { "title": e.createdAt.toISOString().split('T')[0] +' '+ e.title.replace(/'/g,''),
+const data =  [{ "title": episodes[0].createdAt.toISOString().split('T')[0],
       "img": "",
-      "urls": [
-        {
-          "url": e.blobUrl
-        }
-      ]
-    }
-});
+      "urls": episodes.map((e: { title: any; blobUrl: any;createdAt:any })=>  {return {url:e.blobUrl,title:e.title}})
+      
+    }];
     const news = {  "id": 100,
   "channel": "News",
   "clean": 1,
