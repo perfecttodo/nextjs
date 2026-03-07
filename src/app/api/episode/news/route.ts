@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
 
 const data = episodes.map((e: { title: any; blobUrl: any;createdAt:any })=>{
-  return      { "title": e.createdAt.toISOString().split('T')[0] +' '+ e.title,
+  return      { "title": e.createdAt.toISOString().split('T')[0] +' '+ e.title.replace(/'/g,''),
       "img": "",
       "urls": [
         {
