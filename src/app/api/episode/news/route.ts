@@ -53,7 +53,8 @@ const data =  [{ "title": episodes[0].createdAt.toISOString().split('T')[0],
     const news = {  "id": 100,
   "channel": "News",
   "clean": 1,
-  "data": data
+  "data": data,
+  "sync": 1
   };
     return NextResponse.json(news);
   } catch (error) {
