@@ -15,7 +15,7 @@ export default async function AlbumPage({ params, searchParams }: PageProps) {
   const resolvedSearchParams = await searchParams;
   
   const currentPage = Number(resolvedSearchParams.page) || 1;
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
   const skip = (currentPage - 1) * itemsPerPage;
 
   // Fetch album details with paginated episodes

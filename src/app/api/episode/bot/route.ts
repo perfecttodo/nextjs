@@ -27,7 +27,6 @@ async function getItems(jsonUrl: string) {
       const url = file.url;
       const fileSize = file.fileSize || 0;
       const duration = e.videoMetadata.playTime;
-  
       return {
         title: e.title,
         url,
@@ -81,6 +80,24 @@ export async function GET(request: NextRequest) {
   
         // Save to database
         try {
+
+        const [episodes] = await Promise.all([
+          prisma.episode.findMany({
+            where: { 
+              status: 'published',
+              albumId: albumId,
+              blobUrl: e.url
+            },
+            select: {
+              id: true
+              // Add other fields you want to select here
+            }
+          })
+        ]);
+
+        if(episodes.length==0){
+
+        
           const episode = await prisma.episode.create({
             data: {
               title: e.title.trim(),
@@ -97,6 +114,10 @@ export async function GET(request: NextRequest) {
               albumId: albumId || null,
             }
           });
+            console.log(episode.id,episode.title,episode.createdAt)
+
+            }
+
         } catch (err) {
           console.log('err', err)
         }

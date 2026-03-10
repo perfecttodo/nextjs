@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
 
 const data =  [{ "title": episodes[0].createdAt.toISOString().split('T')[0],
       "img": "",
-      "urls": episodes.map((e: { title: any; blobUrl: any;createdAt:any })=>  {return {url:e.blobUrl,title:e.title}})
+      "urls": episodes.map((e: { title: any; blobUrl: any;createdAt:any })=>  {return {url:e.blobUrl,title:e.title,date:e.createdAt}})
       
     }];
     const news = {  "id": 100,
