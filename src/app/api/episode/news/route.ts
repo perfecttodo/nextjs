@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { doIt } from '../bot/route';
+import { doIt } from '../bot-sync';
 const albumId = process.env.BOT_ALBUM_ID;
 
 export async function GET(request: NextRequest) {
