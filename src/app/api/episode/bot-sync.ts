@@ -9,7 +9,7 @@ const albumId = process.env.BOT_ALBUM_ID;
 
 // Rate limiting variables
 let lastExecutionTime: number | null = null;
-const RATE_LIMIT_MS =30 * 60 * 1000; // 10 minutes in milliseconds
+const RATE_LIMIT_MS =60 * 60 * 1000; // 10 minutes in milliseconds
 
 function getFirst(e: { externalVideoFiles: { url: string; fileSize?: number }[] }) {
   return e.externalVideoFiles.sort((a, b) => {
@@ -47,7 +47,8 @@ async function getItems(jsonUrl: string) {
         fileSize,
         duration,
         format: e.format,
-        timestamp:e.timestamp
+        timestamp:e.timestamp,
+        channel:data.title
       }
     });
   }
@@ -77,7 +78,8 @@ export async function doIt() {
 
         for (let i = 0; i < items.length; i++) {
           let e = items[i];
-
+          if(!e.url)continue;
+          
           const status = 'published';
           let format = e?.format || getMimeTypeFromUrl(e.url);
           if (!format) {
@@ -108,7 +110,7 @@ export async function doIt() {
                   fileSize: e.fileSize,
                   status,
                   ownerId: onwerId || '',
-                  description: null,
+                  description: e.channel,
                   language: null,
                   originalWebsite: null,
                   duration: typeof e.duration === 'string' ? parseInt(e.duration) : e.duration,

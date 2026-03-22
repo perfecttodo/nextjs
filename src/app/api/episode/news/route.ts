@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
           ownerId: true,
           createdAt: true,
           updatedAt: true,
+          description:true,
           // category/subcategory moved under album
           album: {
             select: {
@@ -51,17 +52,40 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
+const groupedByDescription = episodes.reduce((acc, episode) => {
+  const description = episode.description;
+  if(description){
+  if (!acc[description]) {
+    acc[description] = [];
+  }
+  acc[description].push(episode);
+  }
 
+  return acc;
+}, {} as Record<string, typeof episodes>);
 
-const data =  [{ "title": 'CBS '+episodes[0].createdAt.toISOString().split('T')[0],
+const data =  [
+  
+  { "title": 'CBS '+episodes[0].createdAt.toISOString().split('T')[0],
       "img": "",
-      "urls": episodes.filter(e=>e.blobUrl.indexOf('cbs')>-1).map((e: { title: any; blobUrl: any;createdAt:any })=>  {return {url:e.blobUrl,title:e.title,date:e.createdAt}})
+      "urls": episodes.filter(e=>e.blobUrl.indexOf('cbs')>-1).map((e: { title: any;  blobUrl: any;createdAt:any })=>  {return {url:e.blobUrl,title:e.createdAt.toISOString().split('T')[0] + ' '+e.title,date:e.createdAt}})
       
     },{ "title": 'MSN '+episodes[0].createdAt.toISOString().split('T')[0],
       "img": "",
-      "urls": episodes.filter(e=>e.blobUrl.indexOf('msn')>-1).map((e: { title: any; blobUrl: any;createdAt:any })=>  {return {url:e.blobUrl,title:e.title,date:e.createdAt}})
+      "urls": episodes.filter(e=>e.blobUrl.indexOf('msn')>-1).map((e: { title: any; blobUrl: any;createdAt:any })=>  {return {url:e.blobUrl,title:e.createdAt.toISOString().split('T')[0] + ' '+e.title,date:e.createdAt}})
       
-    }];
+    }].concat(Object.entries(groupedByDescription).map(([description, groupEpisodes]) => {
+  return {
+    title: description + groupEpisodes[0].createdAt.toISOString().split('T')[0],
+    img: "",
+    urls: groupEpisodes.map(e => ({
+      url: e.blobUrl,
+      title: e.createdAt.toISOString().split('T')[0] + ' '+e.title,
+      "img": "",
+      date: e.createdAt,
+    }))
+  };
+}));
     const news = {  "id": 100,
   "channel": "News",
   "clean": 1,

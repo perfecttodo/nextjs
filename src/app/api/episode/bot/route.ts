@@ -8,52 +8,6 @@ const jsonUrl = process.env.BOT_NEW_JSON_URL;
 const onwerId = process.env.BOT_OWNER_ID;
 const albumId = process.env.BOT_ALBUM_ID;
 
-// Rate limiting variables
-let lastExecutionTime: number | null = null;
-const RATE_LIMIT_MS =30 * 60 * 1000; // 10 minutes in milliseconds
-
-function getFirst(e: { externalVideoFiles: { url: string; fileSize?: number }[] }) {
-  return e.externalVideoFiles.sort((a, b) => {
-    if (a.url.endsWith('.m3u8')) return -1; // Move .m3u8 to the front
-    if (b.url.endsWith('.m3u8')) return 1;  // Keep others in their original order
-    return 0; // No change for other elements
-  })[0]
-}
-
-async function getItems(jsonUrl: string) {
-  const data = await fetchJson(jsonUrl);
-
-  if(jsonUrl.indexOf(".msn")>-1){
-    return data.subCards.map((e: any) => {
-      let file = getFirst(e);
-      const url = file.url;
-      const fileSize = file.fileSize || 0;
-      const duration = e.videoMetadata.playTime;
-      return {
-        title: e.title,
-        url,
-        fileSize,
-        duration,
-        timestamp:new Date(e.publishedDateTime).getTime()
-      }
-    });
-  } else if(jsonUrl.indexOf(".cbs")>-1){
-    return data.items.map((e: any) => {
-      const url = e.video||e.video2;
-      const fileSize = 0;
-      const duration = e.duration;
-      return {
-        title: e.fulltitle,
-        url,
-        fileSize,
-        duration,
-        format: e.format,
-        timestamp:e.timestamp
-      }
-    });
-  }
-}
-
 
 export async function GET(request: NextRequest) {
   // Check if required environment variables are set
