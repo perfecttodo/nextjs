@@ -7,6 +7,9 @@ const jsonUrl = process.env.BOT_NEW_JSON_URL;
 const onwerId = process.env.BOT_OWNER_ID;
 const albumId = process.env.BOT_ALBUM_ID;
 
+// Rate limiting variables
+let lastExecutionTime: number | null = null;
+const RATE_LIMIT_MS =30 * 60 * 1000; // 10 minutes in milliseconds
 
 function getFirst(e: { externalVideoFiles: { url: string; fileSize?: number }[] }) {
   return e.externalVideoFiles.sort((a, b) => {
@@ -16,12 +19,10 @@ function getFirst(e: { externalVideoFiles: { url: string; fileSize?: number }[] 
   })[0]
 }
 
-
 async function getItems(jsonUrl: string) {
   const data = await fetchJson(jsonUrl);
 
   if(jsonUrl.indexOf(".msn")>-1){
-
     return data.subCards.map((e: any) => {
       let file = getFirst(e);
       const url = file.url;
@@ -33,16 +34,13 @@ async function getItems(jsonUrl: string) {
         fileSize,
         duration,
         timestamp:new Date(e.publishedDateTime).getTime()
-
       }
     });
-  }else   if(jsonUrl.indexOf(".cbs")>-1){
-
+  } else if(jsonUrl.indexOf(".cbs")>-1){
     return data.items.map((e: any) => {
       const url = e.video||e.video2;
-      const fileSize =0;
+      const fileSize = 0;
       const duration = e.duration;
-  
       return {
         title: e.fulltitle,
         url,
@@ -53,100 +51,118 @@ async function getItems(jsonUrl: string) {
       }
     });
   }
-
-
 }
-export async function GET(request: NextRequest) {
 
-      if (!jsonUrl || !onwerId || !albumId) {
-      console.error(jsonUrl, onwerId, albumId);
-      return NextResponse.json({ error: 'Missing required environment variables' }, { status: 500 });
-    }
+export async function doIt() {
+  // Check rate limit
+  const now = Date.now();
+  if (lastExecutionTime && (now - lastExecutionTime) < RATE_LIMIT_MS) {
+    const remainingTime = Math.ceil((RATE_LIMIT_MS - (now - lastExecutionTime)) / 1000);
+    const message = `Rate limited. Please wait ${remainingTime} seconds before calling again.`;
+    console.log(message);
+    return { success: false, error: message, remainingSeconds: remainingTime };
+  }
+
+  // Update last execution time
+  lastExecutionTime = now;
+  console.log(`Starting doIt execution at ${new Date(now).toISOString()}`);
 
   try {
+    if (jsonUrl) {
+      for (let url of jsonUrl.split(',')) {
+        console.log(`Processing URL: ${url}`);
+        const items = await getItems(url);
+        console.log('Fetched items:', items.length);
 
+        for (let i = 0; i < items.length; i++) {
+          let e = items[i];
 
+          const status = 'published';
+          let format = e?.format || getMimeTypeFromUrl(e.url);
+          if (!format) {
+            const detectFormat = await detectAudioFormat(e.url);
+            format = detectFormat.format;
+          }
 
-    await doIt();
+          // Save to database
+          try {
+            const episodes = await prisma.episode.findMany({
+              where: {
+                status: 'published',
+                albumId: albumId,
+                blobUrl: e.url
+              },
+              select: {
+                id: true
+              }
+            });
 
+            if (episodes.length == 0) {
+              const episode = await prisma.episode.create({
+                data: {
+                  title: e.title.trim(),
+                  originalName: e.title.trim(),
+                  blobUrl: e.url,
+                  format,
+                  fileSize: e.fileSize,
+                  status,
+                  ownerId: onwerId || '',
+                  description: null,
+                  language: null,
+                  originalWebsite: null,
+                  duration: typeof e.duration === 'string' ? parseInt(e.duration) : e.duration,
+                  albumId: albumId || null,
+                  createdAt: new Date(e.timestamp)
+                }
+              });
+              console.log(`Created episode: ${episode.id} - ${episode.title}`);
+            } else {
+              console.log(`Episode already exists: ${e.url}`);
+            }
+          } catch (err) {
+            console.error('Error saving episode:', err);
+            console.error('Failed episode data:', e);
+          }
+        }
+      }
+    }
+    
+    console.log(`Completed doIt execution at ${new Date().toISOString()}`);
+    return { success: true, message: 'Successfully processed all items' };
+  } catch (error) {
+    console.error('Error in doIt:', error);
+    return { success: false, error: String(error) };
+  }
+}
+
+export async function GET(request: NextRequest) {
+  // Check if required environment variables are set
+  if (!jsonUrl || !onwerId || !albumId) {
+    console.error('Missing environment variables:', { jsonUrl, onwerId, albumId });
+    return NextResponse.json({ error: 'Missing required environment variables' }, { status: 500 });
+  }
+
+  try {
+    const result = await doIt();
+    
+    if (!result.success) {
+      // Return 429 Too Many Requests if rate limited
+      const statusCode = result.remainingSeconds ? 429 : 500;
+      return NextResponse.json(
+        { error: result.error },
+        { status: statusCode }
+      );
+    }
 
     return NextResponse.json({
-      success: true
+      success: true,
+      message: result.message
     });
   } catch (error) {
-    console.error('Error processing audio URL:', error);
+    console.error('Error in GET handler:', error);
     return NextResponse.json(
       { error: 'Failed to process audio URL' },
       { status: 500 }
     );
-  }
-}
-
-export async function doIt() {
-  if(jsonUrl)
-  for (let url of jsonUrl.split(',')) {
-
-    const items = await getItems(url);;
-    console.log('Fetched items:', items.length);
-
-    for (let i = 0; i < items.length; i++) {
-      let e = items[i];
-
-      const status = 'published';
-      let format = e?.format || getMimeTypeFromUrl(e.url);
-      if (!format) {
-        const detectFormat = await detectAudioFormat(e.url);
-        format = detectFormat.format;
-
-      }
-
-
-      // Save to database
-      try {
-
-        const [episodes] = await Promise.all([
-          prisma.episode.findMany({
-            where: {
-              status: 'published',
-              albumId: albumId,
-              blobUrl: e.url
-            },
-            select: {
-              id: true
-              // Add other fields you want to select here
-            }
-          })
-        ]);
-
-        if (episodes.length == 0) {
-
-
-          const episode = await prisma.episode.create({
-            data: {
-              title: e.title.trim(),
-              originalName: e.title.trim(),
-              blobUrl: e.url,
-              format,
-              fileSize: e.fileSize,
-              status,
-              ownerId: onwerId||'',
-              description: null,
-              language: null,
-              originalWebsite: null,
-              duration: typeof e.duration === 'string' ? parseInt(e.duration) : e.duration,
-              albumId: albumId || null,
-              createdAt: new Date(e.timestamp)
-            }
-          });
-          console.log(episode.id, episode.title, episode.createdAt);
-
-        }
-
-      } catch (err) {
-        console.log('err', err);
-      }
-
-
-    }
   }
 }
