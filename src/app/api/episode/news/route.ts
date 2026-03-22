@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { doIt } from '../bot/route';
 const albumId = process.env.BOT_ALBUM_ID;
 
 export async function GET(request: NextRequest) {
   try {
+
+    try{
+          await doIt();
+    } catch(ee){
+      console.error(ee);
+    }
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '100');
@@ -45,9 +53,13 @@ export async function GET(request: NextRequest) {
 
 
 
-const data =  [{ "title": episodes[0].createdAt.toISOString().split('T')[0],
+const data =  [{ "title": 'CBS '+episodes[0].createdAt.toISOString().split('T')[0],
       "img": "",
-      "urls": episodes.map((e: { title: any; blobUrl: any;createdAt:any })=>  {return {url:e.blobUrl,title:e.title,date:e.createdAt}})
+      "urls": episodes.filter(e=>e.blobUrl.indexOf('cbs')>-1).map((e: { title: any; blobUrl: any;createdAt:any })=>  {return {url:e.blobUrl,title:e.title,date:e.createdAt}})
+      
+    },{ "title": 'MSN '+episodes[0].createdAt.toISOString().split('T')[0],
+      "img": "",
+      "urls": episodes.filter(e=>e.blobUrl.indexOf('msn')>-1).map((e: { title: any; blobUrl: any;createdAt:any })=>  {return {url:e.blobUrl,title:e.title,date:e.createdAt}})
       
     }];
     const news = {  "id": 100,
