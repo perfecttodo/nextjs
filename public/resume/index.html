@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>系統分析師 & 資深軟體開發工程師 | 個人作品集</title>
+    <meta name="description" content="擁有 10+ 年 IT 經驗的系統分析師與資深軟體工程師，精通 SDLC、系統架構設計與全棧/後端開發。">
+    
+    <!-- Open Graph for Social Sharing -->
+    <meta property="og:title" content="系統分析師 & 資深軟體開發工程師 | 個人作品集">
+    <meta property="og:description" content="10+ 年 IT 經驗，熟悉 SDLC 全生命週期，熱衷 Coding 與技術實踐。">
+    <meta property="og:type" content="website">
+
     <style>
         :root {
             --bg-color: #0f172a;
@@ -14,6 +21,7 @@
             --primary-hover: #0ea5e9;
             --border-color: #334155;
             --max-width: 1100px;
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -24,13 +32,15 @@
 
         html {
             scroll-behavior: smooth;
+            scroll-padding-top: 80px;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             line-height: 1.6;
+            overflow-x: hidden;
         }
 
         a {
@@ -45,7 +55,7 @@
         .container {
             max-width: var(--max-width);
             margin: 0 auto;
-            padding: 0 2rem;
+            padding: 0 1.5rem;
         }
 
         /* --- 導覽列 --- */
@@ -54,8 +64,9 @@
             top: 0;
             left: 0;
             width: 100%;
-            background-color: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(8px);
+            background-color: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border-color);
             z-index: 1000;
         }
@@ -71,6 +82,7 @@
             font-size: 1.25rem;
             font-weight: 700;
             color: var(--primary-color);
+            letter-spacing: -0.5px;
         }
 
         .nav-links {
@@ -82,18 +94,32 @@
         .nav-links a {
             color: var(--text-muted);
             font-weight: 500;
-            transition: color 0.2s;
+            transition: var(--transition-smooth);
+            position: relative;
         }
 
-        .nav-links a:hover {
+        .nav-links a:hover,
+        .nav-links a.active {
             color: var(--primary-color);
         }
 
+        /* 漢堡選單按鈕 */
         .menu-toggle {
             display: none;
+            background: none;
+            border: none;
             cursor: pointer;
-            font-size: 1.5rem;
-            color: var(--text-color);
+            padding: 0.5rem;
+            z-index: 1001;
+        }
+
+        .hamburger-line {
+            display: block;
+            width: 24px;
+            height: 2px;
+            margin: 5px 0;
+            background-color: var(--text-color);
+            transition: var(--transition-smooth);
         }
 
         /* --- 通用區塊 --- */
@@ -120,15 +146,16 @@
 
         /* --- Hero 首屏 --- */
         #hero {
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             align-items: center;
-            text-align: left;
+            padding-top: 70px;
         }
 
         .hero-content h1 {
-            font-size: 3.5rem;
-            margin-bottom: 0.5rem;
+            font-size: clamp(2.2rem, 5vw, 3.5rem);
+            line-height: 1.2;
+            margin-bottom: 0.75rem;
         }
 
         .hero-content h1 span {
@@ -136,7 +163,7 @@
         }
 
         .hero-content h3 {
-            font-size: 1.5rem;
+            font-size: clamp(1.1rem, 3vw, 1.5rem);
             color: var(--text-muted);
             margin-bottom: 1.5rem;
             font-weight: 400;
@@ -152,19 +179,19 @@
         .btn-group {
             display: flex;
             gap: 1rem;
+            flex-wrap: wrap;
         }
 
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0.75rem 1.5rem;
+            padding: 0.8rem 1.6rem;
             border-radius: 6px;
             font-weight: 600;
-            transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
+            transition: var(--transition-smooth);
             cursor: pointer;
-            border: none;
-            text-align: center;
+            border: 1px solid transparent;
         }
 
         .btn.primary {
@@ -174,31 +201,48 @@
 
         .btn.primary:hover {
             background-color: var(--primary-hover);
+            transform: translateY(-2px);
         }
 
         .btn.secondary {
             background-color: transparent;
-            border: 1px solid var(--border-color);
+            border-color: var(--border-color);
             color: var(--text-color);
         }
 
         .btn.secondary:hover {
             border-color: var(--primary-color);
             color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* --- 關於我內容樣式 --- */
+        .about-text {
+            max-width: 800px;
+            margin: 0 auto;
+            color: var(--text-muted);
+        }
+        .about-text p {
+            margin-bottom: 1rem;
         }
 
         /* --- 技術棧 --- */
         .skills-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
         }
 
         .skill-card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
-            padding: 1.5rem;
+            padding: 1.75rem;
             border-radius: 8px;
+            transition: var(--transition-smooth);
+        }
+
+        .skill-card:hover {
+            border-color: var(--primary-color);
         }
 
         .skill-card h3 {
@@ -219,6 +263,7 @@
             position: absolute;
             left: 0;
             color: var(--primary-color);
+            font-weight: bold;
         }
 
         /* --- 經歷與學歷 --- */
@@ -228,7 +273,7 @@
         }
 
         .timeline-item {
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
             border-left: 2px solid var(--border-color);
             padding-left: 1.5rem;
             position: relative;
@@ -241,26 +286,28 @@
         .timeline-dot {
             position: absolute;
             left: -6px;
-            top: 5px;
+            top: 6px;
             width: 10px;
             height: 10px;
             background-color: var(--border-color);
             border-radius: 50%;
+            transition: var(--transition-smooth);
         }
 
         .timeline-item.active .timeline-dot {
             background-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2);
         }
 
         .timeline-date {
             font-size: 0.85rem;
-            color: var(--text-muted);
+            color: var(--primary-color);
             font-weight: 600;
         }
 
         .timeline-title {
             font-size: 1.25rem;
-            margin: 0.25rem 0;
+            margin: 0.25rem 0 0.5rem;
             color: var(--text-color);
         }
 
@@ -270,44 +317,45 @@
         }
 
         .timeline-desc ul {
-            margin-top: 0.5rem;
-            padding-left: 1rem;
+            padding-left: 1.2rem;
         }
 
         .timeline-desc li {
             list-style-type: disc;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.35rem;
         }
 
         /* --- 專案分類篩選 --- */
         .filter-btns {
             display: flex;
             justify-content: center;
+            flex-wrap: wrap;
             gap: 0.75rem;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
         }
 
         .filter-btn {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             color: var(--text-muted);
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 1.2rem;
             border-radius: 20px;
             cursor: pointer;
             font-size: 0.9rem;
-            transition: all 0.2s;
+            transition: var(--transition-smooth);
         }
 
         .filter-btn.active, .filter-btn:hover {
             background-color: var(--primary-color);
             color: var(--bg-color);
             border-color: var(--primary-color);
+            font-weight: 600;
         }
 
         /* --- 專案作品集 --- */
         .projects-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
         }
 
@@ -318,16 +366,22 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            transition: transform 0.2s, border-color 0.2s;
+            transition: transform 0.3s ease, border-color 0.3s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .project-card.hide {
+            display: none;
+            opacity: 0;
         }
 
         .project-card:hover {
-            transform: translateY(-4px);
+            transform: translateY(-5px);
             border-color: var(--primary-color);
         }
 
         .project-info {
-            padding: 1.5rem;
+            padding: 1.75rem;
             display: flex;
             flex-direction: column;
             flex-grow: 1;
@@ -349,7 +403,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
         }
 
         .project-tags span {
@@ -370,20 +424,22 @@
             font-size: 0.9rem;
             font-weight: 600;
             color: var(--primary-color);
+            transition: var(--transition-smooth);
         }
 
         .project-links a:hover {
+            color: var(--primary-hover);
             text-decoration: underline;
         }
 
         /* --- 聯絡區塊 --- */
         .contact-content {
             text-align: center;
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto;
             background-color: var(--card-bg);
             padding: 3rem 2rem;
-            border-radius: 8px;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
         }
 
@@ -393,17 +449,10 @@
             font-size: 1.05rem;
         }
 
-        .social-links {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
         /* --- 頁尾 --- */
         footer {
             text-align: center;
-            padding: 3rem 0;
+            padding: 2.5rem 0;
             border-top: 1px solid var(--border-color);
             color: var(--text-muted);
             font-size: 0.875rem;
@@ -411,29 +460,44 @@
 
         /* --- 響應式調整 --- */
         @media (max-width: 768px) {
-            .hero-content h1 {
-                font-size: 2.5rem;
-            }
             .menu-toggle {
                 display: block;
             }
+
             .nav-links {
-                display: none;
-                position: absolute;
+                position: fixed;
                 top: 70px;
                 left: 0;
                 width: 100%;
                 background-color: var(--card-bg);
                 flex-direction: column;
-                padding: 1.5rem 0;
+                padding: 2rem 0;
                 border-bottom: 1px solid var(--border-color);
-                text-align: center;
+                transform: translateY(-150%);
+                transition: transform 0.3s ease-in-out;
             }
+
             .nav-links.active {
-                display: flex;
+                transform: translateY(0);
             }
+
+            .menu-toggle.active .hamburger-line:nth-child(1) {
+                transform: translateY(7px) rotate(45deg);
+            }
+            .menu-toggle.active .hamburger-line:nth-child(2) {
+                opacity: 0;
+            }
+            .menu-toggle.active .hamburger-line:nth-child(3) {
+                transform: translateY(-7px) rotate(-45deg);
+            }
+
             .btn-group {
                 flex-direction: column;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
             }
         }
     </style>
@@ -444,8 +508,12 @@
     <header>
         <div class="container">
             <nav>
-                <div class="logo">求職Resume</div>
-                <div class="menu-toggle" id="mobile-menu">☰</div>
+                <a href="#" class="logo">求職Resume</a>
+                <button class="menu-toggle" id="mobile-menu" aria-label="切換選單">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
                 <ul class="nav-links" id="nav-links">
                     <li><a href="#about">關於我</a></li>
                     <li><a href="#skills">技術棧</a></li>
@@ -463,11 +531,11 @@
             <div class="hero-content">
                 <p>你好，我是</p>
                 <h1>系統分析師 <span>& 資深軟體開發工程師</span></h1>
-                <h3>10+ 年 IT 經驗，熱愛 Coding 與技術實踐的全能型技術人</h3>
+                <h3>10+ 年 IT 經驗，熱愛 Coding 與技術實踐的全棧技術人</h3>
                 <p>熟悉 SDLC 全生命週期，既能做好需求分析與架構設計，更熱衷於手動編寫高質量程式碼。工作踏實，溝通順暢，具備良好的多方協調與問題解決能力。</p>
                 <div class="btn-group">
                     <a href="#projects" class="btn primary">查看個人作品</a>
-                    <a href="mailto:your.email@example.com?subject=【招聘】索取完整個人履歷&body=你好，我們對您的背景與作品感興趣，希望能索取您的完整 PDF 履歷，謝謝！" class="btn secondary">✉️ 索取完整履歷</a>
+                    <a href="mailto:alexwang1980s@gmail.com?subject=【招聘】索取完整個人履歷&body=你好，我們對您的背景與作品感興趣，希望能索取您的完整 PDF 履歷，謝謝！" class="btn secondary">✉️ 索取完整履歷</a>
                 </div>
             </div>
         </div>
@@ -477,9 +545,9 @@
     <section id="about">
         <div class="container">
             <h2>關於我</h2>
-            <div style="max-width: 800px; margin: 0 auto; color: var(--text-muted);">
-                <p style="margin-bottom: 1rem;">擁有 10 年以上的 IT 行業深厚積澱，熟悉系統開發生命週期 (SDLC) 的每一個環節。除了出色的系統分析、需求跟進與多方協調能力外，我始終保持對<strong>動手實踐與技術編碼</strong>的熱情。</p>
-                <p style="margin-bottom: 1rem;">平時喜愛探索新技術、動手構建全棧專案與開發工具，注重程式碼可維護性、安全性與效能優化。</p>
+            <div class="about-text">
+                <p>擁有 10 年以上的 IT 行業深厚積澱，熟悉系統開發生命週期 (SDLC) 的每一個環節。除了出色的系統分析、需求跟進與多方協調能力外，我始終保持對<strong>動手實踐與技術編碼</strong>的熱情。</p>
+                <p>平時喜愛探索新技術、動手構建全棧專案與開發工具，注重程式碼可維護性、安全性與效能優化。</p>
                 <p>在專案實踐中，我恪守隱私保護與資訊安全原則，能獨立且高效地將業務需求轉化為高質量的系統代碼。</p>
             </div>
         </div>
@@ -520,7 +588,7 @@
         </div>
     </section>
 
-    <!-- 經歷與學歷（隱私去識別化保護處理） -->
+    <!-- 經歷與學歷 -->
     <section id="experience">
         <div class="container">
             <h2>工作經歷與學歷</h2>
@@ -582,56 +650,56 @@
             <h2>個人實踐與作品集</h2>
             <div class="filter-btns">
                 <button class="filter-btn active" data-filter="all">全部作品</button>
-                <button class="filter-btn" data-filter="fullstack">全棧 / 後端開發</button>
-                <button class="filter-btn" data-filter="tool">實用工具與模組</button>
+                <button class="filter-btn" data-filter="fullstack">全棧 / Web開發</button>
+                <button class="filter-btn" data-filter="app">應用開發</button>
             </div>
 
             <div class="projects-grid">
                 <div class="project-card" data-category="fullstack">
+            <div class="project-info">
+                <h3>Android 本地/網路視頻播放器APK</h3>
+                <p>基於 ExoPlayer 深度客製化的多媒體播放應用，整合本地媒體庫掃描與網路流媒體（HLS/DASH）播放，多媒體開發與 UI/UX 互動能力。</p>
+                <div class="project-tags">
+                    <span>ExoPlayer</span>
+                    <span>Web點播</span>
+                    <span>流媒體播放</span>
+                    <span>性能優化</span>
+                </div>
+                <div class="project-links">
+                    <a href="https://github.com/SMLOG/playerdemo/blob/b4/app-debug.apk" target="_blank" rel="noopener noreferrer">下載 APK 試用 →</a>
+                </div>
+            </div>
+                </div>
+
+                <!-- 精準優化：英文新聞音訊自動抓取與聽力 App -->
+                <div class="project-card" data-category="app">
                     <div class="project-info">
-                        <h3>高效能全棧業務管理系統</h3>
-                        <p>基於實踐熱情獨立開發的敏捷管理工具，實作完整權限管理、動態數據報表及安全認證 API，展現端到端的編碼實力。</p>
+                        <h3>英文新聞音訊自動抓取與聽力 App</h3>
+                        <p>自動爬取與解析各大英文新聞媒體的最新新聞連結，精準提取新聞音訊檔與文章文字。結合後端排程自動更新，讓使用者能第一時間收聽最新的英文新聞音訊並進行聽力練習。</p>
                         <div class="project-tags">
-                            <span>API 設計</span>
-                            <span>數據庫優化</span>
-                            <span>權限管控</span>
+                            <span>Web Scraping (網路爬蟲)</span>
+                            <span>Audio Extraction (音訊解析)</span>
+                            <span>自動化排程</span>
                             <span>全棧開發</span>
                         </div>
                         <div class="project-links">
-                            <a href="https://github.com/yourusername/portfolio-project-1" target="_blank">GitHub Code →</a>
-                            <a href="#" target="_blank">Live Demo →</a>
+                            <a href="/episode" target="_blank" rel="noopener noreferrer">英文新聞聽力App →</a>
                         </div>
                     </div>
                 </div>
 
-                <div class="project-card" data-category="tool">
+                <div class="project-card" data-category="app">
                     <div class="project-info">
-                        <h3>自動化維護與數據同步工具</h3>
-                        <p>為解決日常維護痛點所編寫的輕量化腳本與工具集，實現日誌分析、故障預警與定時資料備份自動化。</p>
+                        <h3>互動式線上考試與模擬刷題 App</h3>
+                        <p>專為考證與執照考試設計的響應式刷題平台。支援隨機抽題、模擬測驗倒數、錯題自動記錄與弱點分析圖表，提供流暢無縫的練習體驗。</p>
                         <div class="project-tags">
-                            <span>自動化腳本</span>
-                            <span>維護工具</span>
-                            <span>日誌分析</span>
-                            <span>DevOps</span>
+                            <span>前端互動設計</span>
+                            <span>狀態管理</span>
+                            <span>本地/雲端儲存</span>
+                            <span>UI/UX 優化</span>
                         </div>
                         <div class="project-links">
-                            <a href="/episode" target="_blank">新聞英文學習App →</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="project-card" data-category="fullstack">
-                    <div class="project-info">
-                        <h3>即時數據監控與 API 服務</h3>
-                        <p>實踐 WebSockets 與快取的微服務組件，能處理高併發即時訊息，並進行去識別化數據處理，確保資安合規。</p>
-                        <div class="project-tags">
-                            <span>WebSocket</span>
-                            <span>快取技術</span>
-                            <span>高併發 API</span>
-                            <span>隱私保護</span>
-                        </div>
-                        <div class="project-links">
-                            <a href="/hktaxi" target="_blank">考試練習App →</a>
+                            <a href="/hktaxi" target="_blank" rel="noopener noreferrer">考試練習App →</a>
                         </div>
                     </div>
                 </div>
@@ -645,12 +713,12 @@
             <h2>聯絡與索取履歷</h2>
             <div class="contact-content">
                 <p>
-                    我目前正在尋找 **系統分析師 / 全棧 / 後端工程師** 相關職缺。<br>
+                    我目前正在尋找 <strong>系統分析師 / 全棧 / 後端工程師</strong> 相關職缺。<br><br>
                     為了保障個人隱私，本頁面僅展示去識別化之經歷與作品摘要。如果您對我的技術背景或個人作品感興趣，歡迎點擊下方按鈕寄信給我，我會儘快回覆完整版 PDF 履歷給您！
                 </p>
                 
                 <a href="mailto:alexwang1980s@gmail.com?subject=【招聘】索取完整個人履歷&body=你好，我們對您的技術背景與作品很感興趣，希望能進一步了解並索取您的完整履歷，謝謝！" 
-                   class="btn primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                   class="btn primary" style="font-size: 1.05rem;">
                    ✉️ 點此發送 Email 索取完整履歷
                 </a>
             </div>
@@ -666,19 +734,23 @@
 
     <!-- 互動 Script -->
     <script>
+        // 1. 手機版選單切換
         const mobileMenu = document.getElementById('mobile-menu');
         const navLinks = document.getElementById('nav-links');
 
         mobileMenu.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
             navLinks.classList.toggle('active');
         });
 
         document.querySelectorAll('.nav-links a').forEach(link => {
             link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
                 navLinks.classList.remove('active');
             });
         });
 
+        // 2. 作品分類篩選
         const filterBtns = document.querySelectorAll('.filter-btn');
         const projectCards = document.querySelectorAll('.project-card');
 
@@ -690,12 +762,34 @@
                 const filter = btn.getAttribute('data-filter');
 
                 projectCards.forEach(card => {
-                    if (filter === 'all' || card.getAttribute('data-category') === filter) {
-                        card.style.display = 'flex';
+                    const category = card.getAttribute('data-category');
+                    if (filter === 'all' || category === filter) {
+                        card.classList.remove('hide');
                     } else {
-                        card.style.display = 'none';
+                        card.classList.add('hide');
                     }
                 });
+            });
+        });
+
+        // 3. 滾動高亮當前導覽列項目 (ScrollSpy)
+        const sections = document.querySelectorAll('section');
+        const navItems = document.querySelectorAll('.nav-links a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= (sectionTop - 150)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === `#${current}`) {
+                    item.classList.add('active');
+                }
             });
         });
     </script>
