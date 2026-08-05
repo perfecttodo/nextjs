@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>王小明 | 後端工程師求職作品集</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary-color: #38bdf8;
+            --primary-hover: #0ea5e9;
+            --border-color: #334155;
+            --max-width: 1100px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        .container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* --- 導覽列 --- */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .menu-toggle {
+            display: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: var(--text-color);
+        }
+
+        /* --- 通用區塊 --- */
+        section {
+            padding: 6rem 0 4rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 2.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        h2::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 3px;
+            background-color: var(--primary-color);
+            margin: 0.5rem auto 0;
+            border-radius: 2px;
+        }
+
+        /* --- Hero 首屏 --- */
+        #hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            text-align: left;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-content h1 span {
+            color: var(--primary-color);
+        }
+
+        .hero-content h3 {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+        }
+
+        .hero-content p {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 2rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
+            cursor: pointer;
+            border: none;
+            text-align: center;
+        }
+
+        .btn.primary {
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+        }
+
+        .btn.primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn.secondary {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .btn.secondary:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* --- 技術棧 --- */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .skill-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .skill-card h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            font-size: 1.125rem;
+        }
+
+        .skill-card ul li {
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            position: relative;
+            padding-left: 1.2rem;
+        }
+
+        .skill-card ul li::before {
+            content: '›';
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+        }
+
+        /* --- 經歷與學歷 --- */
+        .timeline {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .timeline-item {
+            margin-bottom: 2rem;
+            border-left: 2px solid var(--border-color);
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .timeline-item.active {
+            border-left-color: var(--primary-color);
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -6px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            background-color: var(--border-color);
+            border-radius: 50%;
+        }
+
+        .timeline-item.active .timeline-dot {
+            background-color: var(--primary-color);
+        }
+
+        .timeline-date {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .timeline-title {
+            font-size: 1.25rem;
+            margin: 0.25rem 0;
+            color: var(--text-color);
+        }
+
+        .timeline-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* --- 專案分類篩選 --- */
+        .filter-btns {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .filter-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+            border-color: var(--primary-color);
+        }
+
+        /* --- 專案作品集 --- */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .project-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .project-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-color);
+        }
+
+        .project-info {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .project-info h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .project-info p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 1.25rem;
+            flex-grow: 1;
+        }
+
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .project-tags span {
+            background-color: rgba(56, 189, 248, 0.1);
+            color: var(--primary-color);
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .project-links a {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .project-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* --- 聯絡區塊 (無表單版) --- */
+        .contact-content {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: var(--card-bg);
+            padding: 3rem 2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .contact-content p {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 1.05rem;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        /* --- 頁尾 --- */
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* --- 響應式調整 --- */
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background-color: var(--card-bg);
+                flex-direction: column;
+                padding: 1.5rem 0;
+                border-bottom: 1px solid var(--border-color);
+                text-align: center;
+            }
+            .nav-links.active {
+                display: flex;
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 導覽列 -->
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">Alex.dev</div>
+                <div class="menu-toggle" id="mobile-menu">☰</div>
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="#about">關於我</a></li>
+                    <li><a href="#skills">技術棧</a></li>
+                    <li><a href="#experience">經歷</a></li>
+                    <li><a href="#projects">作品</a></li>
+                    <li><a href="#contact">聯絡</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero 首屏 -->
+    <section id="hero">
+        <div class="container">
+            <div class="hero-content">
+                <p>你好，我是</p>
+                <h1>王小明 <span>(Alex Wang)</span></h1>
+                <h3>專注於高效能後端與分散式系統開發的軟體工程師</h3>
+                <p>基於台灣台北。具備 3 年以上軟體開發經驗，擅長使用 Node.js、Go 與雲端架構設計高併發 API。</p>
+                <div class="btn-group">
+                    <a href="#projects" class="btn primary">查看作品</a>
+                    <!-- 首屏的 Mailto 按鈕 -->
+                    <a href="mailto:your.email@example.com?subject=【徵才】索取王小明完整履歷&body=你好，我們對你的背景感興趣，請回覆完整的 PDF 履歷，謝謝！" class="btn secondary">✉️ 索取完整履歷</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 關於我 -->
+    <section id="about">
+        <div class="container">
+            <h2>關於我</h2>
+            <div style="max-width: 800px; margin: 0 auto; color: var(--text-muted);">
+                <p style="margin-bottom: 1rem;">我是一名對程式碼品質有極高要求的軟體工程師。畢業於資工系，曾在新創公司主導核心微服務重構，將系統回應時間降低 40%。</p>
+                <p>注重系統資安與隱私保護，在開發專案時嚴格遵守不外洩敏感憑證的原則。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 技術棧 -->
+    <section id="skills">
+        <div class="container">
+            <h2>技術棧</h2>
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <h3>後端開發</h3>
+                    <ul>
+                        <li>Node.js / Express / NestJS</li>
+                        <li>Golang / Gin</li>
+                        <li>RESTful API & GraphQL</li>
+                        <li>微服務架構</li>
+                    </ul>
+                </div>
+                <div class="skill-card">
+                    <h3>資料庫與快取</h3>
+                    <ul>
+                        <li>PostgreSQL / MySQL</li>
+                        <li>Redis (快取與訊息佇列)</li>
+                        <li>MongoDB</li>
+                        <li>Prisma / TypeORM</li>
+                    </ul>
+                </div>
+                <div class="skill-card">
+                    <h3>DevOps 與工具</h3>
+                    <ul>
+                        <li>Docker & Docker Compose</li>
+                        <li>AWS (EC2, S3, RDS)</li>
+                        <li>CI/CD (GitHub Actions)</li>
+                        <li>Git / Linux 系統管理</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 經歷與學歷 -->
+    <section id="experience">
+        <div class="container">
+            <h2>經歷與學歷</h2>
+            <div class="timeline">
+                <div class="timeline-item active">
+                    <div class="timeline-dot"></div>
+                    <span class="timeline-date">2023.07 - 至今 (2年)</span>
+                    <h3 class="timeline-title">資深後端工程師 | 某某科技公司</h3>
+                    <p class="timeline-desc">主導核心微服務架構重構，採用 Node.js 與 Docker 優化高流量 API，提升系統吞吐量 40%。</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <span class="timeline-date">2021.06 - 2023.06 (2年)</span>
+                    <h3 class="timeline-title">軟體工程師 | 某某網路新創</h3>
+                    <p class="timeline-desc">負責電商金流與購物車系統開發，建立 CI/CD 自動化部署流程，減少 50% 手動部署錯誤率。</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <span class="timeline-date">2017.09 - 2021.06</span>
+                    <h3 class="timeline-title">資訊工程學系 學士 | 某某大學</h3>
+                    <p class="timeline-desc">主修資料結構、演算法、作業系統與資料庫原理。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 精選作品集 -->
+    <section id="projects">
+        <div class="container">
+            <h2>精選作品專案</h2>
+            <div class="filter-btns">
+                <button class="filter-btn active" data-filter="all">全部專案</button>
+                <button class="filter-btn" data-filter="backend">後端 / API</button>
+                <button class="filter-btn" data-filter="frontend">前端 / 全端</button>
+            </div>
+
+            <div class="projects-grid">
+                <div class="project-card" data-category="backend">
+                    <div class="project-info">
+                        <h3>高併發即時聊天室系統</h3>
+                        <p>基於 WebSockets 與 Redis Pub/Sub 架構的即時通訊後端，嚴格使用環境變數保護密鑰，確保通訊安全。</p>
+                        <div class="project-tags">
+                            <span>Node.js</span>
+                            <span>TypeScript</span>
+                            <span>Socket.io</span>
+                            <span>Redis</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/yourusername/chat-app" target="_blank">GitHub →</a>
+                            <a href="#" target="_blank">Demo →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card" data-category="backend">
+                    <div class="project-info">
+                        <h3>電商平台智慧推薦 API</h3>
+                        <p>使用 Go 語言開發的高效能購物車與商品推薦系統，透過 Goroutines 優化商品數據併發爬取與過濾演算法。</p>
+                        <div class="project-tags">
+                            <span>Golang</span>
+                            <span>Gin</span>
+                            <span>PostgreSQL</span>
+                            <span>AWS</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/yourusername/ecommerce-api" target="_blank">GitHub →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card" data-category="frontend">
+                    <div class="project-info">
+                        <h3>個人技術部落格與 CMS</h3>
+                        <p>使用 Next.js 與 Markdown 建立的極速靜態生成部落格，整合自動化部署與 SEO 優化，內建後台文章管理。</p>
+                        <div class="project-tags">
+                            <span>React</span>
+                            <span>Next.js</span>
+                            <span>Tailwind CSS</span>
+                            <span>Vercel</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/yourusername/blog-cms" target="_blank">GitHub →</a>
+                            <a href="#" target="_blank">Demo →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 聯絡與索取完整履歷 (使用客戶端信箱) -->
+    <section id="contact">
+        <div class="container">
+            <h2>聯絡與索取履歷</h2>
+            <div class="contact-content">
+                <p>
+                    我目前正在尋找 **後端工程師** 全職職缺。<br>
+                    為了保護個人隱私，網站上僅展示去識別化資訊。如果您對我的背景感興趣，歡迎點擊下方按鈕寄信給我，我會盡快回覆完整版 PDF 履歷給您！
+                </p>
+                
+                <!-- Mailto 按鈕：會自動開啟客戶端預設信箱，並帶入標題與內文 -->
+                <a href="mailto:your.email@example.com?subject=【徵才】索取王小明完整履歷&body=你好，我們對你的背景感興趣，希望能進一步了解並索取您的完整 PDF 履歷，謝謝！" 
+                   class="btn primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                   ✉️ 點此發送 Email 索取履歷
+                </a>
+
+                <div class="social-links">
+                    <a href="https://linkedin.com/in/yourprofile" target="_blank" class="btn secondary">LinkedIn</a>
+                    <a href="https://github.com/yourusername" target="_blank" class="btn secondary">GitHub</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 頁尾 -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Alex Wang. Designed with Privacy & Performance in Mind.</p>
+        </div>
+    </footer>
+
+    <!--互動 Script -->
+    <script>
+        const mobileMenu = document.getElementById('mobile-menu');
+        const navLinks = document.getElementById('nav-links');
+
+        mobileMenu.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+            });
+        });
+
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const projectCards = document.querySelectorAll('.project-card');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const filter = btn.getAttribute('data-filter');
+
+                projectCards.forEach(card => {
+                    if (filter === 'all' || card.getAttribute('data-category') === filter) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
