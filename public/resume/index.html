@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>王小明 | 後端工程師求職作品集</title>
+    <title>系統分析師 & 資深軟體開發工程師 | 個人作品集</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -145,7 +145,7 @@
         .hero-content p {
             font-size: 1.125rem;
             color: var(--text-muted);
-            max-width: 600px;
+            max-width: 650px;
             margin-bottom: 2rem;
         }
 
@@ -269,6 +269,16 @@
             font-size: 0.95rem;
         }
 
+        .timeline-desc ul {
+            margin-top: 0.5rem;
+            padding-left: 1rem;
+        }
+
+        .timeline-desc li {
+            list-style-type: disc;
+            margin-bottom: 0.25rem;
+        }
+
         /* --- 專案分類篩選 --- */
         .filter-btns {
             display: flex;
@@ -366,7 +376,7 @@
             text-decoration: underline;
         }
 
-        /* --- 聯絡區塊 (無表單版) --- */
+        /* --- 聯絡區塊 --- */
         .contact-content {
             text-align: center;
             max-width: 600px;
@@ -434,14 +444,14 @@
     <header>
         <div class="container">
             <nav>
-                <div class="logo">Alex.dev</div>
+                <div class="logo">求職Resume</div>
                 <div class="menu-toggle" id="mobile-menu">☰</div>
                 <ul class="nav-links" id="nav-links">
                     <li><a href="#about">關於我</a></li>
                     <li><a href="#skills">技術棧</a></li>
-                    <li><a href="#experience">經歷</a></li>
-                    <li><a href="#projects">作品</a></li>
-                    <li><a href="#contact">聯絡</a></li>
+                    <li><a href="#experience">工作經歷</a></li>
+                    <li><a href="#projects">個人作品集</a></li>
+                    <li><a href="#contact">聯絡我</a></li>
                 </ul>
             </nav>
         </div>
@@ -452,13 +462,12 @@
         <div class="container">
             <div class="hero-content">
                 <p>你好，我是</p>
-                <h1>王小明 <span>(Alex Wang)</span></h1>
-                <h3>專注於高效能後端與分散式系統開發的軟體工程師</h3>
-                <p>基於台灣台北。具備 3 年以上軟體開發經驗，擅長使用 Node.js、Go 與雲端架構設計高併發 API。</p>
+                <h1>系統分析師 <span>& 資深軟體開發工程師</span></h1>
+                <h3>10+ 年 IT 經驗，熱愛 Coding 與技術實踐的全能型技術人</h3>
+                <p>熟悉 SDLC 全生命週期，既能做好需求分析與架構設計，更熱衷於手動編寫高質量程式碼。工作踏實，溝通順暢，具備良好的多方協調與問題解決能力。</p>
                 <div class="btn-group">
-                    <a href="#projects" class="btn primary">查看作品</a>
-                    <!-- 首屏的 Mailto 按鈕 -->
-                    <a href="mailto:your.email@example.com?subject=【徵才】索取王小明完整履歷&body=你好，我們對你的背景感興趣，請回覆完整的 PDF 履歷，謝謝！" class="btn secondary">✉️ 索取完整履歷</a>
+                    <a href="#projects" class="btn primary">查看個人作品</a>
+                    <a href="mailto:your.email@example.com?subject=【招聘】索取完整個人履歷&body=你好，我們對您的背景與作品感興趣，希望能索取您的完整 PDF 履歷，謝謝！" class="btn secondary">✉️ 索取完整履歷</a>
                 </div>
             </div>
         </div>
@@ -469,8 +478,9 @@
         <div class="container">
             <h2>關於我</h2>
             <div style="max-width: 800px; margin: 0 auto; color: var(--text-muted);">
-                <p style="margin-bottom: 1rem;">我是一名對程式碼品質有極高要求的軟體工程師。畢業於資工系，曾在新創公司主導核心微服務重構，將系統回應時間降低 40%。</p>
-                <p>注重系統資安與隱私保護，在開發專案時嚴格遵守不外洩敏感憑證的原則。</p>
+                <p style="margin-bottom: 1rem;">擁有 10 年以上的 IT 行業深厚積澱，熟悉系統開發生命週期 (SDLC) 的每一個環節。除了出色的系統分析、需求跟進與多方協調能力外，我始終保持對<strong>動手實踐與技術編碼</strong>的熱情。</p>
+                <p style="margin-bottom: 1rem;">平時喜愛探索新技術、動手構建全棧專案與開發工具，注重程式碼可維護性、安全性與效能優化。</p>
+                <p>在專案實踐中，我恪守隱私保護與資訊安全原則，能獨立且高效地將業務需求轉化為高質量的系統代碼。</p>
             </div>
         </div>
     </section>
@@ -478,123 +488,150 @@
     <!-- 技術棧 -->
     <section id="skills">
         <div class="container">
-            <h2>技術棧</h2>
+            <h2>技術棧與能力</h2>
             <div class="skills-grid">
                 <div class="skill-card">
-                    <h3>後端開發</h3>
+                    <h3>系統開發與 Coding</h3>
                     <ul>
-                        <li>Node.js / Express / NestJS</li>
-                        <li>Golang / Gin</li>
-                        <li>RESTful API & GraphQL</li>
-                        <li>微服務架構</li>
+                        <li>全棧 / 後端系統實踐開發</li>
+                        <li>RESTful API 設計與實作</li>
+                        <li>SQL / NoSQL 資料庫設計</li>
+                        <li>Bug 排查、代碼重構與單元測試</li>
                     </ul>
                 </div>
                 <div class="skill-card">
-                    <h3>資料庫與快取</h3>
+                    <h3>SDLC 與系統分析</h3>
                     <ul>
-                        <li>PostgreSQL / MySQL</li>
-                        <li>Redis (快取與訊息佇列)</li>
-                        <li>MongoDB</li>
-                        <li>Prisma / TypeORM</li>
+                        <li>需求收集分析與技術規格撰寫</li>
+                        <li>系統架構設計與維護</li>
+                        <li>跨團隊與外部服務商協調</li>
+                        <li>UAT 用戶驗收測試與技術培訓</li>
                     </ul>
                 </div>
                 <div class="skill-card">
-                    <h3>DevOps 與工具</h3>
+                    <h3>語言能力</h3>
                     <ul>
-                        <li>Docker & Docker Compose</li>
-                        <li>AWS (EC2, S3, RDS)</li>
-                        <li>CI/CD (GitHub Actions)</li>
-                        <li>Git / Linux 系統管理</li>
+                        <li><strong>粵語：</strong>流利（母語/工作語言）</li>
+                        <li><strong>普通話：</strong>流利</li>
+                        <li><strong>英語：</strong>一般工作溝通</li>
                     </ul>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- 經歷與學歷 -->
+    <!-- 經歷與學歷（隱私去識別化保護處理） -->
     <section id="experience">
         <div class="container">
-            <h2>經歷與學歷</h2>
+            <h2>工作經歷與學歷</h2>
             <div class="timeline">
                 <div class="timeline-item active">
                     <div class="timeline-dot"></div>
-                    <span class="timeline-date">2023.07 - 至今 (2年)</span>
-                    <h3 class="timeline-title">資深後端工程師 | 某某科技公司</h3>
-                    <p class="timeline-desc">主導核心微服務架構重構，採用 Node.js 與 Docker 優化高流量 API，提升系統吞吐量 40%。</p>
+                    <span class="timeline-date">2023年11月 – 2025年5月</span>
+                    <h3 class="timeline-title">系統分析師 (Systems Analyst) | 知名 IT 系統集成與技術服務商</h3>
+                    <div class="timeline-desc">
+                        <ul>
+                            <li><strong>系統設計開發與安裝維護：</strong>負責應用的設計、開發、安裝、維護及故障排查。</li>
+                            <li><strong>需求跟進：</strong>收集並整理用戶需求，編寫相關的技術與設計文檔。</li>
+                            <li><strong>日常溝通：</strong>協調內部開發團隊與外部合作方，確保項目按時交付。</li>
+                        </ul>
+                    </div>
                 </div>
+
                 <div class="timeline-item">
                     <div class="timeline-dot"></div>
-                    <span class="timeline-date">2021.06 - 2023.06 (2年)</span>
-                    <h3 class="timeline-title">軟體工程師 | 某某網路新創</h3>
-                    <p class="timeline-desc">負責電商金流與購物車系統開發，建立 CI/CD 自動化部署流程，減少 50% 手動部署錯誤率。</p>
+                    <span class="timeline-date">2016年5月 – 2023年11月</span>
+                    <h3 class="timeline-title">系統分析師 (Systems Analyst) | 大型跨國 IT 服務與諮詢企業</h3>
+                    <div class="timeline-desc">
+                        <ul>
+                            <li><strong>系統開發：</strong>根據業務需求編寫系統代碼、參與測試並撰寫系統文檔。</li>
+                            <li><strong>項目技術支持：</strong>負責客戶項目的日常技術維護，協調多家服務商配合工作。</li>
+                            <li><strong>故障處理與優化：</strong>排查並解決系統日常運行中的問題，提升系統穩定性。</li>
+                            <li><strong>用戶協助：</strong>支持用戶進行系統測試 (UAT)，並提供日常技術培訓與諮詢。</li>
+                        </ul>
+                    </div>
                 </div>
+
                 <div class="timeline-item">
                     <div class="timeline-dot"></div>
-                    <span class="timeline-date">2017.09 - 2021.06</span>
-                    <h3 class="timeline-title">資訊工程學系 學士 | 某某大學</h3>
-                    <p class="timeline-desc">主修資料結構、演算法、作業系統與資料庫原理。</p>
+                    <span class="timeline-date">2014年4月 – 2015年11月</span>
+                    <h3 class="timeline-title">分析程序員 (Analyst Programmer) | 香港知名上市資訊科技服務公司</h3>
+                    <div class="timeline-desc">
+                        <ul>
+                            <li><strong>程序開發：</strong>根據業務需求編寫程序代碼、參與測試並撰寫系統文檔。</li>
+                            <li><strong>日常維護：</strong>負責系統 Bug 修復與日常技術問題跟進。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <span class="timeline-date">2004年 – 2008年</span>
+                    <h3 class="timeline-title">軟件工程學士學位 | 華南理工大學</h3>
+                    <div class="timeline-desc">
+                        <p>主修軟件工程核心課程，奠定紮實的程序編寫、演算法與系統分析基礎。</p>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- 精選作品集 -->
+    <!-- 精選個人作品集 -->
     <section id="projects">
         <div class="container">
-            <h2>精選作品專案</h2>
+            <h2>個人實踐與作品集</h2>
             <div class="filter-btns">
-                <button class="filter-btn active" data-filter="all">全部專案</button>
-                <button class="filter-btn" data-filter="backend">後端 / API</button>
-                <button class="filter-btn" data-filter="frontend">前端 / 全端</button>
+                <button class="filter-btn active" data-filter="all">全部作品</button>
+                <button class="filter-btn" data-filter="fullstack">全棧 / 後端開發</button>
+                <button class="filter-btn" data-filter="tool">實用工具與模組</button>
             </div>
 
             <div class="projects-grid">
-                <div class="project-card" data-category="backend">
+                <div class="project-card" data-category="fullstack">
                     <div class="project-info">
-                        <h3>高併發即時聊天室系統</h3>
-                        <p>基於 WebSockets 與 Redis Pub/Sub 架構的即時通訊後端，嚴格使用環境變數保護密鑰，確保通訊安全。</p>
+                        <h3>高效能全棧業務管理系統</h3>
+                        <p>基於實踐熱情獨立開發的敏捷管理工具，實作完整權限管理、動態數據報表及安全認證 API，展現端到端的編碼實力。</p>
                         <div class="project-tags">
-                            <span>Node.js</span>
-                            <span>TypeScript</span>
-                            <span>Socket.io</span>
-                            <span>Redis</span>
+                            <span>API 設計</span>
+                            <span>數據庫優化</span>
+                            <span>權限管控</span>
+                            <span>全棧開發</span>
                         </div>
                         <div class="project-links">
-                            <a href="https://github.com/yourusername/chat-app" target="_blank">GitHub →</a>
-                            <a href="#" target="_blank">Demo →</a>
+                            <a href="https://github.com/yourusername/portfolio-project-1" target="_blank">GitHub Code →</a>
+                            <a href="#" target="_blank">Live Demo →</a>
                         </div>
                     </div>
                 </div>
 
-                <div class="project-card" data-category="backend">
+                <div class="project-card" data-category="tool">
                     <div class="project-info">
-                        <h3>電商平台智慧推薦 API</h3>
-                        <p>使用 Go 語言開發的高效能購物車與商品推薦系統，透過 Goroutines 優化商品數據併發爬取與過濾演算法。</p>
+                        <h3>自動化維護與數據同步工具</h3>
+                        <p>為解決日常維護痛點所編寫的輕量化腳本與工具集，實現日誌分析、故障預警與定時資料備份自動化。</p>
                         <div class="project-tags">
-                            <span>Golang</span>
-                            <span>Gin</span>
-                            <span>PostgreSQL</span>
-                            <span>AWS</span>
+                            <span>自動化腳本</span>
+                            <span>維護工具</span>
+                            <span>日誌分析</span>
+                            <span>DevOps</span>
                         </div>
                         <div class="project-links">
-                            <a href="https://github.com/yourusername/ecommerce-api" target="_blank">GitHub →</a>
+                            <a href="/episode" target="_blank">新聞英文學習App →</a>
                         </div>
                     </div>
                 </div>
 
-                <div class="project-card" data-category="frontend">
+                <div class="project-card" data-category="fullstack">
                     <div class="project-info">
-                        <h3>個人技術部落格與 CMS</h3>
-                        <p>使用 Next.js 與 Markdown 建立的極速靜態生成部落格，整合自動化部署與 SEO 優化，內建後台文章管理。</p>
+                        <h3>即時數據監控與 API 服務</h3>
+                        <p>實踐 WebSockets 與快取的微服務組件，能處理高併發即時訊息，並進行去識別化數據處理，確保資安合規。</p>
                         <div class="project-tags">
-                            <span>React</span>
-                            <span>Next.js</span>
-                            <span>Tailwind CSS</span>
-                            <span>Vercel</span>
+                            <span>WebSocket</span>
+                            <span>快取技術</span>
+                            <span>高併發 API</span>
+                            <span>隱私保護</span>
                         </div>
                         <div class="project-links">
-                            <a href="https://github.com/yourusername/blog-cms" target="_blank">GitHub →</a>
-                            <a href="#" target="_blank">Demo →</a>
+                            <a href="/hktaxi" target="_blank">考試練習App →</a>
                         </div>
                     </div>
                 </div>
@@ -602,26 +639,20 @@
         </div>
     </section>
 
-    <!-- 聯絡與索取完整履歷 (使用客戶端信箱) -->
+    <!-- 聯絡與索取完整履歷 -->
     <section id="contact">
         <div class="container">
             <h2>聯絡與索取履歷</h2>
             <div class="contact-content">
                 <p>
-                    我目前正在尋找 **後端工程師** 全職職缺。<br>
-                    為了保護個人隱私，網站上僅展示去識別化資訊。如果您對我的背景感興趣，歡迎點擊下方按鈕寄信給我，我會盡快回覆完整版 PDF 履歷給您！
+                    我目前正在尋找 **系統分析師 / 全棧 / 後端工程師** 相關職缺。<br>
+                    為了保障個人隱私，本頁面僅展示去識別化之經歷與作品摘要。如果您對我的技術背景或個人作品感興趣，歡迎點擊下方按鈕寄信給我，我會儘快回覆完整版 PDF 履歷給您！
                 </p>
                 
-                <!-- Mailto 按鈕：會自動開啟客戶端預設信箱，並帶入標題與內文 -->
-                <a href="mailto:your.email@example.com?subject=【徵才】索取王小明完整履歷&body=你好，我們對你的背景感興趣，希望能進一步了解並索取您的完整 PDF 履歷，謝謝！" 
+                <a href="mailto:alexwang1980s@gmail.com?subject=【招聘】索取完整個人履歷&body=你好，我們對您的技術背景與作品很感興趣，希望能進一步了解並索取您的完整履歷，謝謝！" 
                    class="btn primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
-                   ✉️ 點此發送 Email 索取履歷
+                   ✉️ 點此發送 Email 索取完整履歷
                 </a>
-
-                <div class="social-links">
-                    <a href="https://linkedin.com/in/yourprofile" target="_blank" class="btn secondary">LinkedIn</a>
-                    <a href="https://github.com/yourusername" target="_blank" class="btn secondary">GitHub</a>
-                </div>
             </div>
         </div>
     </section>
@@ -629,11 +660,11 @@
     <!-- 頁尾 -->
     <footer>
         <div class="container">
-            <p>&copy; 2026 Alex Wang. Designed with Privacy & Performance in Mind.</p>
+            <p>&copy; 2026 Developer Portfolio. Built with Passion for Coding & Practice.</p>
         </div>
     </footer>
 
-    <!--互動 Script -->
+    <!-- 互動 Script -->
     <script>
         const mobileMenu = document.getElementById('mobile-menu');
         const navLinks = document.getElementById('nav-links');
