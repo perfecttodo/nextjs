@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>的士助手</title>
 
-<!-- ===== PWA 設定 ===== -->
 <meta name="theme-color" content="#f59e0b">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,9 +13,6 @@
 <link rel="manifest" href="./manifest.json">
 
 <style>
-/* =========================================================
-   1. Reset
-   ========================================================= */
 *,*::before,*::after{box-sizing:border-box;border:0 solid #e2e8f0}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{margin:0;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
@@ -30,9 +26,6 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 svg{display:block}
 ul{list-style:none;margin:0;padding:0}
 
-/* =========================================================
-   2. 基本排版
-   ========================================================= */
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang HK",
               "Hiragino Sans CNS","Microsoft JhengHei","Noto Sans TC",sans-serif;
@@ -45,12 +38,8 @@ body{
   flex-direction:column;
   padding-bottom:calc(5rem + env(safe-area-inset-bottom, 0px));
 }
-
 .ico{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
 
-/* =========================================================
-   3. 版面工具類
-   ========================================================= */
 .min-h-screen{min-height:100vh}
 .flex{display:flex}
 .grid{display:grid}
@@ -63,6 +52,7 @@ body{
 .justify-center{justify-content:center}
 .justify-end{justify-content:flex-end}
 .text-center{text-align:center}
+.text-right{text-align:right}
 .mx-auto{margin-left:auto;margin-right:auto}
 .w-full{width:100%}
 .relative{position:relative}
@@ -94,9 +84,7 @@ body{
 .grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}
 
-/* =========================================================
-   4. 間距
-   ========================================================= */
+.gap-1{gap:.25rem}
 .gap-1\.5{gap:.375rem}
 .gap-2{gap:.5rem}
 .gap-3{gap:.75rem}
@@ -149,9 +137,6 @@ body{
 .mb-4{margin-bottom:1rem}
 .ml-1{margin-left:.25rem}
 
-/* =========================================================
-   5. 尺寸
-   ========================================================= */
 .w-3\.5{width:.875rem}
 .h-3\.5{height:.875rem}
 .w-4{width:1rem}
@@ -163,11 +148,9 @@ body{
 .w-10{width:2.5rem}
 .h-10{height:2.5rem}
 .h-16{height:4rem}
+.max-h-64{max-height:16rem}
 .max-h-80{max-height:20rem}
 
-/* =========================================================
-   6. 字型
-   ========================================================= */
 .text-\[10px\]{font-size:10px;line-height:1.45}
 .text-\[11px\]{font-size:11px;line-height:1.45}
 .text-xs{font-size:.75rem;line-height:1.45}
@@ -185,8 +168,8 @@ body{
 .font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 .tracking-tight{letter-spacing:-.025em}
 .leading-relaxed{line-height:1.625}
+.underline{text-decoration:underline}
 
-/* 文字顏色 */
 .text-slate-300{color:#cbd5e1}
 .text-slate-400{color:#94a3b8}
 .text-slate-500{color:#64748b}
@@ -203,7 +186,6 @@ body{
 .text-amber-700{color:#b45309}
 .text-amber-800{color:#92400e}
 .text-amber-900{color:#78350f}
-.text-amber-950{color:#451a03}
 .text-rose-400{color:#fb7185}
 .text-rose-500{color:#f43f5e}
 .text-rose-600{color:#e11d48}
@@ -214,7 +196,6 @@ body{
 .text-emerald-800{color:#065f46}
 .text-purple-700{color:#7e22ce}
 
-/* 背景顏色 */
 .bg-white{background-color:#fff}
 .bg-slate-50{background-color:#f8fafc}
 .bg-slate-100{background-color:#f1f5f9}
@@ -237,12 +218,7 @@ body{
 .bg-slate-900\/60{background-color:rgba(15,23,42,.62)}
 .bg-gradient-to-br{background-image:linear-gradient(to bottom right,#0f172a,#1e293b)}
 .bg-gradient-to-r{background-image:linear-gradient(to right,#fef3c7,#fcd34d)}
-.from-slate-900{}
-.to-slate-800{}
 
-/* =========================================================
-   7. 邊框 / 圓角
-   ========================================================= */
 .border{border-width:1px}
 .border-2{border-width:2px}
 .border-b{border-bottom-width:1px}
@@ -254,7 +230,6 @@ body{
 .border-slate-700\/50{border-color:rgba(51,65,85,.5)}
 .border-slate-700\/60{border-color:rgba(51,65,85,.6)}
 .border-amber-100{border-color:#fef3c7}
-.border-amber-200\/60{border-color:rgba(253,230,138,.6)}
 .border-amber-400{border-color:#fbbf24}
 .border-amber-500\/30{border-color:rgba(245,158,11,.3)}
 .border-amber-600{border-color:#d97706}
@@ -271,9 +246,6 @@ body{
 .rounded-2xl{border-radius:1rem}
 .rounded-full{border-radius:9999px}
 
-/* =========================================================
-   8. 陰影 / 特效
-   ========================================================= */
 .shadow-xs{box-shadow:0 1px 2px rgba(15,23,42,.06)}
 .shadow-sm{box-shadow:0 1px 3px rgba(15,23,42,.08),0 1px 2px rgba(15,23,42,.04)}
 .shadow-md{box-shadow:0 4px 10px rgba(15,23,42,.10),0 2px 4px rgba(15,23,42,.05)}
@@ -290,11 +262,7 @@ body{
 .backdrop-blur-xs{backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 .animate-in{animation:modalIn .18s ease-out}
 @keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
-.fade-in,.zoom-in{animation-fill-mode:both}
 
-/* =========================================================
-   9. 互動狀態
-   ========================================================= */
 .hover\:bg-amber-600:hover{background-color:#d97706}
 .hover\:bg-slate-100:hover{background-color:#f1f5f9}
 .hover\:bg-slate-200:hover{background-color:#e2e8f0}
@@ -303,6 +271,7 @@ body{
 .hover\:bg-rose-700:hover{background-color:#be123c}
 .hover\:text-slate-600:hover{color:#475569}
 .hover\:text-amber-500:hover{color:#f59e0b}
+.hover\:text-amber-800:hover{color:#92400e}
 .hover\:text-blue-500:hover{color:#3b82f6}
 .hover\:text-rose-500:hover{color:#f43f5e}
 .hover\:text-rose-700:hover{color:#be123c}
@@ -314,16 +283,13 @@ body{
 .focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}
 .focus\:ring-2:focus{box-shadow:0 0 0 3px rgba(245,158,11,.35)}
 .focus\:ring-amber-500:focus{box-shadow:0 0 0 3px rgba(245,158,11,.35)}
-.focus\:ring-amber-400:focus{box-shadow:0 0 0 3px rgba(251,191,36,.4)}
 
-/* =========================================================
-   10. 表單元件
-   ========================================================= */
 input[type=text],input[type=number],input[type=time],select{
   border-width:1px;border-style:solid;border-color:#e2e8f0;
 }
 input::placeholder{color:#94a3b8}
 input[type=time]{min-height:2.35rem}
+input[readonly]{cursor:pointer}
 select{
   -webkit-appearance:none;appearance:none;
   padding-right:2rem;
@@ -352,7 +318,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
 
 <body>
 
-<!-- Header -->
 <header class="bg-amber-500 text-slate-900 shadow-md sticky top-0 z-50">
   <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
     <div class="flex items-center space-x-2">
@@ -365,7 +330,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
   </div>
 </header>
 
-<!-- Main -->
 <main class="flex-1 max-w-md w-full mx-auto p-4 mb-4">
 
   <!-- TAB 1：記行程 -->
@@ -378,16 +342,13 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         <span id="current-date-time-preview" class="text-xs text-slate-400 font-medium"></span>
       </div>
 
-      <!-- 車資輸入 -->
       <div>
         <label class="block text-sm font-semibold text-slate-700 mb-1">車資金額 (HKD)</label>
         <div class="relative">
           <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>
           <input type="number" id="trip-fare" step="0.5" inputmode="decimal"
-            enterkeyhint="done" autocomplete="off"
-            placeholder="0.0"
-            oninput="calculateChange()"
-            onblur="confirmFareInput()"
+            enterkeyhint="done" autocomplete="off" placeholder="0.0"
+            oninput="calculateChange()" onblur="confirmFareInput()"
             class="w-full pl-8 pr-4 py-3 text-2xl font-bold bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
         </div>
         <div class="grid grid-cols-5 gap-1.5 mt-2">
@@ -399,7 +360,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </div>
       </div>
 
-      <!-- 行程類型 -->
       <div>
         <label class="block text-sm font-semibold text-slate-700 mb-1.5">行程類型</label>
         <div class="grid grid-cols-3 gap-2">
@@ -418,7 +378,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </div>
       </div>
 
-      <!-- 客戶付款與找零 -->
       <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-3">
         <div>
           <div class="flex justify-between items-center mb-1">
@@ -429,10 +388,8 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           <div class="relative">
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>
             <input type="number" id="trip-received" step="0.5" inputmode="decimal"
-              enterkeyhint="done" autocomplete="off"
-              placeholder="留空代表付剛好"
-              oninput="calculateChange()"
-              onblur="confirmReceivedInput()"
+              enterkeyhint="done" autocomplete="off" placeholder="留空代表付剛好"
+              oninput="calculateChange()" onblur="confirmReceivedInput()"
               class="w-full pl-8 pr-4 py-2.5 text-lg font-bold bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none">
           </div>
           <div class="grid grid-cols-4 gap-2 mt-2">
@@ -443,7 +400,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           </div>
         </div>
 
-        <!-- 應找零錢 -->
         <div class="flex justify-between items-center bg-gradient-to-r px-3.5 py-3 rounded-xl border-2 border-amber-400 shadow-sm">
           <span class="text-sm font-bold text-amber-900 flex items-center gap-1.5">
             <span class="ico w-5 h-5 text-amber-700" data-icon="coins"></span> 應找零錢
@@ -452,7 +408,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </div>
       </div>
 
-      <!-- 備註 -->
       <div>
         <label class="block text-sm font-semibold text-slate-700 mb-1">行程備註 (選填)</label>
         <input type="text" id="trip-note" placeholder="例如：過海、機場、隧道口等..."
@@ -460,7 +415,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
       </div>
 
-      <!-- 完成按鈕 -->
       <button type="button" onclick="saveTrip()"
         class="w-full py-3.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-slate-900 font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 text-base">
         <span class="ico w-5 h-5" data-icon="check-circle"></span> 完成保存行程記錄
@@ -538,11 +492,21 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">總油費 (HKD)</label>
-          <input type="number" id="setting-fuel" onchange="saveSettings()" placeholder="0"
-            inputmode="decimal" autocomplete="off"
-            class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+          <div class="flex gap-1">
+            <input type="number" id="setting-fuel" readonly
+              class="flex-1 min-w-0 px-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-xl focus:outline-none text-slate-700 font-bold">
+            <button type="button" onclick="openAddFuelModal()"
+              class="px-3 py-2 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-900 font-black rounded-xl text-base transition shrink-0 leading-none">+</button>
+          </div>
         </div>
       </div>
+
+      <button type="button" onclick="openFuelHistoryModal()" id="fuel-history-btn"
+        class="w-full text-[11px] py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-amber-700 font-semibold transition flex items-center justify-center gap-1.5">
+        <span class="ico w-3.5 h-3.5" data-icon="droplet"></span>
+        <span id="fuel-history-btn-text">查看加油記錄 (0 筆)</span>
+      </button>
+
       <div class="grid grid-cols-2 gap-3 pt-1">
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">更次開始時間</label>
@@ -667,7 +631,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
   </section>
 </main>
 
-<!-- 底部導覽 -->
 <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-50">
   <div class="max-w-md mx-auto grid grid-cols-3 h-16">
     <button onclick="switchTab('trip')" id="nav-trip" class="flex flex-col items-center justify-center text-amber-500 transition">
@@ -685,7 +648,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
   </div>
 </nav>
 
-<!-- Modal -->
 <div id="trip-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
   <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl animate-in">
     <div class="bg-slate-900 text-white px-4 py-3 flex justify-between items-center">
@@ -699,14 +661,10 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
   </div>
 </div>
 
-<!-- Toast -->
 <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-medium shadow-lg z-50 transition-all duration-300 opacity-0 pointer-events-none">
   提示訊息
 </div>
 
-<!-- =========================================================
-     JavaScript
-     ========================================================= -->
 <script>
 /* =========================================================
    A. SVG 圖示庫
@@ -737,7 +695,9 @@ const ICONS = {
   'x':'<path d="M6 6l12 12M18 6 6 18"/>',
   'file-question':'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z"/><path d="M14 3v5h5M10 13a2 2 0 1 1 3 1.7c-.6.4-1 .8-1 1.3v.5M12 18h.01"/>',
   'eye':'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
-  'edit-3':'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>'
+  'edit-3':'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>',
+  'droplet':'<path d="M12 2.7s6 6.3 6 11a6 6 0 0 1-12 0c0-4.7 6-11 6-11z"/>',
+  'plus':'<path d="M12 5v14M5 12h14"/>'
 };
 
 function ico(name, cls){
@@ -762,7 +722,7 @@ function hydrateIcons(root){
    ========================================================= */
 var trips         = JSON.parse(localStorage.getItem('taxi_trips')) || [];
 var shiftSettings = JSON.parse(localStorage.getItem('taxi_shift_settings')) || {};
-var DEFAULT_SHIFT = { rental: 450, fuel: 200, startTime: '06:00', endTime: '18:00' };
+var DEFAULT_SHIFT = { rental: 450, fuelEntries: [], startTime: '06:00', endTime: '18:00' };
 
 var activeTripType   = localStorage.getItem('taxi_last_type') || '街客';
 var statsPeriod      = 'day';
@@ -778,12 +738,10 @@ function localDateStr(d){
   return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
 }
 
-/* 判斷某時間戳屬於哪個「更次日期」(處理跨午夜更次) */
 function calcShiftDate(timestamp, cfg){
   var d       = new Date(timestamp);
   var timeStr = pad2(d.getHours()) + ':' + pad2(d.getMinutes());
   if (cfg && cfg.startTime > cfg.endTime){
-    // 跨午夜更次，例如 18:00–06:00：凌晨時段歸到前一天
     if (timeStr <= cfg.endTime){
       var y = new Date(d);
       y.setDate(y.getDate() - 1);
@@ -793,14 +751,12 @@ function calcShiftDate(timestamp, cfg){
   return localDateStr(d);
 }
 
-/* 取得「當前更次日期」key */
 function getCurrentShiftKey(){
   var now      = new Date();
   var timeStr  = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
   var todayKey = localDateStr(now);
   var cfg      = shiftSettings[todayKey];
 
-  // 今天尚未有設定 → 用最近一次的設定推算（讓跨午夜情況能正確歸屬）
   if (!cfg){
     var keys = Object.keys(shiftSettings).sort().reverse();
     if (keys.length) cfg = shiftSettings[keys[0]];
@@ -813,20 +769,44 @@ function getCurrentShiftKey(){
   return todayKey;
 }
 
-/* 取得當前更次的設定（不存在時用最近一次的設定複製一份） */
+/* 確保 fuelEntries 陣列存在（兼容舊資料） */
+function ensureFuelEntries(cfg){
+  if (!cfg) return;
+  if (!Array.isArray(cfg.fuelEntries)){
+    var oldFuel = parseFloat(cfg.fuel) || 0;
+    cfg.fuelEntries = oldFuel > 0
+      ? [{ id: 'fuel_legacy_' + Date.now(), amount: oldFuel, timestamp: Date.now() }]
+      : [];
+    delete cfg.fuel;   /* 移除舊欄位 */
+  }
+}
+
+/* 取得該更次的總油費 */
+function getFuelTotal(cfg){
+  if (!cfg) return 0;
+  if (Array.isArray(cfg.fuelEntries)){
+    return cfg.fuelEntries.reduce(function(s, e){
+      return s + (parseFloat(e.amount) || 0);
+    }, 0);
+  }
+  return parseFloat(cfg.fuel) || 0;
+}
+
 function getCurrentSettings(){
   var key  = getCurrentShiftKey();
   if (!shiftSettings[key]){
     var keys = Object.keys(shiftSettings).sort().reverse();
     var base = keys.length ? shiftSettings[keys[0]] : DEFAULT_SHIFT;
+    /* 租車費 & 時間繼承上一更；油費記錄不繼承（每更獨立） */
     shiftSettings[key] = {
-      rental:    parseFloat(base.rental) || 0,
-      fuel:      parseFloat(base.fuel)   || 0,
-      startTime: base.startTime || DEFAULT_SHIFT.startTime,
-      endTime:   base.endTime   || DEFAULT_SHIFT.endTime
+      rental:      parseFloat(base.rental) || 0,
+      fuelEntries: [],
+      startTime:   base.startTime || DEFAULT_SHIFT.startTime,
+      endTime:     base.endTime   || DEFAULT_SHIFT.endTime
     };
     localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
   }
+  ensureFuelEntries(shiftSettings[key]);
   return shiftSettings[key];
 }
 
@@ -834,15 +814,17 @@ function getCurrentSettings(){
 (function migrateLegacy(){
   var legacy = JSON.parse(localStorage.getItem('taxi_settings'));
   if (legacy && Object.keys(shiftSettings).length === 0){
+    var oldFuel = parseFloat(legacy.fuel) || 0;
     shiftSettings[localDateStr(new Date())] = {
-      rental:    parseFloat(legacy.rental) || 0,
-      fuel:      parseFloat(legacy.fuel)   || 0,
+      rental:      parseFloat(legacy.rental) || 0,
+      fuelEntries: oldFuel > 0
+        ? [{ id: 'fuel_legacy_' + Date.now(), amount: oldFuel, timestamp: Date.now() }]
+        : [],
       startTime: legacy.startTime || DEFAULT_SHIFT.startTime,
       endTime:   legacy.endTime   || DEFAULT_SHIFT.endTime
     };
     localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
   }
-  // 幫舊 trip 補上 shiftDate
   var changed = false;
   trips.forEach(function(t){
     if (!t.shiftDate){
@@ -873,20 +855,12 @@ document.addEventListener('touchend', function(e){
     var tag = el.tagName;
     return tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA';
   }
-
   function dismissKeyboard(e){
     var target = e.target;
-
-    if (target.closest && target.closest('input, select, textarea, button, a, label')) {
-      return;
-    }
-
+    if (target.closest && target.closest('input, select, textarea, button, a, label')) return;
     var active = document.activeElement;
-    if (isFormField(active)) {
-      active.blur();
-    }
+    if (isFormField(active)) active.blur();
   }
-
   document.addEventListener('touchstart', dismissKeyboard, { passive: true });
   document.addEventListener('mousedown', dismissKeyboard);
 })();
@@ -916,16 +890,11 @@ function updateDateTimePreview(){
 
 function updateHeaderTime(){
   var now = new Date();
-  var timeStr = now.toLocaleTimeString('zh-HK', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  });
+  var timeStr = now.toLocaleTimeString('zh-HK', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
   var el = document.getElementById('header-shift-badge');
   if (el) el.innerText = timeStr;
 }
 
-/* 簡易 HTML 跳脫 */
 function escapeHtml(s){
   return String(s == null ? '' : s)
     .replace(/&/g, '&amp;')
@@ -945,7 +914,6 @@ function switchTab(tabName){
     btn.className = 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition';
     btn.querySelector('span:last-child').className = 'text-[11px] font-medium mt-1';
   });
-
   document.getElementById('tab-' + tabName).classList.remove('hidden');
   var activeNav = document.getElementById('nav-' + tabName);
   activeNav.className = 'flex flex-col items-center justify-center text-amber-500 transition';
@@ -984,26 +952,22 @@ function addFare(amount){
   input.value = (current + amount).toFixed(1).replace(/\.0$/, '');
   calculateChange();
 }
-
 function clearFare(){
   document.getElementById('trip-fare').value = '';
   document.getElementById('trip-received').value = '';
   document.getElementById('change-display').innerText = '$0.0';
   document.getElementById('trip-fare').focus();
 }
-
 function clearReceived(){
   var r = document.getElementById('trip-received');
   r.value = '';
   calculateChange();
   r.focus();
 }
-
 function setReceived(amount){
   document.getElementById('trip-received').value = amount;
   calculateChange();
 }
-
 function calculateChange(){
   var fare     = parseFloat(document.getElementById('trip-fare').value) || 0;
   var received = parseFloat(document.getElementById('trip-received').value) || 0;
@@ -1014,8 +978,6 @@ function calculateChange(){
     display.innerText = '$0.0';
   }
 }
-
-/* 車資輸入框失焦 → 正規化並確認 */
 function confirmFareInput(){
   var input = document.getElementById('trip-fare');
   var v = parseFloat(input.value);
@@ -1026,8 +988,6 @@ function confirmFareInput(){
   }
   calculateChange();
 }
-
-/* 付款輸入框失焦 → 正規化並確認 */
 function confirmReceivedInput(){
   var input = document.getElementById('trip-received');
   var v = parseFloat(input.value);
@@ -1063,13 +1023,13 @@ function saveTrip(){
   var newTrip = {
     id: 'trip_' + ts,
     timestamp: ts,
-    shiftDate: calcShiftDate(ts, cfg),   /* ★ 記錄所屬更次日期 */
-    dateStr: now.toISOString(),
-    fare: fare,
-    type: activeTripType,
-    received: received,
-    change: Math.max(0, received - fare),
-    note: note
+    shiftDate: calcShiftDate(ts, cfg),
+    dateStr:   now.toISOString(),
+    fare:      fare,
+    type:      activeTripType,
+    received:  received,
+    change:    Math.max(0, received - fare),
+    note:      note
   };
 
   trips.unshift(newTrip);
@@ -1095,20 +1055,16 @@ function renderTripList(){
   var allowStreet      = document.getElementById('chk-type-street').checked;
   var allowUber        = document.getElementById('chk-type-uber').checked;
   var allowOther       = document.getElementById('chk-type-other').checked;
-
-  var currentShiftKey = getCurrentShiftKey();
+  var currentShiftKey  = getCurrentShiftKey();
 
   var filtered = trips.filter(function(t){
     var matchKeyword = (t.note || '').toLowerCase().indexOf(keyword) !== -1 ||
                        t.fare.toString().indexOf(keyword) !== -1;
-
     var matchType = false;
     if (t.type === '街客' && allowStreet) matchType = true;
     if (t.type === 'Uber' && allowUber)   matchType = true;
     if (t.type === '其他' && allowOther)  matchType = true;
-
     var matchShift = !onlyCurrentShift || (t.shiftDate === currentShiftKey);
-
     return matchKeyword && matchType && matchShift;
   });
 
@@ -1221,12 +1177,7 @@ function saveEditedTrip(){
   var fare = parseFloat(document.getElementById('edit-fare').value);
   var type = document.getElementById('edit-type').value;
   var note = document.getElementById('edit-note').value.trim();
-
-  if (!fare || isNaN(fare) || fare <= 0){
-    showToast('請輸入有效車資！');
-    return;
-  }
-
+  if (!fare || isNaN(fare) || fare <= 0){ showToast('請輸入有效車資！'); return; }
   var index = trips.findIndex(function(item){ return item.id === currentEditingId; });
   if (index !== -1){
     trips[index].fare = fare;
@@ -1270,10 +1221,13 @@ function openShiftHistoryModal(){
   } else {
     keys.forEach(function(key){
       var cfg    = shiftSettings[key];
+      ensureFuelEntries(cfg);
       var list   = trips.filter(function(t){ return t.shiftDate === key; });
       var gross  = list.reduce(function(s,t){ return s + (parseFloat(t.fare) || 0); }, 0);
-      var cost   = (parseFloat(cfg.rental) || 0) + (parseFloat(cfg.fuel) || 0);
+      var fuel   = getFuelTotal(cfg);
+      var cost   = (parseFloat(cfg.rental) || 0) + fuel;
       var profit = gross - cost;
+      var fuelCount = (cfg.fuelEntries || []).length;
       var isCurrent = (key === currentKey);
 
       html +=
@@ -1287,7 +1241,9 @@ function openShiftHistoryModal(){
           '</div>' +
           '<div class="grid grid-cols-2 gap-y-1 text-[11px]">' +
             '<span class="text-slate-500">租車：<b class="text-rose-600">$' + (parseFloat(cfg.rental) || 0) + '</b></span>' +
-            '<span class="text-slate-500">油費：<b class="text-rose-600">$' + (parseFloat(cfg.fuel) || 0) + '</b></span>' +
+            '<span class="text-slate-500">油費：<b class="text-rose-600">$' + fuel.toFixed(1) + '</b>' +
+              (fuelCount > 1 ? ' <span class="text-slate-400">(' + fuelCount + '筆)</span>' : '') +
+            '</span>' +
             '<span class="text-slate-500">行程：<b class="text-slate-700">' + list.length + ' 筆</b></span>' +
             '<span class="text-slate-500">營業額：<b class="text-slate-700">$' + gross.toFixed(1) + '</b></span>' +
           '</div>' +
@@ -1311,6 +1267,145 @@ function openShiftHistoryModal(){
 }
 
 /* =========================================================
+   K-3. 加油記錄管理
+   ========================================================= */
+function openAddFuelModal(){
+  document.getElementById('modal-title').innerText = '新增加油記錄';
+  document.getElementById('modal-body').innerHTML =
+    '<div class="space-y-3">' +
+      '<div>' +
+        '<label class="block text-xs font-semibold text-slate-600 mb-1">本次加油金額 (HKD)</label>' +
+        '<div class="relative">' +
+          '<span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>' +
+          '<input type="number" id="fuel-add-amount" step="1" inputmode="decimal" autocomplete="off" placeholder="0" ' +
+            'class="w-full pl-8 pr-3 py-3 text-xl font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">' +
+        '</div>' +
+      '</div>' +
+      '<div class="grid grid-cols-3 gap-2">' +
+        [100,200,300,400,500,600].map(function(v){
+          return '<button type="button" onclick="setFuelAddAmount(' + v + ')" ' +
+                 'class="py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-sm transition">$' + v + '</button>';
+        }).join('') +
+      '</div>' +
+      '<p class="text-[11px] text-slate-400 leading-relaxed flex items-start gap-1.5">' +
+        '<span class="ico w-3.5 h-3.5 mt-0.5 shrink-0" data-icon="info"></span>' +
+        '<span>每筆加油會自動累加至當更總油費。可於「查看加油記錄」中刪除個別記錄，總油費將即時重新計算。</span>' +
+      '</p>' +
+    '</div>';
+
+  document.getElementById('modal-footer').innerHTML =
+    '<button onclick="closeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition">取消</button>' +
+    '<button onclick="addFuelEntry()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl text-xs transition">確認加入</button>';
+
+  var m = document.getElementById('trip-modal');
+  m.classList.remove('hidden');
+  m.classList.add('flex');
+  hydrateIcons();
+  setTimeout(function(){
+    var el = document.getElementById('fuel-add-amount');
+    if (el) el.focus();
+  }, 100);
+}
+
+function setFuelAddAmount(v){
+  var input = document.getElementById('fuel-add-amount');
+  if (input){ input.value = v; input.focus(); }
+}
+
+function addFuelEntry(){
+  var input = document.getElementById('fuel-add-amount');
+  var amount = parseFloat(input.value);
+  if (!amount || isNaN(amount) || amount <= 0){
+    showToast('請輸入有效金額！');
+    input.focus();
+    return;
+  }
+  var key = getCurrentShiftKey();
+  var cfg = getCurrentSettings();
+  if (!Array.isArray(cfg.fuelEntries)) cfg.fuelEntries = [];
+  cfg.fuelEntries.push({
+    id: 'fuel_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+    amount: amount,
+    timestamp: Date.now()
+  });
+  shiftSettings[key] = cfg;
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+
+  closeModal();
+  initSettingsForm();
+  updateStatsAndNet();
+  showToast('已加入加油 $' + amount + '，總油費 $' + getFuelTotal(cfg).toFixed(1));
+}
+
+function openFuelHistoryModal(){
+  var cfg = getCurrentSettings();
+  var entries = (cfg.fuelEntries || []).slice().sort(function(a,b){ return b.timestamp - a.timestamp; });
+  var total = getFuelTotal(cfg);
+  var key = getCurrentShiftKey();
+
+  var html = '<div class="space-y-3">';
+
+  html +=
+    '<div class="bg-amber-50 border border-amber-100 rounded-xl px-3.5 py-2.5 flex justify-between items-center">' +
+      '<div>' +
+        '<div class="text-[11px] text-amber-800 font-medium">當更總油費</div>' +
+        '<div class="text-xl font-extrabold text-amber-900 mt-0.5">$' + total.toFixed(1) + '</div>' +
+      '</div>' +
+      '<div class="text-right text-[11px] text-slate-500 font-mono">' + key + '<br>共 ' + entries.length + ' 筆</div>' +
+    '</div>';
+
+  if (entries.length === 0){
+    html += '<p class="text-center text-slate-400 text-sm py-6">尚未有加油記錄<br><span class="text-[11px]">點下方「新增加油」開始記錄</span></p>';
+  } else {
+    html += '<div class="space-y-1.5 max-h-64 overflow-y-auto pr-1">';
+    entries.forEach(function(e){
+      var d = new Date(e.timestamp);
+      var timeStr = d.toLocaleString('zh-HK', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+      html +=
+        '<div class="flex justify-between items-center bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">' +
+          '<div>' +
+            '<div class="font-bold text-slate-800 text-sm">$' + e.amount + '</div>' +
+            '<div class="text-[11px] text-slate-400 font-mono">' + timeStr + '</div>' +
+          '</div>' +
+          '<button onclick="deleteFuelEntry(\'' + e.id + '\')" class="p-2 text-slate-400 hover:text-rose-500 transition">' +
+            ico('trash-2','w-4 h-4') +
+          '</button>' +
+        '</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+
+  document.getElementById('modal-title').innerText = '加油記錄';
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-footer').innerHTML =
+    '<button onclick="closeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition">關閉</button>' +
+    '<button onclick="openAddFuelModal()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl text-xs transition">+ 新增加油</button>';
+
+  var m = document.getElementById('trip-modal');
+  m.classList.remove('hidden');
+  m.classList.add('flex');
+  hydrateIcons();
+}
+
+function deleteFuelEntry(id){
+  if (!confirm('確定要刪除這筆加油記錄嗎？')) return;
+
+  var key = getCurrentShiftKey();
+  var cfg = getCurrentSettings();
+  cfg.fuelEntries = (cfg.fuelEntries || []).filter(function(e){ return e.id !== id; });
+  shiftSettings[key] = cfg;
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+
+  initSettingsForm();
+  updateStatsAndNet();
+  showToast('加油記錄已刪除，總油費 $' + getFuelTotal(cfg).toFixed(1));
+
+  openFuelHistoryModal(); /* 保持彈窗打開以顯示更新後內容 */
+}
+
+/* =========================================================
    L. 批次刪除 + 撤銷
    ========================================================= */
 var DELETE_PERIODS = {
@@ -1321,7 +1416,6 @@ var DELETE_PERIODS = {
 
 function deleteOldTrips(period){
   var targets = [];
-
   if (period === 'all'){
     targets = trips.slice();
   } else {
@@ -1339,11 +1433,9 @@ function deleteOldTrips(period){
   var confirmMsg = period === 'all'
     ? '⚠️ 確定要刪除「全部」' + targets.length + ' 筆行程紀錄嗎？\n\n此操作無法復原！'
     : '確定要刪除 ' + DELETE_PERIODS[period].label + ' 的 ' + targets.length + ' 筆紀錄嗎？\n\n此操作無法復原！';
-
   if (!confirm(confirmMsg)) return;
 
   lastDeletedTrips = targets.slice();
-
   var idSet = {};
   targets.forEach(function(t){ idSet[t.id] = true; });
   trips = trips.filter(function(t){ return !idSet[t.id]; });
@@ -1360,17 +1452,13 @@ function showUndoBanner(text){
   document.getElementById('undo-text').innerText = text;
   banner.classList.remove('hidden');
 }
-
 function hideUndoBanner(){
   document.getElementById('undo-banner').classList.add('hidden');
 }
-
 function undoDelete(){
   if (!lastDeletedTrips || lastDeletedTrips.length === 0) return;
-
   var existing = {};
   trips.forEach(function(t){ existing[t.id] = true; });
-
   var restored = lastDeletedTrips.filter(function(t){ return !existing[t.id]; });
   trips = trips.concat(restored).sort(function(a,b){ return b.timestamp - a.timestamp; });
   localStorage.setItem('taxi_trips', JSON.stringify(trips));
@@ -1393,8 +1481,8 @@ function updateTripCount(){
 function initSettingsForm(){
   var cfg = getCurrentSettings();
 
-  document.getElementById('setting-rental').value     = cfg.rental;
-  document.getElementById('setting-fuel').value       = cfg.fuel;
+  document.getElementById('setting-rental').value = cfg.rental;
+  document.getElementById('setting-fuel').value   = getFuelTotal(cfg);
   document.getElementById('setting-start-time').value = cfg.startTime;
   document.getElementById('setting-end-time').value   = cfg.endTime;
 
@@ -1402,25 +1490,24 @@ function initSettingsForm(){
 
   var badge = document.getElementById('current-shift-date-badge');
   if (badge) badge.innerText = getCurrentShiftKey();
+
+  var btnText = document.getElementById('fuel-history-btn-text');
+  if (btnText) btnText.innerText = '查看加油記錄 (' + (cfg.fuelEntries || []).length + ' 筆)';
 }
 
 function saveSettings(){
-  var newCfg = {
-    rental:    parseFloat(document.getElementById('setting-rental').value) || 0,
-    fuel:      parseFloat(document.getElementById('setting-fuel').value)   || 0,
-    startTime: document.getElementById('setting-start-time').value || '06:00',
-    endTime:   document.getElementById('setting-end-time').value   || '18:00'
-  };
+  var key = getCurrentShiftKey();
+  var cfg = getCurrentSettings();
 
-  /* 用新的更次時間重新推算「此刻」屬於哪個更次 */
-  var key = calcShiftDate(Date.now(), newCfg);
-  shiftSettings[key] = newCfg;
+  cfg.rental    = parseFloat(document.getElementById('setting-rental').value) || 0;
+  cfg.startTime = document.getElementById('setting-start-time').value || '06:00';
+  cfg.endTime   = document.getElementById('setting-end-time').value   || '18:00';
+  if (!Array.isArray(cfg.fuelEntries)) cfg.fuelEntries = [];
+
+  shiftSettings[key] = cfg;
   localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
 
-  document.getElementById('current-shift-time-range').innerText = newCfg.startTime + ' - ' + newCfg.endTime;
-  var badge = document.getElementById('current-shift-date-badge');
-  if (badge) badge.innerText = key;
-
+  initSettingsForm();
   renderTripList();
   updateStatsAndNet();
   showToast('更次設定已保存');
@@ -1446,19 +1533,20 @@ function updateStatsAndNet(){
   var currentKey = getCurrentShiftKey();
   var currentCfg = getCurrentSettings();
 
-  /* ---- 當更淨利（依 shiftDate 判斷） ---- */
   var currentShiftGross = 0;
   trips.forEach(function(t){
     if (t.shiftDate === currentKey) currentShiftGross += (parseFloat(t.fare) || 0);
   });
 
-  var totalCost = (parseFloat(currentCfg.rental) || 0) + (parseFloat(currentCfg.fuel) || 0);
-  var netProfit = currentShiftGross - totalCost;
+  var rentalCost = parseFloat(currentCfg.rental) || 0;
+  var fuelCost   = getFuelTotal(currentCfg);
+  var totalCost  = rentalCost + fuelCost;
+  var netProfit  = currentShiftGross - totalCost;
 
-  document.getElementById('net-gross').innerText = '$' + currentShiftGross;
-  document.getElementById('net-cost').innerText  = '$' + totalCost;
+  document.getElementById('net-gross').innerText = '$' + currentShiftGross.toFixed(1);
+  document.getElementById('net-cost').innerText  = '$' + totalCost.toFixed(1);
   var profitElem = document.getElementById('net-profit');
-  profitElem.innerText = '$' + netProfit;
+  profitElem.innerText = '$' + netProfit.toFixed(1);
   profitElem.className = netProfit >= 0
     ? 'text-base font-extrabold text-amber-400 mt-0.5'
     : 'text-base font-extrabold text-rose-400 mt-0.5';
@@ -1468,7 +1556,11 @@ function updateStatsAndNet(){
   var badge = document.getElementById('current-shift-date-badge');
   if (badge) badge.innerText = currentKey;
 
-  /* ---- 收入統計 ---- */
+  var fuelInput = document.getElementById('setting-fuel');
+  if (fuelInput && document.activeElement !== fuelInput){
+    fuelInput.value = fuelCost;
+  }
+
   var titleMap = { day:'今日總收入', week:'本星期總收入', month:'本月總收入' };
   document.getElementById('stats-period-title').innerText = titleMap[statsPeriod];
 
@@ -1491,7 +1583,6 @@ function updateStatsAndNet(){
 
   var totalRev = 0;
   var typeRev  = { '街客':0, 'Uber':0, '其他':0 };
-
   filteredTrips.forEach(function(t){
     var v = parseFloat(t.fare) || 0;
     totalRev += v;
