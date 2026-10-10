@@ -15,7 +15,7 @@
 
 <style>
 /* =========================================================
-   1. Reset（取代 Tailwind Preflight）
+   1. Reset
    ========================================================= */
 *,*::before,*::after{box-sizing:border-box;border:0 solid #e2e8f0}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
@@ -46,7 +46,6 @@ body{
   padding-bottom:calc(5rem + env(safe-area-inset-bottom, 0px));
 }
 
-/* 圖示佔位 */
 .ico{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
 
 /* =========================================================
@@ -327,7 +326,6 @@ select{
   background-repeat:no-repeat;background-position:right .6rem center;
 }
 
-/* Checkbox */
 input[type=checkbox]{
   -webkit-appearance:none;appearance:none;
   width:1rem;height:1rem;
@@ -343,16 +341,13 @@ input[type=checkbox]:checked::after{
   transform:rotate(45deg);
 }
 
-/* 底部導覽安全區 */
 nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
 </style>
 </head>
 
 <body>
 
-<!-- =========================================================
-     Header
-     ========================================================= -->
+<!-- Header -->
 <header class="bg-amber-500 text-slate-900 shadow-md sticky top-0 z-50">
   <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
     <div class="flex items-center space-x-2">
@@ -365,12 +360,10 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
   </div>
 </header>
 
-<!-- =========================================================
-     Main
-     ========================================================= -->
+<!-- Main -->
 <main class="flex-1 max-w-md w-full mx-auto p-4 mb-4">
 
-  <!-- ============ TAB 1：記行程 ============ -->
+  <!-- TAB 1：記行程 -->
   <section id="tab-trip" class="space-y-4">
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
@@ -380,12 +373,16 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         <span id="current-date-time-preview" class="text-xs text-slate-400 font-medium"></span>
       </div>
 
-      <!-- 車資輸入 -->
+      <!-- 車資輸入（加上 onblur 確認 + enterkeyhint） -->
       <div>
         <label class="block text-sm font-semibold text-slate-700 mb-1">車資金額 (HKD)</label>
         <div class="relative">
           <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>
-          <input type="number" id="trip-fare" step="0.5" inputmode="decimal" placeholder="0.0"
+          <input type="number" id="trip-fare" step="0.5" inputmode="decimal"
+            enterkeyhint="done" autocomplete="off"
+            placeholder="0.0"
+            oninput="calculateChange()"
+            onblur="confirmFareInput()"
             class="w-full pl-8 pr-4 py-3 text-2xl font-bold bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
         </div>
         <div class="grid grid-cols-5 gap-1.5 mt-2">
@@ -426,8 +423,11 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           </div>
           <div class="relative">
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>
-            <input type="number" id="trip-received" step="0.5" inputmode="decimal" placeholder="留空代表付剛好"
+            <input type="number" id="trip-received" step="0.5" inputmode="decimal"
+              enterkeyhint="done" autocomplete="off"
+              placeholder="留空代表付剛好"
               oninput="calculateChange()"
+              onblur="confirmReceivedInput()"
               class="w-full pl-8 pr-4 py-2.5 text-lg font-bold bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none">
           </div>
           <div class="grid grid-cols-4 gap-2 mt-2">
@@ -438,7 +438,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           </div>
         </div>
 
-        <!-- 應找零錢：深綠 + 加粗 -->
+        <!-- 應找零錢 -->
         <div class="flex justify-between items-center bg-gradient-to-r px-3.5 py-3 rounded-xl border-2 border-amber-400 shadow-sm">
           <span class="text-sm font-bold text-amber-900 flex items-center gap-1.5">
             <span class="ico w-5 h-5 text-amber-700" data-icon="coins"></span> 應找零錢
@@ -451,6 +451,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
       <div>
         <label class="block text-sm font-semibold text-slate-700 mb-1">行程備註 (選填)</label>
         <input type="text" id="trip-note" placeholder="例如：過海、機場、隧道口等..."
+          autocomplete="off" enterkeyhint="done"
           class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
       </div>
 
@@ -462,7 +463,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
     </div>
   </section>
 
-  <!-- ============ TAB 2：行程列表 ============ -->
+  <!-- TAB 2：行程列表 -->
   <section id="tab-list" class="space-y-3 hidden">
     <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 space-y-3">
       <div class="relative">
@@ -470,6 +471,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           <span class="ico w-4 h-4" data-icon="search"></span>
         </span>
         <input type="text" id="search-keyword" oninput="renderTripList()" placeholder="搜尋備註..."
+          autocomplete="off"
           class="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
       </div>
 
@@ -503,10 +505,9 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
     <div id="trip-list-container" class="space-y-2.5"></div>
   </section>
 
-  <!-- ============ TAB 3：收入統計與更次設定 ============ -->
+  <!-- TAB 3：收入統計與更次設定 -->
   <section id="tab-stats" class="space-y-4 hidden">
 
-    <!-- 成本與更次設定 -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
       <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
         <span class="ico w-4 h-4 text-amber-500" data-icon="settings"></span> 當更成本與時間設定
@@ -515,11 +516,13 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">租車費用 (HKD)</label>
           <input type="number" id="setting-rental" onchange="saveSettings()" placeholder="0"
+            inputmode="decimal" autocomplete="off"
             class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">總油費 (HKD)</label>
           <input type="number" id="setting-fuel" onchange="saveSettings()" placeholder="0"
+            inputmode="decimal" autocomplete="off"
             class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
         </div>
       </div>
@@ -537,7 +540,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
       </div>
     </div>
 
-    <!-- 淨利潤預覽（文字改白色） -->
     <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-4 shadow-md space-y-3">
       <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
         <span class="text-xs font-medium text-white flex items-center gap-1">
@@ -561,7 +563,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
       </div>
     </div>
 
-    <!-- 收入統計 -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-4">
       <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
         <span class="ico w-4 h-4 text-amber-500" data-icon="bar-chart-3"></span> 收入統計總覽
@@ -601,7 +602,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
       </div>
     </div>
 
-    <!-- 數據管理 -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
       <div class="flex justify-between items-center">
         <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
@@ -650,9 +650,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
   </section>
 </main>
 
-<!-- =========================================================
-     底部導覽
-     ========================================================= -->
+<!-- 底部導覽 -->
 <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-50">
   <div class="max-w-md mx-auto grid grid-cols-3 h-16">
     <button onclick="switchTab('trip')" id="nav-trip" class="flex flex-col items-center justify-center text-amber-500 transition">
@@ -670,9 +668,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
   </div>
 </nav>
 
-<!-- =========================================================
-     Modal
-     ========================================================= -->
+<!-- Modal -->
 <div id="trip-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
   <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl animate-in">
     <div class="bg-slate-900 text-white px-4 py-3 flex justify-between items-center">
@@ -696,7 +692,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
      ========================================================= -->
 <script>
 /* =========================================================
-   A. 內建 SVG 圖示庫（完全離線，取代 lucide）
+   A. SVG 圖示庫
    ========================================================= */
 const ICONS = {
   'car-taxi-front':'<path d="M5 17h14M3.5 13.5l1.4-4.2A2.2 2.2 0 0 1 7 7.8h10a2.2 2.2 0 0 1 2.1 1.5l1.4 4.2v3.5h-2M3.5 17v-3.5H21"/><circle cx="7.5" cy="17" r="1.8"/><circle cx="16.5" cy="17" r="1.8"/>',
@@ -727,7 +723,6 @@ const ICONS = {
   'edit-3':'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>'
 };
 
-/** 產生 SVG 圖示字串 */
 function ico(name, cls){
   cls = cls || 'w-4 h-4';
   return '<svg class="' + cls + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
@@ -735,7 +730,6 @@ function ico(name, cls){
        + (ICONS[name] || '') + '</svg>';
 }
 
-/** 將 <span data-icon="xxx"> 全部換成 SVG */
 function hydrateIcons(root){
   (root || document).querySelectorAll('[data-icon]').forEach(function(el){
     if (el.dataset.done) return;
@@ -770,7 +764,37 @@ document.addEventListener('touchend', function(e){
 }, { passive:false });
 
 /* =========================================================
-   D. 初始化
+   ★ D. iPhone 點擊空白處自動確認輸入 / 收起鍵盤 ★
+   ========================================================= */
+(function setupTapToDismiss(){
+  function isFormField(el){
+    if (!el) return false;
+    var tag = el.tagName;
+    return tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA';
+  }
+
+  function dismissKeyboard(e){
+    var target = e.target;
+
+    // 點在輸入框 / 下拉 / 按鈕 / 連結 / label 上時，不收起鍵盤
+    if (target.closest && target.closest('input, select, textarea, button, a, label')) {
+      return;
+    }
+
+    var active = document.activeElement;
+    if (isFormField(active)) {
+      active.blur();   // iOS 會在這裡收起數字鍵盤
+    }
+  }
+
+  // 用 touchstart 最即時、最可靠（passive 不影響滾動）
+  document.addEventListener('touchstart', dismissKeyboard, { passive: true });
+  // 桌機 / 模擬器用 mousedown 補強
+  document.addEventListener('mousedown', dismissKeyboard);
+})();
+
+/* =========================================================
+   E. 初始化
    ========================================================= */
 window.addEventListener('DOMContentLoaded', function(){
   hydrateIcons();
@@ -784,7 +808,6 @@ window.addEventListener('DOMContentLoaded', function(){
   updateStatsAndNet();
 });
 
-/* 新增行程記錄欄：顯示「月/日 星期X」 */
 function updateDateTimePreview(){
   var now = new Date();
   var dateStr = now.toLocaleDateString('zh-HK', { month:'2-digit', day:'2-digit' });
@@ -793,7 +816,6 @@ function updateDateTimePreview(){
   if (el) el.innerText = dateStr + ' ' + weekStr;
 }
 
-/* Header 徽章：即時時間 */
 function updateHeaderTime(){
   var now = new Date();
   var timeStr = now.toLocaleTimeString('zh-HK', {
@@ -806,7 +828,7 @@ function updateHeaderTime(){
 }
 
 /* =========================================================
-   E. Tab 切換
+   F. Tab 切換
    ========================================================= */
 function switchTab(tabName){
   ['trip','list','stats'].forEach(function(t){
@@ -827,7 +849,7 @@ function switchTab(tabName){
 }
 
 /* =========================================================
-   F. 行程類型
+   G. 行程類型
    ========================================================= */
 function setTripType(type){
   activeTripType = type;
@@ -843,7 +865,7 @@ function setTripType(type){
 }
 
 /* =========================================================
-   G. 車資與找零
+   H. 車資與找零
    ========================================================= */
 function addFare(amount){
   var input = document.getElementById('trip-fare');
@@ -882,8 +904,32 @@ function calculateChange(){
   }
 }
 
+/* ★ 車資輸入框失焦 → 正規化並確認 */
+function confirmFareInput(){
+  var input = document.getElementById('trip-fare');
+  var v = parseFloat(input.value);
+  if (!isNaN(v) && v > 0){
+    input.value = v.toFixed(1).replace(/\.0$/, '');
+  } else {
+    input.value = '';
+  }
+  calculateChange();
+}
+
+/* ★ 付款輸入框失焦 → 正規化並確認 */
+function confirmReceivedInput(){
+  var input = document.getElementById('trip-received');
+  var v = parseFloat(input.value);
+  if (!isNaN(v) && v > 0){
+    input.value = v.toFixed(1).replace(/\.0$/, '');
+  } else {
+    input.value = '';
+  }
+  calculateChange();
+}
+
 /* =========================================================
-   H. 儲存行程
+   I. 儲存行程
    ========================================================= */
 function saveTrip(){
   var fareInput     = document.getElementById('trip-fare');
@@ -923,7 +969,6 @@ function saveTrip(){
   updateStatsAndNet();
 }
 
-/* 判斷時間是否落在目前更次 */
 function checkIfInCurrentShift(dateObj){
   var timeStr = String(dateObj.getHours()).padStart(2,'0') + ':' +
                 String(dateObj.getMinutes()).padStart(2,'0');
@@ -934,7 +979,7 @@ function checkIfInCurrentShift(dateObj){
 }
 
 /* =========================================================
-   I. 行程列表
+   J. 行程列表
    ========================================================= */
 function renderTripList(){
   var container = document.getElementById('trip-list-container');
@@ -1006,7 +1051,7 @@ function renderTripList(){
 }
 
 /* =========================================================
-   J. Modal 操作
+   K. Modal
    ========================================================= */
 function openDetailModal(id){
   var t = trips.find(function(item){ return item.id === id; });
@@ -1041,7 +1086,7 @@ function openEditModal(id){
     '<div class="space-y-3 text-sm">' +
       '<div>' +
         '<label class="block text-xs font-semibold text-slate-600 mb-1">車資金額</label>' +
-        '<input type="number" id="edit-fare" value="' + t.fare + '" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 font-bold">' +
+        '<input type="number" id="edit-fare" value="' + t.fare + '" inputmode="decimal" autocomplete="off" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 font-bold">' +
       '</div>' +
       '<div>' +
         '<label class="block text-xs font-semibold text-slate-600 mb-1">行程類型</label>' +
@@ -1053,7 +1098,7 @@ function openEditModal(id){
       '</div>' +
       '<div>' +
         '<label class="block text-xs font-semibold text-slate-600 mb-1">備註</label>' +
-        '<input type="text" id="edit-note" value="' + (t.note || '') + '" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2">' +
+        '<input type="text" id="edit-note" value="' + (t.note || '') + '" autocomplete="off" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2">' +
       '</div>' +
     '</div>';
 
@@ -1106,7 +1151,7 @@ function closeModal(){
 }
 
 /* =========================================================
-   K. 批次刪除 + 撤銷
+   L. 批次刪除 + 撤銷
    ========================================================= */
 var DELETE_PERIODS = {
   day:   { ms: 24 * 60 * 60 * 1000,     label: '一天前（24 小時前）' },
@@ -1183,7 +1228,7 @@ function updateTripCount(){
 }
 
 /* =========================================================
-   L. 設定與統計
+   M. 設定與統計
    ========================================================= */
 function initSettingsForm(){
   document.getElementById('setting-rental').value     = settings.rental;
@@ -1222,7 +1267,6 @@ function updateStatsAndNet(){
   var now = new Date();
   updateTripCount();
 
-  /* --- 當更淨利 --- */
   var currentShiftGross = 0;
   trips.forEach(function(t){
     var d = new Date(t.timestamp);
@@ -1242,7 +1286,6 @@ function updateStatsAndNet(){
     ? 'text-base font-extrabold text-amber-400 mt-0.5'
     : 'text-base font-extrabold text-rose-400 mt-0.5';
 
-  /* --- 週期統計 --- */
   var titleMap = { day:'今日總收入', week:'本星期總收入', month:'本月總收入' };
   document.getElementById('stats-period-title').innerText = titleMap[statsPeriod];
 
@@ -1282,7 +1325,7 @@ function updateStatsAndNet(){
 }
 
 /* =========================================================
-   M. Toast
+   N. Toast
    ========================================================= */
 function showToast(message){
   var toast = document.getElementById('toast');
@@ -1295,7 +1338,7 @@ function showToast(message){
 }
 
 /* =========================================================
-   N. 註冊 Service Worker（離線核心）
+   O. Service Worker
    ========================================================= */
 if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   window.addEventListener('load', function(){
@@ -1306,7 +1349,7 @@ if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 }
 
 /* =========================================================
-   O. 防止 iOS 橡皮筋滾動導致 Modal 背景移動
+   P. Modal 開啟時鎖背景滾動
    ========================================================= */
 document.addEventListener('touchmove', function(e){
   var modal = document.getElementById('trip-modal');
