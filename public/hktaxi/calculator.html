@@ -241,6 +241,8 @@ body{
 .border-amber-500\/30{border-color:rgba(245,158,11,.3)}
 .border-amber-600{border-color:#d97706}
 .border-rose-200{border-color:#fecdd3}
+.border-rose-300{border-color:#fda4af}
+.border-rose-400{border-color:#fb7185}
 .border-rose-700{border-color:#be123c}
 .border-emerald-200{border-color:#a7f3d0}
 .border-blue-200{border-color:#bfdbfe}
@@ -260,6 +262,7 @@ body{
 .shadow-xl{box-shadow:0 16px 40px rgba(15,23,42,.22)}
 .shadow-inner{box-shadow:inset 0 1px 3px rgba(15,23,42,.12)}
 .change-shadow{text-shadow:0 1px 0 rgba(255,255,255,.6),0 2px 4px rgba(6,95,70,.25)}
+.debt-shadow{text-shadow:0 1px 0 rgba(255,255,255,.6),0 2px 4px rgba(190,18,60,.25)}
 
 .opacity-0{opacity:0}
 .transition{transition:all .2s ease}
@@ -293,6 +296,7 @@ body{
 .focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}
 .focus\:ring-2:focus{box-shadow:0 0 0 3px rgba(245,158,11,.35)}
 .focus\:ring-amber-500:focus{box-shadow:0 0 0 3px rgba(245,158,11,.35)}
+.focus\:ring-rose-500:focus{box-shadow:0 0 0 3px rgba(244,63,94,.35)}
 
 input[type=text],input[type=number],input[type=time],select{
   border-width:1px;border-style:solid;border-color:#e2e8f0;
@@ -410,9 +414,11 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           </div>
         </div>
 
-        <div class="flex justify-between items-center bg-gradient-to-r px-3.5 py-3 rounded-xl border-2 border-amber-400 shadow-sm">
+        <!-- 找零 / 欠款顯示 -->
+        <div id="change-box" class="flex justify-between items-center bg-gradient-to-r px-3.5 py-3 rounded-xl border-2 border-amber-400 shadow-sm transition">
           <span class="text-sm font-bold text-amber-900 flex items-center gap-1.5">
-            <span class="ico w-5 h-5 text-amber-700" data-icon="coins"></span> 應找零錢
+            <span id="change-icon" class="ico w-5 h-5 text-amber-700" data-icon="coins"></span>
+            <span id="change-label">應找零錢</span>
           </span>
           <span id="change-display" class="text-3xl font-black text-emerald-800 font-mono tracking-tight change-shadow">$0.0</span>
         </div>
@@ -760,6 +766,7 @@ const ICONS = {
   'smartphone':'<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18h2"/>',
   'layers':'<path d="M12 3 3 8l9 5 9-5-9-5z"/><path d="m3 13 9 5 9-5"/>',
   'coins':'<circle cx="9" cy="9" r="6"/><path d="M15.6 4.4A6 6 0 0 1 15 16M7 19h10"/>',
+  'alert-triangle':'<path d="m10.3 3.6-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.4l-8-14a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
   'check-circle':'<circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.3 2.3 4.7-5"/>',
   'search':'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
   'settings':'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/>',
@@ -945,7 +952,6 @@ function getShiftMileage(cfg){
   return diff >= 0 ? diff : null;
 }
 
-/* ★ 核心：createIfMissing 預設 true；傳 false 則為只讀，不自動建立 */
 function getCurrentSettings(createIfMissing){
   if (createIfMissing === undefined) createIfMissing = true;
   var key = getCurrentShiftKey();
@@ -1160,7 +1166,7 @@ function setTripType(type){
 }
 
 /* =========================================================
-   H. 車資與找零
+   H. 車資與找零（含欠款處理）
    ========================================================= */
 function addFare(amount){
   var input = document.getElementById('trip-fare');
@@ -1171,7 +1177,7 @@ function addFare(amount){
 function clearFare(){
   document.getElementById('trip-fare').value = '';
   document.getElementById('trip-received').value = '';
-  document.getElementById('change-display').innerText = '$0.0';
+  calculateChange();
   document.getElementById('trip-fare').focus();
 }
 function clearReceived(){
@@ -1184,16 +1190,53 @@ function setReceived(amount){
   document.getElementById('trip-received').value = amount;
   calculateChange();
 }
+
+/* ★ 找零框三種狀態：找零 / 欠款 / 中性 */
 function calculateChange(){
-  var fare     = parseFloat(document.getElementById('trip-fare').value) || 0;
-  var received = parseFloat(document.getElementById('trip-received').value) || 0;
-  var display  = document.getElementById('change-display');
-  if (received >= fare && received > 0){
-    display.innerText = '$' + (received - fare).toFixed(1);
-  } else {
+  var fareEl     = document.getElementById('trip-fare');
+  var receivedEl = document.getElementById('trip-received');
+  var box        = document.getElementById('change-box');
+  var labelEl    = document.getElementById('change-label');
+  var iconEl     = document.getElementById('change-icon');
+  var display    = document.getElementById('change-display');
+
+  var fare        = parseFloat(fareEl.value) || 0;
+  var receivedRaw = receivedEl.value;
+  var received    = parseFloat(receivedRaw) || 0;
+
+  /* 未輸入付款 or 付款為 0 → 中性顯示 */
+  if (receivedRaw === '' || received <= 0){
+    box.className = 'flex justify-between items-center bg-gradient-to-r px-3.5 py-3 rounded-xl border-2 border-amber-400 shadow-sm transition';
+    labelEl.innerText = '應找零錢';
+    labelEl.className = 'text-sm font-bold text-amber-900 flex items-center gap-1.5';
+    iconEl.className = 'ico w-5 h-5 text-amber-700';
     display.innerText = '$0.0';
+    display.className = 'text-3xl font-black text-emerald-800 font-mono tracking-tight change-shadow';
+    return;
+  }
+
+  /* 已輸入車資且付款 > 0 → 判斷找零 or 欠款 */
+  if (fare > 0 && received < fare){
+    /* ★ 欠款模式 */
+    var debt = fare - received;
+    box.className = 'flex justify-between items-center bg-rose-50 px-3.5 py-3 rounded-xl border-2 border-rose-400 shadow-sm transition';
+    labelEl.innerText = '還欠車資';
+    labelEl.className = 'text-sm font-bold text-rose-700 flex items-center gap-1.5';
+    iconEl.className = 'ico w-5 h-5 text-rose-600';
+    display.innerText = '$' + debt.toFixed(1);
+    display.className = 'text-3xl font-black text-rose-600 font-mono tracking-tight debt-shadow';
+  } else {
+    /* 找零模式（含付剛好） */
+    var change = received - fare;
+    box.className = 'flex justify-between items-center bg-gradient-to-r px-3.5 py-3 rounded-xl border-2 border-amber-400 shadow-sm transition';
+    labelEl.innerText = '應找零錢';
+    labelEl.className = 'text-sm font-bold text-amber-900 flex items-center gap-1.5';
+    iconEl.className = 'ico w-5 h-5 text-amber-700';
+    display.innerText = '$' + change.toFixed(1);
+    display.className = 'text-3xl font-black text-emerald-800 font-mono tracking-tight change-shadow';
   }
 }
+
 function confirmFareInput(){
   var input = document.getElementById('trip-fare');
   var v = parseFloat(input.value);
@@ -1227,7 +1270,10 @@ function saveTrip(){
   var note     = noteInput.value.trim();
   var now      = new Date();
   var ts       = now.getTime();
-  var cfg      = getCurrentSettings();   /* 建立 */
+  var cfg      = getCurrentSettings();
+
+  /* change 可為負數（負 = 客戶欠款） */
+  var changeVal = received - fare;
 
   var newTrip = {
     id: 'trip_' + ts,
@@ -1237,7 +1283,7 @@ function saveTrip(){
     fare:      fare,
     type:      activeTripType,
     received:  received,
-    change:    Math.max(0, received - fare),
+    change:    changeVal,
     note:      note
   };
 
@@ -1247,8 +1293,13 @@ function saveTrip(){
   fareInput.value = '';
   receivedInput.value = '';
   noteInput.value = '';
-  document.getElementById('change-display').innerText = '$0.0';
-  showToast('行程已成功保存！');
+  calculateChange();
+
+  if (changeVal < 0){
+    showToast('行程已保存，客戶尚欠 $' + Math.abs(changeVal).toFixed(1));
+  } else {
+    showToast('行程已成功保存！');
+  }
   updateStatsAndNet();
 }
 
@@ -1297,17 +1348,26 @@ function renderTripList(){
                     t.type === 'Uber' ? 'bg-blue-50 text-blue-700 border-blue-200' :
                                         'bg-purple-50 text-purple-700 border-purple-200';
 
+    /* ★ 欠款標記 */
+    var debtBadge = '';
+    if (typeof t.change === 'number' && t.change < 0){
+      debtBadge = '<span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-1">' +
+        ico('alert-triangle','w-3 h-3') + '欠 $' + Math.abs(t.change).toFixed(1) +
+      '</span>';
+    }
+
     return '' +
-    '<div class="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm flex items-center justify-between gap-3">' +
+    '<div class="bg-white rounded-2xl p-3.5 border ' + (debtBadge ? 'border-rose-200' : 'border-slate-100') + ' shadow-sm flex items-center justify-between gap-3">' +
       '<div class="flex items-center space-x-3 min-w-0">' +
         '<div class="w-10 h-10 rounded-xl bg-slate-100 flex flex-col items-center justify-center text-slate-600 font-mono text-[10px] shrink-0">' +
           '<span class="font-bold">' + timeStr + '</span>' +
           '<span class="text-slate-400">' + dateStr + '</span>' +
         '</div>' +
         '<div class="min-w-0">' +
-          '<div class="flex items-center gap-2">' +
+          '<div class="flex items-center gap-2 flex-wrap">' +
             '<span class="text-base font-extrabold text-slate-900">$' + t.fare + '</span>' +
             '<span class="text-[10px] px-2 py-0.5 rounded-full border font-semibold ' + typeColor + '">' + escapeHtml(t.type) + '</span>' +
+            debtBadge +
           '</div>' +
           '<p class="text-xs text-slate-500 truncate mt-0.5">' + (t.note ? escapeHtml(t.note) : '無備註') + '</p>' +
         '</div>' +
@@ -1329,6 +1389,15 @@ function openDetailModal(id){
   if (!t) return;
   var dateObj = new Date(t.timestamp);
 
+  /* 找零 / 欠款 row */
+  var changeRow;
+  var changeVal = typeof t.change === 'number' ? t.change : 0;
+  if (changeVal >= 0){
+    changeRow = '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">找零</span><span class="font-medium">$' + changeVal + '</span></div>';
+  } else {
+    changeRow = '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">客戶欠款</span><span class="font-bold text-rose-600">$' + Math.abs(changeVal).toFixed(1) + '</span></div>';
+  }
+
   document.getElementById('modal-title').innerText = '行程詳細內容';
   document.getElementById('modal-body').innerHTML =
     '<div class="space-y-2 text-sm">' +
@@ -1337,7 +1406,7 @@ function openDetailModal(id){
       '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">車資</span><span class="font-bold text-amber-600">$' + t.fare + '</span></div>' +
       '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">類型</span><span class="font-medium">' + escapeHtml(t.type) + '</span></div>' +
       '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">客戶付款</span><span class="font-medium">$' + t.received + '</span></div>' +
-      '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">找零</span><span class="font-medium">$' + t.change + '</span></div>' +
+      changeRow +
       '<div class="flex justify-between py-1"><span class="text-slate-500">備註</span><span class="font-medium text-slate-700">' + (t.note ? escapeHtml(t.note) : '無') + '</span></div>' +
     '</div>';
 
@@ -1443,6 +1512,12 @@ function openShiftHistoryModal(){
       var fuelCount = (cfg.fuelEntries || []).length;
       var isCurrent = (key === currentKey);
 
+      /* 該更次未收足總額 */
+      var unpaidTotal = list.reduce(function(s,t){
+        var c = typeof t.change === 'number' ? t.change : 0;
+        return s + (c < 0 ? -c : 0);
+      }, 0);
+
       var fuelAvgPrice = null;
       if (cfg.fuelEntries && cfg.fuelEntries.length){
         var prices = cfg.fuelEntries
@@ -1477,6 +1552,11 @@ function openShiftHistoryModal(){
             '<span class="text-slate-500">油價均價：<b class="text-slate-700">' +
               (fuelAvgPrice !== null ? '$' + fuelAvgPrice.toFixed(2) + '/L' : '--') + '</b></span>' +
           '</div>' +
+          (unpaidTotal > 0
+            ? '<div class="mt-1 pt-1 text-[11px] text-rose-600 font-semibold flex items-center gap-1">' +
+                ico('alert-triangle','w-3 h-3') + '客戶未收足總額 $' + unpaidTotal.toFixed(1) +
+              '</div>'
+            : '') +
           '<div class="mt-1.5 pt-1.5 border-t border-slate-100 flex justify-between text-[11px]">' +
             '<span class="text-slate-500">淨利 ' +
               (profitPerKm !== null ? '<span class="text-slate-400">（$' + profitPerKm.toFixed(2) + '/km）</span>' : '') +
@@ -1496,6 +1576,7 @@ function openShiftHistoryModal(){
   var m = document.getElementById('trip-modal');
   m.classList.remove('hidden');
   m.classList.add('flex');
+  hydrateIcons();
 }
 
 /* =========================================================
@@ -1665,7 +1746,7 @@ function addFuelEntry(){
   var liters  = (unitPrice !== null) ? (amount / unitPrice) : null;
 
   var key = getCurrentShiftKey();
-  var cfg = getCurrentSettings();   /* 建立 */
+  var cfg = getCurrentSettings();
   if (!Array.isArray(cfg.fuelEntries)) cfg.fuelEntries = [];
 
   cfg.fuelEntries.push({
@@ -1696,7 +1777,7 @@ function addFuelEntry(){
 }
 
 function openFuelHistoryModal(){
-  var cfg = getCurrentSettings(false);   /* ★ 只讀 */
+  var cfg = getCurrentSettings(false);
   var entries = (cfg && Array.isArray(cfg.fuelEntries)) ? cfg.fuelEntries.slice() : [];
   entries.sort(function(a,b){ return b.timestamp - a.timestamp; });
   var total = getFuelTotal(cfg);
@@ -1793,7 +1874,6 @@ var DELETE_PERIODS = {
 };
 
 function deleteOldTrips(period){
-  /* ===== 1. 找出要刪除的更次 key ===== */
   var keysToDelete = [];
 
   if (period === 'all'){
@@ -1808,11 +1888,10 @@ function deleteOldTrips(period){
     var cutoffKey = localDateStr(cutoffDate);
 
     keysToDelete = Object.keys(shiftSettings).filter(function(k){
-      return k <= cutoffKey;   /* ★ 用 <= */
+      return k <= cutoffKey;
     });
   }
 
-  /* ===== 2. 收集要刪除的行程 ===== */
   var keySet = {};
   keysToDelete.forEach(function(k){ keySet[k] = true; });
 
@@ -1831,7 +1910,6 @@ function deleteOldTrips(period){
     return;
   }
 
-  /* ===== 3. 確認 ===== */
   var periodDesc = period === 'all'
     ? '全部'
     : DELETE_PERIODS[period].label + '（' + DELETE_PERIODS[period].desc + '）';
@@ -1850,7 +1928,6 @@ function deleteOldTrips(period){
 
   if (!confirm(confirmMsg)) return;
 
-  /* ===== 4. 備份 ===== */
   lastDeletedTrips = tripTargets.slice();
   lastDeletedShiftSettings = {};
   keysToDelete.forEach(function(k){
@@ -1859,7 +1936,6 @@ function deleteOldTrips(period){
     }
   });
 
-  /* ===== 5. 執行刪除 ===== */
   var tripIdSet = {};
   tripTargets.forEach(function(t){ tripIdSet[t.id] = true; });
   trips = trips.filter(function(t){ return !tripIdSet[t.id]; });
@@ -1869,7 +1945,6 @@ function deleteOldTrips(period){
   localStorage.setItem('taxi_trips', JSON.stringify(trips));
   localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
 
-  /* ===== 6. UI 更新（只讀模式避免自動重建） ===== */
   renderTripList();
   updateStatsAndNet();
   initSettingsForm();
@@ -1937,7 +2012,7 @@ function updateTripCount(){
    M. 設定與統計
    ========================================================= */
 function initSettingsForm(){
-  var cfg = getCurrentSettings(false);   /* ★ 只讀 */
+  var cfg = getCurrentSettings(false);
 
   if (!cfg){
     document.getElementById('setting-rental').value        = '';
@@ -2007,7 +2082,7 @@ function updateMileagePanel(cfg){
 
 function saveSettings(){
   var key = getCurrentShiftKey();
-  var cfg = getCurrentSettings();   /* 建立 */
+  var cfg = getCurrentSettings();
 
   cfg.rental    = parseFloat(document.getElementById('setting-rental').value) || 0;
   cfg.startTime = document.getElementById('setting-start-time').value || '06:00';
@@ -2069,7 +2144,7 @@ function updateStatsAndNet(){
   updateTripCount();
 
   var currentKey = getCurrentShiftKey();
-  var currentCfg = getCurrentSettings(false);   /* ★ 只讀 */
+  var currentCfg = getCurrentSettings(false);
 
   var currentShiftGross = 0;
   trips.forEach(function(t){
