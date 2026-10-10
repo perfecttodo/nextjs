@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>香港的士行程計算器與收入管理</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-20">
+
+    <!-- Header -->
+    <header class="bg-amber-500 text-slate-900 shadow-md sticky top-0 z-50">
+        <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i data-lucide="car-taxi-front" class="w-7 h-7"></i>
+                <h1 class="text-lg font-bold tracking-tight">香港的士助手</h1>
+            </div>
+            <div id="header-shift-badge" class="text-xs bg-amber-600 text-white px-2.5 py-1 rounded-full font-medium shadow-inner">
+                更次中
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-md w-full mx-auto p-4 mb-4">
+
+        <!-- TAB 1: 記行程 -->
+        <section id="tab-trip" class="space-y-4">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-4">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="receipt" class="w-5 h-5 text-amber-500"></i> 新增行程記錄
+                    </h2>
+                    <span id="current-date-time-preview" class="text-xs text-slate-400 font-medium"></span>
+                </div>
+
+                <!-- 車資輸入 -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">車資金額 (HKD)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>
+                        <input type="number" id="trip-fare" step="0.5" inputmode="decimal" placeholder="0.0"
+                            class="w-full pl-8 pr-4 py-3 text-2xl font-bold bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                    <!-- 快捷加金額按鈕 -->
+                    <div class="grid grid-cols-5 gap-1.5 mt-2">
+                        <button type="button" onclick="addFare(10)" class="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-sm transition">+10</button>
+                        <button type="button" onclick="addFare(20)" class="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-sm transition">+20</button>
+                        <button type="button" onclick="addFare(50)" class="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-sm transition">+50</button>
+                        <button type="button" onclick="addFare(100)" class="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-sm transition">+100</button>
+                        <button type="button" onclick="clearFare()" class="py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold rounded-lg text-xs transition">清除</button>
+                    </div>
+                </div>
+
+                <!-- 行程類型 -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">行程類型</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="setTripType('街客')" id="type-street"
+                            class="py-2.5 px-3 rounded-xl border font-medium text-sm flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="flag" class="w-4 h-4"></i> 街客
+                        </button>
+                        <button type="button" onclick="setTripType('Uber')" id="type-uber"
+                            class="py-2.5 px-3 rounded-xl border font-medium text-sm flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="smartphone" class="w-4 h-4"></i> Uber
+                        </button>
+                        <button type="button" onclick="setTripType('其他')" id="type-other"
+                            class="py-2.5 px-3 rounded-xl border font-medium text-sm flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="layers" class="w-4 h-4"></i> 其他
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 客戶付款與找零 -->
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-3">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs font-semibold text-slate-600">收到客戶付款 (HKD)</label>
+                            <button type="button" onclick="clearReceived()" class="text-xs text-rose-600 hover:text-rose-700 font-medium px-2 py-0.5 bg-rose-50 hover:bg-rose-100 rounded transition">清除付款</button>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>
+                            <input type="number" id="trip-received" step="0.5" inputmode="decimal" placeholder="留空代表付剛好"
+                                oninput="calculateChange()"
+                                class="w-full pl-8 pr-4 py-2.5 text-lg font-bold bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        </div>
+                        <!-- 快捷收款按鈕 -->
+                        <div class="grid grid-cols-4 gap-2 mt-2">
+                            <button type="button" onclick="setReceived(50)" class="py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-medium rounded-md text-xs shadow-xs transition">$50</button>
+                            <button type="button" onclick="setReceived(100)" class="py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-medium rounded-md text-xs shadow-xs transition">$100</button>
+                            <button type="button" onclick="setReceived(500)" class="py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-medium rounded-md text-xs shadow-xs transition">$500</button>
+                            <button type="button" onclick="setReceived(1000)" class="py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-medium rounded-md text-xs shadow-xs transition">$1000</button>
+                        </div>
+                    </div>
+
+                    <!-- 找零顯示 -->
+                    <div class="flex justify-between items-center bg-amber-50 px-3 py-2 rounded-lg border border-amber-200/60">
+                        <span class="text-xs font-bold text-amber-800 flex items-center gap-1">
+                            <i data-lucide="coins" class="w-4 h-4"></i> 應找零錢：
+                        </span>
+                        <span id="change-display" class="text-xl font-extrabold text-amber-900">$0.0</span>
+                    </div>
+                </div>
+
+                <!-- 備註 -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">行程備註 (選填)</label>
+                    <input type="text" id="trip-note" placeholder="例如：過海、機場、隧道口等..."
+                        class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+
+                <!-- 完成按鈕 -->
+                <button type="button" onclick="saveTrip()"
+                    class="w-full py-3.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-slate-900 font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 text-base">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i> 完成保存行程記錄
+                </button>
+            </div>
+        </section>
+
+        <!-- TAB 2: 行程列表 -->
+        <section id="tab-list" class="space-y-3 hidden">
+            <!-- 過濾與搜尋工具列 -->
+            <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 space-y-3">
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                    </span>
+                    <input type="text" id="search-keyword" oninput="renderTripList()" placeholder="搜尋備註..."
+                        class="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+
+                <!-- 行程類型 Checkbox 展開群組 -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1.5">行程類型篩選（多選）</label>
+                    <div class="grid grid-cols-3 gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200/80">
+                        <label class="flex items-center space-x-1.5 cursor-pointer text-xs font-medium text-slate-700 select-none">
+                            <input type="checkbox" id="chk-type-street" checked onchange="renderTripList()" class="w-4 h-4 text-amber-500 rounded border-slate-300 focus:ring-amber-400">
+                            <span>街客</span>
+                        </label>
+                        <label class="flex items-center space-x-1.5 cursor-pointer text-xs font-medium text-slate-700 select-none">
+                            <input type="checkbox" id="chk-type-uber" checked onchange="renderTripList()" class="w-4 h-4 text-amber-500 rounded border-slate-300 focus:ring-amber-400">
+                            <span>Uber</span>
+                        </label>
+                        <label class="flex items-center space-x-1.5 cursor-pointer text-xs font-medium text-slate-700 select-none">
+                            <input type="checkbox" id="chk-type-other" checked onchange="renderTripList()" class="w-4 h-4 text-amber-500 rounded border-slate-300 focus:ring-amber-400">
+                            <span>其他</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-1 border-t border-slate-100 text-xs">
+                    <div class="flex items-center gap-1.5">
+                        <input type="checkbox" id="filter-current-shift" checked onchange="renderTripList()"
+                            class="w-4 h-4 text-amber-500 rounded border-slate-300 focus:ring-amber-400">
+                        <label for="filter-current-shift" class="font-medium text-slate-700 cursor-pointer">只顯示當更紀錄</label>
+                    </div>
+                    <span id="trip-count-badge" class="text-slate-400 font-medium">共 0 筆</span>
+                </div>
+            </div>
+
+            <!-- 列表容器 -->
+            <div id="trip-list-container" class="space-y-2.5">
+                <!-- 動態生成列表項目 -->
+            </div>
+        </section>
+
+        <!-- TAB 3: 收入統計與更次設定 -->
+        <section id="tab-stats" class="space-y-4 hidden">
+            <!-- 成本與更次設定卡片 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+                <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                    <i data-lucide="settings" class="w-4 h-4 text-amber-500"></i> 當更成本與時間設定
+                </h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">租車費用 (HKD)</label>
+                        <input type="number" id="setting-rental" onchange="saveSettings()" placeholder="0"
+                            class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">總油費 (HKD)</label>
+                        <input type="number" id="setting-fuel" onchange="saveSettings()" placeholder="0"
+                            class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">更次開始時間</label>
+                        <input type="time" id="setting-start-time" onchange="saveSettings()"
+                            class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">更次結束時間</label>
+                        <input type="time" id="setting-end-time" onchange="saveSettings()"
+                            class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 淨利潤預覽卡片 -->
+            <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-4 shadow-md space-y-3">
+                <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+                    <span class="text-xs font-medium text-slate-300 flex items-center gap-1">
+                        <i data-lucide="wallet" class="w-4 h-4 text-amber-400"></i> 當更淨利潤結算
+                    </span>
+                    <span id="current-shift-time-range" class="text-xs text-amber-400 font-mono"></span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center pt-1">
+                    <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
+                        <div class="text-[10px] text-slate-400 font-medium">當更營業額</div>
+                        <div id="net-gross" class="text-sm font-bold text-white mt-0.5">$0</div>
+                    </div>
+                    <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
+                        <div class="text-[10px] text-slate-400 font-medium">總成本 (租+油)</div>
+                        <div id="net-cost" class="text-sm font-bold text-rose-400 mt-0.5">$0</div>
+                    </div>
+                    <div class="bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/30">
+                        <div class="text-[10px] text-amber-300 font-medium">實收淨利</div>
+                        <div id="net-profit" class="text-base font-extrabold text-amber-400 mt-0.5">$0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 收入統計卡片 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-4">
+                <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4 text-amber-500"></i> 收入統計總覽
+                </h2>
+
+                <!-- 週期切換 Tabs -->
+                <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+                    <button type="button" onclick="setStatsPeriod('day')" id="period-btn-day"
+                        class="py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition">今日</button>
+                    <button type="button" onclick="setStatsPeriod('week')" id="period-btn-week"
+                        class="py-1.5 rounded-lg text-slate-600 transition">本星期</button>
+                    <button type="button" onclick="setStatsPeriod('month')" id="period-btn-month"
+                        class="py-1.5 rounded-lg text-slate-600 transition">本月</button>
+                </div>
+
+                <!-- 統計數據展示 -->
+                <div class="space-y-3 pt-1">
+                    <div class="bg-amber-50/60 border border-amber-100 rounded-xl p-3.5 flex justify-between items-center">
+                        <div>
+                            <div id="stats-period-title" class="text-xs font-semibold text-amber-800">今日總收入</div>
+                            <div class="text-2xl font-extrabold text-amber-900 mt-0.5" id="stats-total-revenue">$0.0</div>
+                        </div>
+                        <div class="w-10 h-10 bg-amber-500 text-white rounded-xl flex items-center justify-center shadow-xs">
+                            <i data-lucide="trending-up" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+
+                    <!-- 類型細分 -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-center">
+                            <div class="text-[11px] text-slate-500 font-medium">街客</div>
+                            <div id="stats-type-street" class="text-sm font-bold text-slate-800 mt-1">$0</div>
+                        </div>
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-center">
+                            <div class="text-[11px] text-slate-500 font-medium">Uber</div>
+                            <div id="stats-type-uber" class="text-sm font-bold text-slate-800 mt-1">$0</div>
+                        </div>
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-center">
+                            <div class="text-[11px] text-slate-500 font-medium">其他</div>
+                            <div id="stats-type-other" class="text-sm font-bold text-slate-800 mt-1">$0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== 新增：數據管理（批次刪除） ===== -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                        <i data-lucide="database" class="w-4 h-4 text-amber-500"></i> 數據管理
+                    </h2>
+                    <span class="text-[11px] text-slate-400 font-medium">
+                        共 <span id="total-trip-count" class="font-bold text-slate-600">0</span> 筆紀錄
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" onclick="deleteOldTrips('day')"
+                        class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 active:scale-[0.98] text-rose-600 font-semibold text-xs transition flex items-center justify-center gap-1.5">
+                        <i data-lucide="calendar-x" class="w-3.5 h-3.5"></i> 刪除一天前
+                    </button>
+                    <button type="button" onclick="deleteOldTrips('week')"
+                        class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 active:scale-[0.98] text-rose-600 font-semibold text-xs transition flex items-center justify-center gap-1.5">
+                        <i data-lucide="calendar-minus" class="w-3.5 h-3.5"></i> 刪除一星期前
+                    </button>
+                    <button type="button" onclick="deleteOldTrips('month')"
+                        class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 active:scale-[0.98] text-rose-600 font-semibold text-xs transition flex items-center justify-center gap-1.5">
+                        <i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i> 刪除一月前
+                    </button>
+                    <button type="button" onclick="deleteOldTrips('all')"
+                        class="py-2.5 px-3 rounded-xl border border-rose-700 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 刪除全部數據
+                    </button>
+                </div>
+
+                <!-- 撤銷橫幅 -->
+                <div id="undo-banner" class="hidden bg-slate-900 text-white rounded-xl p-3 flex items-center justify-between gap-3">
+                    <span class="text-xs font-medium flex items-center gap-1.5 min-w-0">
+                        <i data-lucide="history" class="w-4 h-4 text-rose-400 shrink-0"></i>
+                        <span id="undo-text" class="truncate">已刪除紀錄</span>
+                    </span>
+                    <button type="button" onclick="undoDelete()"
+                        class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs font-bold rounded-lg transition shrink-0">
+                        撤銷
+                    </button>
+                </div>
+
+                <p class="text-[11px] text-slate-400 leading-relaxed flex items-start gap-1.5">
+                    <i data-lucide="info" class="w-3.5 h-3.5 mt-0.5 shrink-0"></i>
+                    <span>刪除後統計數字會即時更新。刪除後可於上方橫幅按「撤銷」還原，重新載入頁面後則無法復原。</span>
+                </p>
+            </div>
+            <!-- ===== 數據管理結束 ===== -->
+        </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-50">
+        <div class="max-w-md mx-auto grid grid-cols-3 h-16">
+            <button onclick="switchTab('trip')" id="nav-trip"
+                class="flex flex-col items-center justify-center text-amber-500 transition">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span class="text-[11px] font-bold mt-1">記行程</span>
+            </button>
+            <button onclick="switchTab('list')" id="nav-list"
+                class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition">
+                <i data-lucide="list-bullet" class="w-5 h-5"></i>
+                <span class="text-[11px] font-medium mt-1">行程列表</span>
+            </button>
+            <button onclick="switchTab('stats')" id="nav-stats"
+                class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition">
+                <i data-lucide="pie-chart" class="w-5 h-5"></i>
+                <span class="text-[11px] font-medium mt-1">收入統計</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Custom Modal for Details/Edit -->
+    <div id="trip-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl animate-in fade-in zoom-in duration-200">
+            <div class="bg-slate-900 text-white px-4 py-3 flex justify-between items-center">
+                <h3 id="modal-title" class="font-bold text-sm">行程詳細</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="modal-body" class="p-4 space-y-3">
+                <!-- Content injected dynamically -->
+            </div>
+            <div id="modal-footer" class="bg-slate-50 px-4 py-3 border-t flex justify-end gap-2">
+                <!-- Buttons injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Toast -->
+    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-medium shadow-lg z-50 transition-all duration-300 opacity-0 pointer-events-none">
+        提示訊息
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Data Structures & State
+        let trips = JSON.parse(localStorage.getItem('taxi_trips')) || [];
+        let settings = JSON.parse(localStorage.getItem('taxi_settings')) || {
+            rental: 450,
+            fuel: 200,
+            startTime: '06:00',
+            endTime: '18:00'
+        };
+        let activeTripType = localStorage.getItem('taxi_last_type') || '街客';
+        let statsPeriod = 'day';
+        let currentEditingId = null;
+        let lastDeletedTrips = null;   // 批次刪除的暫存（用於撤銷）
+
+        // Prevent zooming via JS gesture/touch protection
+        document.addEventListener('gesturestart', function (e) {
+            e.preventDefault();
+        }, { passive: false });
+
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (e) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, { passive: false });
+
+        // Initialize Lucide Icons & App State
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initSettingsForm();
+            setTripType(activeTripType);
+            updateDateTimePreview();
+            setInterval(updateDateTimePreview, 1000);
+            renderTripList();
+            updateStatsAndNet();
+        });
+
+        // DateTime Preview
+        function updateDateTimePreview() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('zh-HK', { month: '2-digit', day: '2-digit' });
+            const timeStr = now.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('current-date-time-preview').innerText = `${dateStr} ${timeStr}`;
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            ['trip', 'list', 'stats'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${t}`);
+                navBtn.className = "flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition";
+                const span = navBtn.querySelector('span');
+                span.className = "text-[11px] font-medium mt-1";
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${tabName}`);
+            activeNav.className = "flex flex-col items-center justify-center text-amber-500 transition";
+            activeNav.querySelector('span').className = "text-[11px] font-bold mt-1";
+
+            if (tabName === 'list') renderTripList();
+            if (tabName === 'stats') updateStatsAndNet();
+            lucide.createIcons();
+        }
+
+        // Trip Type Selection
+        function setTripType(type) {
+            activeTripType = type;
+            localStorage.setItem('taxi_last_type', type);
+            ['street', 'uber', 'other'].forEach(t => {
+                const btn = document.getElementById(`type-${t}`);
+                btn.className = "py-2.5 px-3 rounded-xl border font-medium text-sm flex items-center justify-center gap-1.5 transition bg-white text-slate-700 border-slate-200";
+            });
+            const activeBtn = document.getElementById(`type-${type === '街客' ? 'street' : type === 'Uber' ? 'uber' : 'other'}`);
+            activeBtn.className = "py-2.5 px-3 rounded-xl border font-bold text-sm flex items-center justify-center gap-1.5 transition bg-amber-500 text-slate-900 border-amber-600 shadow-sm";
+        }
+
+        // Fare Helpers
+        function addFare(amount) {
+            const input = document.getElementById('trip-fare');
+            const current = parseFloat(input.value) || 0;
+            input.value = (current + amount).toFixed(1).replace(/\.0$/, '');
+            calculateChange();
+        }
+
+        function clearFare() {
+            document.getElementById('trip-fare').value = '';
+            document.getElementById('trip-received').value = '';
+            document.getElementById('change-display').innerText = '$0.0';
+            document.getElementById('trip-fare').focus();
+        }
+
+        function clearReceived() {
+            const receivedInput = document.getElementById('trip-received');
+            receivedInput.value = '';
+            calculateChange();
+            receivedInput.focus();
+        }
+
+        function setReceived(amount) {
+            document.getElementById('trip-received').value = amount;
+            calculateChange();
+        }
+
+        // Calculate Change
+        function calculateChange() {
+            const fare = parseFloat(document.getElementById('trip-fare').value) || 0;
+            const received = parseFloat(document.getElementById('trip-received').value) || 0;
+            const changeDisplay = document.getElementById('change-display');
+            if (received >= fare && received > 0) {
+                const change = received - fare;
+                changeDisplay.innerText = `$${change.toFixed(1)}`;
+            } else {
+                changeDisplay.innerText = '$0.0';
+            }
+        }
+
+        // Save Trip Record
+        function saveTrip() {
+            const fareInput = document.getElementById('trip-fare');
+            const receivedInput = document.getElementById('trip-received');
+            const noteInput = document.getElementById('trip-note');
+
+            const fare = parseFloat(fareInput.value);
+            if (!fare || isNaN(fare) || fare <= 0) {
+                showToast('請輸入有效的車資金額！');
+                fareInput.focus();
+                return;
+            }
+
+            const received = parseFloat(receivedInput.value) || fare;
+            const note = noteInput.value.trim();
+            const now = new Date();
+
+            const newTrip = {
+                id: 'trip_' + Date.now(),
+                timestamp: now.getTime(),
+                dateStr: now.toISOString(),
+                fare: fare,
+                type: activeTripType,
+                received: received,
+                change: Math.max(0, received - fare),
+                note: note,
+                isCurrentShift: checkIfInCurrentShift(now)
+            };
+
+            trips.unshift(newTrip);
+            localStorage.setItem('taxi_trips', JSON.stringify(trips));
+
+            // Reset Form
+            fareInput.value = '';
+            receivedInput.value = '';
+            noteInput.value = '';
+            document.getElementById('change-display').innerText = '$0.0';
+            showToast('行程已成功保存！');
+            updateStatsAndNet();
+        }
+
+        // Check if timestamp falls in current shift
+        function checkIfInCurrentShift(dateObj) {
+            const timeStr = `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+            // If start <= end (e.g. 06:00 to 18:00)
+            if (settings.startTime <= settings.endTime) {
+                return timeStr >= settings.startTime && timeStr <= settings.endTime;
+            } else {
+                // Overnight shift (e.g. 18:00 to 06:00)
+                return timeStr >= settings.startTime || timeStr <= settings.endTime;
+            }
+        }
+
+        // Render Trip List
+        function renderTripList() {
+            const container = document.getElementById('trip-list-container');
+            const keyword = document.getElementById('search-keyword').value.toLowerCase();
+            const onlyCurrentShift = document.getElementById('filter-current-shift').checked;
+
+            const allowStreet = document.getElementById('chk-type-street').checked;
+            const allowUber = document.getElementById('chk-type-uber').checked;
+            const allowOther = document.getElementById('chk-type-other').checked;
+
+            let filtered = trips.filter(t => {
+                const matchKeyword = (t.note || '').toLowerCase().includes(keyword) || t.fare.toString().includes(keyword);
+
+                // Checkbox type filtering
+                let matchType = false;
+                if (t.type === '街客' && allowStreet) matchType = true;
+                if (t.type === 'Uber' && allowUber) matchType = true;
+                if (t.type === '其他' && allowOther) matchType = true;
+
+                const inShift = checkIfInCurrentShift(new Date(t.timestamp));
+                const matchShift = !onlyCurrentShift || inShift;
+
+                return matchKeyword && matchType && matchShift;
+            });
+
+            document.getElementById('trip-count-badge').innerText = `共 ${filtered.length} 筆`;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl p-8 text-center border border-slate-100 text-slate-400 space-y-2">
+                        <i data-lucide="file-question" class="w-10 h-10 mx-auto text-slate-300"></i>
+                        <p class="text-sm font-medium">沒有找到符合的行程記錄</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = filtered.map(t => {
+                const dateObj = new Date(t.timestamp);
+                const timeFormatted = dateObj.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
+                const dateFormatted = dateObj.toLocaleDateString('zh-HK', { month: '2-digit', day: '2-digit' });
+                const typeColor = t.type === '街客' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                  t.type === 'Uber' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200';
+
+                return `
+                    <div class="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm flex items-center justify-between gap-3">
+                        <div class="flex items-center space-x-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl bg-slate-100 flex flex-col items-center justify-center text-slate-600 font-mono text-[10px] shrink-0">
+                                <span class="font-bold">${timeFormatted}</span>
+                                <span class="text-slate-400">${dateFormatted}</span>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-base font-extrabold text-slate-900">$${t.fare}</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full border font-semibold ${typeColor}">${t.type}</span>
+                                </div>
+                                <p class="text-xs text-slate-500 truncate mt-0.5">${t.note || '無備註'}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button onclick="openDetailModal('${t.id}')" class="p-2 text-slate-400 hover:text-amber-500 transition">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="openEditModal('${t.id}')" class="p-2 text-slate-400 hover:text-blue-500 transition">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteTrip('${t.id}')" class="p-2 text-slate-400 hover:text-rose-500 transition">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        // Modal Operations
+        function openDetailModal(id) {
+            const t = trips.find(item => item.id === id);
+            if (!t) return;
+            const dateObj = new Date(t.timestamp);
+
+            document.getElementById('modal-title').innerText = '行程詳細內容';
+            document.getElementById('modal-body').innerHTML = `
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">時間</span><span class="font-medium">${dateObj.toLocaleString('zh-HK')}</span></div>
+                    <div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">車資</span><span class="font-bold text-amber-600">$${t.fare}</span></div>
+                    <div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">類型</span><span class="font-medium">${t.type}</span></div>
+                    <div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">客戶付款</span><span class="font-medium">$${t.received}</span></div>
+                    <div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">找零</span><span class="font-medium">$${t.change}</span></div>
+                    <div class="flex justify-between py-1"><span class="text-slate-500">備註</span><span class="font-medium text-slate-700">${t.note || '無'}</span></div>
+                </div>
+            `;
+            document.getElementById('modal-footer').innerHTML = `
+                <button onclick="closeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition">關閉</button>
+            `;
+            document.getElementById('trip-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function openEditModal(id) {
+            const t = trips.find(item => item.id === id);
+            if (!t) return;
+            currentEditingId = id;
+
+            document.getElementById('modal-title').innerText = '修改行程記錄';
+            document.getElementById('modal-body').innerHTML = `
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">車資金額</label>
+                        <input type="number" id="edit-fare" value="${t.fare}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">行程類型</label>
+                        <select id="edit-type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            <option value="街客" ${t.type === '街客' ? 'selected' : ''}>街客</option>
+                            <option value="Uber" ${t.type === 'Uber' ? 'selected' : ''}>Uber</option>
+                            <option value="其他" ${t.type === '其他' ? 'selected' : ''}>其他</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">備註</label>
+                        <input type="text" id="edit-note" value="${t.note}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-footer').innerHTML = `
+                <button onclick="closeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition">取消</button>
+                <button onclick="saveEditedTrip()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl text-xs transition">保存修改</button>
+            `;
+            document.getElementById('trip-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function saveEditedTrip() {
+            const fare = parseFloat(document.getElementById('edit-fare').value);
+            const type = document.getElementById('edit-type').value;
+            const note = document.getElementById('edit-note').value.trim();
+
+            if (!fare || isNaN(fare) || fare <= 0) {
+                showToast('請輸入有效車資！');
+                return;
+            }
+
+            const index = trips.findIndex(item => item.id === currentEditingId);
+            if (index !== -1) {
+                trips[index].fare = fare;
+                trips[index].type = type;
+                trips[index].note = note;
+                localStorage.setItem('taxi_trips', JSON.stringify(trips));
+                closeModal();
+                renderTripList();
+                updateStatsAndNet();
+                showToast('行程已更新！');
+            }
+        }
+
+        function deleteTrip(id) {
+            if (confirm('確定要刪除這筆行程記錄嗎？')) {
+                trips = trips.filter(item => item.id !== id);
+                localStorage.setItem('taxi_trips', JSON.stringify(trips));
+                renderTripList();
+                updateStatsAndNet();
+                showToast('記錄已刪除');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('trip-modal').classList.add('hidden');
+            currentEditingId = null;
+        }
+
+        // ===== 批次刪除數據 =====
+        const DELETE_PERIODS = {
+            day:   { ms: 24 * 60 * 60 * 1000,      label: '一天前（24 小時前）' },
+            week:  { ms: 7 * 24 * 60 * 60 * 1000,  label: '一星期前（7 天前）' },
+            month: { ms: 30 * 24 * 60 * 60 * 1000, label: '一個月前（30 天前）' }
+        };
+
+        function deleteOldTrips(period) {
+            let targets = [];
+
+            if (period === 'all') {
+                targets = trips.slice();
+            } else {
+                const conf = DELETE_PERIODS[period];
+                if (!conf) return;
+                const cutoff = Date.now() - conf.ms;
+                targets = trips.filter(t => t.timestamp < cutoff);
+            }
+
+            // 沒有可刪除的紀錄
+            if (targets.length === 0) {
+                showToast(period === 'all' ? '目前沒有紀錄可刪除' : `沒有 ${DELETE_PERIODS[period].label} 的紀錄`);
+                return;
+            }
+
+            const confirmMsg = period === 'all'
+                ? `⚠️ 確定要刪除「全部」${targets.length} 筆行程紀錄嗎？\n\n此操作無法復原！`
+                : `確定要刪除 ${DELETE_PERIODS[period].label} 的 ${targets.length} 筆紀錄嗎？\n\n此操作無法復原！`;
+
+            if (!confirm(confirmMsg)) return;
+
+            // 暫存以便撤銷
+            lastDeletedTrips = targets.slice();
+
+            const idSet = new Set(targets.map(t => t.id));
+            trips = trips.filter(t => !idSet.has(t.id));
+            localStorage.setItem('taxi_trips', JSON.stringify(trips));
+
+            // 即時更新所有畫面與統計
+            renderTripList();
+            updateStatsAndNet();
+
+            showUndoBanner(`已刪除 ${targets.length} 筆紀錄`);
+            showToast(`已刪除 ${targets.length} 筆紀錄，統計已更新`);
+        }
+
+        function showUndoBanner(text) {
+            const banner = document.getElementById('undo-banner');
+            document.getElementById('undo-text').innerText = text;
+            banner.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function hideUndoBanner() {
+            document.getElementById('undo-banner').classList.add('hidden');
+        }
+
+        function undoDelete() {
+            if (!lastDeletedTrips || lastDeletedTrips.length === 0) return;
+
+            const existingIds = new Set(trips.map(t => t.id));
+            const restored = lastDeletedTrips.filter(t => !existingIds.has(t.id));
+
+            trips = trips.concat(restored).sort((a, b) => b.timestamp - a.timestamp);
+            localStorage.setItem('taxi_trips', JSON.stringify(trips));
+
+            lastDeletedTrips = null;
+            hideUndoBanner();
+            renderTripList();
+            updateStatsAndNet();
+            showToast(`已復原 ${restored.length} 筆紀錄`);
+        }
+
+        function updateTripCount() {
+            const el = document.getElementById('total-trip-count');
+            if (el) el.innerText = trips.length;
+        }
+
+        // Settings & Stats
+        function initSettingsForm() {
+            document.getElementById('setting-rental').value = settings.rental;
+            document.getElementById('setting-fuel').value = settings.fuel;
+            document.getElementById('setting-start-time').value = settings.startTime;
+            document.getElementById('setting-end-time').value = settings.endTime;
+            document.getElementById('current-shift-time-range').innerText = `${settings.startTime} - ${settings.endTime}`;
+        }
+
+        function saveSettings() {
+            settings.rental = parseFloat(document.getElementById('setting-rental').value) || 0;
+            settings.fuel = parseFloat(document.getElementById('setting-fuel').value) || 0;
+            settings.startTime = document.getElementById('setting-start-time').value || '06:00';
+            settings.endTime = document.getElementById('setting-end-time').value || '18:00';
+
+            localStorage.setItem('taxi_settings', JSON.stringify(settings));
+            document.getElementById('current-shift-time-range').innerText = `${settings.startTime} - ${settings.endTime}`;
+            updateStatsAndNet();
+            showToast('更次設定已保存');
+        }
+
+        function setStatsPeriod(period) {
+            statsPeriod = period;
+            ['day', 'week', 'month'].forEach(p => {
+                const btn = document.getElementById(`period-btn-${p}`);
+                if (p === period) {
+                    btn.className = "py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition font-bold";
+                } else {
+                    btn.className = "py-1.5 rounded-lg text-slate-600 transition font-medium";
+                }
+            });
+            updateStatsAndNet();
+        }
+
+        function updateStatsAndNet() {
+            const now = new Date();
+
+            // 總筆數同步
+            updateTripCount();
+
+            // 1. Calculate Current Shift Net Profit
+            let currentShiftGross = 0;
+            trips.forEach(t => {
+                const d = new Date(t.timestamp);
+                if (checkIfInCurrentShift(d) && d.toDateString() === now.toDateString()) {
+                    currentShiftGross += t.fare;
+                }
+            });
+            const totalCost = settings.rental + settings.fuel;
+            const netProfit = currentShiftGross - totalCost;
+
+            document.getElementById('net-gross').innerText = `$${currentShiftGross}`;
+            document.getElementById('net-cost').innerText = `$${totalCost}`;
+            const profitElem = document.getElementById('net-profit');
+            profitElem.innerText = `$${netProfit}`;
+            profitElem.className = netProfit >= 0 ? "text-base font-extrabold text-amber-400 mt-0.5" : "text-base font-extrabold text-rose-400 mt-0.5";
+
+            // 2. Calculate Period Statistics
+            let filteredTrips = [];
+            const titleMap = { day: '今日總收入', week: '本星期總收入', month: '本月總收入' };
+            document.getElementById('stats-period-title').innerText = titleMap[statsPeriod];
+
+            filteredTrips = trips.filter(t => {
+                const d = new Date(t.timestamp);
+                if (statsPeriod === 'day') {
+                    return d.toDateString() === now.toDateString();
+                } else if (statsPeriod === 'week') {
+                    // Start of week (Monday)
+                    const startOfWeek = new Date(now);
+                    const day = startOfWeek.getDay();
+                    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+                    startOfWeek.setDate(diff);
+                    startOfWeek.setHours(0, 0, 0, 0);
+                    return d >= startOfWeek;
+                } else if (statsPeriod === 'month') {
+                    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+                }
+                return false;
+            });
+
+            let totalRev = 0;
+            let typeRev = { '街客': 0, 'Uber': 0, '其他': 0 };
+
+            filteredTrips.forEach(t => {
+                totalRev += t.fare;
+                if (typeRev[t.type] !== undefined) {
+                    typeRev[t.type] += t.fare;
+                } else if (t.type === 'Other') {
+                    typeRev['其他'] += t.fare;
+                }
+            });
+
+            document.getElementById('stats-total-revenue').innerText = `$${totalRev.toFixed(1)}`;
+            document.getElementById('stats-type-street').innerText = `$${typeRev['街客'].toFixed(1)}`;
+            document.getElementById('stats-type-uber').innerText = `$${typeRev['Uber'].toFixed(1)}`;
+            document.getElementById('stats-type-other').innerText = `$${typeRev['其他'].toFixed(1)}`;
+        }
+
+        // Toast Alert replacement
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
