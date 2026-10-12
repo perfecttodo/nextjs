@@ -357,7 +357,19 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
       </div>
 
       <div>
-        <label class="block text-sm font-semibold text-slate-700 mb-1">車資金額 (HKD)</label>
+        <div class="flex justify-between items-center mb-1">
+          <label class="block text-sm font-semibold text-slate-700">車資金額 (HKD)</label>
+          <div class="flex items-center gap-1.5">
+            <button type="button" id="fare-clear-btn" onclick="clearFare()"
+              class="text-[11px] px-2.5 py-1 rounded-full border font-medium transition bg-white text-rose-600 border-rose-200 hover:bg-rose-50 hidden">
+              清除
+            </button>
+            <button type="button" id="fare-sign-toggle" onclick="toggleFareSign()"
+              class="text-[11px] px-2.5 py-1 rounded-full border font-bold transition bg-emerald-50 text-emerald-700 border-emerald-200">
+              收入
+            </button>
+          </div>
+        </div>
         <div class="relative">
           <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>
           <input type="number" id="trip-fare" step="0.5" inputmode="decimal"
@@ -365,13 +377,10 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
             oninput="calculateChange()" onblur="confirmFareInput()"
             class="w-full pl-8 pr-4 py-3 text-2xl font-bold bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
         </div>
-        <div class="grid grid-cols-5 gap-1.5 mt-2">
-          <button type="button" onclick="addFare(10)"  class="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-sm transition">+10</button>
-          <button type="button" onclick="addFare(20)"  class="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-sm transition">+20</button>
-          <button type="button" onclick="addFare(50)"  class="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-sm transition">+50</button>
-          <button type="button" onclick="addFare(100)" class="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-sm transition">+100</button>
-          <button type="button" onclick="clearFare()"  class="py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold rounded-lg text-xs transition">清除</button>
-        </div>
+        <p class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
+          <span class="ico w-3 h-3" data-icon="info"></span>
+          可直接輸入負數（如 -50），或點「收入」切換為「支出」，用於記錄入油、隧道費、維修賠償等開支
+        </p>
       </div>
 
       <div>
@@ -392,7 +401,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </div>
       </div>
 
-      <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-3">
+      <div id="payment-block" class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-3">
         <div>
           <div class="flex justify-between items-center mb-1">
             <label class="block text-xs font-semibold text-slate-600">收到客戶付款 (HKD)</label>
@@ -414,7 +423,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           </div>
         </div>
 
-        <!-- 找零 / 欠款顯示 -->
+        <!-- 找零 / 欠款 / 支出顯示 -->
         <div id="change-box" class="flex justify-between items-center bg-gradient-to-r px-3.5 py-3 rounded-xl border-2 border-amber-400 shadow-sm transition">
           <span class="text-sm font-bold text-amber-900 flex items-center gap-1.5">
             <span id="change-icon" class="ico w-5 h-5 text-amber-700" data-icon="coins"></span>
@@ -425,10 +434,25 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
       </div>
 
       <div>
-        <label class="block text-sm font-semibold text-slate-700 mb-1">行程備註 (選填)</label>
+        <div class="flex justify-between items-center mb-1">
+          <label class="block text-sm font-semibold text-slate-700">備注 (選填)</label>
+          <div class="flex items-center gap-1.5">
+            <button type="button" id="note-clear-btn" onclick="clearNote()"
+              class="text-[11px] px-2 py-0.5 rounded-full border font-medium transition bg-white text-rose-600 border-rose-200 hover:bg-rose-50 hidden">
+              清除
+            </button>
+            <button type="button" id="note-tags-toggle" onclick="toggleNoteTagsPanel()"
+              class="text-[11px] px-2 py-0.5 rounded-full border font-medium transition bg-white text-slate-600 border-slate-200 hover:bg-slate-100 flex items-center gap-1">
+              <svg style="width:11px;height:11px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              <span id="note-tags-toggle-text">快速標籤</span>
+            </button>
+          </div>
+        </div>
         <input type="text" id="trip-note" placeholder="例如：過海、機場、隧道口等..."
           autocomplete="off" enterkeyhint="done"
+          oninput="renderNoteTags()"
           class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+        <div id="note-quick-tags" class="flex-wrap gap-1.5 mt-2 p-2 bg-slate-50 border border-slate-200 rounded-xl" style="display:none"></div>
       </div>
 
       <button type="button" onclick="saveTrip()"
@@ -445,7 +469,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
           <span class="ico w-4 h-4" data-icon="search"></span>
         </span>
-        <input type="text" id="search-keyword" oninput="renderTripList()" placeholder="搜尋備註..."
+        <input type="text" id="search-keyword" oninput="renderTripList()" placeholder="搜尋備注..."
           autocomplete="off"
           class="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
       </div>
@@ -629,6 +653,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
             <div>
               <div id="stats-period-title" class="text-xs font-semibold text-amber-800">今日總收入</div>
               <div class="text-2xl font-extrabold text-amber-900 mt-0.5" id="stats-total-revenue">$0.0</div>
+              <div id="stats-total-expense-line" class="text-[11px] text-rose-600 font-semibold mt-0.5 hidden"></div>
             </div>
             <div class="w-10 h-10 bg-amber-500 text-white rounded-xl flex items-center justify-center shadow-xs">
               <span class="ico w-5 h-5" data-icon="trending-up"></span>
@@ -829,6 +854,14 @@ var statsPeriod      = 'day';
 var currentEditingId = null;
 var lastDeletedTrips = null;
 var lastDeletedShiftSettings = null;
+var fareSign         = 1;   /* 1 = 收入；-1 = 支出 */
+var noteTagsOpen     = false; /* 快速標籤面板開關 */
+
+/* ★ 備注快速標籤（依收入／支出模式分別顯示） */
+var NOTE_TAGS = {
+  income:  ['過海', '機場', '隧道口', '加一', '行李', '預約', '長途'],
+  expense: ['隧道費', '入氣', '入油', '租車費', '維修', '賠償', '罰款', '泊車']
+};
 
 /* =========================================================
    B-0. 卡片折疊狀態
@@ -1097,6 +1130,8 @@ window.addEventListener('DOMContentLoaded', function(){
   applyAllCardStates();
   initSettingsForm();
   setTripType(activeTripType);
+  updateFareSignUI();
+  renderNoteTags();
   updateDateTimePreview();
   setInterval(updateDateTimePreview, 1000);
   updateHeaderTime();
@@ -1166,17 +1201,138 @@ function setTripType(type){
 }
 
 /* =========================================================
-   H. 車資與找零（含欠款處理）
+   G-1. 備注快速標籤（可折疊面板）
    ========================================================= */
-function addFare(amount){
+function parseNoteParts(val){
+  if (!val) return [];
+  return val.split(/[、,]\s*/).map(function(s){ return s.trim(); }).filter(Boolean);
+}
+
+function expandNoteTags(){
+  noteTagsOpen = true;
+  var box = document.getElementById('note-quick-tags');
+  var btn = document.getElementById('note-tags-toggle');
+  var btnText = document.getElementById('note-tags-toggle-text');
+  if (box) box.style.display = 'flex';
+  if (btn) btn.className = 'text-[11px] px-2 py-0.5 rounded-full border font-bold transition bg-amber-50 text-amber-700 border-amber-300 flex items-center gap-1';
+  if (btnText) btnText.innerText = '收起標籤';
+}
+
+function collapseNoteTags(){
+  noteTagsOpen = false;
+  var box = document.getElementById('note-quick-tags');
+  var btn = document.getElementById('note-tags-toggle');
+  var btnText = document.getElementById('note-tags-toggle-text');
+  if (box) box.style.display = 'none';
+  if (btn) btn.className = 'text-[11px] px-2 py-0.5 rounded-full border font-medium transition bg-white text-slate-600 border-slate-200 hover:bg-slate-100 flex items-center gap-1';
+  if (btnText) btnText.innerText = '快速標籤';
+}
+
+function toggleNoteTagsPanel(){
+  if (noteTagsOpen){
+    collapseNoteTags();
+  } else {
+    expandNoteTags();
+  }
+}
+
+function renderNoteTags(){
+  var box = document.getElementById('note-quick-tags');
+  var input = document.getElementById('trip-note');
+  var clearBtn = document.getElementById('note-clear-btn');
+  if (!box || !input) return;
+
+  var tags = fareSign === -1 ? NOTE_TAGS.expense : NOTE_TAGS.income;
+  var parts = parseNoteParts(input.value);
+
+  box.innerHTML = tags.map(function(tag){
+    var active = parts.indexOf(tag) !== -1;
+    var cls = active
+      ? 'px-2.5 py-1 rounded-full text-[11px] font-bold border transition bg-amber-500 text-slate-900 border-amber-600 shadow-xs'
+      : 'px-2.5 py-1 rounded-full text-[11px] font-medium border transition bg-white text-slate-600 border-slate-200 hover:bg-slate-100';
+    return '<button type="button" data-note-tag="' + escapeHtml(tag) + '" class="' + cls + '">' +
+             escapeHtml(tag) +
+           '</button>';
+  }).join('');
+
+  if (clearBtn){
+    if (input.value.trim()){
+      clearBtn.classList.remove('hidden');
+    } else {
+      clearBtn.classList.add('hidden');
+    }
+  }
+}
+
+function toggleNoteTag(tag){
+  var input = document.getElementById('trip-note');
+  if (!input) return;
+  var parts = parseNoteParts(input.value);
+  var idx = parts.indexOf(tag);
+  if (idx === -1){
+    parts.push(tag);
+  } else {
+    parts.splice(idx, 1);
+  }
+  input.value = parts.join('、');
+  renderNoteTags();
+}
+
+function clearNote(){
+  var input = document.getElementById('trip-note');
+  if (!input) return;
+  if (!input.value){
+    return;
+  }
+  input.value = '';
+  renderNoteTags();
+  input.focus();
+}
+
+document.addEventListener('click', function(e){
+  var btn = e.target.closest ? e.target.closest('[data-note-tag]') : null;
+  if (!btn) return;
+  toggleNoteTag(btn.dataset.noteTag);
+});
+
+/* =========================================================
+   H. 車資與找零（含欠款 / 支出處理）
+   ========================================================= */
+function updateFareSignUI(){
+  var btn = document.getElementById('fare-sign-toggle');
+  if (!btn) return;
+  if (fareSign === -1){
+    btn.innerText = '支出';
+    btn.className = 'text-[11px] px-2.5 py-1 rounded-full border font-bold transition bg-rose-50 text-rose-700 border-rose-300';
+  } else {
+    btn.innerText = '收入';
+    btn.className = 'text-[11px] px-2.5 py-1 rounded-full border font-bold transition bg-emerald-50 text-emerald-700 border-emerald-200';
+  }
+  renderNoteTags();
+}
+
+function toggleFareSign(){
   var input = document.getElementById('trip-fare');
-  var current = parseFloat(input.value) || 0;
-  input.value = (current + amount).toFixed(1).replace(/\.0$/, '');
+  var v = parseFloat(input.value);
+  if (!isNaN(v) && v < 0){
+    input.value = Math.abs(v);
+  }
+  fareSign = -fareSign;
+  updateFareSignUI();
   calculateChange();
 }
+
+function getFareValue(){
+  var v = parseFloat(document.getElementById('trip-fare').value);
+  if (isNaN(v)) return 0;
+  return Math.abs(v) * fareSign;
+}
+
 function clearFare(){
   document.getElementById('trip-fare').value = '';
   document.getElementById('trip-received').value = '';
+  fareSign = 1;
+  updateFareSignUI();
   calculateChange();
   document.getElementById('trip-fare').focus();
 }
@@ -1191,7 +1347,7 @@ function setReceived(amount){
   calculateChange();
 }
 
-/* ★ 找零框三種狀態：找零 / 欠款 / 中性 */
+/* ★ 找零框四種狀態：支出 / 找零 / 欠款 / 中性 */
 function calculateChange(){
   var fareEl     = document.getElementById('trip-fare');
   var receivedEl = document.getElementById('trip-received');
@@ -1199,39 +1355,76 @@ function calculateChange(){
   var labelEl    = document.getElementById('change-label');
   var iconEl     = document.getElementById('change-icon');
   var display    = document.getElementById('change-display');
+  var payBlock   = document.getElementById('payment-block');
+  var fareClearBtn = document.getElementById('fare-clear-btn');
 
-  var fare        = parseFloat(fareEl.value) || 0;
+  /* 車資清除按鈕：有內容才顯示 */
+  if (fareClearBtn){
+    if (fareEl.value.trim()){
+      fareClearBtn.classList.remove('hidden');
+    } else {
+      fareClearBtn.classList.add('hidden');
+    }
+  }
+
+  /* 即時偵測負數輸入 → 自動切為支出模式 */
+  var rawFareVal = parseFloat(fareEl.value);
+  if (!isNaN(rawFareVal) && rawFareVal < 0 && fareSign !== -1){
+    fareSign = -1;
+    updateFareSignUI();
+  }
+
+  var fare        = getFareValue();
   var receivedRaw = receivedEl.value;
   var received    = parseFloat(receivedRaw) || 0;
 
-  /* 未輸入付款 or 付款為 0 → 中性顯示 */
+  /* ===== 支出模式 ===== */
+  if (fare < 0){
+    if (payBlock) payBlock.style.opacity = '0.45';
+    receivedEl.disabled = true;
+    box.className = 'flex justify-between items-center bg-rose-50 px-3.5 py-3 rounded-xl border-2 border-rose-400 shadow-sm transition';
+    labelEl.innerText = '支出記錄';
+    labelEl.className = 'text-sm font-bold text-rose-700 flex items-center gap-1.5';
+    iconEl.className = 'ico w-5 h-5 text-rose-600';
+    iconEl.dataset.icon = 'alert-triangle';
+    iconEl.dataset.done = '';
+    hydrateIcons(iconEl.parentElement);
+    display.innerText = '-$' + Math.abs(fare).toFixed(1);
+    display.className = 'text-3xl font-black text-rose-600 font-mono tracking-tight debt-shadow';
+    return;
+  }
+
+  /* ===== 收入模式 ===== */
+  if (payBlock) payBlock.style.opacity = '1';
+  receivedEl.disabled = false;
+  if (iconEl.dataset.icon !== 'coins'){
+    iconEl.dataset.icon = 'coins';
+    iconEl.dataset.done = '';
+    hydrateIcons(iconEl.parentElement);
+  }
+  iconEl.className = 'ico w-5 h-5 text-amber-700';
+
   if (receivedRaw === '' || received <= 0){
     box.className = 'flex justify-between items-center bg-gradient-to-r px-3.5 py-3 rounded-xl border-2 border-amber-400 shadow-sm transition';
     labelEl.innerText = '應找零錢';
     labelEl.className = 'text-sm font-bold text-amber-900 flex items-center gap-1.5';
-    iconEl.className = 'ico w-5 h-5 text-amber-700';
     display.innerText = '$0.0';
     display.className = 'text-3xl font-black text-emerald-800 font-mono tracking-tight change-shadow';
     return;
   }
 
-  /* 已輸入車資且付款 > 0 → 判斷找零 or 欠款 */
   if (fare > 0 && received < fare){
-    /* ★ 欠款模式 */
     var debt = fare - received;
     box.className = 'flex justify-between items-center bg-rose-50 px-3.5 py-3 rounded-xl border-2 border-rose-400 shadow-sm transition';
     labelEl.innerText = '還欠車資';
     labelEl.className = 'text-sm font-bold text-rose-700 flex items-center gap-1.5';
-    iconEl.className = 'ico w-5 h-5 text-rose-600';
     display.innerText = '$' + debt.toFixed(1);
     display.className = 'text-3xl font-black text-rose-600 font-mono tracking-tight debt-shadow';
   } else {
-    /* 找零模式（含付剛好） */
     var change = received - fare;
     box.className = 'flex justify-between items-center bg-gradient-to-r px-3.5 py-3 rounded-xl border-2 border-amber-400 shadow-sm transition';
     labelEl.innerText = '應找零錢';
     labelEl.className = 'text-sm font-bold text-amber-900 flex items-center gap-1.5';
-    iconEl.className = 'ico w-5 h-5 text-amber-700';
     display.innerText = '$' + change.toFixed(1);
     display.className = 'text-3xl font-black text-emerald-800 font-mono tracking-tight change-shadow';
   }
@@ -1240,8 +1433,15 @@ function calculateChange(){
 function confirmFareInput(){
   var input = document.getElementById('trip-fare');
   var v = parseFloat(input.value);
-  if (!isNaN(v) && v > 0){ input.value = v.toFixed(1).replace(/\.0$/, ''); }
-  else { input.value = ''; }
+  if (!isNaN(v) && v !== 0){
+    if (v < 0){
+      fareSign = -1;
+    }
+    updateFareSignUI();
+    input.value = Math.abs(v).toFixed(1).replace(/\.0$/, '');
+  } else {
+    input.value = '';
+  }
   calculateChange();
 }
 function confirmReceivedInput(){
@@ -1260,20 +1460,20 @@ function saveTrip(){
   var receivedInput = document.getElementById('trip-received');
   var noteInput     = document.getElementById('trip-note');
 
-  var fare = parseFloat(fareInput.value);
-  if (!fare || isNaN(fare) || fare <= 0){
+  var fare = getFareValue();
+  if (isNaN(fare) || fare === 0){
     showToast('請輸入有效的車資金額！');
     fareInput.focus();
     return;
   }
-  var received = parseFloat(receivedInput.value) || fare;
-  var note     = noteInput.value.trim();
-  var now      = new Date();
-  var ts       = now.getTime();
-  var cfg      = getCurrentSettings();
 
-  /* change 可為負數（負 = 客戶欠款） */
-  var changeVal = received - fare;
+  var isExpense = fare < 0;
+  var received  = isExpense ? fare : (parseFloat(receivedInput.value) || fare);
+  var changeVal = isExpense ? 0 : (received - fare);
+  var note      = noteInput.value.trim();
+  var now       = new Date();
+  var ts        = now.getTime();
+  var cfg       = getCurrentSettings();
 
   var newTrip = {
     id: 'trip_' + ts,
@@ -1284,7 +1484,8 @@ function saveTrip(){
     type:      activeTripType,
     received:  received,
     change:    changeVal,
-    note:      note
+    note:      note,
+    isExpense: isExpense
   };
 
   trips.unshift(newTrip);
@@ -1293,9 +1494,14 @@ function saveTrip(){
   fareInput.value = '';
   receivedInput.value = '';
   noteInput.value = '';
+  fareSign = 1;
+  updateFareSignUI();
+  collapseNoteTags();
   calculateChange();
 
-  if (changeVal < 0){
+  if (isExpense){
+    showToast('支出記錄已保存：-$' + Math.abs(fare).toFixed(1));
+  } else if (changeVal < 0){
     showToast('行程已保存，客戶尚欠 $' + Math.abs(changeVal).toFixed(1));
   } else {
     showToast('行程已成功保存！');
@@ -1344,20 +1550,32 @@ function renderTripList(){
     var timeStr  = dateObj.toLocaleTimeString('zh-HK', { hour:'2-digit', minute:'2-digit' });
     var dateStr  = dateObj.toLocaleDateString('zh-HK', { month:'2-digit', day:'2-digit' });
 
+    var fareNum   = parseFloat(t.fare) || 0;
+    var isExpense = fareNum < 0;
+    var fareAbs   = Math.abs(fareNum);
+    var fareText  = (isExpense ? '-$' : '$') + fareAbs;
+
     var typeColor = t.type === '街客' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                     t.type === 'Uber' ? 'bg-blue-50 text-blue-700 border-blue-200' :
                                         'bg-purple-50 text-purple-700 border-purple-200';
 
-    /* ★ 欠款標記 */
+    var expenseBadge = isExpense
+      ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-1">' +
+        ico('alert-triangle','w-3 h-3') + '支出' +
+        '</span>'
+      : '';
+
     var debtBadge = '';
-    if (typeof t.change === 'number' && t.change < 0){
+    if (!isExpense && typeof t.change === 'number' && t.change < 0){
       debtBadge = '<span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-1">' +
         ico('alert-triangle','w-3 h-3') + '欠 $' + Math.abs(t.change).toFixed(1) +
       '</span>';
     }
 
+    var cardBorder = isExpense ? 'border-rose-200' : (debtBadge ? 'border-rose-200' : 'border-slate-100');
+
     return '' +
-    '<div class="bg-white rounded-2xl p-3.5 border ' + (debtBadge ? 'border-rose-200' : 'border-slate-100') + ' shadow-sm flex items-center justify-between gap-3">' +
+    '<div class="bg-white rounded-2xl p-3.5 border ' + cardBorder + ' shadow-sm flex items-center justify-between gap-3">' +
       '<div class="flex items-center space-x-3 min-w-0">' +
         '<div class="w-10 h-10 rounded-xl bg-slate-100 flex flex-col items-center justify-center text-slate-600 font-mono text-[10px] shrink-0">' +
           '<span class="font-bold">' + timeStr + '</span>' +
@@ -1365,11 +1583,12 @@ function renderTripList(){
         '</div>' +
         '<div class="min-w-0">' +
           '<div class="flex items-center gap-2 flex-wrap">' +
-            '<span class="text-base font-extrabold text-slate-900">$' + t.fare + '</span>' +
+            '<span class="text-base font-extrabold ' + (isExpense ? 'text-rose-600' : 'text-slate-900') + '">' + fareText + '</span>' +
             '<span class="text-[10px] px-2 py-0.5 rounded-full border font-semibold ' + typeColor + '">' + escapeHtml(t.type) + '</span>' +
+            expenseBadge +
             debtBadge +
           '</div>' +
-          '<p class="text-xs text-slate-500 truncate mt-0.5">' + (t.note ? escapeHtml(t.note) : '無備註') + '</p>' +
+          '<p class="text-xs text-slate-500 truncate mt-0.5">' + (t.note ? escapeHtml(t.note) : '無備注') + '</p>' +
         '</div>' +
       '</div>' +
       '<div class="flex items-center gap-1 shrink-0">' +
@@ -1389,25 +1608,38 @@ function openDetailModal(id){
   if (!t) return;
   var dateObj = new Date(t.timestamp);
 
-  /* 找零 / 欠款 row */
-  var changeRow;
-  var changeVal = typeof t.change === 'number' ? t.change : 0;
-  if (changeVal >= 0){
-    changeRow = '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">找零</span><span class="font-medium">$' + changeVal + '</span></div>';
-  } else {
-    changeRow = '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">客戶欠款</span><span class="font-bold text-rose-600">$' + Math.abs(changeVal).toFixed(1) + '</span></div>';
+  var fareNum   = parseFloat(t.fare) || 0;
+  var isExpense = fareNum < 0;
+  var fareAbs   = Math.abs(fareNum);
+  var fareText  = (isExpense ? '-$' : '$') + fareAbs;
+  var fareCls   = isExpense ? 'font-bold text-rose-600' : 'font-bold text-amber-600';
+
+  var payRows = '';
+  if (!isExpense){
+    var changeVal = typeof t.change === 'number' ? t.change : 0;
+    var changeRow = changeVal >= 0
+      ? '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">找零</span><span class="font-medium">$' + changeVal + '</span></div>'
+      : '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">客戶欠款</span><span class="font-bold text-rose-600">$' + Math.abs(changeVal).toFixed(1) + '</span></div>';
+
+    payRows =
+      '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">客戶付款</span><span class="font-medium">$' + t.received + '</span></div>' +
+      changeRow;
   }
+
+  var kindRow = isExpense
+    ? '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">性質</span><span class="font-bold text-rose-600">支出</span></div>'
+    : '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">性質</span><span class="font-medium text-emerald-700">收入</span></div>';
 
   document.getElementById('modal-title').innerText = '行程詳細內容';
   document.getElementById('modal-body').innerHTML =
     '<div class="space-y-2 text-sm">' +
       '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">時間</span><span class="font-medium">' + dateObj.toLocaleString('zh-HK') + '</span></div>' +
       '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">所屬更次</span><span class="font-medium font-mono">' + (t.shiftDate || '--') + '</span></div>' +
-      '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">車資</span><span class="font-bold text-amber-600">$' + t.fare + '</span></div>' +
+      kindRow +
+      '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">車資</span><span class="' + fareCls + '">' + fareText + '</span></div>' +
       '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">類型</span><span class="font-medium">' + escapeHtml(t.type) + '</span></div>' +
-      '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">客戶付款</span><span class="font-medium">$' + t.received + '</span></div>' +
-      changeRow +
-      '<div class="flex justify-between py-1"><span class="text-slate-500">備註</span><span class="font-medium text-slate-700">' + (t.note ? escapeHtml(t.note) : '無') + '</span></div>' +
+      payRows +
+      '<div class="flex justify-between py-1"><span class="text-slate-500">備注</span><span class="font-medium text-slate-700">' + (t.note ? escapeHtml(t.note) : '無') + '</span></div>' +
     '</div>';
 
   document.getElementById('modal-footer').innerHTML =
@@ -1423,12 +1655,16 @@ function openEditModal(id){
   if (!t) return;
   currentEditingId = id;
 
+  var fareNum = parseFloat(t.fare) || 0;
+  var isExp = fareNum < 0;
+
   document.getElementById('modal-title').innerText = '修改行程記錄';
   document.getElementById('modal-body').innerHTML =
     '<div class="space-y-3 text-sm">' +
       '<div>' +
-        '<label class="block text-xs font-semibold text-slate-600 mb-1">車資金額</label>' +
-        '<input type="number" id="edit-fare" value="' + t.fare + '" inputmode="decimal" autocomplete="off" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 font-bold">' +
+        '<label class="block text-xs font-semibold text-slate-600 mb-1">車資金額（負數＝支出）</label>' +
+        '<input type="number" id="edit-fare" value="' + fareNum + '" step="0.5" inputmode="decimal" autocomplete="off" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 font-bold">' +
+        '<p class="text-[11px] ' + (isExp ? 'text-rose-600' : 'text-slate-400') + ' mt-1">' + (isExp ? '目前為支出記錄（負數）' : '輸入負數可改為支出記錄') + '</p>' +
       '</div>' +
       '<div>' +
         '<label class="block text-xs font-semibold text-slate-600 mb-1">行程類型</label>' +
@@ -1439,7 +1675,7 @@ function openEditModal(id){
         '</select>' +
       '</div>' +
       '<div>' +
-        '<label class="block text-xs font-semibold text-slate-600 mb-1">備註</label>' +
+        '<label class="block text-xs font-semibold text-slate-600 mb-1">備注</label>' +
         '<input type="text" id="edit-note" value="' + escapeHtml(t.note || '') + '" autocomplete="off" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2">' +
       '</div>' +
     '</div>';
@@ -1454,15 +1690,29 @@ function openEditModal(id){
 }
 
 function saveEditedTrip(){
-  var fare = parseFloat(document.getElementById('edit-fare').value);
+  var fareRaw = document.getElementById('edit-fare').value;
+  var fare = parseFloat(fareRaw);
   var type = document.getElementById('edit-type').value;
   var note = document.getElementById('edit-note').value.trim();
-  if (!fare || isNaN(fare) || fare <= 0){ showToast('請輸入有效車資！'); return; }
+
+  if (isNaN(fare) || fare === 0){ showToast('請輸入有效車資（可為負數）！'); return; }
+
   var index = trips.findIndex(function(item){ return item.id === currentEditingId; });
   if (index !== -1){
-    trips[index].fare = fare;
-    trips[index].type = type;
-    trips[index].note = note;
+    var isExpense = fare < 0;
+    trips[index].fare      = fare;
+    trips[index].type      = type;
+    trips[index].note      = note;
+    trips[index].isExpense = isExpense;
+    if (isExpense){
+      trips[index].received = fare;
+      trips[index].change   = 0;
+    } else {
+      var rec = parseFloat(trips[index].received);
+      if (isNaN(rec) || rec === 0) rec = fare;
+      trips[index].received = rec;
+      trips[index].change   = rec - fare;
+    }
     localStorage.setItem('taxi_trips', JSON.stringify(trips));
     closeModal();
     renderTripList();
@@ -1512,7 +1762,11 @@ function openShiftHistoryModal(){
       var fuelCount = (cfg.fuelEntries || []).length;
       var isCurrent = (key === currentKey);
 
-      /* 該更次未收足總額 */
+      var expenseTotal = list.reduce(function(s,t){
+        var v = parseFloat(t.fare) || 0;
+        return s + (v < 0 ? -v : 0);
+      }, 0);
+
       var unpaidTotal = list.reduce(function(s,t){
         var c = typeof t.change === 'number' ? t.change : 0;
         return s + (c < 0 ? -c : 0);
@@ -1552,6 +1806,11 @@ function openShiftHistoryModal(){
             '<span class="text-slate-500">油價均價：<b class="text-slate-700">' +
               (fuelAvgPrice !== null ? '$' + fuelAvgPrice.toFixed(2) + '/L' : '--') + '</b></span>' +
           '</div>' +
+          (expenseTotal > 0
+            ? '<div class="mt-1 pt-1 text-[11px] text-rose-600 font-semibold flex items-center gap-1">' +
+                ico('alert-triangle','w-3 h-3') + '其中支出 -$' + expenseTotal.toFixed(1) +
+              '</div>'
+            : '') +
           (unpaidTotal > 0
             ? '<div class="mt-1 pt-1 text-[11px] text-rose-600 font-semibold flex items-center gap-1">' +
                 ico('alert-triangle','w-3 h-3') + '客戶未收足總額 $' + unpaidTotal.toFixed(1) +
@@ -2211,10 +2470,16 @@ function updateStatsAndNet(){
     return false;
   });
 
-  var totalRev = 0;
-  var typeRev  = { '街客':0, 'Uber':0, '其他':0 };
+  var totalRev     = 0;
+  var totalExpense = 0;
+  var typeRev      = { '街客':0, 'Uber':0, '其他':0 };
+
   filteredTrips.forEach(function(t){
     var v = parseFloat(t.fare) || 0;
+    if (v < 0){
+      totalExpense += -v;
+      return;
+    }
     totalRev += v;
     if (typeRev[t.type] !== undefined){
       typeRev[t.type] += v;
@@ -2227,6 +2492,16 @@ function updateStatsAndNet(){
   document.getElementById('stats-type-street').innerText   = '$' + typeRev['街客'].toFixed(1);
   document.getElementById('stats-type-uber').innerText     = '$' + typeRev['Uber'].toFixed(1);
   document.getElementById('stats-type-other').innerText    = '$' + typeRev['其他'].toFixed(1);
+
+  var expLine = document.getElementById('stats-total-expense-line');
+  if (expLine){
+    if (totalExpense > 0){
+      expLine.classList.remove('hidden');
+      expLine.innerText = '另支出 -$' + totalExpense.toFixed(1) + '　淨額 $' + (totalRev - totalExpense).toFixed(1);
+    } else {
+      expLine.classList.add('hidden');
+    }
+  }
 
   var periodMileage = 0;
   var periodShiftCount = 0;
