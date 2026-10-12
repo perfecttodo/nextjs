@@ -909,18 +909,43 @@ function pad2(n){ return String(n).padStart(2, '0'); }
 function localDateStr(d){
   return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
 }
+
+/* ★ 判斷更次跨日模式：
+   - 'forward'  ：start < end（同日，例如 06:00 - 18:00）
+   - 'backward' ：start > end（跨午夜，例如 05:00 - 03:00、22:00 - 06:00）
+   - 'full-day' ：start == end（24 小時更次，分界線在 startTime，例如 05:00 - 05:00）
+*/
+function getShiftMode(cfg){
+  if (!cfg || !cfg.startTime || !cfg.endTime) return 'forward';
+  if (cfg.startTime < cfg.endTime) return 'forward';
+  if (cfg.startTime > cfg.endTime) return 'backward';
+  return 'full-day';
+}
+
 function calcShiftDate(timestamp, cfg){
-  var d       = new Date(timestamp);
-  var timeStr = pad2(d.getHours()) + ':' + pad2(d.getMinutes());
-  if (cfg && cfg.startTime > cfg.endTime){
-    if (timeStr <= cfg.endTime){
-      var y = new Date(d);
-      y.setDate(y.getDate() - 1);
-      return localDateStr(y);
-    }
+  var d         = new Date(timestamp);
+  var timeStr   = pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  var mode      = getShiftMode(cfg);
+  var isPrevDay = false;
+
+  if (mode === 'backward'){
+    /* 例如 05:00 - 03:00：未過 endTime 就算前一天尾段 */
+    if (timeStr <= cfg.endTime) isPrevDay = true;
+    /* 空窗期（例 03:01~04:59）：現行設計歸「今天」更次 */
+  } else if (mode === 'full-day'){
+    /* 例如 05:00 - 05:00：未到 startTime 就算前一天 */
+    if (timeStr < cfg.startTime) isPrevDay = true;
+  }
+  /* mode === 'forward'：一律歸當天，不用處理 */
+
+  if (isPrevDay){
+    var y = new Date(d);
+    y.setDate(y.getDate() - 1);
+    return localDateStr(y);
   }
   return localDateStr(d);
 }
+
 function getCurrentShiftKey(){
   var now      = new Date();
   var timeStr  = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
@@ -931,7 +956,18 @@ function getCurrentShiftKey(){
     var keys = Object.keys(shiftSettings).sort().reverse();
     if (keys.length) cfg = shiftSettings[keys[0]];
   }
-  if (cfg && cfg.startTime > cfg.endTime && timeStr <= cfg.endTime){
+
+  var isPrevDay = false;
+  if (cfg){
+    var mode = getShiftMode(cfg);
+    if (mode === 'backward' && timeStr <= cfg.endTime){
+      isPrevDay = true;
+    } else if (mode === 'full-day' && timeStr < cfg.startTime){
+      isPrevDay = true;
+    }
+  }
+
+  if (isPrevDay){
     var y = new Date(now);
     y.setDate(y.getDate() - 1);
     return localDateStr(y);
