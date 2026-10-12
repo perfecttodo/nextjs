@@ -245,6 +245,7 @@ body{
 .border-slate-700\/50{border-color:rgba(51,65,85,.5)}
 .border-slate-700\/60{border-color:rgba(51,65,85,.6)}
 .border-amber-100{border-color:#fef3c7}
+.border-amber-200{border-color:#fde68a}
 .border-amber-400{border-color:#fbbf24}
 .border-amber-500\/30{border-color:rgba(245,158,11,.3)}
 .border-amber-600{border-color:#d97706}
@@ -969,6 +970,10 @@ function calcShiftDate(timestamp, cfg){
   return localDateStr(d);
 }
 
+/* ★ 當前更次（最後一更）
+   - 邏輯：以「現在時間」對應的 cfg（今天）判斷；若今天尚無 cfg，退回最近一個 cfg 判斷
+   - 判斷後，若屬於前一天（backward / full-day 跨日），返回前一天
+*/
 function getCurrentShiftKey(){
   var now      = new Date();
   var timeStr  = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
@@ -1518,7 +1523,7 @@ document.addEventListener('click', function(e){
 });
 
 /* =========================================================
-   H. 車資與找零（含欠款 / 支出處理）
+   H. 車資與找零
    ========================================================= */
 function updateFareSignUI(){
   var btn = document.getElementById('fare-sign-toggle');
@@ -2125,7 +2130,6 @@ function openShiftEditModal(key){
     wkDay = dd.toLocaleDateString('zh-HK', { weekday:'long' });
   }
 
-  /* 油費記錄列表 */
   var fuelListHtml = '';
   if (!cfg.fuelEntries || cfg.fuelEntries.length === 0){
     fuelListHtml = '<p class="text-[11px] text-slate-400 text-center py-3">尚無加油記錄</p>';
@@ -2153,7 +2157,6 @@ function openShiftEditModal(key){
   document.getElementById('modal-body').innerHTML =
     '<div class="space-y-3 text-sm">' +
 
-      /* 日期標題 */
       '<div class="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 flex justify-between items-center">' +
         '<span class="text-[11px] font-semibold text-amber-800">更次日期</span>' +
         '<span class="font-bold text-amber-900 font-mono text-xs">' + key +
@@ -2161,7 +2164,6 @@ function openShiftEditModal(key){
         '</span>' +
       '</div>' +
 
-      /* 時間 */
       '<div class="grid grid-cols-2 gap-2">' +
         '<div>' +
           '<label class="block text-xs font-semibold text-slate-600 mb-1">開始時間</label>' +
@@ -2175,14 +2177,12 @@ function openShiftEditModal(key){
         '</div>' +
       '</div>' +
 
-      /* 租車費 */
       '<div>' +
         '<label class="block text-xs font-semibold text-slate-600 mb-1">租車費 (HKD)</label>' +
         '<input type="number" id="edit-shift-rental" step="1" inputmode="decimal" value="' + (parseFloat(cfg.rental) || 0) + '" ' +
           'class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-bold">' +
       '</div>' +
 
-      /* 里程 */
       '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">' +
         '<div class="text-xs font-bold text-slate-700">行駛里程</div>' +
         '<div class="grid grid-cols-2 gap-2">' +
@@ -2201,7 +2201,6 @@ function openShiftEditModal(key){
         '</div>' +
       '</div>' +
 
-      /* 油費記錄 */
       '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">' +
         '<div class="flex justify-between items-center">' +
           '<span class="text-xs font-bold text-slate-700">加油記錄</span>' +
@@ -2209,7 +2208,6 @@ function openShiftEditModal(key){
             'class="text-[11px] px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg transition">+ 加入</button>' +
         '</div>' +
         fuelListHtml +
-        /* 內聯新增面板 */
         '<div id="add-fuel-inline-panel" class="hidden mt-2 p-2.5 bg-white border border-amber-200 rounded-lg space-y-1.5">' +
           '<input type="number" id="inline-fuel-amount" step="1" inputmode="decimal" placeholder="加油金額 (HKD)" ' +
             'class="w-full px-2.5 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 font-bold">' +
@@ -2237,7 +2235,6 @@ function openShiftEditModal(key){
   hydrateIcons();
 }
 
-/* ★ 從編輯表單讀取資料寫入 cfg（不回寫 localStorage、不重繪 UI） */
 function readShiftEditForm(key){
   var cfg = shiftSettings[key];
   if (!cfg) return null;
@@ -2248,7 +2245,6 @@ function readShiftEditForm(key){
   var msEl    = document.getElementById('edit-shift-mileage-start');
   var meEl    = document.getElementById('edit-shift-mileage-end');
 
-  /* 表單不存在（例如被關掉了）→ 不改動 */
   if (!startEl) return cfg;
 
   cfg.startTime = startEl.value || '05:00';
@@ -2265,7 +2261,6 @@ function readShiftEditForm(key){
   return cfg;
 }
 
-/* ★ 儲存歷史更次編輯 */
 function saveShiftEdit(key){
   var cfg = readShiftEditForm(key);
   if (!cfg){
@@ -2276,7 +2271,6 @@ function saveShiftEdit(key){
   shiftSettings[key] = cfg;
   localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
 
-  /* 刷新相關 UI */
   renderTripList();
   updateStatsAndNet();
   initSettingsForm();
@@ -2285,7 +2279,6 @@ function saveShiftEdit(key){
   openShiftHistoryModal();
 }
 
-/* ★ 顯示內聯新增加油面板 */
 function showAddFuelInline(key){
   var panel = document.getElementById('add-fuel-inline-panel');
   if (!panel) return;
@@ -2296,7 +2289,6 @@ function showAddFuelInline(key){
   }, 50);
 }
 
-/* ★ 隱藏內聯新增加油面板 */
 function hideAddFuelInline(){
   var panel = document.getElementById('add-fuel-inline-panel');
   if (!panel) return;
@@ -2309,7 +2301,6 @@ function hideAddFuelInline(){
   if (stationEl) stationEl.value = '';
 }
 
-/* ★ 確認內聯新增加油 */
 function confirmAddFuelInline(key){
   var amountEl  = document.getElementById('inline-fuel-amount');
   var priceEl   = document.getElementById('inline-fuel-price');
@@ -2323,7 +2314,6 @@ function confirmAddFuelInline(key){
     return;
   }
 
-  /* 先把主表單其他欄位的值套用，避免修改遺失 */
   var cfg = readShiftEditForm(key);
   if (!cfg){
     showToast('更次不存在');
@@ -2359,11 +2349,9 @@ function confirmAddFuelInline(key){
   }
   showToast(msg);
 
-  /* 重繪編輯彈窗 */
   openShiftEditModal(key);
 }
 
-/* ★ 刪除某更次內某筆加油記錄 */
 function deleteFuelInline(key, id){
   var cfg = shiftSettings[key];
   if (!cfg){
@@ -2372,7 +2360,6 @@ function deleteFuelInline(key, id){
   }
   if (!confirm('確定要刪除這筆加油記錄嗎？')) return;
 
-  /* 先套用主表單目前的值 */
   readShiftEditForm(key);
 
   cfg.fuelEntries = (cfg.fuelEntries || []).filter(function(e){ return e.id !== id; });
@@ -2387,7 +2374,6 @@ function deleteFuelInline(key, id){
   openShiftEditModal(key);
 }
 
-/* ★ 刪除單一更次（含該更次所有行程 + 更次設定），可撤銷 */
 function deleteShift(key){
   var cfg  = shiftSettings[key];
   var list = trips.filter(function(t){ return t.shiftDate === key; });
@@ -2443,7 +2429,7 @@ function deleteShift(key){
 }
 
 /* =========================================================
-   K-3. 新增加油彈窗（通用，仍作用於當前更次）
+   K-3. 新增加油彈窗（通用，作用於當前更次）
    ========================================================= */
 function calcFuelLiters(){
   var amountEl = document.getElementById('fuel-add-amount');
@@ -2728,7 +2714,7 @@ function deleteFuelEntry(id){
 }
 
 /* =========================================================
-   L. 批次刪除 + 撤銷（同步刪除對應更次設定）
+   L. 批次刪除 + 撤銷
    ========================================================= */
 var DELETE_PERIODS = {
   day:   { daysBack: 1,  label: '一天前',   desc: '昨天及之前的更次' },
@@ -2986,6 +2972,11 @@ function setStatsPeriod(period){
   updateStatsAndNet();
 }
 
+/* ★ 統計期間判斷：
+   - 'day'  = 等於「當前更次 key」→ 與 net-gross 完全一致
+   - 'week' = 本週一到今天（按更次日期）
+   - 'month'= 本月（按更次日期）
+*/
 function shiftKeyInPeriod(key, period, now, currentShiftKey){
   if (!key) return false;
   var d = new Date(key + 'T12:00:00');
@@ -3014,6 +3005,7 @@ function updateStatsAndNet(){
   var currentKey = getCurrentShiftKey();
   var currentCfg = getCurrentSettings(false);
 
+  /* 當更營業額：基於「當前更次」 */
   var currentShiftGross = 0;
   trips.forEach(function(t){
     if (t.shiftDate === currentKey) currentShiftGross += (parseFloat(t.fare) || 0);
@@ -3059,9 +3051,15 @@ function updateStatsAndNet(){
 
   updateMileagePanel(currentCfg);
 
+  /* ★ 統計標題：day 模式標題動態帶上當前更次 key */
   var titleMap = { day:'今日總收入', week:'本星期總收入', month:'本月總收入' };
-  document.getElementById('stats-period-title').innerText = titleMap[statsPeriod];
+  var titleText = titleMap[statsPeriod];
+  if (statsPeriod === 'day'){
+    titleText = '當更總收入（' + currentKey + '）';
+  }
+  document.getElementById('stats-period-title').innerText = titleText;
 
+  /* ★ 統計過濾：day 模式 = 當前更次 key，與 net-gross 完全一致 */
   var filteredTrips = trips.filter(function(t){
     return shiftKeyInPeriod(t.shiftDate, statsPeriod, now, currentKey);
   });
