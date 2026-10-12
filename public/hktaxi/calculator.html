@@ -145,6 +145,7 @@ body{
 .mb-4{margin-bottom:1rem}
 .ml-1{margin-left:.25rem}
 .ml-auto{margin-left:auto}
+.-mr-1{margin-right:-.25rem}
 
 .w-3{width:.75rem}
 .h-3{height:.75rem}
@@ -1999,7 +2000,7 @@ function closeModal(){
 }
 
 /* =========================================================
-   K-2. 歷史更次彈窗
+   K-2. 歷史更次彈窗（每筆更次可單獨刪除）
    ========================================================= */
 function openShiftHistoryModal(){
   var keys = Object.keys(shiftSettings).sort().reverse();
@@ -2048,11 +2049,17 @@ function openShiftHistoryModal(){
       html +=
         '<div class="border ' + (isCurrent ? 'border-amber-400 bg-amber-50/60' : 'border-slate-200 bg-white') +
         ' rounded-xl p-3">' +
-          '<div class="flex justify-between items-center mb-1.5">' +
-            '<span class="font-bold text-sm text-slate-800">' + key +
+          '<div class="flex justify-between items-center mb-1.5 gap-2">' +
+            '<span class="font-bold text-sm text-slate-800 min-w-0 truncate">' + key +
               (isCurrent ? ' <span class="text-[10px] text-amber-700 font-medium ml-1">當前</span>' : '') +
             '</span>' +
-            '<span class="text-[11px] text-slate-500 font-mono">' + (cfg.startTime || '--') + ' - ' + (cfg.endTime || '--') + '</span>' +
+            '<div class="flex items-center gap-1.5 shrink-0">' +
+              '<span class="text-[11px] text-slate-500 font-mono">' + (cfg.startTime || '--') + ' - ' + (cfg.endTime || '--') + '</span>' +
+              '<button type="button" onclick="event.stopPropagation(); deleteShift(\'' + key + '\')" ' +
+                'class="p-1 -mr-1 text-slate-300 hover:text-rose-500 transition" title="刪除此更次">' +
+                ico('trash-2','w-3.5 h-3.5') +
+              '</button>' +
+            '</div>' +
           '</div>' +
           '<div class="grid grid-cols-2 gap-y-1 text-[11px]">' +
             '<span class="text-slate-500">租車：<b class="text-rose-600">$' + (parseFloat(cfg.rental) || 0) + '</b></span>' +
@@ -2096,6 +2103,67 @@ function openShiftHistoryModal(){
   m.classList.remove('hidden');
   m.classList.add('flex');
   hydrateIcons();
+}
+
+/* ★ 刪除單一更次（含該更次所有行程 + 更次設定），可撤銷 */
+function deleteShift(key){
+  var cfg  = shiftSettings[key];
+  var list = trips.filter(function(t){ return t.shiftDate === key; });
+  var isCurrent = (key === getCurrentShiftKey());
+
+  var warnCurrent = isCurrent
+    ? '⚠️ 這是「當前更次」，刪除後將回復自動模式。\n\n'
+    : '';
+
+  var confirmMsg =
+    warnCurrent +
+    '確定要刪除更次「' + key + '」嗎？\n\n' +
+    '將一併刪除：\n' +
+    '• ' + list.length + ' 筆行程紀錄\n' +
+    '• 該更次設定（含租車費、油費、里程）\n\n' +
+    '此操作可於「數據管理」按「撤銷」還原。';
+
+  if (!confirm(confirmMsg)) return;
+
+  /* 存入撤銷緩衝 */
+  lastDeletedTrips = list.slice();
+  lastDeletedShiftSettings = {};
+  if (cfg){
+    lastDeletedShiftSettings[key] = JSON.parse(JSON.stringify(cfg));
+  }
+
+  /* 移除 trips */
+  var tripIdSet = {};
+  list.forEach(function(t){ tripIdSet[t.id] = true; });
+  trips = trips.filter(function(t){ return !tripIdSet[t.id]; });
+
+  /* 移除 shiftSettings */
+  delete shiftSettings[key];
+
+  /* 如果刪的是當前手動補錄的更次，一併清除補錄狀態 */
+  if (manualShiftKey === key){
+    manualShiftKey = null;
+  }
+
+  localStorage.setItem('taxi_trips', JSON.stringify(trips));
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+
+  /* 刷新所有 UI */
+  renderTripList();
+  updateStatsAndNet();
+  initSettingsForm();
+
+  var bannerText = '已刪除更次 ' + key + '（' + list.length + ' 筆）';
+  showUndoBanner(bannerText);
+  showToast(bannerText);
+
+  /* 重開彈窗（若還有更次），否則關閉 */
+  var remaining = Object.keys(shiftSettings);
+  if (remaining.length > 0){
+    openShiftHistoryModal();
+  } else {
+    closeModal();
+  }
 }
 
 /* =========================================================
@@ -2642,11 +2710,6 @@ function setStatsPeriod(period){
   updateStatsAndNet();
 }
 
-/* ★ 統計期間判斷：
-   - 'day'  = 等於當前更次 key（與 net-gross 定義一致，支援跨午夜更次）
-   - 'week' = 本週一到今天（按更次日期）
-   - 'month'= 本月（按更次日期）
-*/
 function shiftKeyInPeriod(key, period, now, currentShiftKey){
   if (!key) return false;
   var d = new Date(key + 'T12:00:00');
@@ -2723,9 +2786,6 @@ function updateStatsAndNet(){
   var titleMap = { day:'今日總收入', week:'本星期總收入', month:'本月總收入' };
   document.getElementById('stats-period-title').innerText = titleMap[statsPeriod];
 
-  /* ★ 修正：用 t.shiftDate（更次歸屬）過濾，與 net-gross / periodMileage 定義一致
-     - 「今日」＝ 當前更次（支援跨午夜、24小時更次）
-     - 「本星期」「本月」＝ 按更次日期 */
   var filteredTrips = trips.filter(function(t){
     return shiftKeyInPeriod(t.shiftDate, statsPeriod, now, currentKey);
   });
