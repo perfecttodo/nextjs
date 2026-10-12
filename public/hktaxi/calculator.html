@@ -91,6 +91,8 @@ body{
 .gap-1\.5{gap:.375rem}
 .gap-2{gap:.5rem}
 .gap-3{gap:.75rem}
+.gap-x-2{column-gap:.5rem}
+.gap-y-1\.5{row-gap:.375rem}
 
 .space-y-2 > * + *{margin-top:.5rem}
 .space-y-2\.5 > * + *{margin-top:.625rem}
@@ -122,6 +124,7 @@ body{
 .py-3\.5{padding-top:.875rem;padding-bottom:.875rem}
 .pt-1{padding-top:.25rem}
 .pt-1\.5{padding-top:.375rem}
+.pt-2{padding-top:.5rem}
 .pt-3{padding-top:.75rem}
 .pb-2{padding-bottom:.5rem}
 .pb-3{padding-bottom:.75rem}
@@ -141,6 +144,7 @@ body{
 .mb-1\.5{margin-bottom:.375rem}
 .mb-4{margin-bottom:1rem}
 .ml-1{margin-left:.25rem}
+.ml-auto{margin-left:auto}
 
 .w-3{width:.75rem}
 .h-3{height:.75rem}
@@ -496,10 +500,21 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </div>
       </div>
 
-      <div class="flex justify-between items-center pt-1 border-t border-slate-100 text-xs">
-        <div class="flex items-center gap-1.5">
-          <input type="checkbox" id="filter-current-shift" checked onchange="renderTripList()">
-          <label for="filter-current-shift" class="font-medium text-slate-700 cursor-pointer">只顯示當更紀錄</label>
+      <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-xs flex-wrap gap-x-2 gap-y-1.5">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <label class="flex items-center space-x-1.5 cursor-pointer select-none">
+            <input type="checkbox" id="filter-current-shift" checked onchange="renderTripList()">
+            <span class="font-medium text-slate-700">只顯示當更</span>
+          </label>
+          <span class="text-slate-300 select-none">·</span>
+          <label class="flex items-center space-x-1 cursor-pointer select-none">
+            <input type="checkbox" id="chk-flow-income" checked onchange="renderTripList()">
+            <span class="font-medium text-emerald-700">收入</span>
+          </label>
+          <label class="flex items-center space-x-1 cursor-pointer select-none">
+            <input type="checkbox" id="chk-flow-expense" checked onchange="renderTripList()">
+            <span class="font-medium text-rose-600">支出</span>
+          </label>
         </div>
         <span id="trip-count-badge" class="text-slate-400 font-medium">共 0 筆</span>
       </div>
@@ -640,7 +655,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-4">
       <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-stats')">
         <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-          <span class="ico w-4 h-4 text-amber-500" data-icon="bar-chart-3"></span> 收入統計總覽
+          <span class="ico w-4 h-4 text-amber-500" data-icon="bar-chart-3"></span> 統計總覽
         </h2>
         <span class="ico w-4 h-4 text-slate-400" data-icon="chevron-down" data-card-chevron="card-stats"></span>
       </div>
@@ -762,7 +777,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
     </button>
     <button onclick="switchTab('stats')" id="nav-stats" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition">
       <span class="ico w-5 h-5" data-icon="pie-chart"></span>
-      <span class="text-[11px] font-medium mt-1">收入統計</span>
+      <span class="text-[11px] font-medium mt-1">統計</span>
     </button>
   </div>
 </nav>
@@ -858,13 +873,11 @@ var statsPeriod      = 'day';
 var currentEditingId = null;
 var lastDeletedTrips = null;
 var lastDeletedShiftSettings = null;
-var fareSign         = 1;   /* 1 = 收入；-1 = 支出 */
-var noteTagsOpen     = false; /* 快速標籤面板開關 */
+var fareSign         = 1;
+var noteTagsOpen     = false;
 
-/* ★ 補錄模式：null = 自動；YYYY-MM-DD = 補錄至該更次（不持久化，刷新重置） */
 var manualShiftKey   = null;
 
-/* ★ 備注快速標籤（依收入／支出模式分別顯示） */
 var NOTE_TAGS = {
   income:  ['過海', '機場', '隧道口', '加一', '行李', '預約', '長途'],
   expense: ['隧道費', '入氣', '入油', '租車費', '維修', '賠償', '罰款', '泊車']
@@ -916,10 +929,8 @@ function localDateStr(d){
   return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
 }
 
-/* ★ 本地時區 ISO 字串：YYYY-MM-DDTHH:MM:SS.mmm+HH:MM
-   （與 timestamp 語意一致，都是本地時間） */
 function toLocalISOString(d){
-  var tzOffset = -d.getTimezoneOffset(); /* 分鐘；HKT = 480 */
+  var tzOffset = -d.getTimezoneOffset();
   var sign     = tzOffset >= 0 ? '+' : '-';
   var abs      = Math.abs(tzOffset);
   var tzHH     = pad2(Math.floor(abs / 60));
@@ -930,11 +941,6 @@ function toLocalISOString(d){
          sign + tzHH + ':' + tzMM;
 }
 
-/* ★ 判斷更次跨日模式：
-   - 'forward'  ：start < end（同日，例如 06:00 - 18:00）
-   - 'backward' ：start > end（跨午夜，例如 05:00 - 03:00、22:00 - 06:00）
-   - 'full-day' ：start == end（24 小時更次，分界線在 startTime，例如 05:00 - 05:00）
-*/
 function getShiftMode(cfg){
   if (!cfg || !cfg.startTime || !cfg.endTime) return 'forward';
   if (cfg.startTime < cfg.endTime) return 'forward';
@@ -949,14 +955,10 @@ function calcShiftDate(timestamp, cfg){
   var isPrevDay = false;
 
   if (mode === 'backward'){
-    /* 例如 05:00 - 03:00：未過 endTime 就算前一天尾段 */
     if (timeStr <= cfg.endTime) isPrevDay = true;
-    /* 空窗期（例 03:01~04:59）：現行設計歸「今天」更次 */
   } else if (mode === 'full-day'){
-    /* 例如 05:00 - 05:00：未到 startTime 就算前一天 */
     if (timeStr < cfg.startTime) isPrevDay = true;
   }
-  /* mode === 'forward'：一律歸當天，不用處理 */
 
   if (isPrevDay){
     var y = new Date(d);
@@ -1090,12 +1092,10 @@ function getCurrentSettings(createIfMissing){
 
   var tripsChanged = false;
   trips.forEach(function(t){
-    /* 補 shiftDate */
     if (!t.shiftDate){
       t.shiftDate = localDateStr(new Date(t.timestamp));
       tripsChanged = true;
     }
-    /* ★ 修正舊資料：dateStr 若為 UTC ISO（以 Z 結尾），轉為本地 ISO */
     if (t.dateStr && typeof t.dateStr === 'string' && /Z$/.test(t.dateStr)){
       var d = new Date(t.dateStr);
       if (!isNaN(d.getTime())){
@@ -1103,7 +1103,6 @@ function getCurrentSettings(createIfMissing){
         tripsChanged = true;
       }
     }
-    /* ★ 舊資料沒 dateStr 的補上 */
     if (!t.dateStr && t.timestamp){
       t.dateStr = toLocalISOString(new Date(t.timestamp));
       tripsChanged = true;
@@ -1168,13 +1167,10 @@ function rebuildFuelPrefsFromHistory(){
    ========================================================= */
 function openShiftPickerModal(){
   var currentKey = getCurrentShiftKey();
-
-  /* ★ 只列出已存在的更次（依日期新→舊） */
   var candidates = Object.keys(shiftSettings).sort().reverse();
 
   var html = '<div class="space-y-2 max-h-80 overflow-y-auto pr-1">';
 
-  /* 自動選項（模式切換，非更次項） */
   var autoActive = manualShiftKey === null;
   html +=
     '<button type="button" onclick="selectManualShift(null)" ' +
@@ -1191,7 +1187,6 @@ function openShiftPickerModal(){
       (autoActive ? '<span class="text-amber-600 font-bold shrink-0 text-base">✓</span>' : '') +
     '</button>';
 
-  /* 已存在的更次 */
   if (!candidates.length){
     html +=
       '<div class="text-center text-slate-400 text-xs py-6 leading-relaxed">' +
@@ -1234,7 +1229,6 @@ function openShiftPickerModal(){
 
   html += '</div>';
 
-  /* 自訂日期（保留：讓用戶仍能選任意過去日期） */
   html +=
     '<div class="mt-3 pt-3 border-t border-slate-200">' +
       '<label class="block text-xs font-semibold text-slate-600 mb-1.5">或選擇其他日期</label>' +
@@ -1267,7 +1261,6 @@ function applyCustomShiftDate(){
 function selectManualShift(key){
   manualShiftKey = key;
 
-  /* 若選擇的日期還沒有更次配置，用最近一個作為 base 建立 */
   if (key && !shiftSettings[key]){
     var keys = Object.keys(shiftSettings).sort().reverse();
     var base = keys.length ? shiftSettings[keys[0]] : DEFAULT_SHIFT;
@@ -1342,10 +1335,6 @@ window.addEventListener('DOMContentLoaded', function(){
   updateStatsAndNet();
 });
 
-/* ★ 右上角顯示：
-   - 自動模式：第一行日期＋星期；第二行更次時間
-   - 補錄模式：琥珀色徽章顯示補錄日期
-*/
 function updateDateTimePreview(){
   var now = new Date();
   var dateStr = now.toLocaleDateString('zh-HK', { month:'2-digit', day:'2-digit' });
@@ -1354,7 +1343,6 @@ function updateDateTimePreview(){
   if (!el) return;
 
   if (manualShiftKey){
-    /* 補錄模式 */
     el.className = 'text-xs font-bold text-right leading-tight text-amber-700 ' +
                    'bg-amber-100 border border-amber-300 px-2.5 py-1 rounded-lg ' +
                    'cursor-pointer select-none transition';
@@ -1364,7 +1352,6 @@ function updateDateTimePreview(){
     return;
   }
 
-  /* 正常模式 */
   var cfg = getCurrentSettings(false);
   if (!cfg){
     var keys = Object.keys(shiftSettings).sort().reverse();
@@ -1581,7 +1568,6 @@ function setReceived(amount){
   calculateChange();
 }
 
-/* ★ 找零框四種狀態：支出 / 找零 / 欠款 / 中性 */
 function calculateChange(){
   var fareEl     = document.getElementById('trip-fare');
   var receivedEl = document.getElementById('trip-received');
@@ -1592,7 +1578,6 @@ function calculateChange(){
   var payBlock   = document.getElementById('payment-block');
   var fareClearBtn = document.getElementById('fare-clear-btn');
 
-  /* 車資清除按鈕：有內容才顯示 */
   if (fareClearBtn){
     if (fareEl.value.trim()){
       fareClearBtn.classList.remove('hidden');
@@ -1601,7 +1586,6 @@ function calculateChange(){
     }
   }
 
-  /* 即時偵測負數輸入 → 自動切為支出模式 */
   var rawFareVal = parseFloat(fareEl.value);
   if (!isNaN(rawFareVal) && rawFareVal < 0 && fareSign !== -1){
     fareSign = -1;
@@ -1612,7 +1596,6 @@ function calculateChange(){
   var receivedRaw = receivedEl.value;
   var received    = parseFloat(receivedRaw) || 0;
 
-  /* ===== 支出模式 ===== */
   if (fare < 0){
     if (payBlock) payBlock.style.opacity = '0.45';
     receivedEl.disabled = true;
@@ -1628,7 +1611,6 @@ function calculateChange(){
     return;
   }
 
-  /* ===== 收入模式 ===== */
   if (payBlock) payBlock.style.opacity = '1';
   receivedEl.disabled = false;
   if (iconEl.dataset.icon !== 'coins'){
@@ -1709,7 +1691,6 @@ function saveTrip(){
   var ts        = now.getTime();
   var cfg       = getCurrentSettings();
 
-  /* ★ 補錄模式：使用手動選擇的更次日期；否則依時間自動歸屬 */
   var isManual  = !!manualShiftKey;
   var shiftDate = isManual ? manualShiftKey : calcShiftDate(ts, cfg);
 
@@ -1717,7 +1698,7 @@ function saveTrip(){
     id: 'trip_' + ts,
     timestamp: ts,
     shiftDate: shiftDate,
-    dateStr:   toLocalISOString(now),   /* ★ 改為本地時區 ISO，與 timestamp 語意一致 */
+    dateStr:   toLocalISOString(now),
     fare:      fare,
     type:      activeTripType,
     received:  received,
@@ -1760,6 +1741,8 @@ function renderTripList(){
   var allowStreet      = document.getElementById('chk-type-street').checked;
   var allowUber        = document.getElementById('chk-type-uber').checked;
   var allowOther       = document.getElementById('chk-type-other').checked;
+  var allowIncome      = document.getElementById('chk-flow-income').checked;
+  var allowExpense     = document.getElementById('chk-flow-expense').checked;
   var currentShiftKey  = getCurrentShiftKey();
 
   var filtered = trips.filter(function(t){
@@ -1769,8 +1752,13 @@ function renderTripList(){
     if (t.type === '街客' && allowStreet) matchType = true;
     if (t.type === 'Uber' && allowUber)   matchType = true;
     if (t.type === '其他' && allowOther)  matchType = true;
+
+    var fareNum   = parseFloat(t.fare) || 0;
+    var isExpense = fareNum < 0;
+    var matchFlow = (isExpense && allowExpense) || (!isExpense && allowIncome);
+
     var matchShift = !onlyCurrentShift || (t.shiftDate === currentShiftKey);
-    return matchKeyword && matchType && matchShift;
+    return matchKeyword && matchType && matchFlow && matchShift;
   });
 
   document.getElementById('trip-count-badge').innerText = '共 ' + filtered.length + ' 筆';
@@ -1897,9 +1885,41 @@ function openEditModal(id){
   var fareNum = parseFloat(t.fare) || 0;
   var isExp = fareNum < 0;
 
+  var shiftCfg = null;
+  if (t.shiftDate && shiftSettings[t.shiftDate]){
+    shiftCfg = shiftSettings[t.shiftDate];
+    ensureShiftFields(shiftCfg);
+  }
+  var shiftDateText = t.shiftDate || '--';
+  var shiftTimeText = shiftCfg
+    ? (shiftCfg.startTime + ' - ' + shiftCfg.endTime)
+    : '未設定';
+
+  var wkDay = '';
+  if (t.shiftDate){
+    var dd = new Date(t.shiftDate + 'T12:00:00');
+    if (!isNaN(dd.getTime())){
+      wkDay = dd.toLocaleDateString('zh-HK', { weekday:'short' });
+    }
+  }
+
   document.getElementById('modal-title').innerText = '修改記錄';
   document.getElementById('modal-body').innerHTML =
     '<div class="space-y-3 text-sm">' +
+      '<div class="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5">' +
+        '<div class="flex justify-between items-center">' +
+          '<span class="text-[11px] font-semibold text-amber-800 flex items-center gap-1">' +
+            ico('history','w-3.5 h-3.5') + '所屬更次' +
+          '</span>' +
+          '<span class="font-bold text-amber-900 font-mono text-xs">' + shiftDateText +
+            (wkDay ? ' <span class="text-[10px] text-amber-600 font-normal">' + wkDay + '</span>' : '') +
+          '</span>' +
+        '</div>' +
+        '<div class="flex justify-between items-center mt-1 pt-1 border-t border-amber-200/60">' +
+          '<span class="text-[11px] text-amber-700">時段</span>' +
+          '<span class="text-xs text-amber-900 font-mono font-semibold">' + shiftTimeText + '</span>' +
+        '</div>' +
+      '</div>' +
       '<div>' +
         '<label class="block text-xs font-semibold text-slate-600 mb-1">車資金額（負數＝支出）</label>' +
         '<input type="number" id="edit-fare" value="' + fareNum + '" step="0.5" inputmode="decimal" autocomplete="off" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 font-bold">' +
@@ -1926,6 +1946,7 @@ function openEditModal(id){
   var m = document.getElementById('trip-modal');
   m.classList.remove('hidden');
   m.classList.add('flex');
+  hydrateIcons();
 }
 
 function saveEditedTrip(){
@@ -2621,11 +2642,19 @@ function setStatsPeriod(period){
   updateStatsAndNet();
 }
 
-function shiftKeyInPeriod(key, period, now){
+/* ★ 統計期間判斷：
+   - 'day'  = 等於當前更次 key（與 net-gross 定義一致，支援跨午夜更次）
+   - 'week' = 本週一到今天（按更次日期）
+   - 'month'= 本月（按更次日期）
+*/
+function shiftKeyInPeriod(key, period, now, currentShiftKey){
+  if (!key) return false;
   var d = new Date(key + 'T12:00:00');
   if (isNaN(d.getTime())) return false;
+
   if (period === 'day'){
-    return d.toDateString() === now.toDateString();
+    if (currentShiftKey === undefined) currentShiftKey = getCurrentShiftKey();
+    return key === currentShiftKey;
   } else if (period === 'week'){
     var startOfWeek = new Date(now);
     var day = startOfWeek.getDay();
@@ -2694,21 +2723,11 @@ function updateStatsAndNet(){
   var titleMap = { day:'今日總收入', week:'本星期總收入', month:'本月總收入' };
   document.getElementById('stats-period-title').innerText = titleMap[statsPeriod];
 
+  /* ★ 修正：用 t.shiftDate（更次歸屬）過濾，與 net-gross / periodMileage 定義一致
+     - 「今日」＝ 當前更次（支援跨午夜、24小時更次）
+     - 「本星期」「本月」＝ 按更次日期 */
   var filteredTrips = trips.filter(function(t){
-    var d = new Date(t.timestamp);
-    if (statsPeriod === 'day'){
-      return d.toDateString() === now.toDateString();
-    } else if (statsPeriod === 'week'){
-      var startOfWeek = new Date(now);
-      var day = startOfWeek.getDay();
-      var diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
-      startOfWeek.setDate(diff);
-      startOfWeek.setHours(0,0,0,0);
-      return d >= startOfWeek;
-    } else if (statsPeriod === 'month'){
-      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-    }
-    return false;
+    return shiftKeyInPeriod(t.shiftDate, statsPeriod, now, currentKey);
   });
 
   var totalRev     = 0;
@@ -2747,7 +2766,7 @@ function updateStatsAndNet(){
   var periodMileage = 0;
   var periodShiftCount = 0;
   Object.keys(shiftSettings).forEach(function(k){
-    if (!shiftKeyInPeriod(k, statsPeriod, now)) return;
+    if (!shiftKeyInPeriod(k, statsPeriod, now, currentKey)) return;
     periodShiftCount++;
     var shiftKm = getShiftMileage(shiftSettings[k]);
     if (shiftKm !== null && shiftKm > 0) periodMileage += shiftKm;
