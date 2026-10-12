@@ -207,6 +207,8 @@ body{
 .text-rose-700{color:#be123c}
 .text-blue-500{color:#3b82f6}
 .text-blue-700{color:#1d4ed8}
+.text-emerald-300{color:#6ee7b7}
+.text-emerald-600{color:#059669}
 .text-emerald-700{color:#047857}
 .text-emerald-800{color:#065f46}
 .text-purple-700{color:#7e22ce}
@@ -227,6 +229,8 @@ body{
 .bg-emerald-50{background-color:#ecfdf5}
 .bg-blue-50{background-color:#eff6ff}
 .bg-purple-50{background-color:#faf5ff}
+.bg-emerald-500\/15{background-color:rgba(16,185,129,.15)}
+.bg-rose-500\/15{background-color:rgba(244,63,94,.15)}
 .bg-slate-800\/80{background-color:rgba(30,41,59,.8)}
 .bg-amber-50\/60{background-color:rgba(255,251,235,.6)}
 .bg-amber-500\/10{background-color:rgba(245,158,11,.1)}
@@ -246,6 +250,7 @@ body{
 .border-slate-700\/60{border-color:rgba(51,65,85,.6)}
 .border-amber-100{border-color:#fef3c7}
 .border-amber-200{border-color:#fde68a}
+.border-amber-200\/60{border-color:rgba(253,230,138,.6)}
 .border-amber-400{border-color:#fbbf24}
 .border-amber-500\/30{border-color:rgba(245,158,11,.3)}
 .border-amber-600{border-color:#d97706}
@@ -254,6 +259,8 @@ body{
 .border-rose-400{border-color:#fb7185}
 .border-rose-700{border-color:#be123c}
 .border-emerald-200{border-color:#a7f3d0}
+.border-emerald-500\/30{border-color:rgba(16,185,129,.3)}
+.border-rose-500\/30{border-color:rgba(244,63,94,.3)}
 .border-blue-200{border-color:#bfdbfe}
 .border-purple-200{border-color:#e9d5ff}
 
@@ -506,7 +513,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         <div class="flex items-center gap-1.5 flex-wrap">
           <label class="flex items-center space-x-1.5 cursor-pointer select-none">
             <input type="checkbox" id="filter-current-shift" checked onchange="renderTripList()">
-            <span class="font-medium text-slate-700">只顯示當更</span>
+            <span class="font-medium text-slate-700">只顯示最後一更</span>
           </label>
           <span class="text-slate-300 select-none">·</span>
           <label class="flex items-center space-x-1 cursor-pointer select-none">
@@ -611,10 +618,11 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
       </div>
     </div>
 
+    <!-- 最後一更利潤結算 -->
     <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-4 shadow-md space-y-3">
       <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-net')">
         <span class="text-xs font-medium text-white flex items-center gap-1">
-          <span class="ico w-4 h-4 text-amber-400" data-icon="wallet"></span> 當更淨利潤結算
+          <span class="ico w-4 h-4 text-amber-400" data-icon="wallet"></span> 最後一更利潤結算
         </span>
         <div class="flex items-center gap-2">
           <span id="current-shift-time-range" class="text-xs text-white font-mono"></span>
@@ -638,6 +646,24 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           </div>
         </div>
         <div id="net-cost-breakdown" class="text-[11px] text-white/60 text-center"></div>
+
+        <!-- 收入 / 支出 筆數 -->
+        <div class="border-t border-slate-700/60 pt-2 grid grid-cols-2 gap-2 text-center text-[11px]">
+          <div class="bg-emerald-500/15 rounded-lg py-2 border border-emerald-500/30">
+            <div class="text-[10px] text-emerald-300 font-medium flex items-center justify-center gap-1">
+              <span class="ico w-3 h-3" data-icon="trending-up"></span>收入筆數
+            </div>
+            <div id="net-income-count" class="text-base font-extrabold text-emerald-300 font-mono mt-0.5">0</div>
+          </div>
+          <div class="bg-rose-500/15 rounded-lg py-2 border border-rose-500/30">
+            <div class="text-[10px] text-rose-400 font-medium flex items-center justify-center gap-1">
+              <span class="ico w-3 h-3" data-icon="alert-triangle"></span>支出筆數
+            </div>
+            <div id="net-expense-count" class="text-base font-extrabold text-rose-400 font-mono mt-0.5">0</div>
+          </div>
+        </div>
+
+        <!-- 里程 / 每公里收入 / 每公里淨利 -->
         <div id="mileage-metrics" class="border-t border-slate-700/60 pt-2 grid grid-cols-3 gap-2 text-center text-[11px]">
           <div>
             <div class="text-white/60">行駛里程</div>
@@ -650,6 +676,17 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           <div>
             <div class="text-white/60">每公里淨利</div>
             <div id="metric-profit-per-km" class="text-amber-400 font-extrabold font-mono mt-0.5">--</div>
+          </div>
+        </div>
+        <!-- 時薪（時長 / 每小時淨利） -->
+        <div class="border-t border-slate-700/60 pt-2 grid grid-cols-2 gap-2 text-center text-[11px]">
+          <div>
+            <div class="text-white/60">更次時長</div>
+            <div id="metric-duration" class="text-white font-bold font-mono mt-0.5">-- 小時</div>
+          </div>
+          <div>
+            <div class="text-white/60">時薪（每小時淨利）</div>
+            <div id="metric-profit-per-hour" class="text-amber-300 font-extrabold font-mono mt-0.5">--</div>
           </div>
         </div>
       </div>
@@ -665,20 +702,29 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
 
       <div class="space-y-4" data-card-body="card-stats">
         <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
-          <button type="button" onclick="setStatsPeriod('day')"   id="period-btn-day"   class="py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition">今日</button>
-          <button type="button" onclick="setStatsPeriod('week')"  id="period-btn-week"  class="py-1.5 rounded-lg text-slate-600 transition">本星期</button>
-          <button type="button" onclick="setStatsPeriod('month')" id="period-btn-month" class="py-1.5 rounded-lg text-slate-600 transition">本月</button>
+          <button type="button" onclick="setStatsPeriod('day')"   id="period-btn-day"   class="py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition">最近一更</button>
+          <button type="button" onclick="setStatsPeriod('week')"  id="period-btn-week"  class="py-1.5 rounded-lg text-slate-600 transition">最近一星期</button>
+          <button type="button" onclick="setStatsPeriod('month')" id="period-btn-month" class="py-1.5 rounded-lg text-slate-600 transition">最近一個月</button>
         </div>
 
         <div class="space-y-3 pt-1">
-          <div class="bg-amber-50/60 border border-amber-100 rounded-xl p-3.5 flex justify-between items-center">
-            <div>
-              <div id="stats-period-title" class="text-xs font-semibold text-amber-800">今日總收入</div>
-              <div class="text-2xl font-extrabold text-amber-900 mt-0.5" id="stats-total-revenue">$0.0</div>
-              <div id="stats-total-expense-line" class="text-[11px] text-rose-600 font-semibold mt-0.5 hidden"></div>
+          <div class="bg-amber-50/60 border border-amber-100 rounded-xl p-3.5 space-y-2.5">
+            <div class="flex justify-between items-center">
+              <div class="min-w-0">
+                <div id="stats-period-title" class="text-xs font-semibold text-amber-800">最近一更總收入</div>
+                <div class="text-2xl font-extrabold text-amber-900 mt-0.5" id="stats-total-revenue">$0.0</div>
+                <div id="stats-total-expense-line" class="text-[11px] text-rose-600 font-semibold mt-0.5 hidden"></div>
+              </div>
+              <div class="w-10 h-10 bg-amber-500 text-white rounded-xl flex items-center justify-center shadow-xs shrink-0">
+                <span class="ico w-5 h-5" data-icon="trending-up"></span>
+              </div>
             </div>
-            <div class="w-10 h-10 bg-amber-500 text-white rounded-xl flex items-center justify-center shadow-xs">
-              <span class="ico w-5 h-5" data-icon="trending-up"></span>
+            <div class="flex justify-between items-center pt-2 border-t border-amber-200/60 gap-2">
+              <div class="min-w-0">
+                <div class="text-[11px] text-amber-800 font-semibold">期間總利潤</div>
+                <div class="text-[10px] text-amber-700/70 mt-0.5 leading-tight">收入 − 租車 − 油費 − 行程支出</div>
+              </div>
+              <div id="stats-total-profit" class="text-base font-extrabold text-emerald-700 font-mono shrink-0">$0.0</div>
             </div>
           </div>
 
@@ -694,6 +740,22 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
             <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-center">
               <div class="text-[11px] text-slate-500 font-medium">其他</div>
               <div id="stats-type-other" class="text-sm font-bold text-slate-800 mt-1">$0</div>
+            </div>
+          </div>
+
+          <!-- ★ 新增：收入 / 支出 筆數 -->
+          <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
+            <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 text-center">
+              <div class="text-[11px] text-emerald-700 font-semibold flex items-center justify-center gap-1">
+                <span class="ico w-3 h-3" data-icon="trending-up"></span>收入筆數
+              </div>
+              <div id="stats-income-count" class="text-base font-extrabold text-emerald-700 mt-1 font-mono">0</div>
+            </div>
+            <div class="bg-rose-50 p-2.5 rounded-xl border border-rose-200 text-center">
+              <div class="text-[11px] text-rose-600 font-semibold flex items-center justify-center gap-1">
+                <span class="ico w-3 h-3" data-icon="alert-triangle"></span>支出筆數
+              </div>
+              <div id="stats-expense-count" class="text-base font-extrabold text-rose-600 mt-1 font-mono">0</div>
             </div>
           </div>
 
@@ -1047,22 +1109,46 @@ function getShiftMileage(cfg){
   return diff >= 0 ? diff : null;
 }
 
-/* ★ 計算某更次的財務統計（統一入口）
-   - 營業額：只加正數車資（收入）
-   - 支出： 所有負數車資絕對值（行程支出）
-   - 成本： 租車 + 油費 + 行程支出
-   - 淨利： 營業額 - 成本
-*/
+function getShiftDuration(cfg){
+  if (!cfg || !cfg.startTime || !cfg.endTime) return null;
+
+  function toMin(t){
+    var parts = String(t).split(':');
+    if (parts.length < 2) return null;
+    var h = parseInt(parts[0], 10);
+    var m = parseInt(parts[1], 10);
+    if (isNaN(h) || isNaN(m)) return null;
+    return h * 60 + m;
+  }
+
+  var s = toMin(cfg.startTime);
+  var e = toMin(cfg.endTime);
+  if (s === null || e === null) return null;
+
+  var diff;
+  if (s < e)      diff = e - s;
+  else if (s > e) diff = (24 * 60 - s) + e;
+  else            diff = 24 * 60;
+
+  return diff / 60;
+}
+
 function getShiftFinance(key){
   var cfg = shiftSettings[key];
   if (cfg) ensureShiftFields(cfg);
 
   var list = trips.filter(function(t){ return t.shiftDate === key; });
   var gross = 0, expenseTrip = 0;
+  var incomeCount = 0, expenseCount = 0;
   list.forEach(function(t){
     var v = parseFloat(t.fare) || 0;
-    if (v < 0) expenseTrip += -v;
-    else       gross += v;
+    if (v < 0){
+      expenseTrip += -v;
+      expenseCount++;
+    } else {
+      gross += v;
+      incomeCount++;
+    }
   });
 
   var rental = cfg ? (parseFloat(cfg.rental) || 0) : 0;
@@ -1073,7 +1159,9 @@ function getShiftFinance(key){
   return {
     list: list,
     gross: gross,
+    incomeCount: incomeCount,
     expenseTrip: expenseTrip,
+    expenseCount: expenseCount,
     rental: rental,
     fuel: fuel,
     totalCost: totalCost,
@@ -1780,7 +1868,8 @@ function renderTripList(){
   var allowOther       = document.getElementById('chk-type-other').checked;
   var allowIncome      = document.getElementById('chk-flow-income').checked;
   var allowExpense     = document.getElementById('chk-flow-expense').checked;
-  var currentShiftKey  = getCurrentShiftKey();
+
+  var lastShiftKey  = getCurrentShiftKey();
 
   var filtered = trips.filter(function(t){
     var matchKeyword = (t.note || '').toLowerCase().indexOf(keyword) !== -1 ||
@@ -1794,7 +1883,7 @@ function renderTripList(){
     var isExpense = fareNum < 0;
     var matchFlow = (isExpense && allowExpense) || (!isExpense && allowIncome);
 
-    var matchShift = !onlyCurrentShift || (t.shiftDate === currentShiftKey);
+    var matchShift = !onlyCurrentShift || (t.shiftDate === lastShiftKey);
     return matchKeyword && matchType && matchFlow && matchShift;
   });
 
@@ -2036,7 +2125,7 @@ function closeModal(){
 }
 
 /* =========================================================
-   K-2. 歷史更次彈窗（含編輯 + 刪除）
+   K-2. 歷史更次彈窗
    ========================================================= */
 function openShiftHistoryModal(){
   var keys = Object.keys(shiftSettings).sort().reverse();
@@ -2052,6 +2141,7 @@ function openShiftHistoryModal(){
       if (cfg) ensureShiftFields(cfg);
 
       var km = getShiftMileage(cfg);
+      var duration = getShiftDuration(cfg);
       var fuelCount = (cfg.fuelEntries || []).length;
       var isCurrent = (key === currentKey);
 
@@ -2071,13 +2161,14 @@ function openShiftHistoryModal(){
       }
 
       var profitPerKm = (km && km > 0) ? (fin.profit / km) : null;
+      var profitPerHour = (duration && duration > 0) ? (fin.profit / duration) : null;
 
       html +=
         '<div class="border ' + (isCurrent ? 'border-amber-400 bg-amber-50/60' : 'border-slate-200 bg-white') +
         ' rounded-xl p-3">' +
           '<div class="flex justify-between items-center mb-1.5 gap-2">' +
             '<span class="font-bold text-sm text-slate-800 min-w-0 truncate">' + key +
-              (isCurrent ? ' <span class="text-[10px] text-amber-700 font-medium ml-1">當前</span>' : '') +
+              (isCurrent ? ' <span class="text-[10px] text-amber-700 font-medium ml-1">最後一更</span>' : '') +
             '</span>' +
             '<div class="flex items-center gap-1.5 shrink-0">' +
               '<span class="text-[11px] text-slate-500 font-mono">' + (cfg.startTime || '--') + ' - ' + (cfg.endTime || '--') + '</span>' +
@@ -2093,7 +2184,11 @@ function openShiftHistoryModal(){
           '</div>' +
           '<div class="grid grid-cols-2 gap-y-1 text-[11px]">' +
             '<span class="text-slate-500">營業額：<b class="text-emerald-700">$' + fin.gross.toFixed(1) + '</b></span>' +
-            '<span class="text-slate-500">行程：<b class="text-slate-700">' + fin.list.length + ' 筆</b></span>' +
+            '<span class="text-slate-500">行程：<b class="text-slate-700">' + fin.list.length + ' 筆' +
+              (fin.incomeCount + fin.expenseCount > 0
+                ? ' <span class="text-slate-400">(收 ' + fin.incomeCount + ' / 支 ' + fin.expenseCount + ')</span>'
+                : '') +
+            '</b></span>' +
             '<span class="text-slate-500">租車：<b class="text-rose-600">$' + fin.rental.toFixed(1) + '</b></span>' +
             '<span class="text-slate-500">油費：<b class="text-rose-600">$' + fin.fuel.toFixed(1) + '</b>' +
               (fuelCount > 1 ? ' <span class="text-slate-400">(' + fuelCount + '筆)</span>' : '') +
@@ -2102,8 +2197,8 @@ function openShiftHistoryModal(){
             '<span class="text-slate-500">總成本：<b class="text-rose-600">$' + fin.totalCost.toFixed(1) + '</b></span>' +
             '<span class="text-slate-500">里程：<b class="text-slate-700">' +
               (km !== null ? km.toFixed(1) + ' km' : '未填') + '</b></span>' +
-            '<span class="text-slate-500">油價均價：<b class="text-slate-700">' +
-              (fuelAvgPrice !== null ? '$' + fuelAvgPrice.toFixed(2) + '/L' : '--') + '</b></span>' +
+            '<span class="text-slate-500">時長：<b class="text-slate-700">' +
+              (duration !== null ? duration.toFixed(1) + ' 小時' : '未設定') + '</b></span>' +
           '</div>' +
           (unpaidTotal > 0
             ? '<div class="mt-1 pt-1 text-[11px] text-rose-600 font-semibold flex items-center gap-1">' +
@@ -2116,6 +2211,11 @@ function openShiftHistoryModal(){
             '</span>' +
             '<span class="font-bold ' + (fin.profit >= 0 ? 'text-emerald-700' : 'text-rose-600') + '">$' + fin.profit.toFixed(1) + '</span>' +
           '</div>' +
+          (profitPerHour !== null
+            ? '<div class="mt-1 text-[11px] text-right text-slate-500">' +
+                '時薪：<b class="' + (profitPerHour >= 0 ? 'text-emerald-700' : 'text-rose-600') + ' font-mono">$' + profitPerHour.toFixed(2) + ' / 小時</b>' +
+              '</div>'
+            : '') +
         '</div>';
     });
   }
@@ -2397,7 +2497,7 @@ function deleteShift(key){
   var isCurrent = (key === getCurrentShiftKey());
 
   var warnCurrent = isCurrent
-    ? '⚠️ 這是「當前更次」，刪除後將回復自動模式。\n\n'
+    ? '⚠️ 這是「最後一更」，刪除後將回復自動模式。\n\n'
     : '';
 
   var confirmMsg =
@@ -2446,7 +2546,7 @@ function deleteShift(key){
 }
 
 /* =========================================================
-   K-3. 新增加油彈窗（通用，作用於當前更次）
+   K-3. 新增加油彈窗
    ========================================================= */
 function calcFuelLiters(){
   var amountEl = document.getElementById('fuel-add-amount');
@@ -2994,18 +3094,20 @@ function shiftKeyInPeriod(key, period, now, currentShiftKey){
   var d = new Date(key + 'T12:00:00');
   if (isNaN(d.getTime())) return false;
 
+  if (currentShiftKey === undefined) currentShiftKey = getCurrentShiftKey();
+  var endRef = new Date(currentShiftKey + 'T12:00:00');
+  if (isNaN(endRef.getTime())) return false;
+
   if (period === 'day'){
-    if (currentShiftKey === undefined) currentShiftKey = getCurrentShiftKey();
     return key === currentShiftKey;
   } else if (period === 'week'){
-    var startOfWeek = new Date(now);
-    var day = startOfWeek.getDay();
-    var diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
-    startOfWeek.setDate(diff);
-    startOfWeek.setHours(0,0,0,0);
-    return d >= startOfWeek;
+    var start = new Date(endRef);
+    start.setDate(start.getDate() - 6);
+    return d >= start && d <= endRef;
   } else if (period === 'month'){
-    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    var start2 = new Date(endRef);
+    start2.setDate(start2.getDate() - 29);
+    return d >= start2 && d <= endRef;
   }
   return false;
 }
@@ -3017,7 +3119,6 @@ function updateStatsAndNet(){
   var currentKey = getCurrentShiftKey();
   var currentCfg = getCurrentSettings(false);
 
-  /* ★ 統一用 getShiftFinance 計算（營業額 / 支出 / 總成本 / 淨利） */
   var fin = getShiftFinance(currentKey);
 
   document.getElementById('net-gross').innerText = '$' + fin.gross.toFixed(1);
@@ -3028,7 +3129,6 @@ function updateStatsAndNet(){
     ? 'text-base font-extrabold text-amber-400 mt-0.5'
     : 'text-base font-extrabold text-rose-400 mt-0.5';
 
-  /* ★ 成本細項（租+油+支出） */
   var breakdownEl = document.getElementById('net-cost-breakdown');
   if (breakdownEl){
     breakdownEl.innerText =
@@ -3036,6 +3136,12 @@ function updateStatsAndNet(){
       '　·　油 $' + fin.fuel.toFixed(1) +
       '　·　行程支出 $' + fin.expenseTrip.toFixed(1);
   }
+
+  /* 最後一更的收/支筆數 */
+  var incomeCountEl  = document.getElementById('net-income-count');
+  var expenseCountEl = document.getElementById('net-expense-count');
+  if (incomeCountEl)  incomeCountEl.innerText  = fin.incomeCount;
+  if (expenseCountEl) expenseCountEl.innerText = fin.expenseCount;
 
   document.getElementById('current-shift-time-range').innerText =
     currentCfg ? (currentCfg.startTime + ' - ' + currentCfg.endTime) : '';
@@ -3062,37 +3168,70 @@ function updateStatsAndNet(){
     metricProfPerKm.innerText = '$' + (fin.profit / km).toFixed(2);
   }
 
+  var duration = currentCfg ? getShiftDuration(currentCfg) : null;
+  var metricDuration       = document.getElementById('metric-duration');
+  var metricProfitPerHour  = document.getElementById('metric-profit-per-hour');
+
+  if (!duration || duration <= 0){
+    metricDuration.innerText = '-- 小時';
+    metricProfitPerHour.innerText = '--';
+  } else {
+    metricDuration.innerText = duration.toFixed(1) + ' 小時';
+    metricProfitPerHour.innerText = '$' + (fin.profit / duration).toFixed(2);
+    metricProfitPerHour.className = (fin.profit / duration) >= 0
+      ? 'text-amber-300 font-extrabold font-mono mt-0.5'
+      : 'text-rose-400 font-extrabold font-mono mt-0.5';
+  }
+
   updateMileagePanel(currentCfg);
 
-  /* 統計標題 */
-  var titleMap = { day:'今日總收入', week:'本星期總收入', month:'本月總收入' };
-  var titleText = titleMap[statsPeriod];
-  if (statsPeriod === 'day'){
-    titleText = '當更總收入（' + currentKey + '）';
+  var titleMap = {
+    day:   '最近一更總收入',
+    week:  '最近一星期總收入',
+    month: '最近一個月總收入'
+  };
+  var titleText = titleMap[statsPeriod] || '總收入';
+  if (statsPeriod === 'day' && currentKey){
+    titleText = '最近一更總收入（' + currentKey + '）';
   }
   document.getElementById('stats-period-title').innerText = titleText;
 
-  /* 統計過濾：day = 當前更次 key */
-  var filteredTrips = trips.filter(function(t){
-    return shiftKeyInPeriod(t.shiftDate, statsPeriod, now, currentKey);
-  });
+  /* 期間統計 */
+  var totalRev          = 0;
+  var totalExpenseTrip  = 0;
+  var periodProfit      = 0;
+  var typeRev           = { '街客':0, 'Uber':0, '其他':0 };
+  var periodMileage     = 0;
+  var periodShiftCount  = 0;
+  /* ★ 期間收/支筆數 */
+  var periodIncomeCount  = 0;
+  var periodExpenseCount = 0;
 
-  var totalRev     = 0;
-  var totalExpense = 0;
-  var typeRev      = { '街客':0, 'Uber':0, '其他':0 };
+  Object.keys(shiftSettings).forEach(function(k){
+    if (!shiftKeyInPeriod(k, statsPeriod, now, currentKey)) return;
+    periodShiftCount++;
 
-  filteredTrips.forEach(function(t){
-    var v = parseFloat(t.fare) || 0;
-    if (v < 0){
-      totalExpense += -v;
-      return;
-    }
-    totalRev += v;
-    if (typeRev[t.type] !== undefined){
-      typeRev[t.type] += v;
-    } else if (t.type === 'Other'){
-      typeRev['其他'] += v;
-    }
+    var finK = getShiftFinance(k);
+    periodProfit += finK.profit;
+
+    finK.list.forEach(function(t){
+      var v = parseFloat(t.fare) || 0;
+      if (v < 0){
+        totalExpenseTrip += -v;
+        periodExpenseCount++;
+        return;
+      }
+      totalRev += v;
+      periodIncomeCount++;
+      if (typeRev[t.type] !== undefined){
+        typeRev[t.type] += v;
+      } else if (t.type === 'Other'){
+        typeRev['其他'] += v;
+      }
+    });
+
+    var shiftKm = getShiftMileage(shiftSettings[k]);
+    if (shiftKm !== null && shiftKm > 0) periodMileage += shiftKm;
   });
 
   document.getElementById('stats-total-revenue').innerText = '$' + totalRev.toFixed(1);
@@ -3100,27 +3239,32 @@ function updateStatsAndNet(){
   document.getElementById('stats-type-uber').innerText     = '$' + typeRev['Uber'].toFixed(1);
   document.getElementById('stats-type-other').innerText    = '$' + typeRev['其他'].toFixed(1);
 
+  /* ★ 統計總覽的收/支筆數 */
+  var statsIncomeCountEl  = document.getElementById('stats-income-count');
+  var statsExpenseCountEl = document.getElementById('stats-expense-count');
+  if (statsIncomeCountEl)  statsIncomeCountEl.innerText  = periodIncomeCount;
+  if (statsExpenseCountEl) statsExpenseCountEl.innerText = periodExpenseCount;
+
+  var profitPeriodEl = document.getElementById('stats-total-profit');
+  if (profitPeriodEl){
+    profitPeriodEl.innerText = '$' + periodProfit.toFixed(1);
+    profitPeriodEl.className = periodProfit >= 0
+      ? 'text-base font-extrabold text-emerald-700 font-mono shrink-0'
+      : 'text-base font-extrabold text-rose-600 font-mono shrink-0';
+  }
+
   var expLine = document.getElementById('stats-total-expense-line');
   if (expLine){
-    if (totalExpense > 0){
+    if (totalExpenseTrip > 0){
       expLine.classList.remove('hidden');
-      expLine.innerText = '行程支出 -$' + totalExpense.toFixed(1) + '　淨額 $' + (totalRev - totalExpense).toFixed(1);
+      expLine.innerText = '行程支出 -$' + totalExpenseTrip.toFixed(1) + '　淨收入 $' + (totalRev - totalExpenseTrip).toFixed(1);
     } else {
       expLine.classList.add('hidden');
     }
   }
 
-  var periodMileage = 0;
-  var periodShiftCount = 0;
-  Object.keys(shiftSettings).forEach(function(k){
-    if (!shiftKeyInPeriod(k, statsPeriod, now, currentKey)) return;
-    periodShiftCount++;
-    var shiftKm = getShiftMileage(shiftSettings[k]);
-    if (shiftKm !== null && shiftKm > 0) periodMileage += shiftKm;
-  });
-
-  var periodMileageEl = document.getElementById('stats-period-mileage');
-  var periodRevPerKmEl = document.getElementById('stats-period-rev-per-km');
+  var periodMileageEl    = document.getElementById('stats-period-mileage');
+  var periodRevPerKmEl   = document.getElementById('stats-period-rev-per-km');
   var periodShiftCountEl = document.getElementById('stats-period-shift-count');
 
   if (periodMileage > 0){
