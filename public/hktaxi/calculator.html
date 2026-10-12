@@ -629,7 +629,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
             <div id="net-gross" class="text-sm font-bold text-white mt-0.5">$0</div>
           </div>
           <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
-            <div class="text-[10px] text-white/70 font-medium">總成本 (租+油)</div>
+            <div class="text-[10px] text-white/70 font-medium">總成本（租+油+支出）</div>
             <div id="net-cost" class="text-sm font-bold text-rose-400 mt-0.5">$0</div>
           </div>
           <div class="bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/30">
@@ -637,6 +637,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
             <div id="net-profit" class="text-base font-extrabold text-amber-400 mt-0.5">$0</div>
           </div>
         </div>
+        <div id="net-cost-breakdown" class="text-[11px] text-white/60 text-center"></div>
         <div id="mileage-metrics" class="border-t border-slate-700/60 pt-2 grid grid-cols-3 gap-2 text-center text-[11px]">
           <div>
             <div class="text-white/60">行駛里程</div>
@@ -970,10 +971,6 @@ function calcShiftDate(timestamp, cfg){
   return localDateStr(d);
 }
 
-/* ★ 當前更次（最後一更）
-   - 邏輯：以「現在時間」對應的 cfg（今天）判斷；若今天尚無 cfg，退回最近一個 cfg 判斷
-   - 判斷後，若屬於前一天（backward / full-day 跨日），返回前一天
-*/
 function getCurrentShiftKey(){
   var now      = new Date();
   var timeStr  = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
@@ -1048,6 +1045,40 @@ function getShiftMileage(cfg){
   if (isNaN(sv) || isNaN(ev)) return null;
   var diff = ev - sv;
   return diff >= 0 ? diff : null;
+}
+
+/* ★ 計算某更次的財務統計（統一入口）
+   - 營業額：只加正數車資（收入）
+   - 支出： 所有負數車資絕對值（行程支出）
+   - 成本： 租車 + 油費 + 行程支出
+   - 淨利： 營業額 - 成本
+*/
+function getShiftFinance(key){
+  var cfg = shiftSettings[key];
+  if (cfg) ensureShiftFields(cfg);
+
+  var list = trips.filter(function(t){ return t.shiftDate === key; });
+  var gross = 0, expenseTrip = 0;
+  list.forEach(function(t){
+    var v = parseFloat(t.fare) || 0;
+    if (v < 0) expenseTrip += -v;
+    else       gross += v;
+  });
+
+  var rental = cfg ? (parseFloat(cfg.rental) || 0) : 0;
+  var fuel   = cfg ? getFuelTotal(cfg) : 0;
+  var totalCost = rental + fuel + expenseTrip;
+  var profit    = gross - totalCost;
+
+  return {
+    list: list,
+    gross: gross,
+    expenseTrip: expenseTrip,
+    rental: rental,
+    fuel: fuel,
+    totalCost: totalCost,
+    profit: profit
+  };
 }
 
 function getCurrentSettings(createIfMissing){
@@ -2016,24 +2047,15 @@ function openShiftHistoryModal(){
     html += '<p class="text-center text-slate-400 text-sm py-6">暫無更次記錄</p>';
   } else {
     keys.forEach(function(key){
+      var fin = getShiftFinance(key);
       var cfg = shiftSettings[key];
-      ensureShiftFields(cfg);
+      if (cfg) ensureShiftFields(cfg);
 
-      var list   = trips.filter(function(t){ return t.shiftDate === key; });
-      var gross  = list.reduce(function(s,t){ return s + (parseFloat(t.fare) || 0); }, 0);
-      var fuel   = getFuelTotal(cfg);
-      var km     = getShiftMileage(cfg);
-      var cost   = (parseFloat(cfg.rental) || 0) + fuel;
-      var profit = gross - cost;
+      var km = getShiftMileage(cfg);
       var fuelCount = (cfg.fuelEntries || []).length;
       var isCurrent = (key === currentKey);
 
-      var expenseTotal = list.reduce(function(s,t){
-        var v = parseFloat(t.fare) || 0;
-        return s + (v < 0 ? -v : 0);
-      }, 0);
-
-      var unpaidTotal = list.reduce(function(s,t){
+      var unpaidTotal = fin.list.reduce(function(s,t){
         var c = typeof t.change === 'number' ? t.change : 0;
         return s + (c < 0 ? -c : 0);
       }, 0);
@@ -2048,8 +2070,7 @@ function openShiftHistoryModal(){
         }
       }
 
-      var revPerKm    = (km && km > 0) ? (gross / km)  : null;
-      var profitPerKm = (km && km > 0) ? (profit / km) : null;
+      var profitPerKm = (km && km > 0) ? (fin.profit / km) : null;
 
       html +=
         '<div class="border ' + (isCurrent ? 'border-amber-400 bg-amber-50/60' : 'border-slate-200 bg-white') +
@@ -2071,32 +2092,29 @@ function openShiftHistoryModal(){
             '</div>' +
           '</div>' +
           '<div class="grid grid-cols-2 gap-y-1 text-[11px]">' +
-            '<span class="text-slate-500">租車：<b class="text-rose-600">$' + (parseFloat(cfg.rental) || 0) + '</b></span>' +
-            '<span class="text-slate-500">油費：<b class="text-rose-600">$' + fuel.toFixed(1) + '</b>' +
+            '<span class="text-slate-500">營業額：<b class="text-emerald-700">$' + fin.gross.toFixed(1) + '</b></span>' +
+            '<span class="text-slate-500">行程：<b class="text-slate-700">' + fin.list.length + ' 筆</b></span>' +
+            '<span class="text-slate-500">租車：<b class="text-rose-600">$' + fin.rental.toFixed(1) + '</b></span>' +
+            '<span class="text-slate-500">油費：<b class="text-rose-600">$' + fin.fuel.toFixed(1) + '</b>' +
               (fuelCount > 1 ? ' <span class="text-slate-400">(' + fuelCount + '筆)</span>' : '') +
             '</span>' +
+            '<span class="text-slate-500">行程支出：<b class="text-rose-600">$' + fin.expenseTrip.toFixed(1) + '</b></span>' +
+            '<span class="text-slate-500">總成本：<b class="text-rose-600">$' + fin.totalCost.toFixed(1) + '</b></span>' +
             '<span class="text-slate-500">里程：<b class="text-slate-700">' +
               (km !== null ? km.toFixed(1) + ' km' : '未填') + '</b></span>' +
-            '<span class="text-slate-500">行程：<b class="text-slate-700">' + list.length + ' 筆</b></span>' +
-            '<span class="text-slate-500">營業額：<b class="text-slate-700">$' + gross.toFixed(1) + '</b></span>' +
             '<span class="text-slate-500">油價均價：<b class="text-slate-700">' +
               (fuelAvgPrice !== null ? '$' + fuelAvgPrice.toFixed(2) + '/L' : '--') + '</b></span>' +
           '</div>' +
-          (expenseTotal > 0
-            ? '<div class="mt-1 pt-1 text-[11px] text-rose-600 font-semibold flex items-center gap-1">' +
-                ico('alert-triangle','w-3 h-3') + '其中支出 -$' + expenseTotal.toFixed(1) +
-              '</div>'
-            : '') +
           (unpaidTotal > 0
             ? '<div class="mt-1 pt-1 text-[11px] text-rose-600 font-semibold flex items-center gap-1">' +
                 ico('alert-triangle','w-3 h-3') + '客戶未收足總額 $' + unpaidTotal.toFixed(1) +
               '</div>'
             : '') +
           '<div class="mt-1.5 pt-1.5 border-t border-slate-100 flex justify-between text-[11px]">' +
-            '<span class="text-slate-500">淨利 ' +
-              (profitPerKm !== null ? '<span class="text-slate-400">（$' + profitPerKm.toFixed(2) + '/km）</span>' : '') +
+            '<span class="text-slate-500">淨利（營業額 - 總成本）' +
+              (profitPerKm !== null ? ' <span class="text-slate-400">（$' + profitPerKm.toFixed(2) + '/km）</span>' : '') +
             '</span>' +
-            '<span class="font-bold ' + (profit >= 0 ? 'text-emerald-700' : 'text-rose-600') + '">$' + profit.toFixed(1) + '</span>' +
+            '<span class="font-bold ' + (fin.profit >= 0 ? 'text-emerald-700' : 'text-rose-600') + '">$' + fin.profit.toFixed(1) + '</span>' +
           '</div>' +
         '</div>';
     });
@@ -2114,7 +2132,6 @@ function openShiftHistoryModal(){
   hydrateIcons();
 }
 
-/* ★ 開啟歷史更次編輯彈窗 */
 function openShiftEditModal(key){
   var cfg = shiftSettings[key];
   if (!cfg){
@@ -2972,11 +2989,6 @@ function setStatsPeriod(period){
   updateStatsAndNet();
 }
 
-/* ★ 統計期間判斷：
-   - 'day'  = 等於「當前更次 key」→ 與 net-gross 完全一致
-   - 'week' = 本週一到今天（按更次日期）
-   - 'month'= 本月（按更次日期）
-*/
 function shiftKeyInPeriod(key, period, now, currentShiftKey){
   if (!key) return false;
   var d = new Date(key + 'T12:00:00');
@@ -3005,24 +3017,25 @@ function updateStatsAndNet(){
   var currentKey = getCurrentShiftKey();
   var currentCfg = getCurrentSettings(false);
 
-  /* 當更營業額：基於「當前更次」 */
-  var currentShiftGross = 0;
-  trips.forEach(function(t){
-    if (t.shiftDate === currentKey) currentShiftGross += (parseFloat(t.fare) || 0);
-  });
+  /* ★ 統一用 getShiftFinance 計算（營業額 / 支出 / 總成本 / 淨利） */
+  var fin = getShiftFinance(currentKey);
 
-  var rentalCost = currentCfg ? (parseFloat(currentCfg.rental) || 0) : 0;
-  var fuelCost   = currentCfg ? getFuelTotal(currentCfg) : 0;
-  var totalCost  = rentalCost + fuelCost;
-  var netProfit  = currentShiftGross - totalCost;
-
-  document.getElementById('net-gross').innerText = '$' + currentShiftGross.toFixed(1);
-  document.getElementById('net-cost').innerText  = '$' + totalCost.toFixed(1);
+  document.getElementById('net-gross').innerText = '$' + fin.gross.toFixed(1);
+  document.getElementById('net-cost').innerText  = '$' + fin.totalCost.toFixed(1);
   var profitElem = document.getElementById('net-profit');
-  profitElem.innerText = '$' + netProfit.toFixed(1);
-  profitElem.className = netProfit >= 0
+  profitElem.innerText = '$' + fin.profit.toFixed(1);
+  profitElem.className = fin.profit >= 0
     ? 'text-base font-extrabold text-amber-400 mt-0.5'
     : 'text-base font-extrabold text-rose-400 mt-0.5';
+
+  /* ★ 成本細項（租+油+支出） */
+  var breakdownEl = document.getElementById('net-cost-breakdown');
+  if (breakdownEl){
+    breakdownEl.innerText =
+      '租 $' + fin.rental.toFixed(1) +
+      '　·　油 $' + fin.fuel.toFixed(1) +
+      '　·　行程支出 $' + fin.expenseTrip.toFixed(1);
+  }
 
   document.getElementById('current-shift-time-range').innerText =
     currentCfg ? (currentCfg.startTime + ' - ' + currentCfg.endTime) : '';
@@ -3031,7 +3044,7 @@ function updateStatsAndNet(){
 
   var fuelInput = document.getElementById('setting-fuel');
   if (fuelInput && document.activeElement !== fuelInput){
-    fuelInput.value = currentCfg ? fuelCost : '0';
+    fuelInput.value = currentCfg ? fin.fuel : '0';
   }
 
   var km = currentCfg ? getShiftMileage(currentCfg) : null;
@@ -3045,13 +3058,13 @@ function updateStatsAndNet(){
     metricProfPerKm.innerText = '--';
   } else {
     metricKm.innerText = km.toFixed(1) + ' km';
-    metricRevPerKm.innerText  = '$' + (currentShiftGross / km).toFixed(2);
-    metricProfPerKm.innerText = '$' + (netProfit / km).toFixed(2);
+    metricRevPerKm.innerText  = '$' + (fin.gross / km).toFixed(2);
+    metricProfPerKm.innerText = '$' + (fin.profit / km).toFixed(2);
   }
 
   updateMileagePanel(currentCfg);
 
-  /* ★ 統計標題：day 模式標題動態帶上當前更次 key */
+  /* 統計標題 */
   var titleMap = { day:'今日總收入', week:'本星期總收入', month:'本月總收入' };
   var titleText = titleMap[statsPeriod];
   if (statsPeriod === 'day'){
@@ -3059,7 +3072,7 @@ function updateStatsAndNet(){
   }
   document.getElementById('stats-period-title').innerText = titleText;
 
-  /* ★ 統計過濾：day 模式 = 當前更次 key，與 net-gross 完全一致 */
+  /* 統計過濾：day = 當前更次 key */
   var filteredTrips = trips.filter(function(t){
     return shiftKeyInPeriod(t.shiftDate, statsPeriod, now, currentKey);
   });
@@ -3091,7 +3104,7 @@ function updateStatsAndNet(){
   if (expLine){
     if (totalExpense > 0){
       expLine.classList.remove('hidden');
-      expLine.innerText = '另支出 -$' + totalExpense.toFixed(1) + '　淨額 $' + (totalRev - totalExpense).toFixed(1);
+      expLine.innerText = '行程支出 -$' + totalExpense.toFixed(1) + '　淨額 $' + (totalRev - totalExpense).toFixed(1);
     } else {
       expLine.classList.add('hidden');
     }
