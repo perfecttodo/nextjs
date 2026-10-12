@@ -136,6 +136,7 @@ body{
 .mt-1{margin-top:.25rem}
 .mt-1\.5{margin-top:.375rem}
 .mt-2{margin-top:.5rem}
+.mt-3{margin-top:.75rem}
 .mb-1{margin-bottom:.25rem}
 .mb-1\.5{margin-bottom:.375rem}
 .mb-4{margin-bottom:1rem}
@@ -299,11 +300,11 @@ body{
 .focus\:ring-amber-500:focus{box-shadow:0 0 0 3px rgba(245,158,11,.35)}
 .focus\:ring-rose-500:focus{box-shadow:0 0 0 3px rgba(244,63,94,.35)}
 
-input[type=text],input[type=number],input[type=time],select{
+input[type=text],input[type=number],input[type=time],input[type=date],select{
   border-width:1px;border-style:solid;border-color:#e2e8f0;
 }
 input::placeholder{color:#94a3b8}
-input[type=time]{min-height:2.35rem}
+input[type=time],input[type=date]{min-height:2.35rem}
 input[readonly]{cursor:pointer}
 select{
   -webkit-appearance:none;appearance:none;
@@ -354,7 +355,9 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
           <span class="ico w-5 h-5 text-amber-500" data-icon="receipt"></span> 新增記錄
         </h2>
-        <span id="current-date-time-preview" class="text-xs text-slate-400 font-medium text-right leading-tight"></span>
+        <span id="current-date-time-preview"
+              onclick="openShiftPickerModal()"
+              class="text-xs text-slate-400 font-medium text-right leading-tight cursor-pointer select-none hover:text-slate-600 transition"></span>
       </div>
 
       <div>
@@ -858,6 +861,9 @@ var lastDeletedShiftSettings = null;
 var fareSign         = 1;   /* 1 = 收入；-1 = 支出 */
 var noteTagsOpen     = false; /* 快速標籤面板開關 */
 
+/* ★ 補錄模式：null = 自動；YYYY-MM-DD = 補錄至該更次（不持久化，刷新重置） */
+var manualShiftKey   = null;
+
 /* ★ 備注快速標籤（依收入／支出模式分別顯示） */
 var NOTE_TAGS = {
   income:  ['過海', '機場', '隧道口', '加一', '行李', '預約', '長途'],
@@ -1130,6 +1136,139 @@ function rebuildFuelPrefsFromHistory(){
 }
 
 /* =========================================================
+   B-3. 補錄模式
+   ========================================================= */
+function openShiftPickerModal(){
+  var currentKey = getCurrentShiftKey();
+  var today = new Date();
+
+  /* 候選日期：已有更次 + 最近 14 天 + 當前更次（去重） */
+  var candidateSet = {};
+  Object.keys(shiftSettings).forEach(function(k){ candidateSet[k] = true; });
+  for (var i = 0; i < 14; i++){
+    var d = new Date(today);
+    d.setDate(d.getDate() - i);
+    candidateSet[localDateStr(d)] = true;
+  }
+  candidateSet[currentKey] = true;
+
+  var candidates = Object.keys(candidateSet).sort().reverse();
+
+  var html = '<div class="space-y-2 max-h-80 overflow-y-auto pr-1">';
+
+  /* 自動選項 */
+  var autoActive = manualShiftKey === null;
+  html +=
+    '<button type="button" onclick="selectManualShift(null)" ' +
+    'class="w-full text-left px-3 py-2.5 rounded-xl border-2 ' +
+    (autoActive ? 'border-amber-500 bg-amber-50' : 'border-slate-200 bg-white hover:bg-slate-50') +
+    ' transition flex justify-between items-center gap-2">' +
+      '<span class="flex items-center gap-2 min-w-0">' +
+        '<span class="ico w-5 h-5 shrink-0 ' + (autoActive ? 'text-amber-600' : 'text-slate-400') + '" data-icon="history"></span>' +
+        '<span class="min-w-0">' +
+          '<div class="text-sm font-bold ' + (autoActive ? 'text-amber-900' : 'text-slate-700') + '">自動（跟隨現在時間）</div>' +
+          '<div class="text-[11px] text-slate-500 mt-0.5 truncate">當前更次：' + currentKey + '</div>' +
+        '</span>' +
+      '</span>' +
+      (autoActive ? '<span class="text-amber-600 font-bold shrink-0 text-base">✓</span>' : '') +
+    '</button>';
+
+  /* 各更次／日期 */
+  candidates.forEach(function(k){
+    var cfg = shiftSettings[k];
+    if (cfg) ensureShiftFields(cfg);
+
+    var list = trips.filter(function(t){ return t.shiftDate === k; });
+    var isSelected = manualShiftKey === k;
+    var isCurrent = k === currentKey;
+    var timeRange = cfg ? (cfg.startTime + ' - ' + cfg.endTime) : '未設定';
+
+    var wkDay = '';
+    var dd = new Date(k + 'T12:00:00');
+    if (!isNaN(dd.getTime())){
+      wkDay = dd.toLocaleDateString('zh-HK', { weekday:'short' });
+    }
+
+    html +=
+      '<button type="button" onclick="selectManualShift(\'' + k + '\')" ' +
+      'class="w-full text-left px-3 py-2.5 rounded-xl border-2 ' +
+      (isSelected ? 'border-amber-500 bg-amber-50' : 'border-slate-200 bg-white hover:bg-slate-50') +
+      ' transition flex justify-between items-center gap-2">' +
+        '<span class="min-w-0">' +
+          '<div class="text-sm font-bold ' + (isSelected ? 'text-amber-900' : 'text-slate-700') + '">' +
+            k +
+            ' <span class="text-[10px] text-slate-400 font-normal">' + wkDay + '</span>' +
+            (isCurrent ? ' <span class="text-[10px] text-amber-600 font-bold">當前</span>' : '') +
+          '</div>' +
+          '<div class="text-[11px] text-slate-500 mt-0.5">' + timeRange + '　·　' + list.length + ' 筆</div>' +
+        '</span>' +
+        (isSelected ? '<span class="text-amber-600 font-bold shrink-0 text-base">✓</span>' : '') +
+      '</button>';
+  });
+
+  html += '</div>';
+
+  /* 自訂日期 */
+  html +=
+    '<div class="mt-3 pt-3 border-t border-slate-200">' +
+      '<label class="block text-xs font-semibold text-slate-600 mb-1.5">或選擇其他日期</label>' +
+      '<div class="flex gap-2">' +
+        '<input type="date" id="shift-picker-date" value="' + (manualShiftKey || currentKey) + '" ' +
+          'class="flex-1 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">' +
+        '<button type="button" onclick="applyCustomShiftDate()" ' +
+          'class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl text-xs transition shrink-0">確定</button>' +
+      '</div>' +
+      '<p class="text-[11px] text-slate-400 mt-1.5 leading-relaxed">補錄模式下，新儲存的紀錄將歸入所選更次；不影響成本設定與其他統計。</p>' +
+    '</div>';
+
+  document.getElementById('modal-title').innerText = '選擇更次（補錄用）';
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-footer').innerHTML =
+    '<button onclick="closeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition">關閉</button>';
+
+  var m = document.getElementById('trip-modal');
+  m.classList.remove('hidden');
+  m.classList.add('flex');
+  hydrateIcons();
+}
+
+function applyCustomShiftDate(){
+  var input = document.getElementById('shift-picker-date');
+  if (!input || !input.value) return;
+  selectManualShift(input.value);
+}
+
+function selectManualShift(key){
+  manualShiftKey = key;
+
+  /* 若選擇的日期還沒有更次配置，用最近一個作為 base 建立 */
+  if (key && !shiftSettings[key]){
+    var keys = Object.keys(shiftSettings).sort().reverse();
+    var base = keys.length ? shiftSettings[keys[0]] : DEFAULT_SHIFT;
+    shiftSettings[key] = {
+      rental:      parseFloat(base.rental) || 0,
+      fuelEntries: [],
+      mileage:     { start: null, end: null },
+      startTime:   base.startTime || DEFAULT_SHIFT.startTime,
+      endTime:     base.endTime   || DEFAULT_SHIFT.endTime
+    };
+    localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+  }
+
+  closeModal();
+  updateDateTimePreview();
+  initSettingsForm();
+  updateStatsAndNet();
+  renderTripList();
+
+  if (key){
+    showToast('已切換至補錄模式：' + key);
+  } else {
+    showToast('已回復自動模式');
+  }
+}
+
+/* =========================================================
    C. 手勢防縮放
    ========================================================= */
 document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, { passive:false });
@@ -1177,7 +1316,10 @@ window.addEventListener('DOMContentLoaded', function(){
   updateStatsAndNet();
 });
 
-/* ★ 右上角顯示：第一行日期＋星期；第二行更次時間 */
+/* ★ 右上角顯示：
+   - 自動模式：第一行日期＋星期；第二行更次時間
+   - 補錄模式：琥珀色徽章顯示補錄日期
+*/
 function updateDateTimePreview(){
   var now = new Date();
   var dateStr = now.toLocaleDateString('zh-HK', { month:'2-digit', day:'2-digit' });
@@ -1185,7 +1327,18 @@ function updateDateTimePreview(){
   var el = document.getElementById('current-date-time-preview');
   if (!el) return;
 
-  /* 取當前更次設定；若未有，退回最近一個更次的時間 */
+  if (manualShiftKey){
+    /* 補錄模式 */
+    el.className = 'text-xs font-bold text-right leading-tight text-amber-700 ' +
+                   'bg-amber-100 border border-amber-300 px-2.5 py-1 rounded-lg ' +
+                   'cursor-pointer select-none transition';
+    el.innerHTML =
+      '<span class="block">📌 補錄模式</span>' +
+      '<span class="block text-[10px] text-amber-600 font-mono">' + manualShiftKey + '</span>';
+    return;
+  }
+
+  /* 正常模式 */
   var cfg = getCurrentSettings(false);
   if (!cfg){
     var keys = Object.keys(shiftSettings).sort().reverse();
@@ -1195,6 +1348,8 @@ function updateDateTimePreview(){
     ? '更次 ' + cfg.startTime + ' - ' + cfg.endTime
     : '更次未設定';
 
+  el.className = 'text-xs text-slate-400 font-medium text-right leading-tight ' +
+                 'cursor-pointer select-none hover:text-slate-600 transition';
   el.innerHTML =
     '<span class="block">' + dateStr + ' ' + weekStr + '</span>' +
     '<span class="block text-[10px] text-slate-400">' + rangeText + '</span>';
@@ -1528,10 +1683,14 @@ function saveTrip(){
   var ts        = now.getTime();
   var cfg       = getCurrentSettings();
 
+  /* ★ 補錄模式：使用手動選擇的更次日期；否則依時間自動歸屬 */
+  var isManual  = !!manualShiftKey;
+  var shiftDate = isManual ? manualShiftKey : calcShiftDate(ts, cfg);
+
   var newTrip = {
     id: 'trip_' + ts,
     timestamp: ts,
-    shiftDate: calcShiftDate(ts, cfg),
+    shiftDate: shiftDate,
     dateStr:   now.toISOString(),
     fare:      fare,
     type:      activeTripType,
@@ -1552,12 +1711,13 @@ function saveTrip(){
   collapseNoteTags();
   calculateChange();
 
+  var prefix = isManual ? '【補錄 ' + shiftDate + '】' : '';
   if (isExpense){
-    showToast('支出記錄已保存：-$' + Math.abs(fare).toFixed(1));
+    showToast(prefix + '支出記錄已保存：-$' + Math.abs(fare).toFixed(1));
   } else if (changeVal < 0){
-    showToast('行程已保存，客戶尚欠 $' + Math.abs(changeVal).toFixed(1));
+    showToast(prefix + '行程已保存，客戶尚欠 $' + Math.abs(changeVal).toFixed(1));
   } else {
-    showToast('行程已成功保存！');
+    showToast(prefix + '行程已成功保存！');
   }
   updateStatsAndNet();
 }
@@ -2343,7 +2503,7 @@ function initSettingsForm(){
     if (btnText) btnText.innerText = '查看加油記錄 (0 筆)';
 
     updateMileagePanel(null);
-    updateDateTimePreview();   /* ★ 同步更新右上角更次時間 */
+    updateDateTimePreview();
     return;
   }
 
@@ -2366,7 +2526,7 @@ function initSettingsForm(){
   if (btnText) btnText.innerText = '查看加油記錄 (' + (cfg.fuelEntries || []).length + ' 筆)';
 
   updateMileagePanel(cfg);
-  updateDateTimePreview();   /* ★ 同步更新右上角更次時間 */
+  updateDateTimePreview();
 }
 
 function updateMileagePanel(cfg){
@@ -2580,7 +2740,7 @@ function updateStatsAndNet(){
   }
   periodShiftCountEl.innerText = periodShiftCount;
 
-  updateDateTimePreview();   /* ★ 同步更新右上角更次時間 */
+  updateDateTimePreview();
 }
 
 /* =========================================================
