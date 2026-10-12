@@ -175,6 +175,7 @@ body{
 .font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 .tracking-tight{letter-spacing:-.025em}
 .leading-relaxed{line-height:1.625}
+.leading-tight{line-height:1.25}
 .underline{text-decoration:underline}
 
 .text-slate-300{color:#cbd5e1}
@@ -353,7 +354,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
           <span class="ico w-5 h-5 text-amber-500" data-icon="receipt"></span> 新增記錄
         </h2>
-        <span id="current-date-time-preview" class="text-xs text-slate-400 font-medium"></span>
+        <span id="current-date-time-preview" class="text-xs text-slate-400 font-medium text-right leading-tight"></span>
       </div>
 
       <div>
@@ -1140,13 +1141,29 @@ window.addEventListener('DOMContentLoaded', function(){
   updateStatsAndNet();
 });
 
+/* ★ 右上角顯示：第一行日期＋星期；第二行更次時間 */
 function updateDateTimePreview(){
   var now = new Date();
   var dateStr = now.toLocaleDateString('zh-HK', { month:'2-digit', day:'2-digit' });
   var weekStr = now.toLocaleDateString('zh-HK', { weekday:'long' });
   var el = document.getElementById('current-date-time-preview');
-  if (el) el.innerText = dateStr + ' ' + weekStr;
+  if (!el) return;
+
+  /* 取當前更次設定；若未有，退回最近一個更次的時間 */
+  var cfg = getCurrentSettings(false);
+  if (!cfg){
+    var keys = Object.keys(shiftSettings).sort().reverse();
+    if (keys.length) cfg = shiftSettings[keys[0]];
+  }
+  var rangeText = (cfg && cfg.startTime && cfg.endTime)
+    ? '更次 ' + cfg.startTime + ' - ' + cfg.endTime
+    : '更次未設定';
+
+  el.innerHTML =
+    '<span class="block">' + dateStr + ' ' + weekStr + '</span>' +
+    '<span class="block text-[10px] text-slate-400">' + rangeText + '</span>';
 }
+
 function updateHeaderTime(){
   var now = new Date();
   var timeStr = now.toLocaleTimeString('zh-HK', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
@@ -2290,6 +2307,7 @@ function initSettingsForm(){
     if (btnText) btnText.innerText = '查看加油記錄 (0 筆)';
 
     updateMileagePanel(null);
+    updateDateTimePreview();   /* ★ 同步更新右上角更次時間 */
     return;
   }
 
@@ -2312,6 +2330,7 @@ function initSettingsForm(){
   if (btnText) btnText.innerText = '查看加油記錄 (' + (cfg.fuelEntries || []).length + ' 筆)';
 
   updateMileagePanel(cfg);
+  updateDateTimePreview();   /* ★ 同步更新右上角更次時間 */
 }
 
 function updateMileagePanel(cfg){
@@ -2524,6 +2543,8 @@ function updateStatsAndNet(){
     periodRevPerKmEl.innerText = '--';
   }
   periodShiftCountEl.innerText = periodShiftCount;
+
+  updateDateTimePreview();   /* ★ 同步更新右上角更次時間 */
 }
 
 /* =========================================================
