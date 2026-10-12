@@ -538,7 +538,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
       <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-settings')">
         <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-          <span class="ico w-4 h-4 text-amber-500" data-icon="settings"></span> 當更成本與時間設定
+          <span class="ico w-4 h-4 text-amber-500" data-icon="settings"></span> 最後一更成本與時間設定
         </h2>
         <div class="flex items-center gap-1.5">
           <button type="button" onclick="event.stopPropagation(); openShiftHistoryModal()"
@@ -551,7 +551,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
 
       <div class="space-y-3" data-card-body="card-settings">
         <div class="bg-amber-50 border border-amber-100 rounded-lg px-3 py-1.5 text-[11px] text-amber-800 font-medium flex justify-between items-center">
-          <span>當前更次日期</span>
+          <span>最後一更日期</span>
           <span id="current-shift-date-badge" class="font-bold font-mono">--</span>
         </div>
 
@@ -582,7 +582,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">
           <div class="flex justify-between items-center">
             <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <span class="ico w-3.5 h-3.5 text-amber-500" data-icon="road"></span> 當更行駛里程
+              <span class="ico w-3.5 h-3.5 text-amber-500" data-icon="road"></span> 最後一更行駛里程
             </span>
             <span id="mileage-summary" class="text-[11px] text-slate-400 font-medium">未完成</span>
           </div>
@@ -621,10 +621,12 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
     <!-- 最後一更利潤結算 -->
     <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-4 shadow-md space-y-3">
       <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-net')">
-        <span class="text-xs font-medium text-white flex items-center gap-1">
-          <span class="ico w-4 h-4 text-amber-400" data-icon="wallet"></span> 最後一更利潤結算
+        <span class="text-xs font-medium text-white flex items-center gap-1 min-w-0">
+          <span class="ico w-4 h-4 text-amber-400 shrink-0" data-icon="wallet"></span>
+          <span class="truncate">最後一更利潤結算</span>
+          <span id="net-shift-tag" class="text-[10px] text-amber-300 font-mono ml-1"></span>
         </span>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 shrink-0">
           <span id="current-shift-time-range" class="text-xs text-white font-mono"></span>
           <span class="ico w-4 h-4 text-white/70" data-icon="chevron-down" data-card-chevron="card-net"></span>
         </div>
@@ -663,7 +665,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           </div>
         </div>
 
-        <!-- 里程 / 每公里收入 / 每公里淨利 -->
         <div id="mileage-metrics" class="border-t border-slate-700/60 pt-2 grid grid-cols-3 gap-2 text-center text-[11px]">
           <div>
             <div class="text-white/60">行駛里程</div>
@@ -678,7 +679,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
             <div id="metric-profit-per-km" class="text-amber-400 font-extrabold font-mono mt-0.5">--</div>
           </div>
         </div>
-        <!-- 時薪（時長 / 每小時淨利） -->
         <div class="border-t border-slate-700/60 pt-2 grid grid-cols-2 gap-2 text-center text-[11px]">
           <div>
             <div class="text-white/60">更次時長</div>
@@ -743,7 +743,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
             </div>
           </div>
 
-          <!-- ★ 新增：收入 / 支出 筆數 -->
           <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
             <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 text-center">
               <div class="text-[11px] text-emerald-700 font-semibold flex items-center justify-center gap-1">
@@ -1033,6 +1032,9 @@ function calcShiftDate(timestamp, cfg){
   return localDateStr(d);
 }
 
+/* ★ 當前更次：依現在時間判斷
+   - 用於記帳歸屬、預覽、補錄選擇器
+*/
 function getCurrentShiftKey(){
   var now      = new Date();
   var timeStr  = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
@@ -1060,6 +1062,30 @@ function getCurrentShiftKey(){
     return localDateStr(y);
   }
   return todayKey;
+}
+
+/* ★ 最後一更：資料中最新有記錄的更次
+   - 優先：trips 中最新 shiftDate
+   - 其次：shiftSettings 中最大日期
+   - 完全沒資料：退回 getCurrentShiftKey()
+   - 用於：統計相關卡片、行程列表過濾、歷史更次「最後一更」標記
+*/
+function getLastShiftKey(){
+  /* 1. 從 trips 中找最新 shiftDate */
+  var latestTrip = null;
+  trips.forEach(function(t){
+    if (t.shiftDate && (!latestTrip || t.shiftDate > latestTrip)){
+      latestTrip = t.shiftDate;
+    }
+  });
+  if (latestTrip) return latestTrip;
+
+  /* 2. 從 shiftSettings 中取最大日期 */
+  var keys = Object.keys(shiftSettings).sort();
+  if (keys.length) return keys[keys.length - 1];
+
+  /* 3. 完全沒資料 */
+  return getCurrentShiftKey();
 }
 
 function ensureShiftFields(cfg){
@@ -1169,9 +1195,10 @@ function getShiftFinance(key){
   };
 }
 
-function getCurrentSettings(createIfMissing){
+/* ★ 通用：取得指定更次的設定（不存在時可選自動建立） */
+function getSettingsByKey(key, createIfMissing){
   if (createIfMissing === undefined) createIfMissing = true;
-  var key = getCurrentShiftKey();
+  if (!key) return null;
 
   if (!shiftSettings[key]){
     if (!createIfMissing){
@@ -1190,6 +1217,16 @@ function getCurrentSettings(createIfMissing){
   }
   ensureShiftFields(shiftSettings[key]);
   return shiftSettings[key];
+}
+
+/* 當前更次的設定（用於記帳相關） */
+function getCurrentSettings(createIfMissing){
+  return getSettingsByKey(getCurrentShiftKey(), createIfMissing);
+}
+
+/* ★ 最後一更的設定（用於統計相關卡片） */
+function getLastSettings(createIfMissing){
+  return getSettingsByKey(getLastShiftKey(), createIfMissing);
 }
 
 (function migrateLegacy(){
@@ -1460,6 +1497,7 @@ window.addEventListener('DOMContentLoaded', function(){
   updateStatsAndNet();
 });
 
+/* ★ 右上角預覽：使用「當前更次」（依時間） */
 function updateDateTimePreview(){
   var now = new Date();
   var dateStr = now.toLocaleDateString('zh-HK', { month:'2-digit', day:'2-digit' });
@@ -1794,7 +1832,7 @@ function confirmReceivedInput(){
 }
 
 /* =========================================================
-   I. 儲存行程
+   I. 儲存行程（歸屬「當前更次」）
    ========================================================= */
 function saveTrip(){
   var fareInput     = document.getElementById('trip-fare');
@@ -1814,8 +1852,8 @@ function saveTrip(){
   var note      = noteInput.value.trim();
   var now       = new Date();
   var ts        = now.getTime();
+  /* ★ 記帳依「當前更次」（時間），若在補錄模式則用補錄目標 */
   var cfg       = getCurrentSettings();
-
   var isManual  = !!manualShiftKey;
   var shiftDate = isManual ? manualShiftKey : calcShiftDate(ts, cfg);
 
@@ -1855,7 +1893,7 @@ function saveTrip(){
 }
 
 /* =========================================================
-   J. 行程列表
+   J. 行程列表（過濾依「最後一更」）
    ========================================================= */
 function renderTripList(){
   var container = document.getElementById('trip-list-container');
@@ -1869,7 +1907,8 @@ function renderTripList(){
   var allowIncome      = document.getElementById('chk-flow-income').checked;
   var allowExpense     = document.getElementById('chk-flow-expense').checked;
 
-  var lastShiftKey  = getCurrentShiftKey();
+  /* ★ 用「最後一更」過濾 */
+  var lastShiftKey  = getLastShiftKey();
 
   var filtered = trips.filter(function(t){
     var matchKeyword = (t.note || '').toLowerCase().indexOf(keyword) !== -1 ||
@@ -2125,11 +2164,11 @@ function closeModal(){
 }
 
 /* =========================================================
-   K-2. 歷史更次彈窗
+   K-2. 歷史更次彈窗（「最後一更」標記用 getLastShiftKey）
    ========================================================= */
 function openShiftHistoryModal(){
   var keys = Object.keys(shiftSettings).sort().reverse();
-  var currentKey = getCurrentShiftKey();
+  var lastKey = getLastShiftKey();
 
   var html = '<div class="space-y-2 max-h-80 overflow-y-auto pr-1">';
   if (!keys.length){
@@ -2143,7 +2182,7 @@ function openShiftHistoryModal(){
       var km = getShiftMileage(cfg);
       var duration = getShiftDuration(cfg);
       var fuelCount = (cfg.fuelEntries || []).length;
-      var isCurrent = (key === currentKey);
+      var isLast = (key === lastKey);
 
       var unpaidTotal = fin.list.reduce(function(s,t){
         var c = typeof t.change === 'number' ? t.change : 0;
@@ -2164,11 +2203,11 @@ function openShiftHistoryModal(){
       var profitPerHour = (duration && duration > 0) ? (fin.profit / duration) : null;
 
       html +=
-        '<div class="border ' + (isCurrent ? 'border-amber-400 bg-amber-50/60' : 'border-slate-200 bg-white') +
+        '<div class="border ' + (isLast ? 'border-amber-400 bg-amber-50/60' : 'border-slate-200 bg-white') +
         ' rounded-xl p-3">' +
           '<div class="flex justify-between items-center mb-1.5 gap-2">' +
             '<span class="font-bold text-sm text-slate-800 min-w-0 truncate">' + key +
-              (isCurrent ? ' <span class="text-[10px] text-amber-700 font-medium ml-1">最後一更</span>' : '') +
+              (isLast ? ' <span class="text-[10px] text-amber-700 font-medium ml-1">最後一更</span>' : '') +
             '</span>' +
             '<div class="flex items-center gap-1.5 shrink-0">' +
               '<span class="text-[11px] text-slate-500 font-mono">' + (cfg.startTime || '--') + ' - ' + (cfg.endTime || '--') + '</span>' +
@@ -2497,7 +2536,7 @@ function deleteShift(key){
   var isCurrent = (key === getCurrentShiftKey());
 
   var warnCurrent = isCurrent
-    ? '⚠️ 這是「最後一更」，刪除後將回復自動模式。\n\n'
+    ? '⚠️ 這是「當前更次」（依現在時間），刪除後將回復自動模式。\n\n'
     : '';
 
   var confirmMsg =
@@ -2546,7 +2585,7 @@ function deleteShift(key){
 }
 
 /* =========================================================
-   K-3. 新增加油彈窗
+   K-3. 新增加油彈窗（作用於「最後一更」）
    ========================================================= */
 function calcFuelLiters(){
   var amountEl = document.getElementById('fuel-add-amount');
@@ -2656,7 +2695,7 @@ function openAddFuelModal(){
 
   html += '<p class="text-[11px] text-slate-400 leading-relaxed flex items-start gap-1.5">' +
     '<span class="ico w-3.5 h-3.5 mt-0.5 shrink-0" data-icon="info"></span>' +
-    '<span>單價與地點會自動記憶，下次加油免重複輸入。金額會累加至當更總油費。</span>' +
+    '<span>單價與地點會自動記憶，下次加油免重複輸入。金額會累加至最後一更總油費。</span>' +
   '</p>';
 
   html += '</div>';
@@ -2711,8 +2750,9 @@ function addFuelEntry(){
   var station = stationEl ? stationEl.value.trim() : '';
   var liters  = (unitPrice !== null) ? (amount / unitPrice) : null;
 
-  var key = getCurrentShiftKey();
-  var cfg = getCurrentSettings();
+  /* ★ 加到「最後一更」 */
+  var key = getLastShiftKey();
+  var cfg = getLastSettings();
   if (!Array.isArray(cfg.fuelEntries)) cfg.fuelEntries = [];
 
   cfg.fuelEntries.push({
@@ -2743,18 +2783,19 @@ function addFuelEntry(){
 }
 
 function openFuelHistoryModal(){
-  var cfg = getCurrentSettings(false);
+  /* ★ 用最後一更 */
+  var cfg = getLastSettings(false);
   var entries = (cfg && Array.isArray(cfg.fuelEntries)) ? cfg.fuelEntries.slice() : [];
   entries.sort(function(a,b){ return b.timestamp - a.timestamp; });
   var total = getFuelTotal(cfg);
-  var key = getCurrentShiftKey();
+  var key = getLastShiftKey();
 
   var html = '<div class="space-y-3">';
 
   html +=
     '<div class="bg-amber-50 border border-amber-100 rounded-xl px-3.5 py-2.5 flex justify-between items-center">' +
       '<div>' +
-        '<div class="text-[11px] text-amber-800 font-medium">當更總油費</div>' +
+        '<div class="text-[11px] text-amber-800 font-medium">最後一更總油費</div>' +
         '<div class="text-xl font-extrabold text-amber-900 mt-0.5">$' + total.toFixed(1) + '</div>' +
       '</div>' +
       '<div class="text-right text-[11px] text-slate-500 font-mono">' + key + '<br>共 ' + entries.length + ' 筆</div>' +
@@ -2817,8 +2858,9 @@ function openFuelHistoryModal(){
 
 function deleteFuelEntry(id){
   if (!confirm('確定要刪除這筆加油記錄嗎？')) return;
-  var key = getCurrentShiftKey();
-  var cfg = getCurrentSettings(false);
+  /* ★ 刪最後一更的油費 */
+  var key = getLastShiftKey();
+  var cfg = getLastSettings(false);
   if (!cfg) return;
   cfg.fuelEntries = (cfg.fuelEntries || []).filter(function(e){ return e.id !== id; });
   shiftSettings[key] = cfg;
@@ -2975,10 +3017,11 @@ function updateTripCount(){
 }
 
 /* =========================================================
-   M. 設定與統計
+   M. 設定與統計（表單與統計都依「最後一更」）
    ========================================================= */
 function initSettingsForm(){
-  var cfg = getCurrentSettings(false);
+  var lastKey = getLastShiftKey();
+  var cfg     = getLastSettings(false);
 
   if (!cfg){
     document.getElementById('setting-rental').value        = '';
@@ -2991,7 +3034,7 @@ function initSettingsForm(){
     document.getElementById('current-shift-time-range').innerText = '';
 
     var badge = document.getElementById('current-shift-date-badge');
-    if (badge) badge.innerText = getCurrentShiftKey();
+    if (badge) badge.innerText = lastKey;
 
     var btnText = document.getElementById('fuel-history-btn-text');
     if (btnText) btnText.innerText = '查看加油記錄 (0 筆)';
@@ -3014,7 +3057,7 @@ function initSettingsForm(){
   document.getElementById('current-shift-time-range').innerText = cfg.startTime + ' - ' + cfg.endTime;
 
   var badge = document.getElementById('current-shift-date-badge');
-  if (badge) badge.innerText = getCurrentShiftKey();
+  if (badge) badge.innerText = lastKey;
 
   var btnText = document.getElementById('fuel-history-btn-text');
   if (btnText) btnText.innerText = '查看加油記錄 (' + (cfg.fuelEntries || []).length + ' 筆)';
@@ -3049,8 +3092,9 @@ function updateMileagePanel(cfg){
 }
 
 function saveSettings(){
-  var key = getCurrentShiftKey();
-  var cfg = getCurrentSettings();
+  /* ★ 儲存到「最後一更」 */
+  var key = getLastShiftKey();
+  var cfg = getLastSettings();
 
   cfg.rental    = parseFloat(document.getElementById('setting-rental').value) || 0;
   cfg.startTime = document.getElementById('setting-start-time').value || '06:00';
@@ -3094,7 +3138,7 @@ function shiftKeyInPeriod(key, period, now, currentShiftKey){
   var d = new Date(key + 'T12:00:00');
   if (isNaN(d.getTime())) return false;
 
-  if (currentShiftKey === undefined) currentShiftKey = getCurrentShiftKey();
+  if (currentShiftKey === undefined) currentShiftKey = getLastShiftKey();
   var endRef = new Date(currentShiftKey + 'T12:00:00');
   if (isNaN(endRef.getTime())) return false;
 
@@ -3116,10 +3160,12 @@ function updateStatsAndNet(){
   var now = new Date();
   updateTripCount();
 
-  var currentKey = getCurrentShiftKey();
-  var currentCfg = getCurrentSettings(false);
+  /* ★ 統計相關卡片都依「最後一更」 */
+  var lastKey    = getLastShiftKey();
+  var currentKey = getCurrentShiftKey();   /* 用於提示 */
+  var lastCfg    = getLastSettings(false);
 
-  var fin = getShiftFinance(currentKey);
+  var fin = getShiftFinance(lastKey);
 
   document.getElementById('net-gross').innerText = '$' + fin.gross.toFixed(1);
   document.getElementById('net-cost').innerText  = '$' + fin.totalCost.toFixed(1);
@@ -3137,23 +3183,34 @@ function updateStatsAndNet(){
       '　·　行程支出 $' + fin.expenseTrip.toFixed(1);
   }
 
-  /* 最後一更的收/支筆數 */
   var incomeCountEl  = document.getElementById('net-income-count');
   var expenseCountEl = document.getElementById('net-expense-count');
   if (incomeCountEl)  incomeCountEl.innerText  = fin.incomeCount;
   if (expenseCountEl) expenseCountEl.innerText = fin.expenseCount;
 
+  /* ★ 標題旁顯示「最後一更」是哪個日期（若與當前更次不同，特別提示） */
+  var shiftTagEl = document.getElementById('net-shift-tag');
+  if (shiftTagEl){
+    if (lastKey !== currentKey){
+      shiftTagEl.innerText = '（' + lastKey + '）';
+      shiftTagEl.className = 'text-[10px] text-amber-300 font-mono ml-1';
+    } else {
+      shiftTagEl.innerText = '';
+    }
+  }
+
   document.getElementById('current-shift-time-range').innerText =
-    currentCfg ? (currentCfg.startTime + ' - ' + currentCfg.endTime) : '';
+    lastCfg ? (lastCfg.startTime + ' - ' + lastCfg.endTime) : '';
   var badge = document.getElementById('current-shift-date-badge');
-  if (badge) badge.innerText = currentKey;
+  if (badge) badge.innerText = lastKey;
 
   var fuelInput = document.getElementById('setting-fuel');
   if (fuelInput && document.activeElement !== fuelInput){
-    fuelInput.value = currentCfg ? fin.fuel : '0';
+    fuelInput.value = lastCfg ? fin.fuel : '0';
   }
 
-  var km = currentCfg ? getShiftMileage(currentCfg) : null;
+  /* 里程指標 */
+  var km = lastCfg ? getShiftMileage(lastCfg) : null;
   var metricKm        = document.getElementById('metric-mileage');
   var metricRevPerKm  = document.getElementById('metric-rev-per-km');
   var metricProfPerKm = document.getElementById('metric-profit-per-km');
@@ -3168,7 +3225,8 @@ function updateStatsAndNet(){
     metricProfPerKm.innerText = '$' + (fin.profit / km).toFixed(2);
   }
 
-  var duration = currentCfg ? getShiftDuration(currentCfg) : null;
+  /* 時薪指標 */
+  var duration = lastCfg ? getShiftDuration(lastCfg) : null;
   var metricDuration       = document.getElementById('metric-duration');
   var metricProfitPerHour  = document.getElementById('metric-profit-per-hour');
 
@@ -3183,32 +3241,32 @@ function updateStatsAndNet(){
       : 'text-rose-400 font-extrabold font-mono mt-0.5';
   }
 
-  updateMileagePanel(currentCfg);
+  updateMileagePanel(lastCfg);
 
+  /* 統計標題 */
   var titleMap = {
     day:   '最近一更總收入',
     week:  '最近一星期總收入',
     month: '最近一個月總收入'
   };
   var titleText = titleMap[statsPeriod] || '總收入';
-  if (statsPeriod === 'day' && currentKey){
-    titleText = '最近一更總收入（' + currentKey + '）';
+  if (statsPeriod === 'day' && lastKey){
+    titleText = '最近一更總收入（' + lastKey + '）';
   }
   document.getElementById('stats-period-title').innerText = titleText;
 
-  /* 期間統計 */
+  /* 期間統計：以 lastKey 為基準 */
   var totalRev          = 0;
   var totalExpenseTrip  = 0;
   var periodProfit      = 0;
   var typeRev           = { '街客':0, 'Uber':0, '其他':0 };
   var periodMileage     = 0;
   var periodShiftCount  = 0;
-  /* ★ 期間收/支筆數 */
   var periodIncomeCount  = 0;
   var periodExpenseCount = 0;
 
   Object.keys(shiftSettings).forEach(function(k){
-    if (!shiftKeyInPeriod(k, statsPeriod, now, currentKey)) return;
+    if (!shiftKeyInPeriod(k, statsPeriod, now, lastKey)) return;
     periodShiftCount++;
 
     var finK = getShiftFinance(k);
@@ -3239,7 +3297,6 @@ function updateStatsAndNet(){
   document.getElementById('stats-type-uber').innerText     = '$' + typeRev['Uber'].toFixed(1);
   document.getElementById('stats-type-other').innerText    = '$' + typeRev['其他'].toFixed(1);
 
-  /* ★ 統計總覽的收/支筆數 */
   var statsIncomeCountEl  = document.getElementById('stats-income-count');
   var statsExpenseCountEl = document.getElementById('stats-expense-count');
   if (statsIncomeCountEl)  statsIncomeCountEl.innerText  = periodIncomeCount;
