@@ -76,6 +76,7 @@ body{
 .truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .overflow-hidden{overflow:hidden}
 .overflow-y-auto{overflow-y:auto}
+.overflow-x-auto{overflow-x:auto}
 .pointer-events-none{pointer-events:none}
 .select-none{user-select:none;-webkit-user-select:none}
 .cursor-pointer{cursor:pointer}
@@ -88,6 +89,7 @@ body{
 .grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}
 
+.gap-0\.5{gap:.125rem}
 .gap-1{gap:.25rem}
 .gap-1\.5{gap:.375rem}
 .gap-2{gap:.5rem}
@@ -128,6 +130,7 @@ body{
 .pt-1\.5{padding-top:.375rem}
 .pt-2{padding-top:.5rem}
 .pt-3{padding-top:.75rem}
+.pb-1{padding-bottom:.25rem}
 .pb-2{padding-bottom:.5rem}
 .pb-3{padding-bottom:.75rem}
 .pl-3{padding-left:.75rem}
@@ -188,6 +191,7 @@ body{
 .leading-tight{line-height:1.25}
 .leading-none{line-height:1}
 .underline{text-decoration:underline}
+.whitespace-nowrap{white-space:nowrap}
 
 .text-slate-300{color:#cbd5e1}
 .text-slate-400{color:#94a3b8}
@@ -211,12 +215,14 @@ body{
 .text-rose-600{color:#e11d48}
 .text-rose-700{color:#be123c}
 .text-blue-500{color:#3b82f6}
+.text-blue-600{color:#2563eb}
 .text-blue-700{color:#1d4ed8}
 .text-emerald-300{color:#6ee7b7}
 .text-emerald-400{color:#34d399}
 .text-emerald-600{color:#059669}
 .text-emerald-700{color:#047857}
 .text-emerald-800{color:#065f46}
+.text-orange-700{color:#c2410c}
 .text-purple-700{color:#7e22ce}
 
 .bg-white{background-color:#fff}
@@ -242,8 +248,10 @@ body{
 .bg-emerald-700{background-color:#047857}
 .bg-blue-50{background-color:#eff6ff}
 .bg-blue-100{background-color:#dbeafe}
+.bg-blue-200{background-color:#bfdbfe}
 .bg-blue-500{background-color:#3b82f6}
 .bg-purple-50{background-color:#faf5ff}
+.bg-orange-50{background-color:#fff7ed}
 .bg-emerald-500\/15{background-color:rgba(16,185,129,.15)}
 .bg-rose-500\/15{background-color:rgba(244,63,94,.15)}
 .bg-slate-800\/80{background-color:rgba(30,41,59,.8)}
@@ -281,6 +289,7 @@ body{
 .border-rose-500\/30{border-color:rgba(244,63,94,.3)}
 .border-blue-200{border-color:#bfdbfe}
 .border-blue-300{border-color:#93c5fd}
+.border-orange-200{border-color:#fed7aa}
 .border-purple-200{border-color:#e9d5ff}
 
 .rounded{border-radius:.25rem}
@@ -322,6 +331,8 @@ body{
 .hover\:bg-rose-100:hover{background-color:#ffe4e6}
 .hover\:bg-rose-700:hover{background-color:#be123c}
 .hover\:bg-emerald-700:hover{background-color:#047857}
+.hover\:bg-blue-100:hover{background-color:#dbeafe}
+.hover\:bg-blue-200:hover{background-color:#bfdbfe}
 .hover\:text-slate-600:hover{color:#475569}
 .hover\:text-amber-500:hover{color:#f59e0b}
 .hover\:text-amber-800:hover{color:#92400e}
@@ -560,6 +571,60 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
     <div id="trip-list-container" class="space-y-2.5"></div>
   </section>
 
+  <!-- TAB 4: 收藏地點 -->
+  <section id="tab-places" class="space-y-3 hidden">
+    <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 space-y-3">
+      <!-- 搜尋 -->
+      <div class="relative">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+          <span class="ico w-4 h-4" data-icon="search"></span>
+        </span>
+        <input type="text" id="place-search-keyword" oninput="renderPlacesList()"
+          placeholder="搜尋地點名稱、地址、備注..." autocomplete="off"
+          class="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
+      </div>
+
+      <!-- 區域篩選 -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1.5">區域</label>
+        <div id="place-region-tabs" class="flex gap-1.5 overflow-x-auto pb-1"></div>
+      </div>
+
+      <!-- 分區篩選 -->
+      <div id="place-district-wrap" class="hidden">
+        <label class="block text-xs font-semibold text-slate-500 mb-1.5">分區</label>
+        <div id="place-district-tabs" class="flex gap-1.5 overflow-x-auto pb-1"></div>
+      </div>
+
+      <!-- 類型篩選 -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1.5">類型</label>
+        <div id="place-type-tabs" class="flex gap-1.5 overflow-x-auto pb-1"></div>
+      </div>
+
+      <!-- 操作按鈕 -->
+      <div class="flex gap-2 pt-2 border-t border-slate-100">
+        <button type="button" id="nearby-btn" onclick="toggleNearbyPlaces()"
+          class="flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 active:scale-[0.98] text-blue-700 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 border border-blue-200">
+          <span class="ico w-3.5 h-3.5" data-icon="navigation"></span>
+          <span id="nearby-btn-text">附近地點</span>
+        </button>
+        <button type="button" onclick="openAddPlaceModal()"
+          class="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-900 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+          <span class="ico w-4 h-4" data-icon="plus"></span> 新增地點
+        </button>
+      </div>
+
+      <!-- 狀態列 -->
+      <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-xs gap-2">
+        <span id="nearby-status" class="text-blue-600 font-medium hidden truncate"></span>
+        <span id="place-count-badge" class="text-slate-400 font-medium ml-auto shrink-0">共 0 個</span>
+      </div>
+    </div>
+
+    <div id="places-list-container" class="space-y-2.5"></div>
+  </section>
+
   <!-- TAB 3 -->
   <section id="tab-stats" class="space-y-4 hidden">
 
@@ -642,7 +707,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           <div id="mileage-detail" class="text-[11px] text-slate-500 leading-relaxed"></div>
         </div>
 
-        <!-- 更次備註 -->
         <div>
           <div class="flex justify-between items-center mb-1">
             <label class="block text-xs font-semibold text-slate-600 flex items-center gap-1.5">
@@ -663,7 +727,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
       </div>
     </div>
 
-    <!-- 合併卡片：利潤與統計（淺色風格） -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
       <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-combined')">
         <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5 min-w-0">
@@ -679,26 +742,22 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
 
       <div class="space-y-3 border-t border-slate-100 pt-3" data-card-body="card-combined">
 
-        <!-- 更次備註顯示 -->
         <div id="combined-shift-note-box" class="hidden bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-xs text-amber-800 flex items-start gap-1.5">
           <span class="ico w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" data-icon="edit-3"></span>
           <span id="combined-shift-note" class="leading-relaxed"></span>
         </div>
 
-        <!-- 時段選擇 -->
         <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
           <button type="button" onclick="setStatsPeriod('day')"   id="period-btn-day"   class="py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition font-bold">最近一更</button>
           <button type="button" onclick="setStatsPeriod('week')"  id="period-btn-week"  class="py-1.5 rounded-lg text-slate-600 transition font-medium">最近一星期</button>
           <button type="button" onclick="setStatsPeriod('month')" id="period-btn-month" class="py-1.5 rounded-lg text-slate-600 transition font-medium">最近一個月</button>
         </div>
 
-        <!-- 期間標題 + 更次數 -->
         <div class="flex justify-between items-baseline">
           <div id="stats-period-title" class="text-xs font-semibold text-slate-600">最近一更利潤</div>
           <div id="stats-period-shift-count-badge" class="text-[10px] text-slate-400 font-mono">-- 更</div>
         </div>
 
-        <!-- 三格總覽 -->
         <div class="grid grid-cols-3 gap-2 text-center">
           <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
             <div class="text-[10px] text-slate-500 font-medium">營業額</div>
@@ -715,7 +774,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </div>
         <div id="net-cost-breakdown" class="text-[11px] text-slate-500 text-center"></div>
 
-        <!-- 每公里指標 -->
         <div class="border-t border-slate-100 pt-2 space-y-2 text-center text-[11px]">
           <div class="grid grid-cols-3 gap-2">
             <div class="bg-slate-50 rounded-lg py-2 border border-slate-100">
@@ -743,7 +801,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           </div>
         </div>
 
-        <!-- 時效指標（僅最近一更顯示） -->
         <div id="duration-metrics-row" class="border-t border-slate-100 pt-2 grid grid-cols-2 gap-2 text-center text-[11px]">
           <div class="bg-slate-50 rounded-lg py-2 border border-slate-100">
             <div class="text-slate-500">更次時長</div>
@@ -755,7 +812,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           </div>
         </div>
 
-        <!-- 交易筆數 -->
         <div class="border-t border-slate-100 pt-2 grid grid-cols-2 gap-2 text-center text-[11px]">
           <div class="bg-emerald-50 rounded-lg py-2 border border-emerald-200">
             <div class="text-[10px] text-emerald-700 font-medium flex items-center justify-center gap-1">
@@ -771,7 +827,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           </div>
         </div>
 
-        <!-- 類型收入分布 -->
         <div class="border-t border-slate-100 pt-2 grid grid-cols-3 gap-2 text-center text-[11px]">
           <div class="bg-emerald-50 rounded-lg py-2 border border-emerald-200">
             <div class="text-emerald-700">街客</div>
@@ -843,14 +898,18 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
 </main>
 
 <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-50">
-  <div class="max-w-md mx-auto grid grid-cols-3 h-16">
+  <div class="max-w-md mx-auto grid grid-cols-4 h-16">
     <button onclick="switchTab('trip')" id="nav-trip" class="flex flex-col items-center justify-center text-amber-500 transition">
       <span class="ico w-5 h-5" data-icon="plus-circle"></span>
       <span class="text-[11px] font-bold mt-1">記帳</span>
     </button>
     <button onclick="switchTab('list')" id="nav-list" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition">
       <span class="ico w-5 h-5" data-icon="list-bullet"></span>
-      <span class="text-[11px] font-medium mt-1">行程列表</span>
+      <span class="text-[11px] font-medium mt-1">行程</span>
+    </button>
+    <button onclick="switchTab('places')" id="nav-places" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition">
+      <span class="ico w-5 h-5" data-icon="map-pin"></span>
+      <span class="text-[11px] font-medium mt-1">地點</span>
     </button>
     <button onclick="switchTab('stats')" id="nav-stats" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition">
       <span class="ico w-5 h-5" data-icon="pie-chart"></span>
@@ -867,7 +926,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         <span class="ico w-5 h-5" data-icon="x"></span>
       </button>
     </div>
-    <div id="modal-body" class="p-4 space-y-3"></div>
+    <div id="modal-body" class="p-4 space-y-3 max-h-80 overflow-y-auto"></div>
     <div id="modal-footer" class="bg-slate-50 px-4 py-3 border-t flex justify-end gap-2"></div>
   </div>
 </div>
@@ -917,7 +976,13 @@ const ICONS = {
   'play':'<path d="M6 3 20 12 6 21V3z"/>',
   'square':'<rect x="5" y="5" width="14" height="14" rx="2"/>',
   'edit-2':'<path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>',
-  'arrow-left':'<path d="M19 12H5M12 19l-7-7 7-7"/>'
+  'arrow-left':'<path d="M19 12H5M12 19l-7-7 7-7"/>',
+  'navigation':'<polygon points="3 11 22 2 13 21 11 13 3 11" fill="none"/>',
+  'utensils':'<path d="M4 2v7c0 1.1.9 2 2 2h3V2M7 11v11M17 2c-1.5 0-3 2.2-3 5s1.5 5 3 5v9"/>',
+  'toilet':'<circle cx="9" cy="5.5" r="1.8"/><path d="M6.5 9h5v4.5a2.5 2.5 0 0 1-5 0V9z"/><path d="M9 16v5"/><circle cx="16" cy="5.5" r="1.8"/><path d="M14 9h4l-0.5 4h-3L14 9z"/><path d="M16 13v8"/>',
+  'star':'<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>',
+  'crosshair':'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+  'loader':'<path d="M21 12a9 9 0 1 1-6.219-8.56"/>'
 };
 
 function ico(name, cls){
@@ -942,11 +1007,59 @@ function hydrateIcons(root){
    ========================================================= */
 var trips         = JSON.parse(localStorage.getItem('taxi_trips')) || [];
 var shiftSettings = JSON.parse(localStorage.getItem('taxi_shift_settings')) || {};
+var places        = JSON.parse(localStorage.getItem('taxi_places')) || [];
 var DEFAULT_SHIFT = {
   startedAt: null, endedAt: null, startTime: '', endTime: '',
   rental: 0, fuelEntries: [], mileage: { start: null, end: null },
   note: ''
 };
+
+/* ★ 地點分類常數 */
+var REGIONS = {
+  '港島': ['中西區', '灣仔區', '東區', '南區'],
+  '九龍': ['油尖旺區', '深水埗區', '九龍城區', '黃大仙區', '觀塘區'],
+  '新界': ['元朗區', '屯門區', '沙田區', '大埔區', '北區', '西貢區', '葵青區', '荃灣區', '離島區']
+};
+var PLACE_TYPES = ['餐廳', '的士站', '廁所', '重要', '其他'];
+
+/* ★ 分區關鍵字對照表（用於逆向地理編碼自動匹配） */
+var DISTRICT_KEYWORDS = {
+  '中西區': ['central and western', 'central & western', '中西區', '中環', '上環', '西環', '西營盤', '半山', '山頂', '金鐘', '石塘咀', '堅尼地城'],
+  '灣仔區': ['wan chai', '灣仔', '銅鑼灣', '跑馬地', '大坑', '掃桿埔', '天后'],
+  '東區': ['eastern district', 'eastern', '東區', '北角', '鰂魚涌', '太古', '西灣河', '筲箕灣', '柴灣', '小西灣'],
+  '南區': ['southern district', 'southern', '南區', '香港仔', '鴨脷洲', '薄扶林', '赤柱', '淺水灣', '石澳', '黃竹坑', '田灣'],
+  '油尖旺區': ['yau tsim mong', '油尖旺', '尖沙咀', '油麻地', '旺角', '大角咀', '佐敦', '太子'],
+  '深水埗區': ['sham shui po', '深水埗', '長沙灣', '荔枝角', '石硤尾', '美孚', '南昌'],
+  '九龍城區': ['kowloon city', '九龍城', '土瓜灣', '紅磡', '何文田', '啟德', '九龍塘'],
+  '黃大仙區': ['wong tai sin', '黃大仙', '慈雲山', '鑽石山', '樂富', '新蒲崗', '彩虹'],
+  '觀塘區': ['kwun tong', '觀塘', '牛頭角', '九龍灣', '藍田', '油塘', '順利'],
+  '元朗區': ['yuen long', '元朗', '天水圍', '錦田', '八鄉', '流浮山', '廈村'],
+  '屯門區': ['tuen mun', '屯門', '蝴蝶灣', '掃管笏', '大興'],
+  '沙田區': ['sha tin', '沙田', '大圍', '馬鞍山', '火炭', '沙田圍', '石門'],
+  '大埔區': ['tai po', '大埔', '太和', '汀角', '大尾篤'],
+  '北區': ['north district', 'north', '北區', '粉嶺', '上水', '沙頭角', '打鼓嶺'],
+  '西貢區': ['sai kung', '西貢', '將軍澳', '坑口', '調景嶺', '寶琳'],
+  '葵青區': ['kwai tsing', '葵青', '葵涌', '青衣', '荔景'],
+  '荃灣區': ['tsuen wan', '荃灣', '深井', '汀九', '馬灣'],
+  '離島區': ['islands district', 'islands', '離島', '東涌', '長洲', '大嶼山', '南丫島', '坪洲']
+};
+
+function getRegionByDistrict(district){
+  if (!district) return null;
+  if (['中西區','灣仔區','東區','南區'].indexOf(district) !== -1) return '港島';
+  if (['油尖旺區','深水埗區','九龍城區','黃大仙區','觀塘區'].indexOf(district) !== -1) return '九龍';
+  if (['元朗區','屯門區','沙田區','大埔區','北區','西貢區','葵青區','荃灣區','離島區'].indexOf(district) !== -1) return '新界';
+  return null;
+}
+
+/* ★ 地點篩選狀態 */
+var placeFilterRegion   = '';
+var placeFilterDistrict = '';
+var placeFilterType     = '';
+var placeNearbyMode     = false;
+var userLat = null;
+var userLng = null;
+var currentEditingPlaceId = null;
 
 var activeTripType   = localStorage.getItem('taxi_last_type') || '街客';
 var statsPeriod      = 'day';
@@ -1524,7 +1637,6 @@ function renderShiftTimeModal(){
   }
 }
 
-/* ★ 快速模式：開工 / 收工按鈕 + 手動輸入入口 + 備註編輯 */
 function renderQuickShiftTimePanel(){
   var activeKey = getActiveShiftKey();
   var lastKey   = getLastShiftKey();
@@ -1540,7 +1652,6 @@ function renderQuickShiftTimePanel(){
 
   var html = '<div class="space-y-3">';
 
-  /* 更次日期 */
   html +=
     '<div class="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 flex justify-between items-center">' +
       '<span class="text-[11px] font-semibold text-amber-800 flex items-center gap-1.5">' +
@@ -1551,16 +1662,10 @@ function renderQuickShiftTimePanel(){
       '</span>' +
     '</div>';
 
-  /* 狀態 */
   html += '<div id="shift-status-panel"></div>';
-
-  /* 按鈕 */
   html += '<div id="shift-action-panel"></div>';
-
-  /* 工時詳情 */
   html += '<div id="shift-duration-panel"></div>';
 
-  /* ★ 更次備註編輯 */
   html +=
     '<div class="border-t border-slate-200 pt-3">' +
       '<label class="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5">' +
@@ -1576,14 +1681,12 @@ function renderQuickShiftTimePanel(){
       '<p class="text-[11px] text-slate-400 mt-1 leading-relaxed">備註會跟隨此更次保存，日後可在歷史更次中查看。</p>' +
     '</div>';
 
-  /* 手動模式入口 */
   html +=
     '<button type="button" onclick="switchShiftTimeMode(\'manual\')" ' +
     'class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 font-semibold rounded-xl transition flex items-center justify-center gap-1.5 text-xs border border-slate-200">' +
       '<span class="ico w-3.5 h-3.5" data-icon="edit-2"></span> 忘記打卡？手動輸入時間' +
     '</button>';
 
-  /* 說明 */
   html +=
     '<p class="text-[11px] text-slate-400 leading-relaxed">' +
       '※ 點「開工」記錄當前時間為開工時間<br>' +
@@ -1679,14 +1782,12 @@ function updateQuickShiftStatus(){
     durP.innerHTML = '';
   }
 
-  /* ★ 更新快速模式備註輸入框（避免覆蓋用戶正在輸入的內容） */
   var quickNoteEl = document.getElementById('quick-shift-note');
   if (quickNoteEl && document.activeElement !== quickNoteEl){
     quickNoteEl.value = (cfg && cfg.note) ? cfg.note : '';
   }
 }
 
-/* ★ 快速模式：保存備註 */
 function saveQuickShiftNote(){
   var noteEl = document.getElementById('quick-shift-note');
   if (!noteEl) return;
@@ -1706,7 +1807,6 @@ function saveQuickShiftNote(){
   shiftSettings[targetKey] = cfg;
   localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
 
-  /* 同步更新其他介面 */
   initSettingsForm();
   updateStatsAndNet();
   renderTripList();
@@ -1719,7 +1819,6 @@ function switchShiftTimeMode(mode){
   renderShiftTimeModal();
 }
 
-/* ★ 手動輸入模式（含備註編輯） */
 function renderManualShiftTimePanel(){
   var activeKey = getActiveShiftKey();
   var lastKey   = getLastShiftKey();
@@ -1780,7 +1879,6 @@ function renderManualShiftTimePanel(){
       '</div>' +
     '</div>';
 
-  /* ★ 手動模式更次備註輸入 */
   html +=
     '<div>' +
       '<label class="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5">' +
@@ -1850,7 +1948,6 @@ function onManualDateChange(){
   } else {
     endEl.value = '';
   }
-  /* ★ 同步更新備註 */
   if (noteEl){
     noteEl.value = (cfg && cfg.note) ? cfg.note : '';
   }
@@ -1984,7 +2081,6 @@ function saveManualShiftTime(){
     cfg.endTime = '';
   }
 
-  /* ★ 保存備註 */
   if (noteEl) cfg.note = noteEl.value.trim();
 
   shiftSettings[dateVal] = cfg;
@@ -2049,6 +2145,8 @@ window.addEventListener('DOMContentLoaded', function(){
   setInterval(updateHeaderTime, 1000);
   renderTripList();
   updateStatsAndNet();
+  renderPlaceFilters();
+  renderPlacesList();
 });
 
 function updateDateTimePreview(){
@@ -2129,7 +2227,7 @@ function escapeHtml(s){
    F. Tab 切換
    ========================================================= */
 function switchTab(tabName){
-  ['trip','list','stats'].forEach(function(t){
+  ['trip','list','places','stats'].forEach(function(t){
     document.getElementById('tab-' + t).classList.add('hidden');
     var btn = document.getElementById('nav-' + t);
     btn.className = 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition';
@@ -2141,6 +2239,10 @@ function switchTab(tabName){
   activeNav.querySelector('span:last-child').className = 'text-[11px] font-bold mt-1';
 
   if (tabName === 'list')  renderTripList();
+  if (tabName === 'places'){
+    renderPlaceFilters();
+    renderPlacesList();
+  }
   if (tabName === 'stats'){
     initSettingsForm();
     updateStatsAndNet();
@@ -2570,6 +2672,701 @@ function renderTripList(){
 }
 
 /* =========================================================
+   J-2. 收藏地點專區
+   ========================================================= */
+
+/* 距離計算（Haversine） */
+function getDistance(lat1, lon1, lat2, lon2){
+  var R = 6371000;
+  var f1 = lat1 * Math.PI / 180;
+  var f2 = lat2 * Math.PI / 180;
+  var df = (lat2 - lat1) * Math.PI / 180;
+  var dl = (lon2 - lon1) * Math.PI / 180;
+  var a = Math.sin(df/2) * Math.sin(df/2) +
+          Math.cos(f1) * Math.cos(f2) *
+          Math.sin(dl/2) * Math.sin(dl/2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+function formatDistance(meters){
+  if (meters === null || meters === undefined) return '--';
+  if (meters < 1000) return Math.round(meters) + ' m';
+  return (meters / 1000).toFixed(1) + ' km';
+}
+
+/* 渲染篩選標籤 */
+function renderPlaceFilters(){
+  var regionWrap = document.getElementById('place-region-tabs');
+  var districtWrap = document.getElementById('place-district-wrap');
+  var typeWrap = document.getElementById('place-type-tabs');
+  if (!regionWrap || !typeWrap) return;
+
+  var regionKeys = [''].concat(Object.keys(REGIONS));
+  regionWrap.innerHTML = regionKeys.map(function(r){
+    var active = placeFilterRegion === r;
+    var label = r === '' ? '全部' : r;
+    var cls = active
+      ? 'px-3 py-1.5 rounded-lg text-xs font-bold border transition bg-amber-500 text-slate-900 border-amber-600 shadow-xs whitespace-nowrap shrink-0'
+      : 'px-3 py-1.5 rounded-lg text-xs font-medium border transition bg-white text-slate-600 border-slate-200 hover:bg-slate-100 whitespace-nowrap shrink-0';
+    return '<button type="button" onclick="setPlaceFilterRegion(\'' + r + '\')" class="' + cls + '">' + label + '</button>';
+  }).join('');
+
+  if (placeFilterRegion && REGIONS[placeFilterRegion]){
+    districtWrap.classList.remove('hidden');
+    var districts = [''].concat(REGIONS[placeFilterRegion]);
+    document.getElementById('place-district-tabs').innerHTML = districts.map(function(d){
+      var active = placeFilterDistrict === d;
+      var label = d === '' ? '全部' : d;
+      var cls = active
+        ? 'px-3 py-1.5 rounded-lg text-xs font-bold border transition bg-amber-500 text-slate-900 border-amber-600 shadow-xs whitespace-nowrap shrink-0'
+        : 'px-3 py-1.5 rounded-lg text-xs font-medium border transition bg-white text-slate-600 border-slate-200 hover:bg-slate-100 whitespace-nowrap shrink-0';
+      return '<button type="button" onclick="setPlaceFilterDistrict(\'' + d + '\')" class="' + cls + '">' + label + '</button>';
+    }).join('');
+  } else {
+    districtWrap.classList.add('hidden');
+  }
+
+  var types = [''].concat(PLACE_TYPES);
+  typeWrap.innerHTML = types.map(function(t){
+    var active = placeFilterType === t;
+    var label = t === '' ? '全部' : t;
+    var cls = active
+      ? 'px-3 py-1.5 rounded-lg text-xs font-bold border transition bg-amber-500 text-slate-900 border-amber-600 shadow-xs whitespace-nowrap shrink-0'
+      : 'px-3 py-1.5 rounded-lg text-xs font-medium border transition bg-white text-slate-600 border-slate-200 hover:bg-slate-100 whitespace-nowrap shrink-0';
+    return '<button type="button" onclick="setPlaceFilterType(\'' + t + '\')" class="' + cls + '">' + label + '</button>';
+  }).join('');
+}
+
+function setPlaceFilterRegion(r){
+  placeFilterRegion = r;
+  placeFilterDistrict = '';
+  renderPlaceFilters();
+  renderPlacesList();
+}
+
+function setPlaceFilterDistrict(d){
+  placeFilterDistrict = d;
+  renderPlaceFilters();
+  renderPlacesList();
+}
+
+function setPlaceFilterType(t){
+  placeFilterType = t;
+  renderPlaceFilters();
+  renderPlacesList();
+}
+
+function getPlaceTypeStyle(type){
+  switch(type){
+    case '餐廳':   return { cls:'bg-orange-50 text-orange-700 border-orange-200',  icon:'utensils' };
+    case '的士站': return { cls:'bg-blue-50 text-blue-700 border-blue-200',        icon:'car-taxi-front' };
+    case '廁所':   return { cls:'bg-emerald-50 text-emerald-700 border-emerald-200', icon:'toilet' };
+    case '重要':   return { cls:'bg-rose-50 text-rose-700 border-rose-200',        icon:'star' };
+    default:       return { cls:'bg-purple-50 text-purple-700 border-purple-200',  icon:'map-pin' };
+  }
+}
+
+/* 渲染地點列表 */
+function renderPlacesList(){
+  var container = document.getElementById('places-list-container');
+  if (!container) return;
+
+  var searchEl = document.getElementById('place-search-keyword');
+  var keyword = searchEl ? (searchEl.value || '').toLowerCase().trim() : '';
+
+  var filtered = places.filter(function(p){
+    if (keyword){
+      var hay = (p.name + ' ' + (p.address||'') + ' ' + (p.note||'') + ' ' +
+                 p.district + ' ' + p.region + ' ' + p.type).toLowerCase();
+      if (hay.indexOf(keyword) === -1) return false;
+    }
+    if (placeFilterRegion && p.region !== placeFilterRegion) return false;
+    if (placeFilterDistrict && p.district !== placeFilterDistrict) return false;
+    if (placeFilterType && p.type !== placeFilterType) return false;
+    return true;
+  });
+
+  var hasUserLoc = (userLat !== null && userLng !== null);
+  filtered.forEach(function(p){
+    if (hasUserLoc && typeof p.lat === 'number' && typeof p.lng === 'number'){
+      p._distance = getDistance(userLat, userLng, p.lat, p.lng);
+    } else {
+      p._distance = null;
+    }
+  });
+
+  if (placeNearbyMode && hasUserLoc){
+    filtered.sort(function(a, b){
+      if (a._distance === null && b._distance === null) return b.timestamp - a.timestamp;
+      if (a._distance === null) return 1;
+      if (b._distance === null) return -1;
+      return a._distance - b._distance;
+    });
+  } else {
+    filtered.sort(function(a, b){ return b.timestamp - a.timestamp; });
+  }
+
+  var countEl = document.getElementById('place-count-badge');
+  if (countEl) countEl.innerText = '共 ' + filtered.length + ' 個';
+
+  var statusEl = document.getElementById('nearby-status');
+  if (statusEl){
+    if (placeNearbyMode && hasUserLoc){
+      statusEl.classList.remove('hidden');
+      statusEl.innerHTML = ico('navigation','w-3 h-3') + ' 已按距離排序';
+    } else {
+      statusEl.classList.add('hidden');
+    }
+  }
+
+  if (filtered.length === 0){
+    container.innerHTML =
+      '<div class="bg-white rounded-2xl p-8 text-center border border-slate-100 text-slate-400 space-y-2">' +
+        '<div class="ico w-10 h-10 mx-auto text-slate-300">' + ico('map-pin','w-10 h-10') + '</div>' +
+        '<p class="text-sm font-medium">' + (places.length === 0 ? '尚無收藏地點' : '沒有符合條件的地點') + '</p>' +
+        '<p class="text-[11px] text-slate-400">' +
+          (places.length === 0 ? '點「新增地點」開始收藏常用位置' : '試試切換其他篩選條件') +
+        '</p>' +
+      '</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(function(p){
+    var style = getPlaceTypeStyle(p.type);
+    var hasCoords = (typeof p.lat === 'number' && typeof p.lng === 'number');
+
+    var distanceBadge = '';
+    if (p._distance !== null){
+      distanceBadge = '<span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-bold flex items-center gap-1 shrink-0">' +
+        ico('navigation','w-3 h-3') + formatDistance(p._distance) +
+      '</span>';
+    }
+
+    return '' +
+      '<div class="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm">' +
+        '<div class="flex items-start justify-between gap-3">' +
+          '<div class="flex items-start space-x-3 min-w-0 flex-1">' +
+            '<div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ' + style.cls + '">' +
+              ico(style.icon, 'w-5 h-5') +
+            '</div>' +
+            '<div class="min-w-0 flex-1">' +
+              '<div class="flex items-center gap-2 flex-wrap">' +
+                '<span class="text-sm font-bold text-slate-900 truncate">' + escapeHtml(p.name) + '</span>' +
+                distanceBadge +
+              '</div>' +
+              '<div class="flex items-center gap-1.5 flex-wrap mt-1">' +
+                '<span class="text-[10px] px-2 py-0.5 rounded-full border font-semibold ' + style.cls + '">' + escapeHtml(p.type) + '</span>' +
+                '<span class="text-[10px] px-2 py-0.5 rounded-full border font-medium bg-slate-50 text-slate-600 border-slate-200">' + escapeHtml(p.region) + ' · ' + escapeHtml(p.district) + '</span>' +
+              '</div>' +
+              (p.address
+                ? '<p class="text-xs text-slate-500 mt-1 truncate flex items-center gap-1">' +
+                    '<span class="ico w-3 h-3 text-slate-400 shrink-0">' + ico('map-pin','w-3 h-3') + '</span>' +
+                    escapeHtml(p.address) +
+                  '</p>'
+                : '') +
+              (p.note
+                ? '<p class="text-xs text-slate-400 mt-0.5 truncate">' + escapeHtml(p.note) + '</p>'
+                : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="flex items-center gap-0.5 shrink-0">' +
+            (hasCoords
+              ? '<button onclick="openPlaceInMaps(\'' + p.id + '\')" class="p-2 text-slate-400 hover:text-blue-500 transition" title="用高德地圖導航">' + ico('navigation','w-4 h-4') + '</button>'
+              : '') +
+            '<button onclick="openEditPlaceModal(\'' + p.id + '\')" class="p-2 text-slate-400 hover:text-amber-500 transition" title="編輯">' + ico('edit-3','w-4 h-4') + '</button>' +
+            '<button onclick="deletePlace(\'' + p.id + '\')" class="p-2 text-slate-400 hover:text-rose-500 transition" title="刪除">' + ico('trash-2','w-4 h-4') + '</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }).join('');
+}
+
+/* ★ 用高德地圖導航到該地點
+   高德 URI API：https://uri.amap.com/navigation
+   參數：to=經度,緯度,名稱  mode=car  coordinate=wgs84（讓高德自動把 WGS84 轉成 GCJ-02）
+   callnative=1 → 手機上會優先調起高德 App
+*/
+function openPlaceInMaps(id){
+  var p = places.find(function(x){ return x.id === id; });
+  if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
+
+  var name = encodeURIComponent(p.name || '目的地');
+  var url = 'https://uri.amap.com/navigation' +
+            '?to=' + p.lng + ',' + p.lat + ',' + name +
+            '&mode=car&policy=1&src=hk-taxi-helper&coordinate=wgs84&callnative=1';
+
+  window.open(url, '_blank');
+}
+
+/* ★ 附近地點切換 */
+function toggleNearbyPlaces(){
+  var btnText = document.getElementById('nearby-btn-text');
+  var btn = document.getElementById('nearby-btn');
+
+  if (placeNearbyMode){
+    placeNearbyMode = false;
+    userLat = null;
+    userLng = null;
+    if (btnText) btnText.innerText = '附近地點';
+    if (btn){
+      btn.className = 'flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 active:scale-[0.98] text-blue-700 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 border border-blue-200';
+    }
+    renderPlacesList();
+    showToast('已取消附近排序');
+    return;
+  }
+
+  if (!navigator.geolocation){
+    showToast('此瀏覽器不支援定位功能');
+    return;
+  }
+
+  showToast('正在取得位置...');
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      placeNearbyMode = true;
+      if (btnText) btnText.innerText = '清除附近';
+      if (btn){
+        btn.className = 'flex-1 py-2.5 bg-blue-500 hover:bg-blue-600 active:scale-[0.98] text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 border border-blue-600';
+      }
+      renderPlacesList();
+      showToast('已按距離排序（誤差約 ' + Math.round(pos.coords.accuracy || 0) + ' m）');
+    },
+    function(err){
+      showToast('定位失敗：' + (err.message || '請檢查定位權限'));
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+  );
+}
+
+/* 新增地點彈窗 */
+function openAddPlaceModal(){
+  currentEditingPlaceId = null;
+
+  var regionOptions = Object.keys(REGIONS).map(function(r){
+    return '<option value="' + r + '">' + r + '</option>';
+  }).join('');
+
+  var typeOptions = PLACE_TYPES.map(function(t){
+    return '<option value="' + t + '">' + t + '</option>';
+  }).join('');
+
+  var html = '<div class="space-y-3 text-sm">' +
+
+    /* ★ 自動填寫按鈕 */
+    '<button type="button" id="place-autofill-btn" onclick="autoFillPlaceByLocation()" ' +
+      'class="w-full py-2.5 bg-blue-50 hover:bg-blue-100 active:scale-[0.98] text-blue-700 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 border border-blue-200">' +
+      '<span class="ico w-3.5 h-3.5" data-icon="navigation"></span> 使用當前位置自動填寫' +
+    '</button>' +
+
+    '<div>' +
+      '<label class="block text-xs font-semibold text-slate-600 mb-1">地點名稱 *</label>' +
+      '<input type="text" id="place-name" autocomplete="off" placeholder="例如：翠華餐廳（中環）" ' +
+        'class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">' +
+    '</div>' +
+
+    '<div class="grid grid-cols-2 gap-2">' +
+      '<div>' +
+        '<label class="block text-xs font-semibold text-slate-600 mb-1">區域 *</label>' +
+        '<select id="place-region" onchange="onPlaceRegionChange()" ' +
+          'class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2">' +
+          '<option value="">請選擇</option>' + regionOptions +
+        '</select>' +
+      '</div>' +
+      '<div>' +
+        '<label class="block text-xs font-semibold text-slate-600 mb-1">分區 *</label>' +
+        '<select id="place-district" ' +
+          'class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2">' +
+          '<option value="">請先選區域</option>' +
+        '</select>' +
+      '</div>' +
+    '</div>' +
+
+    '<div>' +
+      '<label class="block text-xs font-semibold text-slate-600 mb-1">類型 *</label>' +
+      '<select id="place-type" ' +
+        'class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2">' +
+        typeOptions +
+      '</select>' +
+    '</div>' +
+
+    '<div>' +
+      '<label class="block text-xs font-semibold text-slate-600 mb-1">地址 (選填)</label>' +
+      '<input type="text" id="place-address" autocomplete="off" placeholder="例如：中環威靈頓街15號" ' +
+        'class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2">' +
+    '</div>' +
+
+    '<div>' +
+      '<label class="block text-xs font-semibold text-slate-600 mb-1">備注 (選填)</label>' +
+      '<input type="text" id="place-note" autocomplete="off" placeholder="例如：24小時、有停車位" ' +
+        'class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2">' +
+    '</div>' +
+
+    '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">' +
+      '<div class="flex justify-between items-center">' +
+        '<span class="text-xs font-bold text-slate-700">座標（用於導航與附近排序）</span>' +
+        '<button type="button" onclick="useCurrentLocationForPlace()" ' +
+          'class="text-[11px] px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg transition flex items-center gap-1">' +
+          '<span class="ico w-3 h-3" data-icon="crosshair"></span> 只填座標' +
+        '</button>' +
+      '</div>' +
+      '<div class="grid grid-cols-2 gap-2">' +
+        '<div>' +
+          '<label class="block text-[11px] font-semibold text-slate-500 mb-1">緯度 Lat</label>' +
+          '<input type="number" id="place-lat" step="0.000001" inputmode="decimal" autocomplete="off" placeholder="22.xxxxxx" ' +
+            'class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">' +
+        '</div>' +
+        '<div>' +
+          '<label class="block text-[11px] font-semibold text-slate-500 mb-1">經度 Lng</label>' +
+          '<input type="number" id="place-lng" step="0.000001" inputmode="decimal" autocomplete="off" placeholder="114.xxxxxx" ' +
+            'class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">' +
+        '</div>' +
+      '</div>' +
+      '<p class="text-[11px] text-slate-400 leading-relaxed">填入座標後，點「附近地點」即可按距離排序；點列表的 <span class="ico w-3 h-3 align-middle" style="display:inline-flex;vertical-align:middle">' + ico('navigation','w-3 h-3') + '</span> 即用高德地圖導航。</p>' +
+    '</div>' +
+
+  '</div>';
+
+  document.getElementById('modal-title').innerText = '新增收藏地點';
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-footer').innerHTML =
+    '<button onclick="closeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition">取消</button>' +
+    '<button onclick="savePlace()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl text-xs transition">保存</button>';
+
+  var m = document.getElementById('trip-modal');
+  m.classList.remove('hidden');
+  m.classList.add('flex');
+  hydrateIcons();
+}
+
+/* 區域變更 → 更新分區下拉 */
+function onPlaceRegionChange(){
+  var region = document.getElementById('place-region').value;
+  var districtEl = document.getElementById('place-district');
+  if (!districtEl) return;
+
+  if (!region){
+    districtEl.innerHTML = '<option value="">請先選區域</option>';
+    return;
+  }
+  var districts = REGIONS[region] || [];
+  districtEl.innerHTML = '<option value="">請選擇</option>' +
+    districts.map(function(d){
+      return '<option value="' + d + '">' + d + '</option>';
+    }).join('');
+}
+
+/* ★ 只填入座標（不解析地址） */
+function useCurrentLocationForPlace(){
+  if (!navigator.geolocation){
+    showToast('此瀏覽器不支援定位功能');
+    return;
+  }
+  showToast('正在取得位置...');
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      var latEl = document.getElementById('place-lat');
+      var lngEl = document.getElementById('place-lng');
+      if (latEl) latEl.value = pos.coords.latitude.toFixed(6);
+      if (lngEl) lngEl.value = pos.coords.longitude.toFixed(6);
+      showToast('已填入當前位置座標');
+    },
+    function(err){
+      showToast('定位失敗：' + (err.message || '請檢查定位權限'));
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+  );
+}
+
+/* ★★ 自動填寫按鈕：定位 + 逆向地理編碼 + 自動填寫所有欄位 ★★ */
+function autoFillPlaceByLocation(){
+  var btn = document.getElementById('place-autofill-btn');
+
+  if (!navigator.geolocation){
+    showToast('此瀏覽器不支援定位功能');
+    return;
+  }
+
+  /* 按鈕切換為載入中 */
+  if (btn){
+    btn.disabled = true;
+    btn.classList.remove('bg-blue-50','hover:bg-blue-100','text-blue-700','border-blue-200');
+    btn.classList.add('bg-blue-100','text-blue-600','border-blue-300','cursor-wait');
+    btn.innerHTML = '<span class="ico w-3.5 h-3.5 animate-pulse">' + ico('loader','w-3.5 h-3.5') + '</span> 定位並解析地址中...';
+  }
+
+  showToast('正在取得位置...');
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      var lat = pos.coords.latitude;
+      var lng = pos.coords.longitude;
+      var accuracy = pos.coords.accuracy || 0;
+
+      /* 先填座標 */
+      var latEl = document.getElementById('place-lat');
+      var lngEl = document.getElementById('place-lng');
+      if (latEl) latEl.value = lat.toFixed(6);
+      if (lngEl) lngEl.value = lng.toFixed(6);
+
+      /* 呼叫逆地理編碼 */
+      reverseGeocode(lat, lng, function(err, data){
+        resetAutoFillButton();
+        if (err){
+          showToast('已填入座標，但地址解析失敗：' + err);
+          return;
+        }
+        var matched = applyGeocodeResult(data);
+        if (matched){
+          showToast('已自動填寫位置資訊（誤差約 ' + Math.round(accuracy) + ' m）');
+        } else {
+          showToast('已填入座標與地址，請確認區域／分區（自動匹配失敗）');
+        }
+      });
+    },
+    function(err){
+      resetAutoFillButton();
+      showToast('定位失敗：' + (err.message || '請檢查定位權限'));
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+}
+
+/* 還原自動填寫按鈕狀態 */
+function resetAutoFillButton(){
+  var btn = document.getElementById('place-autofill-btn');
+  if (!btn) return;
+  btn.disabled = false;
+  btn.classList.remove('bg-blue-100','text-blue-600','border-blue-300','cursor-wait');
+  btn.classList.add('bg-blue-50','hover:bg-blue-100','text-blue-700','border-blue-200');
+  btn.innerHTML = '<span class="ico w-3.5 h-3.5" data-icon="navigation"></span> 使用當前位置自動填寫';
+  /* 重置 done 標記以便重新注入 */
+  btn.querySelectorAll('[data-icon]').forEach(function(el){
+    el.dataset.done = '';
+  });
+  hydrateIcons(btn);
+}
+
+/* ★ 呼叫 Nominatim 逆地理編碼 */
+function reverseGeocode(lat, lng, callback){
+  var url = 'https://nominatim.openstreetmap.org/reverse' +
+            '?format=jsonv2&lat=' + lat + '&lon=' + lng +
+            '&accept-language=zh-HK,zh-TW,zh,en&zoom=18&addressdetails=1';
+
+  var finished = false;
+  var timer = setTimeout(function(){
+    if (!finished){
+      finished = true;
+      callback('請求逾時');
+    }
+  }, 12000);
+
+  fetch(url, {
+    method: 'GET',
+    headers: { 'Accept': 'application/json' }
+  })
+  .then(function(res){
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  })
+  .then(function(data){
+    if (finished) return;
+    finished = true;
+    clearTimeout(timer);
+    if (!data || !data.address){
+      callback('無法解析地址');
+      return;
+    }
+    callback(null, data);
+  })
+  .catch(function(err){
+    if (finished) return;
+    finished = true;
+    clearTimeout(timer);
+    callback(err && err.message ? err.message : '網絡錯誤');
+  });
+}
+
+/* ★ 從 Nominatim 結果匹配香港 18 區 */
+function matchDistrictFromAddress(addr){
+  var hay = [
+    addr.state || '',
+    addr.state_district || '',
+    addr.region || '',
+    addr.city || '',
+    addr.city_district || '',
+    addr.county || '',
+    addr.district || '',
+    addr.suburb || '',
+    addr.quarter || '',
+    addr.neighbourhood || '',
+    addr.road || '',
+    addr.display_name || ''
+  ].join(' ').toLowerCase();
+
+  for (var district in DISTRICT_KEYWORDS){
+    var keys = DISTRICT_KEYWORDS[district];
+    for (var i = 0; i < keys.length; i++){
+      if (hay.indexOf(keys[i].toLowerCase()) !== -1){
+        return district;
+      }
+    }
+  }
+  return null;
+}
+
+/* ★ 將解析結果寫入表單，回傳是否匹配到分區 */
+function applyGeocodeResult(data){
+  var addr = data.address || {};
+
+  /* 1. 地址 */
+  var addressEl = document.getElementById('place-address');
+  if (addressEl){
+    var parts = [];
+    if (addr.road) parts.push(addr.road);
+    if (addr.house_number) parts.push(addr.house_number);
+    if (parts.length === 0 && addr.building) parts.push(addr.building);
+    if (parts.length === 0 && addr.suburb) parts.push(addr.suburb);
+    if (parts.length === 0 && data.display_name){
+      parts.push(String(data.display_name).split(',').slice(0, 3).join(',').trim());
+    }
+    if (parts.length){
+      addressEl.value = parts.join(' ');
+    }
+  }
+
+  /* 2. 名稱（若空） */
+  var nameEl = document.getElementById('place-name');
+  if (nameEl && !nameEl.value.trim()){
+    var autoName = addr.amenity || addr.shop || addr.building ||
+                   addr.tourism || addr.office ||
+                   (addr.road ? addr.road : '');
+    if (autoName) nameEl.value = autoName;
+  }
+
+  /* 3. 分區與區域 */
+  var district = matchDistrictFromAddress(addr);
+  var region = getRegionByDistrict(district);
+  var matched = false;
+
+  if (region){
+    var regionEl = document.getElementById('place-region');
+    if (regionEl){
+      regionEl.value = region;
+      onPlaceRegionChange();
+    }
+    /* 等 select 重建完成後再設定 district */
+    setTimeout(function(){
+      if (district){
+        var districtEl = document.getElementById('place-district');
+        if (districtEl) districtEl.value = district;
+      }
+    }, 0);
+    matched = true;
+  }
+
+  /* 4. 備註（若空且返回 suburb 等細節可作提示） */
+  var noteEl = document.getElementById('place-note');
+  if (noteEl && !noteEl.value.trim() && addr.suburb && addr.suburb !== district){
+    /* 這裡不強制填，只保留給用戶參考 */
+  }
+
+  return matched;
+}
+
+/* 保存地點（新增 / 修改共用） */
+function savePlace(){
+  var nameEl     = document.getElementById('place-name');
+  var regionEl   = document.getElementById('place-region');
+  var districtEl = document.getElementById('place-district');
+  var typeEl     = document.getElementById('place-type');
+  var addressEl  = document.getElementById('place-address');
+  var noteEl     = document.getElementById('place-note');
+  var latEl      = document.getElementById('place-lat');
+  var lngEl      = document.getElementById('place-lng');
+
+  var name = nameEl ? nameEl.value.trim() : '';
+  var region = regionEl ? regionEl.value : '';
+  var district = districtEl ? districtEl.value : '';
+  var type = typeEl ? typeEl.value : '';
+  var address = addressEl ? addressEl.value.trim() : '';
+  var note = noteEl ? noteEl.value.trim() : '';
+  var latVal = latEl ? latEl.value.trim() : '';
+  var lngVal = lngEl ? lngEl.value.trim() : '';
+
+  if (!name){ showToast('請輸入地點名稱'); return; }
+  if (!region){ showToast('請選擇區域'); return; }
+  if (!district){ showToast('請選擇分區'); return; }
+  if (!type){ showToast('請選擇類型'); return; }
+
+  var lat = latVal === '' ? null : parseFloat(latVal);
+  var lng = lngVal === '' ? null : parseFloat(lngVal);
+  if (lat !== null && isNaN(lat)) lat = null;
+  if (lng !== null && isNaN(lng)) lng = null;
+
+  if (currentEditingPlaceId){
+    var idx = places.findIndex(function(p){ return p.id === currentEditingPlaceId; });
+    if (idx !== -1){
+      places[idx].name = name;
+      places[idx].region = region;
+      places[idx].district = district;
+      places[idx].type = type;
+      places[idx].address = address;
+      places[idx].note = note;
+      places[idx].lat = lat;
+      places[idx].lng = lng;
+      places[idx].updatedAt = Date.now();
+    }
+    showToast('地點已更新');
+  } else {
+    places.unshift({
+      id: 'place_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+      name: name, region: region, district: district, type: type,
+      address: address, note: note, lat: lat, lng: lng,
+      timestamp: Date.now()
+    });
+    showToast('地點已保存');
+  }
+
+  localStorage.setItem('taxi_places', JSON.stringify(places));
+  currentEditingPlaceId = null;
+  closeModal();
+  renderPlacesList();
+}
+
+/* 編輯地點 */
+function openEditPlaceModal(id){
+  var p = places.find(function(x){ return x.id === id; });
+  if (!p) return;
+
+  currentEditingPlaceId = id;
+  openAddPlaceModal();
+
+  document.getElementById('modal-title').innerText = '修改收藏地點';
+  document.getElementById('place-name').value = p.name || '';
+  document.getElementById('place-region').value = p.region || '';
+  onPlaceRegionChange();
+  document.getElementById('place-district').value = p.district || '';
+  document.getElementById('place-type').value = p.type || PLACE_TYPES[0];
+  document.getElementById('place-address').value = p.address || '';
+  document.getElementById('place-note').value = p.note || '';
+  document.getElementById('place-lat').value = (typeof p.lat === 'number') ? p.lat : '';
+  document.getElementById('place-lng').value = (typeof p.lng === 'number') ? p.lng : '';
+}
+
+/* 刪除地點 */
+function deletePlace(id){
+  if (!confirm('確定要刪除此收藏地點嗎？')) return;
+  places = places.filter(function(p){ return p.id !== id; });
+  localStorage.setItem('taxi_places', JSON.stringify(places));
+  renderPlacesList();
+  showToast('地點已刪除');
+}
+
+/* =========================================================
    K. Modal
    ========================================================= */
 function openDetailModal(id){
@@ -2738,6 +3535,7 @@ function closeModal(){
   m.classList.add('hidden');
   m.classList.remove('flex');
   currentEditingId = null;
+  currentEditingPlaceId = null;
   shiftTimeMode    = 'quick';
 }
 
@@ -4083,7 +4881,7 @@ function showToast(message){
   clearTimeout(toast._timer);
   toast._timer = setTimeout(function(){
     toast.style.opacity = '0';
-  }, 2500);
+  }, 2800);
 }
 
 /* =========================================================
