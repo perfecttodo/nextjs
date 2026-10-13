@@ -641,10 +641,29 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           </div>
           <div id="mileage-detail" class="text-[11px] text-slate-500 leading-relaxed"></div>
         </div>
+
+        <!-- ★ 新增：更次備註 -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+              <span class="ico w-3.5 h-3.5 text-amber-500" data-icon="edit-3"></span> 更次備註 (選填)
+            </label>
+            <button type="button" id="setting-note-clear-btn" onclick="clearSettingNote()"
+              class="text-[11px] px-2 py-0.5 rounded-full border font-medium transition bg-white text-rose-600 border-rose-200 hover:bg-rose-50 hidden">
+              清除
+            </button>
+          </div>
+          <input type="text" id="setting-note"
+            oninput="onSettingNoteInput()" onchange="saveSettings()"
+            placeholder="例如：早更、紅日、雨天、旺角開工、車輛保養..."
+            autocomplete="off"
+            class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+          <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">備註會跟隨此更次保存，方便日後回顧。</p>
+        </div>
       </div>
     </div>
 
-    <!-- ★★★ 合併卡片：利潤與統計（淺色風格） ★★★ -->
+    <!-- 合併卡片：利潤與統計（淺色風格） -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
       <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-combined')">
         <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5 min-w-0">
@@ -659,6 +678,12 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
       </div>
 
       <div class="space-y-3 border-t border-slate-100 pt-3" data-card-body="card-combined">
+
+        <!-- 更次備註顯示 -->
+        <div id="combined-shift-note-box" class="hidden bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-xs text-amber-800 flex items-start gap-1.5">
+          <span class="ico w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" data-icon="edit-3"></span>
+          <span id="combined-shift-note" class="leading-relaxed"></span>
+        </div>
 
         <!-- 時段選擇 -->
         <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
@@ -919,7 +944,8 @@ var trips         = JSON.parse(localStorage.getItem('taxi_trips')) || [];
 var shiftSettings = JSON.parse(localStorage.getItem('taxi_shift_settings')) || {};
 var DEFAULT_SHIFT = {
   startedAt: null, endedAt: null, startTime: '', endTime: '',
-  rental: 0, fuelEntries: [], mileage: { start: null, end: null }
+  rental: 0, fuelEntries: [], mileage: { start: null, end: null },
+  note: ''  /* ★ 新增更次備註 */
 };
 
 var activeTripType   = localStorage.getItem('taxi_last_type') || '街客';
@@ -942,7 +968,6 @@ var NOTE_TAGS = {
    B-0. 卡片折疊狀態
    ========================================================= */
 var CARD_STATES_KEY = 'taxi_card_states';
-/* ★ 合併後：card-net 與 card-stats 合成為 card-combined */
 var ALL_CARD_IDS = ['card-settings','card-combined','card-data'];
 
 function getCardStates(){
@@ -1057,6 +1082,8 @@ function ensureShiftFields(cfg){
   if (cfg.endedAt   === undefined) cfg.endedAt   = null;
   if (cfg.startTime === undefined) cfg.startTime = '';
   if (cfg.endTime   === undefined) cfg.endTime   = '';
+  /* ★ 新增：更次備註 */
+  if (cfg.note      === undefined) cfg.note      = '';
 
   if (!Array.isArray(cfg.fuelEntries)){
     var oldFuel = parseFloat(cfg.fuel) || 0;
@@ -1171,7 +1198,8 @@ function getSettingsByKey(key, createIfMissing){
       startedAt: null, endedAt: null, startTime: '', endTime: '',
       rental:      parseFloat(base.rental) || 0,
       fuelEntries: [],
-      mileage:     { start: null, end: null }
+      mileage:     { start: null, end: null },
+      note:        ''  /* ★ */
     };
     localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
   }
@@ -1197,7 +1225,8 @@ function getLastSettings(createIfMissing){
       fuelEntries: oldFuel > 0
         ? [{ id: 'fuel_legacy_' + Date.now(), amount: oldFuel, unitPrice: null, liters: null, station: '', timestamp: Date.now() }]
         : [],
-      mileage:   { start: null, end: null }
+      mileage:   { start: null, end: null },
+      note:      ''
     };
     localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
   }
@@ -1330,6 +1359,12 @@ function openShiftPickerModal(){
         wkDay = dd.toLocaleDateString('zh-HK', { weekday:'short' });
       }
 
+      /* 更次備註顯示 */
+      var noteLine = (cfg && cfg.note)
+        ? '<div class="text-[11px] text-amber-700 mt-0.5 truncate flex items-center gap-1">' +
+          ico('edit-3','w-3 h-3') + escapeHtml(cfg.note) + '</div>'
+        : '';
+
       html +=
         '<button type="button" onclick="selectManualShift(\'' + k + '\')" ' +
         'class="w-full text-left px-3 py-2.5 rounded-xl border-2 ' +
@@ -1342,6 +1377,7 @@ function openShiftPickerModal(){
               (isCurrent ? ' <span class="text-[10px] text-amber-600 font-bold">當前</span>' : '') +
             '</div>' +
             '<div class="text-[11px] text-slate-500 mt-0.5">' + timeRange + '　·　' + list.length + ' 筆</div>' +
+            noteLine +
           '</span>' +
           (isSelected ? '<span class="text-amber-600 font-bold shrink-0 text-base">✓</span>' : '') +
         '</button>';
@@ -1389,7 +1425,8 @@ function selectManualShift(key){
       startedAt: null, endedAt: null, startTime: '', endTime: '',
       rental:      parseFloat(base.rental) || 0,
       fuelEntries: [],
-      mileage:     { start: null, end: null }
+      mileage:     { start: null, end: null },
+      note:        ''
     };
     localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
   }
@@ -1509,7 +1546,6 @@ function renderQuickShiftTimePanel(){
 
   var html = '<div class="space-y-3">';
 
-  /* 更次日期 */
   html +=
     '<div class="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 flex justify-between items-center">' +
       '<span class="text-[11px] font-semibold text-amber-800 flex items-center gap-1.5">' +
@@ -1520,23 +1556,16 @@ function renderQuickShiftTimePanel(){
       '</span>' +
     '</div>';
 
-  /* 狀態 */
   html += '<div id="shift-status-panel"></div>';
-
-  /* 按鈕 */
   html += '<div id="shift-action-panel"></div>';
-
-  /* 工時詳情 */
   html += '<div id="shift-duration-panel"></div>';
 
-  /* ★ 手動模式入口 */
   html +=
     '<button type="button" onclick="switchShiftTimeMode(\'manual\')" ' +
     'class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 font-semibold rounded-xl transition flex items-center justify-center gap-1.5 text-xs border border-slate-200">' +
       '<span class="ico w-3.5 h-3.5" data-icon="edit-2"></span> 忘記打卡？手動輸入時間' +
     '</button>';
 
-  /* 說明 */
   html +=
     '<p class="text-[11px] text-slate-400 leading-relaxed">' +
       '※ 點「開工」記錄當前時間為開工時間<br>' +
@@ -1633,21 +1662,17 @@ function updateQuickShiftStatus(){
   }
 }
 
-/* ★ 切換到手動模式 */
 function switchShiftTimeMode(mode){
   shiftTimeMode = mode;
   renderShiftTimeModal();
 }
 
-/* ★ 手動輸入模式 */
 function renderManualShiftTimePanel(){
-  /* 默認選中：當前活動更次，或最後一更，或今天 */
   var activeKey = getActiveShiftKey();
   var lastKey   = getLastShiftKey();
   var targetKey = activeKey || lastKey || localDateStr(new Date());
   var cfg       = getSettingsByKey(targetKey, false);
 
-  /* 現有的開工/收工時間 */
   var startVal = '';
   var endVal   = '';
   if (cfg && cfg.startedAt){
@@ -1663,14 +1688,12 @@ function renderManualShiftTimePanel(){
 
   var html = '<div class="space-y-3">';
 
-  /* 說明 */
   html +=
     '<div class="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 text-[11px] text-amber-800 leading-relaxed flex items-start gap-1.5">' +
       '<span class="ico w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" data-icon="info"></span>' +
       '<span>用於補錄忘記打卡的更次。選擇日期並填入開工／收工時間即可。</span>' +
     '</div>';
 
-  /* 日期 */
   html +=
     '<div>' +
       '<label class="block text-xs font-semibold text-slate-600 mb-1">日期</label>' +
@@ -1679,7 +1702,6 @@ function renderManualShiftTimePanel(){
         'class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">' +
     '</div>';
 
-  /* 開工 / 收工 */
   html +=
     '<div class="grid grid-cols-2 gap-3">' +
       '<div>' +
@@ -1704,7 +1726,6 @@ function renderManualShiftTimePanel(){
       '</div>' +
     '</div>';
 
-  /* 快速填入按鈕 */
   html +=
     '<div class="grid grid-cols-2 gap-2">' +
       '<button type="button" onclick="fillManualOnlyStart()" ' +
@@ -1717,10 +1738,8 @@ function renderManualShiftTimePanel(){
       '</button>' +
     '</div>';
 
-  /* 預覽 */
   html += '<div id="manual-preview" class="bg-slate-100 rounded-xl px-3 py-2.5 text-xs text-slate-700"></div>';
 
-  /* 提示 */
   html +=
     '<p class="text-[11px] text-slate-400 leading-relaxed">' +
       '※ 收工留空 = 工作中<br>' +
@@ -1742,7 +1761,6 @@ function renderManualShiftTimePanel(){
   updateManualPreview();
 }
 
-/* ★ 手動模式：日期變更時，重新載入該日期的現有時間 */
 function onManualDateChange(){
   var dateEl = document.getElementById('manual-shift-date');
   if (!dateEl) return;
@@ -1768,7 +1786,6 @@ function onManualDateChange(){
   updateManualPreview();
 }
 
-/* ★ 手動模式：填入現在時間 */
 function setManualTimeNow(which){
   var id = which === 'start' ? 'manual-shift-start' : 'manual-shift-end';
   var el = document.getElementById(id);
@@ -1778,7 +1795,6 @@ function setManualTimeNow(which){
   updateManualPreview();
 }
 
-/* ★ 只填開工 */
 function fillManualOnlyStart(){
   var startEl = document.getElementById('manual-shift-start');
   var endEl   = document.getElementById('manual-shift-end');
@@ -1791,14 +1807,12 @@ function fillManualOnlyStart(){
   updateManualPreview();
 }
 
-/* ★ 清空收工時間 */
 function clearManualEnd(){
   var endEl = document.getElementById('manual-shift-end');
   if (endEl) endEl.value = '';
   updateManualPreview();
 }
 
-/* ★ 手動模式：即時預覽 */
 function updateManualPreview(){
   var previewEl = document.getElementById('manual-preview');
   var dateEl    = document.getElementById('manual-shift-date');
@@ -1816,7 +1830,6 @@ function updateManualPreview(){
     return;
   }
 
-  /* 計算 duration */
   var base = new Date(dateVal + 'T00:00:00');
   var sD = new Date(base);
   var sParts = s.split(':');
@@ -1828,7 +1841,7 @@ function updateManualPreview(){
     var eParts = e.split(':');
     eD.setHours(parseInt(eParts[0], 10), parseInt(eParts[1], 10), 0, 0);
     if (eD.getTime() <= sD.getTime()){
-      eD.setDate(eD.getDate() + 1); /* 跨日 */
+      eD.setDate(eD.getDate() + 1);
     }
   }
 
@@ -1851,7 +1864,6 @@ function updateManualPreview(){
     '</div>';
 }
 
-/* ★ 保存手動輸入 */
 function saveManualShiftTime(){
   var dateEl  = document.getElementById('manual-shift-date');
   var startEl = document.getElementById('manual-shift-start');
@@ -1871,7 +1883,6 @@ function saveManualShiftTime(){
     return;
   }
 
-  /* 檢查 active shift 衝突 */
   var activeKey = getActiveShiftKey();
   if (activeKey && activeKey !== dateVal && !e){
     if (!confirm('你目前在「' + activeKey + '」更次工作中。\n\n確定要在 ' + dateVal + ' 開啟新更次（不填收工時間）嗎？\n這會讓 ' + activeKey + ' 變為進行中狀態，並同時存在兩個進行中更次。')) return;
@@ -1879,7 +1890,6 @@ function saveManualShiftTime(){
 
   var cfg = getSettingsByKey(dateVal, true);
 
-  /* 設定 startedAt */
   var base = new Date(dateVal + 'T00:00:00');
   var sD = new Date(base);
   var sParts = s.split(':');
@@ -1887,7 +1897,6 @@ function saveManualShiftTime(){
   cfg.startedAt = sD.getTime();
   cfg.startTime = s;
 
-  /* 設定 endedAt（若有） */
   if (e){
     var eD = new Date(base);
     var eParts = e.split(':');
@@ -2691,19 +2700,17 @@ function openShiftHistoryModal(){
         return s + (c < 0 ? -c : 0);
       }, 0);
 
-      var fuelAvgPrice = null;
-      if (cfg.fuelEntries && cfg.fuelEntries.length){
-        var prices = cfg.fuelEntries
-          .map(function(e){ return parseFloat(e.unitPrice); })
-          .filter(function(p){ return !isNaN(p) && p > 0; });
-        if (prices.length){
-          fuelAvgPrice = prices.reduce(function(s,p){ return s + p; }, 0) / prices.length;
-        }
-      }
-
       var profitPerKm = (km && km > 0) ? (fin.profit / km) : null;
       var profitPerHour = (duration && duration > 0) ? (fin.profit / duration) : null;
       var fuelPerKm = (km && km > 0) ? (fin.fuel / km) : null;
+
+      /* ★ 更次備註 */
+      var noteHtml = (cfg && cfg.note)
+        ? '<div class="mt-1 pt-1 border-t border-slate-100 text-[11px] text-slate-600 leading-relaxed flex items-start gap-1">' +
+            '<span class="ico w-3 h-3 text-amber-500 mt-0.5 shrink-0">' + ico('edit-3','w-3 h-3') + '</span>' +
+            '<span class="truncate">' + escapeHtml(cfg.note) + '</span>' +
+          '</div>'
+        : '';
 
       html +=
         '<div class="border ' + (isLast ? 'border-amber-400 bg-amber-50/60' : 'border-slate-200 bg-white') +
@@ -2724,7 +2731,8 @@ function openShiftHistoryModal(){
               '</button>' +
             '</div>' +
           '</div>' +
-          '<div class="grid grid-cols-2 gap-y-1 text-[11px]">' +
+          noteHtml +
+          '<div class="grid grid-cols-2 gap-y-1 text-[11px] mt-1.5">' +
             '<span class="text-slate-500">營業額：<b class="text-emerald-700">$' + fin.gross.toFixed(1) + '</b></span>' +
             '<span class="text-slate-500">行程：<b class="text-slate-700">' + fin.list.length + ' 筆' +
               (fin.incomeCount + fin.expenseCount > 0
@@ -2859,6 +2867,14 @@ function openShiftEditModal(key){
           'class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-bold">' +
       '</div>' +
 
+      /* ★ 更次備註輸入 */
+      '<div>' +
+        '<label class="block text-xs font-semibold text-slate-600 mb-1">更次備註 (選填)</label>' +
+        '<input type="text" id="edit-shift-note" value="' + escapeHtml(cfg.note || '') + '" autocomplete="off" ' +
+          'placeholder="例如：早更、紅日、雨天..." ' +
+          'class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">' +
+      '</div>' +
+
       '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">' +
         '<div class="text-xs font-bold text-slate-700">行駛里程</div>' +
         '<div class="grid grid-cols-2 gap-2">' +
@@ -2918,6 +2934,7 @@ function readShiftEditForm(key){
   var startEl = document.getElementById('edit-shift-start');
   var endEl   = document.getElementById('edit-shift-end');
   var rentEl  = document.getElementById('edit-shift-rental');
+  var noteEl  = document.getElementById('edit-shift-note');
   var msEl    = document.getElementById('edit-shift-mileage-start');
   var meEl    = document.getElementById('edit-shift-mileage-end');
 
@@ -2953,6 +2970,9 @@ function readShiftEditForm(key){
   }
 
   cfg.rental = parseFloat(rentEl.value) || 0;
+
+  /* ★ 讀取更次備註 */
+  if (noteEl) cfg.note = noteEl.value.trim();
 
   var msVal = msEl.value === '' ? null : parseFloat(msEl.value);
   var meVal = meEl.value === '' ? null : parseFloat(meEl.value);
@@ -3088,7 +3108,7 @@ function deleteShift(key){
     '確定要刪除更次「' + key + '」嗎？\n\n' +
     '將一併刪除：\n' +
     '• ' + list.length + ' 筆行程紀錄\n' +
-    '• 該更次設定（含租車費、油費、里程、時間）\n\n' +
+    '• 該更次設定（含租車費、油費、里程、時間、備註）\n\n' +
     '此操作可於「數據管理」按「撤銷」還原。';
 
   if (!confirm(confirmMsg)) return;
@@ -3566,6 +3586,10 @@ function initSettingsForm(){
     document.getElementById('setting-fuel').value          = '0';
     document.getElementById('setting-mileage-start').value = '';
     document.getElementById('setting-mileage-end').value   = '';
+    /* ★ 清空更次備註 */
+    var settingNote = document.getElementById('setting-note');
+    if (settingNote) settingNote.value = '';
+    updateSettingNoteClearBtn();
 
     document.getElementById('current-shift-time-range').innerText = '';
 
@@ -3591,6 +3615,13 @@ function initSettingsForm(){
   document.getElementById('setting-mileage-end').value =
     (cfg.mileage && cfg.mileage.end   != null) ? cfg.mileage.end   : '';
 
+  /* ★ 更次備註 */
+  var settingNote = document.getElementById('setting-note');
+  if (settingNote && document.activeElement !== settingNote){
+    settingNote.value = cfg.note || '';
+  }
+  updateSettingNoteClearBtn();
+
   var timeRangeText;
   if (cfg.startedAt && cfg.endedAt){
     timeRangeText = (cfg.startTime || '--') + ' - ' + (cfg.endTime || '--');
@@ -3613,6 +3644,33 @@ function initSettingsForm(){
 
   updateMileagePanel(cfg);
   updateDateTimePreview();
+}
+
+/* ★ 更次備註：輸入時顯示/隱藏清除按鈕 */
+function onSettingNoteInput(){
+  updateSettingNoteClearBtn();
+}
+
+function updateSettingNoteClearBtn(){
+  var input = document.getElementById('setting-note');
+  var btn   = document.getElementById('setting-note-clear-btn');
+  if (!input || !btn) return;
+  if (input.value.trim()){
+    btn.classList.remove('hidden');
+  } else {
+    btn.classList.add('hidden');
+  }
+}
+
+/* ★ 清除更次備註 */
+function clearSettingNote(){
+  var input = document.getElementById('setting-note');
+  if (!input) return;
+  if (!input.value) return;
+  input.value = '';
+  updateSettingNoteClearBtn();
+  saveSettings();
+  input.focus();
 }
 
 function updateMileagePanel(cfg){
@@ -3655,6 +3713,10 @@ function saveSettings(){
     end:   (meVal === null || isNaN(meVal)) ? null : meVal
   };
 
+  /* ★ 更次備註 */
+  var settingNote = document.getElementById('setting-note');
+  if (settingNote) cfg.note = settingNote.value.trim();
+
   if (!Array.isArray(cfg.fuelEntries)) cfg.fuelEntries = [];
 
   shiftSettings[key] = cfg;
@@ -3667,7 +3729,7 @@ function saveSettings(){
   showToast('設定已保存');
 }
 
-/* ★ 時段切換按鈕（淺色風格，與整體風格一致） */
+/* ★ 時段切換按鈕 */
 function setStatsPeriod(period){
   statsPeriod = period;
   ['day','week','month'].forEach(function(p){
@@ -3705,13 +3767,11 @@ function shiftKeyInPeriod(key, period, now, currentShiftKey){
   return false;
 }
 
-/* ★ 工具：安全設定文字 */
 function setText(id, text){
   var el = document.getElementById(id);
   if (el) el.innerText = text;
 }
 
-/* ★ 工具：更新每公里指標（淺色風格） */
 function updateMileageMetrics(km, data){
   var metricKm         = document.getElementById('metric-mileage');
   var metricRevPerKm   = document.getElementById('metric-rev-per-km');
@@ -3734,7 +3794,6 @@ function updateMileageMetrics(km, data){
   }
 }
 
-/* ★ 工具：更新時效指標 */
 function updateDurationMetrics(duration, profit){
   var metricDuration      = document.getElementById('metric-duration');
   var metricProfitPerHour = document.getElementById('metric-profit-per-hour');
@@ -3753,15 +3812,29 @@ function updateDurationMetrics(duration, profit){
   }
 }
 
-/* ★ 最近一更視圖 */
+/* ★ 更新更次備註顯示（在利潤與統計卡片中） */
+function updateCombinedShiftNote(cfg){
+  var box = document.getElementById('combined-shift-note-box');
+  var textEl = document.getElementById('combined-shift-note');
+  if (!box || !textEl) return;
+
+  if (cfg && cfg.note && cfg.note.trim()){
+    box.classList.remove('hidden');
+    box.style.display = 'flex';
+    textEl.innerText = cfg.note.trim();
+  } else {
+    box.classList.add('hidden');
+    box.style.display = '';
+    textEl.innerText = '';
+  }
+}
+
 function renderDayStatsView(lastKey, lastCfg){
   var fin = getShiftFinance(lastKey);
 
-  // 標題 + 更次數
   setText('stats-period-title', '最近一更利潤（' + lastKey + '）');
   setText('stats-period-shift-count-badge', '1 更');
 
-  // 三格
   setText('net-gross', '$' + fin.gross.toFixed(1));
   setText('net-cost', '$' + fin.totalCost.toFixed(1));
   var profitElem = document.getElementById('net-profit');
@@ -3772,29 +3845,26 @@ function renderDayStatsView(lastKey, lastCfg){
       : 'text-base font-extrabold text-rose-600 mt-0.5 font-mono';
   }
 
-  // 成本明細
   setText('net-cost-breakdown',
     '租 $' + fin.rental.toFixed(1) +
     '　·　油 $' + fin.fuel.toFixed(1) +
     '　·　行程支出 $' + fin.expenseTrip.toFixed(1));
 
-  // 交易筆數
   setText('net-income-count', fin.incomeCount);
   setText('net-expense-count', fin.expenseCount);
 
-  // 每公里指標
   var km = lastCfg ? getShiftMileage(lastCfg) : null;
   updateMileageMetrics(km, fin);
 
-  // 時效指標
   var duration = lastCfg ? getShiftDuration(lastCfg) : null;
   updateDurationMetrics(duration, fin.profit);
 
-  // 顯示時效列
   var durRow = document.getElementById('duration-metrics-row');
   if (durRow) durRow.style.display = 'grid';
 
-  // 類型分布
+  /* ★ 顯示更次備註 */
+  updateCombinedShiftNote(lastCfg);
+
   var typeRev = { '街客':0, 'Uber':0, '其他':0 };
   fin.list.forEach(function(t){
     var v = parseFloat(t.fare) || 0;
@@ -3807,7 +3877,6 @@ function renderDayStatsView(lastKey, lastCfg){
   setText('stats-type-other',  '$' + typeRev['其他'].toFixed(1));
 }
 
-/* ★ 週 / 月視圖 */
 function renderPeriodStatsView(period, now, lastKey){
   var totalRev         = 0;
   var totalExpenseTrip = 0;
@@ -3848,12 +3917,10 @@ function renderPeriodStatsView(period, now, lastKey){
 
   var periodTotalCost = periodRental + periodFuel + totalExpenseTrip;
 
-  // 標題 + 更次數
   var titleMap = { week: '最近一星期利潤', month: '最近一個月利潤' };
   setText('stats-period-title', titleMap[period] || '期間利潤');
   setText('stats-period-shift-count-badge', periodShiftCount + ' 更');
 
-  // 三格
   setText('net-gross', '$' + totalRev.toFixed(1));
   setText('net-cost', '$' + periodTotalCost.toFixed(1));
   var profitElem = document.getElementById('net-profit');
@@ -3864,17 +3931,14 @@ function renderPeriodStatsView(period, now, lastKey){
       : 'text-base font-extrabold text-rose-600 mt-0.5 font-mono';
   }
 
-  // 成本明細
   setText('net-cost-breakdown',
     '租 $' + periodRental.toFixed(1) +
     '　·　油 $' + periodFuel.toFixed(1) +
     '　·　行程支出 $' + totalExpenseTrip.toFixed(1));
 
-  // 交易筆數
   setText('net-income-count', periodIncomeCount);
   setText('net-expense-count', periodExpenseCount);
 
-  // 每公里指標
   updateMileageMetrics(periodMileage, {
     gross: totalRev,
     profit: periodProfit,
@@ -3882,17 +3946,17 @@ function renderPeriodStatsView(period, now, lastKey){
     totalCost: periodTotalCost
   });
 
-  // 隱藏時效列（週 / 月無意義）
   var durRow = document.getElementById('duration-metrics-row');
   if (durRow) durRow.style.display = 'none';
 
-  // 類型分布
+  /* ★ 週/月模式隱藏更次備註（因為是多個更次） */
+  updateCombinedShiftNote(null);
+
   setText('stats-type-street', '$' + typeRev['街客'].toFixed(1));
   setText('stats-type-uber',   '$' + typeRev['Uber'].toFixed(1));
   setText('stats-type-other',  '$' + typeRev['其他'].toFixed(1));
 }
 
-/* ★ 主入口 */
 function updateStatsAndNet(){
   var now = new Date();
   updateTripCount();
@@ -3901,7 +3965,6 @@ function updateStatsAndNet(){
   var currentKey = getCurrentShiftKey();
   var lastCfg    = getLastSettings(false);
 
-  // 通用：更次標籤（僅當最後更次不是當前更次時顯示）
   var shiftTagEl = document.getElementById('net-shift-tag');
   if (shiftTagEl){
     if (lastKey !== currentKey){
@@ -3913,7 +3976,6 @@ function updateStatsAndNet(){
     }
   }
 
-  // 通用：最後更次時間範圍（卡片標題右側）
   var timeRangeText = '';
   if (lastCfg && lastCfg.startedAt){
     if (lastCfg.endedAt){
@@ -3924,7 +3986,6 @@ function updateStatsAndNet(){
   }
   setText('current-shift-time-range', timeRangeText);
 
-  // 同步更新「成本與設定」卡片中的資訊
   var badge = document.getElementById('current-shift-date-badge');
   if (badge) badge.innerText = lastKey;
 
@@ -3938,7 +3999,6 @@ function updateStatsAndNet(){
 
   updateMileagePanel(lastCfg);
 
-  // ★ 根據時段渲染
   if (statsPeriod === 'day'){
     renderDayStatsView(lastKey, lastCfg);
   } else {
