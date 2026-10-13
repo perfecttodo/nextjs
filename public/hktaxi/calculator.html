@@ -748,6 +748,10 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
 
       <div class="space-y-3 border-t border-slate-100 pt-3" data-card-body="card-combined">
 
+        <div id="combined-shift-note-box" class="hidden bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-xs text-amber-800 flex items-start gap-1.5">
+          <span class="ico w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" data-icon="edit-3"></span>
+          <span id="combined-shift-note" class="leading-relaxed"></span>
+        </div>
 
         <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
           <button type="button" onclick="setStatsPeriod('day')"   id="period-btn-day"   class="py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition font-bold">最近一更</button>
@@ -2883,44 +2887,37 @@ function renderPlacesList(){
   }).join('');
 }
 
-/* ★★★ 用高德 App 導航（優先喚起 App，失敗回退網頁） ★★★ */
+/* 用高德 App 導航（優先喚起 App，失敗回退網頁） */
 function openPlaceInMaps(id){
   var p = places.find(function(x){ return x.id === id; });
   if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
 
   var name = encodeURIComponent(p.name || '目的地');
 
-  /* 網頁版（回退用），coordinate=wgs84 讓高德自動把 GPS 座標轉成 GCJ-02 */
   var webUrl = 'https://uri.amap.com/navigation' +
                '?to=' + p.lng + ',' + p.lat + ',' + name +
                '&mode=car&policy=1&src=hk-taxi-helper&coordinate=wgs84&callnative=1';
 
-  /* 判斷是否流動裝置 */
   var ua = navigator.userAgent || '';
   var isMobile = /iPhone|iPad|iPod|Android|HarmonyOS|Mobile|Windows Phone/i.test(ua);
 
-  /* 桌面瀏覽器：直接開網頁版 */
   if (!isMobile){
     window.open(webUrl, '_blank');
     return;
   }
 
-  /* 流動裝置：優先嘗試喚起高德 App */
-  /* 高德通用 scheme：amapuri://route/plan/  dev=1 表示 WGS84，t=0 表示駕車 */
   var appScheme = 'amapuri://route/plan/' +
                   '?dlat=' + p.lat +
                   '&dlon=' + p.lng +
                   '&dname=' + name +
-                  '&dev=1' +           /* 1 = WGS84（高德內部自動轉 GCJ-02） */
-                  '&t=0';              /* 0 = 駕車路線 */
+                  '&dev=1' +
+                  '&t=0';
 
   var startTime = Date.now();
   var fallbackTriggered = false;
 
-  /* 若 2 秒內頁面仍在可見狀態 → 認為 App 未開啟 → 回退網頁版 */
   var fallbackTimer = setTimeout(function(){
     if (fallbackTriggered) return;
-    /* 頁面仍在可見（未被切到後台）才算喚起失敗 */
     if (!document.hidden && (Date.now() - startTime) < 3000){
       fallbackTriggered = true;
       window.location.href = webUrl;
@@ -2929,7 +2926,6 @@ function openPlaceInMaps(id){
     document.removeEventListener('pagehide', onPageHide);
   }, 2000);
 
-  /* 若頁面被切到後台 → 表示 App 成功開啟 → 取消回退 */
   function onVisibilityChange(){
     if (document.hidden){
       fallbackTriggered = true;
@@ -2945,18 +2941,16 @@ function openPlaceInMaps(id){
   document.addEventListener('visibilitychange', onVisibilityChange);
   window.addEventListener('pagehide', onPageHide, { once: true });
 
-  /* 嘗試打開 App scheme（用 location.href 讓 iOS/Android 都識別） */
   try {
     window.location.href = appScheme;
   } catch (err){
-    /* 出錯則直接回退網頁 */
     fallbackTriggered = true;
     clearTimeout(fallbackTimer);
     window.location.href = webUrl;
   }
 }
 
-/* ★ 附近地點切換 */
+/* 附近地點切換 */
 function toggleNearbyPlaces(){
   var btnText = document.getElementById('nearby-btn-text');
   var btn = document.getElementById('nearby-btn');
@@ -2999,8 +2993,9 @@ function toggleNearbyPlaces(){
   );
 }
 
-/* 新增地點彈窗 */
+/* ★★★ 新增地點彈窗（永遠以「新增」模式開啟） ★★★ */
 function openAddPlaceModal(){
+  /* 關鍵：先清空編輯狀態，避免殘留 */
   currentEditingPlaceId = null;
 
   var regionOptions = Object.keys(REGIONS).map(function(r){
@@ -3319,7 +3314,7 @@ function applyGeocodeResult(data){
   return matched;
 }
 
-/* 保存地點（新增 / 修改共用） */
+/* ★★★ 保存地點（新增 / 修改共用）—— 修復重複新增 ★★★ */
 function savePlace(){
   var nameEl     = document.getElementById('place-name');
   var regionEl   = document.getElementById('place-region');
@@ -3349,21 +3344,26 @@ function savePlace(){
   if (lat !== null && isNaN(lat)) lat = null;
   if (lng !== null && isNaN(lng)) lng = null;
 
-  if (currentEditingPlaceId){
-    var idx = places.findIndex(function(p){ return p.id === currentEditingPlaceId; });
-    if (idx !== -1){
-      places[idx].name = name;
-      places[idx].region = region;
-      places[idx].district = district;
-      places[idx].type = type;
-      places[idx].address = address;
-      places[idx].note = note;
-      places[idx].lat = lat;
-      places[idx].lng = lng;
-      places[idx].updatedAt = Date.now();
-    }
+  /* ★ 判斷是「編輯」還是「新增」：
+     只要 currentEditingPlaceId 有值，且該 id 確實存在於 places 中，就做更新，
+     否則一律做新增。這樣即使編輯時 id 丟失，也不會誤刪原本的資料。 */
+  var editId = currentEditingPlaceId;
+  var editIndex = editId ? places.findIndex(function(p){ return p.id === editId; }) : -1;
+
+  if (editId && editIndex !== -1){
+    /* ── 更新現有地點 ── */
+    places[editIndex].name = name;
+    places[editIndex].region = region;
+    places[editIndex].district = district;
+    places[editIndex].type = type;
+    places[editIndex].address = address;
+    places[editIndex].note = note;
+    places[editIndex].lat = lat;
+    places[editIndex].lng = lng;
+    places[editIndex].updatedAt = Date.now();
     showToast('地點已更新');
   } else {
+    /* ── 新增地點 ── */
     places.unshift({
       id: 'place_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
       name: name, region: region, district: district, type: type,
@@ -3374,19 +3374,30 @@ function savePlace(){
   }
 
   localStorage.setItem('taxi_places', JSON.stringify(places));
+
+  /* ★ 保存完成後才清空編輯狀態 */
   currentEditingPlaceId = null;
   closeModal();
   renderPlacesList();
 }
 
-/* 編輯地點 */
+/* ★★★ 編輯地點 —— 先開彈窗，再設定編輯 ID ★★★ */
 function openEditPlaceModal(id){
   var p = places.find(function(x){ return x.id === id; });
-  if (!p) return;
+  if (!p){
+    showToast('找不到此地點');
+    return;
+  }
 
-  currentEditingPlaceId = id;
+  /* 步驟 1：呼叫 openAddPlaceModal()，它會把 currentEditingPlaceId 設為 null，
+     並生成乾淨的空白表單。 */
   openAddPlaceModal();
 
+  /* 步驟 2：★ 在彈窗已生成後，才把 currentEditingPlaceId 設成要編輯的 id。
+     這樣 openAddPlaceModal 內部清空動作不會蓋掉它。 */
+  currentEditingPlaceId = id;
+
+  /* 步驟 3：把現有資料填入表單欄位 */
   document.getElementById('modal-title').innerText = '修改收藏地點';
   document.getElementById('place-name').value = p.name || '';
   document.getElementById('place-region').value = p.region || '';
