@@ -217,6 +217,8 @@ body{
 .text-blue-500{color:#3b82f6}
 .text-blue-600{color:#2563eb}
 .text-blue-700{color:#1d4ed8}
+.text-cyan-600{color:#0891b2}
+.text-cyan-700{color:#0e7490}
 .text-emerald-300{color:#6ee7b7}
 .text-emerald-400{color:#34d399}
 .text-emerald-600{color:#059669}
@@ -252,6 +254,8 @@ body{
 .bg-blue-500{background-color:#3b82f6}
 .bg-purple-50{background-color:#faf5ff}
 .bg-orange-50{background-color:#fff7ed}
+.bg-cyan-50{background-color:#ecfeff}
+.bg-cyan-100{background-color:#cffafe}
 .bg-emerald-500\/15{background-color:rgba(16,185,129,.15)}
 .bg-rose-500\/15{background-color:rgba(244,63,94,.15)}
 .bg-slate-800\/80{background-color:rgba(30,41,59,.8)}
@@ -291,6 +295,8 @@ body{
 .border-blue-300{border-color:#93c5fd}
 .border-orange-200{border-color:#fed7aa}
 .border-purple-200{border-color:#e9d5ff}
+.border-cyan-200{border-color:#a5f3fc}
+.border-cyan-300{border-color:#67e8f9}
 
 .rounded{border-radius:.25rem}
 .rounded-md{border-radius:.375rem}
@@ -742,10 +748,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
 
       <div class="space-y-3 border-t border-slate-100 pt-3" data-card-body="card-combined">
 
-        <div id="combined-shift-note-box" class="hidden bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-xs text-amber-800 flex items-start gap-1.5">
-          <span class="ico w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" data-icon="edit-3"></span>
-          <span id="combined-shift-note" class="leading-relaxed"></span>
-        </div>
 
         <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
           <button type="button" onclick="setStatsPeriod('day')"   id="period-btn-day"   class="py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition font-bold">最近一更</button>
@@ -981,6 +983,7 @@ const ICONS = {
   'utensils':'<path d="M4 2v7c0 1.1.9 2 2 2h3V2M7 11v11M17 2c-1.5 0-3 2.2-3 5s1.5 5 3 5v9"/>',
   'toilet':'<circle cx="9" cy="5.5" r="1.8"/><path d="M6.5 9h5v4.5a2.5 2.5 0 0 1-5 0V9z"/><path d="M9 16v5"/><circle cx="16" cy="5.5" r="1.8"/><path d="M14 9h4l-0.5 4h-3L14 9z"/><path d="M16 13v8"/>',
   'star':'<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>',
+  'fuel':'<path d="M3 22V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M3 10h12"/><path d="M13 6h2l3 3v10a2 2 0 0 1-4 0v-4h-1"/><path d="M6 14h6"/>',
   'crosshair':'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
   'loader':'<path d="M21 12a9 9 0 1 1-6.219-8.56"/>'
 };
@@ -1014,15 +1017,13 @@ var DEFAULT_SHIFT = {
   note: ''
 };
 
-/* ★ 地點分類常數 */
 var REGIONS = {
   '港島': ['中西區', '灣仔區', '東區', '南區'],
   '九龍': ['油尖旺區', '深水埗區', '九龍城區', '黃大仙區', '觀塘區'],
   '新界': ['元朗區', '屯門區', '沙田區', '大埔區', '北區', '西貢區', '葵青區', '荃灣區', '離島區']
 };
-var PLACE_TYPES = ['餐廳', '的士站', '廁所', '重要', '其他'];
+var PLACE_TYPES = ['餐廳', '的士站', '廁所', '氣站', '重要', '其他'];
 
-/* ★ 分區關鍵字對照表（用於逆向地理編碼自動匹配） */
 var DISTRICT_KEYWORDS = {
   '中西區': ['central and western', 'central & western', '中西區', '中環', '上環', '西環', '西營盤', '半山', '山頂', '金鐘', '石塘咀', '堅尼地城'],
   '灣仔區': ['wan chai', '灣仔', '銅鑼灣', '跑馬地', '大坑', '掃桿埔', '天后'],
@@ -1052,7 +1053,6 @@ function getRegionByDistrict(district){
   return null;
 }
 
-/* ★ 地點篩選狀態 */
 var placeFilterRegion   = '';
 var placeFilterDistrict = '';
 var placeFilterType     = '';
@@ -2762,6 +2762,7 @@ function getPlaceTypeStyle(type){
     case '餐廳':   return { cls:'bg-orange-50 text-orange-700 border-orange-200',  icon:'utensils' };
     case '的士站': return { cls:'bg-blue-50 text-blue-700 border-blue-200',        icon:'car-taxi-front' };
     case '廁所':   return { cls:'bg-emerald-50 text-emerald-700 border-emerald-200', icon:'toilet' };
+    case '氣站':   return { cls:'bg-cyan-50 text-cyan-700 border-cyan-200',        icon:'fuel' };
     case '重要':   return { cls:'bg-rose-50 text-rose-700 border-rose-200',        icon:'star' };
     default:       return { cls:'bg-purple-50 text-purple-700 border-purple-200',  icon:'map-pin' };
   }
@@ -2872,7 +2873,7 @@ function renderPlacesList(){
           '</div>' +
           '<div class="flex items-center gap-0.5 shrink-0">' +
             (hasCoords
-              ? '<button onclick="openPlaceInMaps(\'' + p.id + '\')" class="p-2 text-slate-400 hover:text-blue-500 transition" title="用高德地圖導航">' + ico('navigation','w-4 h-4') + '</button>'
+              ? '<button onclick="openPlaceInMaps(\'' + p.id + '\')" class="p-2 text-slate-400 hover:text-blue-500 transition" title="用高德 App 導航">' + ico('navigation','w-4 h-4') + '</button>'
               : '') +
             '<button onclick="openEditPlaceModal(\'' + p.id + '\')" class="p-2 text-slate-400 hover:text-amber-500 transition" title="編輯">' + ico('edit-3','w-4 h-4') + '</button>' +
             '<button onclick="deletePlace(\'' + p.id + '\')" class="p-2 text-slate-400 hover:text-rose-500 transition" title="刪除">' + ico('trash-2','w-4 h-4') + '</button>' +
@@ -2882,21 +2883,77 @@ function renderPlacesList(){
   }).join('');
 }
 
-/* ★ 用高德地圖導航到該地點
-   高德 URI API：https://uri.amap.com/navigation
-   參數：to=經度,緯度,名稱  mode=car  coordinate=wgs84（讓高德自動把 WGS84 轉成 GCJ-02）
-   callnative=1 → 手機上會優先調起高德 App
-*/
+/* ★★★ 用高德 App 導航（優先喚起 App，失敗回退網頁） ★★★ */
 function openPlaceInMaps(id){
   var p = places.find(function(x){ return x.id === id; });
   if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
 
   var name = encodeURIComponent(p.name || '目的地');
-  var url = 'https://uri.amap.com/navigation' +
-            '?to=' + p.lng + ',' + p.lat + ',' + name +
-            '&mode=car&policy=1&src=hk-taxi-helper&coordinate=wgs84&callnative=1';
 
-  window.open(url, '_blank');
+  /* 網頁版（回退用），coordinate=wgs84 讓高德自動把 GPS 座標轉成 GCJ-02 */
+  var webUrl = 'https://uri.amap.com/navigation' +
+               '?to=' + p.lng + ',' + p.lat + ',' + name +
+               '&mode=car&policy=1&src=hk-taxi-helper&coordinate=wgs84&callnative=1';
+
+  /* 判斷是否流動裝置 */
+  var ua = navigator.userAgent || '';
+  var isMobile = /iPhone|iPad|iPod|Android|HarmonyOS|Mobile|Windows Phone/i.test(ua);
+
+  /* 桌面瀏覽器：直接開網頁版 */
+  if (!isMobile){
+    window.open(webUrl, '_blank');
+    return;
+  }
+
+  /* 流動裝置：優先嘗試喚起高德 App */
+  /* 高德通用 scheme：amapuri://route/plan/  dev=1 表示 WGS84，t=0 表示駕車 */
+  var appScheme = 'amapuri://route/plan/' +
+                  '?dlat=' + p.lat +
+                  '&dlon=' + p.lng +
+                  '&dname=' + name +
+                  '&dev=1' +           /* 1 = WGS84（高德內部自動轉 GCJ-02） */
+                  '&t=0';              /* 0 = 駕車路線 */
+
+  var startTime = Date.now();
+  var fallbackTriggered = false;
+
+  /* 若 2 秒內頁面仍在可見狀態 → 認為 App 未開啟 → 回退網頁版 */
+  var fallbackTimer = setTimeout(function(){
+    if (fallbackTriggered) return;
+    /* 頁面仍在可見（未被切到後台）才算喚起失敗 */
+    if (!document.hidden && (Date.now() - startTime) < 3000){
+      fallbackTriggered = true;
+      window.location.href = webUrl;
+    }
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    document.removeEventListener('pagehide', onPageHide);
+  }, 2000);
+
+  /* 若頁面被切到後台 → 表示 App 成功開啟 → 取消回退 */
+  function onVisibilityChange(){
+    if (document.hidden){
+      fallbackTriggered = true;
+      clearTimeout(fallbackTimer);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      document.removeEventListener('pagehide', onPageHide);
+    }
+  }
+  function onPageHide(){
+    fallbackTriggered = true;
+    clearTimeout(fallbackTimer);
+  }
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  window.addEventListener('pagehide', onPageHide, { once: true });
+
+  /* 嘗試打開 App scheme（用 location.href 讓 iOS/Android 都識別） */
+  try {
+    window.location.href = appScheme;
+  } catch (err){
+    /* 出錯則直接回退網頁 */
+    fallbackTriggered = true;
+    clearTimeout(fallbackTimer);
+    window.location.href = webUrl;
+  }
 }
 
 /* ★ 附近地點切換 */
@@ -2956,7 +3013,6 @@ function openAddPlaceModal(){
 
   var html = '<div class="space-y-3 text-sm">' +
 
-    /* ★ 自動填寫按鈕 */
     '<button type="button" id="place-autofill-btn" onclick="autoFillPlaceByLocation()" ' +
       'class="w-full py-2.5 bg-blue-50 hover:bg-blue-100 active:scale-[0.98] text-blue-700 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 border border-blue-200">' +
       '<span class="ico w-3.5 h-3.5" data-icon="navigation"></span> 使用當前位置自動填寫' +
@@ -3025,7 +3081,7 @@ function openAddPlaceModal(){
             'class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">' +
         '</div>' +
       '</div>' +
-      '<p class="text-[11px] text-slate-400 leading-relaxed">填入座標後，點「附近地點」即可按距離排序；點列表的 <span class="ico w-3 h-3 align-middle" style="display:inline-flex;vertical-align:middle">' + ico('navigation','w-3 h-3') + '</span> 即用高德地圖導航。</p>' +
+      '<p class="text-[11px] text-slate-400 leading-relaxed">填入座標後，點列表的 <span class="ico w-3 h-3 align-middle" style="display:inline-flex;vertical-align:middle">' + ico('navigation','w-3 h-3') + '</span> 即用高德 App 導航（手機）。</p>' +
     '</div>' +
 
   '</div>';
@@ -3059,7 +3115,7 @@ function onPlaceRegionChange(){
     }).join('');
 }
 
-/* ★ 只填入座標（不解析地址） */
+/* 只填入座標（不解析地址） */
 function useCurrentLocationForPlace(){
   if (!navigator.geolocation){
     showToast('此瀏覽器不支援定位功能');
@@ -3081,7 +3137,7 @@ function useCurrentLocationForPlace(){
   );
 }
 
-/* ★★ 自動填寫按鈕：定位 + 逆向地理編碼 + 自動填寫所有欄位 ★★ */
+/* 自動填寫按鈕：定位 + 逆向地理編碼 + 自動填寫所有欄位 */
 function autoFillPlaceByLocation(){
   var btn = document.getElementById('place-autofill-btn');
 
@@ -3090,7 +3146,6 @@ function autoFillPlaceByLocation(){
     return;
   }
 
-  /* 按鈕切換為載入中 */
   if (btn){
     btn.disabled = true;
     btn.classList.remove('bg-blue-50','hover:bg-blue-100','text-blue-700','border-blue-200');
@@ -3106,13 +3161,11 @@ function autoFillPlaceByLocation(){
       var lng = pos.coords.longitude;
       var accuracy = pos.coords.accuracy || 0;
 
-      /* 先填座標 */
       var latEl = document.getElementById('place-lat');
       var lngEl = document.getElementById('place-lng');
       if (latEl) latEl.value = lat.toFixed(6);
       if (lngEl) lngEl.value = lng.toFixed(6);
 
-      /* 呼叫逆地理編碼 */
       reverseGeocode(lat, lng, function(err, data){
         resetAutoFillButton();
         if (err){
@@ -3143,14 +3196,13 @@ function resetAutoFillButton(){
   btn.classList.remove('bg-blue-100','text-blue-600','border-blue-300','cursor-wait');
   btn.classList.add('bg-blue-50','hover:bg-blue-100','text-blue-700','border-blue-200');
   btn.innerHTML = '<span class="ico w-3.5 h-3.5" data-icon="navigation"></span> 使用當前位置自動填寫';
-  /* 重置 done 標記以便重新注入 */
   btn.querySelectorAll('[data-icon]').forEach(function(el){
     el.dataset.done = '';
   });
   hydrateIcons(btn);
 }
 
-/* ★ 呼叫 Nominatim 逆地理編碼 */
+/* 呼叫 Nominatim 逆地理編碼 */
 function reverseGeocode(lat, lng, callback){
   var url = 'https://nominatim.openstreetmap.org/reverse' +
             '?format=jsonv2&lat=' + lat + '&lon=' + lng +
@@ -3190,7 +3242,7 @@ function reverseGeocode(lat, lng, callback){
   });
 }
 
-/* ★ 從 Nominatim 結果匹配香港 18 區 */
+/* 從 Nominatim 結果匹配香港 18 區 */
 function matchDistrictFromAddress(addr){
   var hay = [
     addr.state || '',
@@ -3218,11 +3270,10 @@ function matchDistrictFromAddress(addr){
   return null;
 }
 
-/* ★ 將解析結果寫入表單，回傳是否匹配到分區 */
+/* 將解析結果寫入表單 */
 function applyGeocodeResult(data){
   var addr = data.address || {};
 
-  /* 1. 地址 */
   var addressEl = document.getElementById('place-address');
   if (addressEl){
     var parts = [];
@@ -3238,7 +3289,6 @@ function applyGeocodeResult(data){
     }
   }
 
-  /* 2. 名稱（若空） */
   var nameEl = document.getElementById('place-name');
   if (nameEl && !nameEl.value.trim()){
     var autoName = addr.amenity || addr.shop || addr.building ||
@@ -3247,7 +3297,6 @@ function applyGeocodeResult(data){
     if (autoName) nameEl.value = autoName;
   }
 
-  /* 3. 分區與區域 */
   var district = matchDistrictFromAddress(addr);
   var region = getRegionByDistrict(district);
   var matched = false;
@@ -3258,7 +3307,6 @@ function applyGeocodeResult(data){
       regionEl.value = region;
       onPlaceRegionChange();
     }
-    /* 等 select 重建完成後再設定 district */
     setTimeout(function(){
       if (district){
         var districtEl = document.getElementById('place-district');
@@ -3266,12 +3314,6 @@ function applyGeocodeResult(data){
       }
     }, 0);
     matched = true;
-  }
-
-  /* 4. 備註（若空且返回 suburb 等細節可作提示） */
-  var noteEl = document.getElementById('place-note');
-  if (noteEl && !noteEl.value.trim() && addr.suburb && addr.suburb !== district){
-    /* 這裡不強制填，只保留給用戶參考 */
   }
 
   return matched;
