@@ -262,6 +262,7 @@ body{
 .border-slate-300{border-color:#cbd5e1}
 .border-slate-700\/50{border-color:rgba(51,65,85,.5)}
 .border-slate-700\/60{border-color:rgba(51,65,85,.6)}
+.border-slate-700\/40{border-color:rgba(51,65,85,.4)}
 .border-amber-100{border-color:#fef3c7}
 .border-amber-200{border-color:#fde68a}
 .border-amber-200\/60{border-color:rgba(253,230,138,.6)}
@@ -687,20 +688,34 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           </div>
         </div>
 
-        <div id="mileage-metrics" class="border-t border-slate-700/60 pt-2 grid grid-cols-3 gap-2 text-center text-[11px]">
-          <div>
-            <div class="text-white/60">行駛里程</div>
-            <div id="metric-mileage" class="text-white font-bold font-mono mt-0.5">-- km</div>
+        <!-- ★ 每公里指標（新增每公里油費、每公里成本） -->
+        <div id="mileage-metrics" class="border-t border-slate-700/60 pt-2 space-y-2 text-center text-[11px]">
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <div class="text-white/60">行駛里程</div>
+              <div id="metric-mileage" class="text-white font-bold font-mono mt-0.5">-- km</div>
+            </div>
+            <div>
+              <div class="text-white/60">每公里收入</div>
+              <div id="metric-rev-per-km" class="text-amber-300 font-bold font-mono mt-0.5">--</div>
+            </div>
+            <div>
+              <div class="text-white/60">每公里淨利</div>
+              <div id="metric-profit-per-km" class="text-amber-400 font-extrabold font-mono mt-0.5">--</div>
+            </div>
           </div>
-          <div>
-            <div class="text-white/60">每公里收入</div>
-            <div id="metric-rev-per-km" class="text-amber-300 font-bold font-mono mt-0.5">--</div>
-          </div>
-          <div>
-            <div class="text-white/60">每公里淨利</div>
-            <div id="metric-profit-per-km" class="text-amber-400 font-extrabold font-mono mt-0.5">--</div>
+          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/40">
+            <div>
+              <div class="text-white/60">每公里油費</div>
+              <div id="metric-fuel-per-km" class="text-rose-400 font-bold font-mono mt-0.5">--</div>
+            </div>
+            <div>
+              <div class="text-white/60">每公里成本</div>
+              <div id="metric-cost-per-km" class="text-rose-400 font-bold font-mono mt-0.5">--</div>
+            </div>
           </div>
         </div>
+
         <div class="border-t border-slate-700/60 pt-2 grid grid-cols-2 gap-2 text-center text-[11px]">
           <div>
             <div class="text-white/60">更次時長</div>
@@ -2736,6 +2751,8 @@ function openShiftHistoryModal(){
 
       var profitPerKm = (km && km > 0) ? (fin.profit / km) : null;
       var profitPerHour = (duration && duration > 0) ? (fin.profit / duration) : null;
+      /* ★ 新增：每公里油費 */
+      var fuelPerKm = (km && km > 0) ? (fin.fuel / km) : null;
 
       html +=
         '<div class="border ' + (isLast ? 'border-amber-400 bg-amber-50/60' : 'border-slate-200 bg-white') +
@@ -2773,6 +2790,10 @@ function openShiftHistoryModal(){
               (km !== null ? km.toFixed(1) + ' km' : '未填') + '</b></span>' +
             '<span class="text-slate-500">時長：<b class="text-slate-700">' +
               (duration !== null ? duration.toFixed(1) + ' 小時' : '未設定') + '</b></span>' +
+            '<span class="text-slate-500">每公里油費：<b class="text-rose-600">' +
+              (fuelPerKm !== null ? '$' + fuelPerKm.toFixed(2) + '/km' : '--') + '</b></span>' +
+            '<span class="text-slate-500">每公里成本：<b class="text-rose-600">' +
+              (km && km > 0 ? '$' + (fin.totalCost / km).toFixed(2) + '/km' : '--') + '</b></span>' +
           '</div>' +
           (unpaidTotal > 0
             ? '<div class="mt-1 pt-1 text-[11px] text-rose-600 font-semibold flex items-center gap-1">' +
@@ -3793,19 +3814,26 @@ function updateStatsAndNet(){
     fuelInput.value = lastCfg ? fin.fuel : '0';
   }
 
+  /* ★ 每公里指標（含新增：每公里油費、每公里成本） */
   var km = lastCfg ? getShiftMileage(lastCfg) : null;
-  var metricKm        = document.getElementById('metric-mileage');
-  var metricRevPerKm  = document.getElementById('metric-rev-per-km');
-  var metricProfPerKm = document.getElementById('metric-profit-per-km');
+  var metricKm         = document.getElementById('metric-mileage');
+  var metricRevPerKm   = document.getElementById('metric-rev-per-km');
+  var metricProfPerKm  = document.getElementById('metric-profit-per-km');
+  var metricFuelPerKm  = document.getElementById('metric-fuel-per-km');
+  var metricCostPerKm  = document.getElementById('metric-cost-per-km');
 
   if (!km || km <= 0){
-    metricKm.innerText = '-- km';
-    metricRevPerKm.innerText = '--';
-    metricProfPerKm.innerText = '--';
+    if (metricKm)        metricKm.innerText        = '-- km';
+    if (metricRevPerKm)  metricRevPerKm.innerText  = '--';
+    if (metricProfPerKm) metricProfPerKm.innerText = '--';
+    if (metricFuelPerKm) metricFuelPerKm.innerText = '--';
+    if (metricCostPerKm) metricCostPerKm.innerText = '--';
   } else {
-    metricKm.innerText = km.toFixed(1) + ' km';
-    metricRevPerKm.innerText  = '$' + (fin.gross / km).toFixed(2);
-    metricProfPerKm.innerText = '$' + (fin.profit / km).toFixed(2);
+    if (metricKm)        metricKm.innerText        = km.toFixed(1) + ' km';
+    if (metricRevPerKm)  metricRevPerKm.innerText  = '$' + (fin.gross / km).toFixed(2);
+    if (metricProfPerKm) metricProfPerKm.innerText = '$' + (fin.profit / km).toFixed(2);
+    if (metricFuelPerKm) metricFuelPerKm.innerText = '$' + (fin.fuel / km).toFixed(2);
+    if (metricCostPerKm) metricCostPerKm.innerText = '$' + (fin.totalCost / km).toFixed(2);
   }
 
   var duration = lastCfg ? getShiftDuration(lastCfg) : null;
