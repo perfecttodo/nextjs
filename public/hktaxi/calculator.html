@@ -642,7 +642,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           <div id="mileage-detail" class="text-[11px] text-slate-500 leading-relaxed"></div>
         </div>
 
-        <!-- ★ 新增：更次備註 -->
+        <!-- 更次備註 -->
         <div>
           <div class="flex justify-between items-center mb-1">
             <label class="block text-xs font-semibold text-slate-600 flex items-center gap-1.5">
@@ -945,7 +945,7 @@ var shiftSettings = JSON.parse(localStorage.getItem('taxi_shift_settings')) || {
 var DEFAULT_SHIFT = {
   startedAt: null, endedAt: null, startTime: '', endTime: '',
   rental: 0, fuelEntries: [], mileage: { start: null, end: null },
-  note: ''  /* ★ 新增更次備註 */
+  note: ''
 };
 
 var activeTripType   = localStorage.getItem('taxi_last_type') || '街客';
@@ -956,7 +956,6 @@ var lastDeletedShiftSettings = null;
 var fareSign         = 1;
 var noteTagsOpen     = false;
 var manualShiftKey   = null;
-/* ★ 手動模式 vs 快速模式 */
 var shiftTimeMode    = 'quick';
 
 var NOTE_TAGS = {
@@ -1022,14 +1021,12 @@ function toLocalISOString(d){
          sign + tzHH + ':' + tzMM;
 }
 
-/* ★ 保存行程時的更次歸屬 */
 function calcShiftDate(timestamp, cfg){
   var activeKey = getActiveShiftKey();
   if (activeKey) return activeKey;
   return localDateStr(new Date(timestamp));
 }
 
-/* ★ 活動更次（有 startedAt 無 endedAt） */
 function getActiveShiftKey(){
   var keys = Object.keys(shiftSettings).sort().reverse();
   for (var i = 0; i < keys.length; i++){
@@ -1064,7 +1061,6 @@ function getCurrentShiftKey(){
   return localDateStr(new Date());
 }
 
-/* ★ 狀態 */
 function getShiftStatus(){
   var activeKey = getActiveShiftKey();
   if (activeKey) return 'working';
@@ -1082,7 +1078,6 @@ function ensureShiftFields(cfg){
   if (cfg.endedAt   === undefined) cfg.endedAt   = null;
   if (cfg.startTime === undefined) cfg.startTime = '';
   if (cfg.endTime   === undefined) cfg.endTime   = '';
-  /* ★ 新增：更次備註 */
   if (cfg.note      === undefined) cfg.note      = '';
 
   if (!Array.isArray(cfg.fuelEntries)){
@@ -1199,7 +1194,7 @@ function getSettingsByKey(key, createIfMissing){
       rental:      parseFloat(base.rental) || 0,
       fuelEntries: [],
       mileage:     { start: null, end: null },
-      note:        ''  /* ★ */
+      note:        ''
     };
     localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
   }
@@ -1359,7 +1354,6 @@ function openShiftPickerModal(){
         wkDay = dd.toLocaleDateString('zh-HK', { weekday:'short' });
       }
 
-      /* 更次備註顯示 */
       var noteLine = (cfg && cfg.note)
         ? '<div class="text-[11px] text-amber-700 mt-0.5 truncate flex items-center gap-1">' +
           ico('edit-3','w-3 h-3') + escapeHtml(cfg.note) + '</div>'
@@ -1530,7 +1524,7 @@ function renderShiftTimeModal(){
   }
 }
 
-/* ★ 快速模式：開工 / 收工按鈕 + 手動輸入入口 */
+/* ★ 快速模式：開工 / 收工按鈕 + 手動輸入入口 + 備註編輯 */
 function renderQuickShiftTimePanel(){
   var activeKey = getActiveShiftKey();
   var lastKey   = getLastShiftKey();
@@ -1546,6 +1540,7 @@ function renderQuickShiftTimePanel(){
 
   var html = '<div class="space-y-3">';
 
+  /* 更次日期 */
   html +=
     '<div class="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 flex justify-between items-center">' +
       '<span class="text-[11px] font-semibold text-amber-800 flex items-center gap-1.5">' +
@@ -1556,16 +1551,39 @@ function renderQuickShiftTimePanel(){
       '</span>' +
     '</div>';
 
+  /* 狀態 */
   html += '<div id="shift-status-panel"></div>';
+
+  /* 按鈕 */
   html += '<div id="shift-action-panel"></div>';
+
+  /* 工時詳情 */
   html += '<div id="shift-duration-panel"></div>';
 
+  /* ★ 更次備註編輯 */
+  html +=
+    '<div class="border-t border-slate-200 pt-3">' +
+      '<label class="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5">' +
+        '<span class="ico w-3.5 h-3.5 text-amber-500" data-icon="edit-3"></span> 更次備註 (選填)' +
+      '</label>' +
+      '<div class="flex gap-1.5">' +
+        '<input type="text" id="quick-shift-note" autocomplete="off" ' +
+          'placeholder="例如：早更、紅日、雨天、旺角開工..." ' +
+          'class="flex-1 min-w-0 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">' +
+        '<button type="button" onclick="saveQuickShiftNote()" ' +
+          'class="px-3 py-2 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-900 font-bold rounded-xl text-xs transition shrink-0">保存</button>' +
+      '</div>' +
+      '<p class="text-[11px] text-slate-400 mt-1 leading-relaxed">備註會跟隨此更次保存，日後可在歷史更次中查看。</p>' +
+    '</div>';
+
+  /* 手動模式入口 */
   html +=
     '<button type="button" onclick="switchShiftTimeMode(\'manual\')" ' +
     'class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 font-semibold rounded-xl transition flex items-center justify-center gap-1.5 text-xs border border-slate-200">' +
       '<span class="ico w-3.5 h-3.5" data-icon="edit-2"></span> 忘記打卡？手動輸入時間' +
     '</button>';
 
+  /* 說明 */
   html +=
     '<p class="text-[11px] text-slate-400 leading-relaxed">' +
       '※ 點「開工」記錄當前時間為開工時間<br>' +
@@ -1660,6 +1678,40 @@ function updateQuickShiftStatus(){
   } else {
     durP.innerHTML = '';
   }
+
+  /* ★ 更新快速模式備註輸入框（避免覆蓋用戶正在輸入的內容） */
+  var quickNoteEl = document.getElementById('quick-shift-note');
+  if (quickNoteEl && document.activeElement !== quickNoteEl){
+    quickNoteEl.value = (cfg && cfg.note) ? cfg.note : '';
+  }
+}
+
+/* ★ 快速模式：保存備註 */
+function saveQuickShiftNote(){
+  var noteEl = document.getElementById('quick-shift-note');
+  if (!noteEl) return;
+
+  var note = noteEl.value.trim();
+  var activeKey = getActiveShiftKey();
+  var lastKey   = getLastShiftKey();
+  var targetKey = activeKey || lastKey;
+
+  if (!targetKey){
+    showToast('請先開工或建立更次');
+    return;
+  }
+
+  var cfg = getSettingsByKey(targetKey, true);
+  cfg.note = note;
+  shiftSettings[targetKey] = cfg;
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+
+  /* 同步更新其他介面 */
+  initSettingsForm();
+  updateStatsAndNet();
+  renderTripList();
+
+  showToast(note ? '更次備註已保存' : '更次備註已清除');
 }
 
 function switchShiftTimeMode(mode){
@@ -1667,6 +1719,7 @@ function switchShiftTimeMode(mode){
   renderShiftTimeModal();
 }
 
+/* ★ 手動輸入模式（含備註編輯） */
 function renderManualShiftTimePanel(){
   var activeKey = getActiveShiftKey();
   var lastKey   = getLastShiftKey();
@@ -1683,6 +1736,7 @@ function renderManualShiftTimePanel(){
     var e = new Date(cfg.endedAt);
     endVal = pad2(e.getHours()) + ':' + pad2(e.getMinutes());
   }
+  var noteVal = (cfg && cfg.note) ? cfg.note : '';
 
   var todayStr = localDateStr(new Date());
 
@@ -1724,6 +1778,19 @@ function renderManualShiftTimePanel(){
             'class="px-2 py-1 text-[11px] bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded-lg transition shrink-0">現在</button>' +
         '</div>' +
       '</div>' +
+    '</div>';
+
+  /* ★ 手動模式更次備註輸入 */
+  html +=
+    '<div>' +
+      '<label class="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5">' +
+        '<span class="ico w-3.5 h-3.5 text-amber-500" data-icon="edit-3"></span> 更次備註 (選填)' +
+      '</label>' +
+      '<input type="text" id="manual-shift-note" autocomplete="off" ' +
+        'value="' + escapeHtml(noteVal) + '" ' +
+        'placeholder="例如：早更、紅日、雨天、旺角開工..." ' +
+        'class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">' +
+      '<p class="text-[11px] text-slate-400 mt-1 leading-relaxed">備註會跟隨時段一起保存。</p>' +
     '</div>';
 
   html +=
@@ -1769,6 +1836,7 @@ function onManualDateChange(){
 
   var startEl = document.getElementById('manual-shift-start');
   var endEl   = document.getElementById('manual-shift-end');
+  var noteEl  = document.getElementById('manual-shift-note');
 
   if (cfg && cfg.startedAt){
     var s = new Date(cfg.startedAt);
@@ -1781,6 +1849,10 @@ function onManualDateChange(){
     endEl.value = pad2(e.getHours()) + ':' + pad2(e.getMinutes());
   } else {
     endEl.value = '';
+  }
+  /* ★ 同步更新備註 */
+  if (noteEl){
+    noteEl.value = (cfg && cfg.note) ? cfg.note : '';
   }
 
   updateManualPreview();
@@ -1868,6 +1940,7 @@ function saveManualShiftTime(){
   var dateEl  = document.getElementById('manual-shift-date');
   var startEl = document.getElementById('manual-shift-start');
   var endEl   = document.getElementById('manual-shift-end');
+  var noteEl  = document.getElementById('manual-shift-note');
   if (!dateEl || !startEl || !endEl) return;
 
   var dateVal = dateEl.value;
@@ -1910,6 +1983,9 @@ function saveManualShiftTime(){
     cfg.endedAt = null;
     cfg.endTime = '';
   }
+
+  /* ★ 保存備註 */
+  if (noteEl) cfg.note = noteEl.value.trim();
 
   shiftSettings[dateVal] = cfg;
   localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
@@ -2704,7 +2780,6 @@ function openShiftHistoryModal(){
       var profitPerHour = (duration && duration > 0) ? (fin.profit / duration) : null;
       var fuelPerKm = (km && km > 0) ? (fin.fuel / km) : null;
 
-      /* ★ 更次備註 */
       var noteHtml = (cfg && cfg.note)
         ? '<div class="mt-1 pt-1 border-t border-slate-100 text-[11px] text-slate-600 leading-relaxed flex items-start gap-1">' +
             '<span class="ico w-3 h-3 text-amber-500 mt-0.5 shrink-0">' + ico('edit-3','w-3 h-3') + '</span>' +
@@ -2867,7 +2942,6 @@ function openShiftEditModal(key){
           'class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-bold">' +
       '</div>' +
 
-      /* ★ 更次備註輸入 */
       '<div>' +
         '<label class="block text-xs font-semibold text-slate-600 mb-1">更次備註 (選填)</label>' +
         '<input type="text" id="edit-shift-note" value="' + escapeHtml(cfg.note || '') + '" autocomplete="off" ' +
@@ -2971,7 +3045,6 @@ function readShiftEditForm(key){
 
   cfg.rental = parseFloat(rentEl.value) || 0;
 
-  /* ★ 讀取更次備註 */
   if (noteEl) cfg.note = noteEl.value.trim();
 
   var msVal = msEl.value === '' ? null : parseFloat(msEl.value);
@@ -3586,7 +3659,6 @@ function initSettingsForm(){
     document.getElementById('setting-fuel').value          = '0';
     document.getElementById('setting-mileage-start').value = '';
     document.getElementById('setting-mileage-end').value   = '';
-    /* ★ 清空更次備註 */
     var settingNote = document.getElementById('setting-note');
     if (settingNote) settingNote.value = '';
     updateSettingNoteClearBtn();
@@ -3615,7 +3687,6 @@ function initSettingsForm(){
   document.getElementById('setting-mileage-end').value =
     (cfg.mileage && cfg.mileage.end   != null) ? cfg.mileage.end   : '';
 
-  /* ★ 更次備註 */
   var settingNote = document.getElementById('setting-note');
   if (settingNote && document.activeElement !== settingNote){
     settingNote.value = cfg.note || '';
@@ -3646,7 +3717,6 @@ function initSettingsForm(){
   updateDateTimePreview();
 }
 
-/* ★ 更次備註：輸入時顯示/隱藏清除按鈕 */
 function onSettingNoteInput(){
   updateSettingNoteClearBtn();
 }
@@ -3662,7 +3732,6 @@ function updateSettingNoteClearBtn(){
   }
 }
 
-/* ★ 清除更次備註 */
 function clearSettingNote(){
   var input = document.getElementById('setting-note');
   if (!input) return;
@@ -3713,7 +3782,6 @@ function saveSettings(){
     end:   (meVal === null || isNaN(meVal)) ? null : meVal
   };
 
-  /* ★ 更次備註 */
   var settingNote = document.getElementById('setting-note');
   if (settingNote) cfg.note = settingNote.value.trim();
 
@@ -3729,7 +3797,6 @@ function saveSettings(){
   showToast('設定已保存');
 }
 
-/* ★ 時段切換按鈕 */
 function setStatsPeriod(period){
   statsPeriod = period;
   ['day','week','month'].forEach(function(p){
@@ -3812,7 +3879,6 @@ function updateDurationMetrics(duration, profit){
   }
 }
 
-/* ★ 更新更次備註顯示（在利潤與統計卡片中） */
 function updateCombinedShiftNote(cfg){
   var box = document.getElementById('combined-shift-note-box');
   var textEl = document.getElementById('combined-shift-note');
@@ -3862,7 +3928,6 @@ function renderDayStatsView(lastKey, lastCfg){
   var durRow = document.getElementById('duration-metrics-row');
   if (durRow) durRow.style.display = 'grid';
 
-  /* ★ 顯示更次備註 */
   updateCombinedShiftNote(lastCfg);
 
   var typeRev = { '街客':0, 'Uber':0, '其他':0 };
@@ -3949,7 +4014,6 @@ function renderPeriodStatsView(period, now, lastKey){
   var durRow = document.getElementById('duration-metrics-row');
   if (durRow) durRow.style.display = 'none';
 
-  /* ★ 週/月模式隱藏更次備註（因為是多個更次） */
   updateCombinedShiftNote(null);
 
   setText('stats-type-street', '$' + typeRev['街客'].toFixed(1));
