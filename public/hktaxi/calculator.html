@@ -198,6 +198,7 @@ body{
 .text-slate-900{color:#0f172a}
 .text-white{color:#fff}
 .text-white\/70{color:rgba(255,255,255,.7)}
+.text-white\/60{color:rgba(255,255,255,.6)}
 .text-amber-300{color:#fcd34d}
 .text-amber-400{color:#fbbf24}
 .text-amber-500{color:#f59e0b}
@@ -248,6 +249,7 @@ body{
 .bg-slate-800\/80{background-color:rgba(30,41,59,.8)}
 .bg-amber-50\/60{background-color:rgba(255,251,235,.6)}
 .bg-amber-500\/10{background-color:rgba(245,158,11,.1)}
+.bg-white\/10{background-color:rgba(255,255,255,.1)}
 .bg-slate-900\/60{background-color:rgba(15,23,42,.62)}
 .bg-gradient-to-br{background-image:linear-gradient(to bottom right,#0f172a,#1e293b)}
 .bg-gradient-to-r{background-image:linear-gradient(to right,#fef3c7,#fcd34d)}
@@ -642,172 +644,121 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
       </div>
     </div>
 
-    <!-- 最後一更利潤結算 -->
-    <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-4 shadow-md space-y-3">
-      <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-net')">
-        <span class="text-xs font-medium text-white flex items-center gap-1 min-w-0">
-          <span class="ico w-4 h-4 text-amber-400 shrink-0" data-icon="wallet"></span>
-          <span class="truncate">最後一更利潤結算</span>
-          <span id="net-shift-tag" class="text-[10px] text-amber-300 font-mono ml-1"></span>
+    <!-- ★★★ 合併卡片：利潤與統計（淺色風格） ★★★ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+      <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-combined')">
+        <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5 min-w-0">
+          <span class="ico w-4 h-4 text-amber-500 shrink-0" data-icon="bar-chart-3"></span>
+          <span class="truncate">利潤與統計</span>
+          <span id="net-shift-tag" class="text-[10px] text-amber-600 font-mono ml-1"></span>
         </span>
         <div class="flex items-center gap-2 shrink-0">
-          <span id="current-shift-time-range" class="text-xs text-white font-mono"></span>
-          <span class="ico w-4 h-4 text-white/70" data-icon="chevron-down" data-card-chevron="card-net"></span>
+          <span id="current-shift-time-range" class="text-[11px] text-slate-500 font-mono"></span>
+          <span class="ico w-4 h-4 text-slate-400" data-icon="chevron-down" data-card-chevron="card-combined"></span>
         </div>
       </div>
 
-      <div class="space-y-3 border-t border-slate-700/60 pt-3" data-card-body="card-net">
+      <div class="space-y-3 border-t border-slate-100 pt-3" data-card-body="card-combined">
+
+        <!-- 時段選擇 -->
+        <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <button type="button" onclick="setStatsPeriod('day')"   id="period-btn-day"   class="py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition font-bold">最近一更</button>
+          <button type="button" onclick="setStatsPeriod('week')"  id="period-btn-week"  class="py-1.5 rounded-lg text-slate-600 transition font-medium">最近一星期</button>
+          <button type="button" onclick="setStatsPeriod('month')" id="period-btn-month" class="py-1.5 rounded-lg text-slate-600 transition font-medium">最近一個月</button>
+        </div>
+
+        <!-- 期間標題 + 更次數 -->
+        <div class="flex justify-between items-baseline">
+          <div id="stats-period-title" class="text-xs font-semibold text-slate-600">最近一更利潤</div>
+          <div id="stats-period-shift-count-badge" class="text-[10px] text-slate-400 font-mono">-- 更</div>
+        </div>
+
+        <!-- 三格總覽 -->
         <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
-            <div class="text-[10px] text-white/70 font-medium">當更營業額</div>
-            <div id="net-gross" class="text-sm font-bold text-white mt-0.5">$0</div>
+          <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+            <div class="text-[10px] text-slate-500 font-medium">營業額</div>
+            <div id="net-gross" class="text-sm font-bold text-slate-800 mt-0.5 font-mono">$0</div>
           </div>
-          <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
-            <div class="text-[10px] text-white/70 font-medium">總成本（租+油+支出）</div>
-            <div id="net-cost" class="text-sm font-bold text-rose-400 mt-0.5">$0</div>
+          <div class="bg-rose-50 p-2.5 rounded-xl border border-rose-200">
+            <div class="text-[10px] text-rose-600 font-medium">總成本（租+油+支出）</div>
+            <div id="net-cost" class="text-sm font-bold text-rose-600 mt-0.5 font-mono">$0</div>
           </div>
-          <div class="bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/30">
-            <div class="text-[10px] text-white/70 font-medium">實收淨利</div>
-            <div id="net-profit" class="text-base font-extrabold text-amber-400 mt-0.5">$0</div>
+          <div class="bg-amber-100 p-2.5 rounded-xl border border-amber-200">
+            <div class="text-[10px] text-amber-800 font-medium">實收淨利</div>
+            <div id="net-profit" class="text-base font-extrabold text-amber-800 mt-0.5 font-mono">$0</div>
           </div>
         </div>
-        <div id="net-cost-breakdown" class="text-[11px] text-white/60 text-center"></div>
+        <div id="net-cost-breakdown" class="text-[11px] text-slate-500 text-center"></div>
 
-        <div class="border-t border-slate-700/60 pt-2 grid grid-cols-2 gap-2 text-center text-[11px]">
-          <div class="bg-emerald-500/15 rounded-lg py-2 border border-emerald-500/30">
-            <div class="text-[10px] text-emerald-300 font-medium flex items-center justify-center gap-1">
+        <!-- 每公里指標 -->
+        <div class="border-t border-slate-100 pt-2 space-y-2 text-center text-[11px]">
+          <div class="grid grid-cols-3 gap-2">
+            <div class="bg-slate-50 rounded-lg py-2 border border-slate-100">
+              <div class="text-slate-500">行駛里程</div>
+              <div id="metric-mileage" class="text-slate-800 font-bold font-mono mt-0.5">-- km</div>
+            </div>
+            <div class="bg-emerald-50 rounded-lg py-2 border border-emerald-200">
+              <div class="text-emerald-700">每公里收入</div>
+              <div id="metric-rev-per-km" class="text-emerald-700 font-bold font-mono mt-0.5">--</div>
+            </div>
+            <div class="bg-amber-50 rounded-lg py-2 border border-amber-200">
+              <div class="text-amber-700">每公里淨利</div>
+              <div id="metric-profit-per-km" class="text-amber-800 font-extrabold font-mono mt-0.5">--</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-rose-50 rounded-lg py-2 border border-rose-200">
+              <div class="text-rose-600">每公里油費</div>
+              <div id="metric-fuel-per-km" class="text-rose-600 font-bold font-mono mt-0.5">--</div>
+            </div>
+            <div class="bg-rose-50 rounded-lg py-2 border border-rose-200">
+              <div class="text-rose-600">每公里成本</div>
+              <div id="metric-cost-per-km" class="text-rose-600 font-bold font-mono mt-0.5">--</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 時效指標（僅最近一更顯示） -->
+        <div id="duration-metrics-row" class="border-t border-slate-100 pt-2 grid grid-cols-2 gap-2 text-center text-[11px]">
+          <div class="bg-slate-50 rounded-lg py-2 border border-slate-100">
+            <div class="text-slate-500">更次時長</div>
+            <div id="metric-duration" class="text-slate-800 font-bold font-mono mt-0.5">-- 小時</div>
+          </div>
+          <div class="bg-amber-50 rounded-lg py-2 border border-amber-200">
+            <div class="text-amber-700">時薪（每小時淨利）</div>
+            <div id="metric-profit-per-hour" class="text-amber-800 font-extrabold font-mono mt-0.5">--</div>
+          </div>
+        </div>
+
+        <!-- 交易筆數 -->
+        <div class="border-t border-slate-100 pt-2 grid grid-cols-2 gap-2 text-center text-[11px]">
+          <div class="bg-emerald-50 rounded-lg py-2 border border-emerald-200">
+            <div class="text-[10px] text-emerald-700 font-medium flex items-center justify-center gap-1">
               <span class="ico w-3 h-3" data-icon="trending-up"></span>收入筆數
             </div>
-            <div id="net-income-count" class="text-base font-extrabold text-emerald-300 font-mono mt-0.5">0</div>
+            <div id="net-income-count" class="text-base font-extrabold text-emerald-700 font-mono mt-0.5">0</div>
           </div>
-          <div class="bg-rose-500/15 rounded-lg py-2 border border-rose-500/30">
-            <div class="text-[10px] text-rose-400 font-medium flex items-center justify-center gap-1">
+          <div class="bg-rose-50 rounded-lg py-2 border border-rose-200">
+            <div class="text-[10px] text-rose-600 font-medium flex items-center justify-center gap-1">
               <span class="ico w-3 h-3" data-icon="alert-triangle"></span>支出筆數
             </div>
-            <div id="net-expense-count" class="text-base font-extrabold text-rose-400 font-mono mt-0.5">0</div>
+            <div id="net-expense-count" class="text-base font-extrabold text-rose-600 font-mono mt-0.5">0</div>
           </div>
         </div>
 
-        <!-- ★ 每公里指標（新增每公里油費、每公里成本） -->
-        <div id="mileage-metrics" class="border-t border-slate-700/60 pt-2 space-y-2 text-center text-[11px]">
-          <div class="grid grid-cols-3 gap-2">
-            <div>
-              <div class="text-white/60">行駛里程</div>
-              <div id="metric-mileage" class="text-white font-bold font-mono mt-0.5">-- km</div>
-            </div>
-            <div>
-              <div class="text-white/60">每公里收入</div>
-              <div id="metric-rev-per-km" class="text-amber-300 font-bold font-mono mt-0.5">--</div>
-            </div>
-            <div>
-              <div class="text-white/60">每公里淨利</div>
-              <div id="metric-profit-per-km" class="text-amber-400 font-extrabold font-mono mt-0.5">--</div>
-            </div>
+        <!-- 類型收入分布 -->
+        <div class="border-t border-slate-100 pt-2 grid grid-cols-3 gap-2 text-center text-[11px]">
+          <div class="bg-emerald-50 rounded-lg py-2 border border-emerald-200">
+            <div class="text-emerald-700">街客</div>
+            <div id="stats-type-street" class="text-emerald-700 font-bold font-mono mt-0.5">$0</div>
           </div>
-          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/40">
-            <div>
-              <div class="text-white/60">每公里油費</div>
-              <div id="metric-fuel-per-km" class="text-rose-400 font-bold font-mono mt-0.5">--</div>
-            </div>
-            <div>
-              <div class="text-white/60">每公里成本</div>
-              <div id="metric-cost-per-km" class="text-rose-400 font-bold font-mono mt-0.5">--</div>
-            </div>
+          <div class="bg-blue-50 rounded-lg py-2 border border-blue-200">
+            <div class="text-blue-700">Uber</div>
+            <div id="stats-type-uber" class="text-blue-700 font-bold font-mono mt-0.5">$0</div>
           </div>
-        </div>
-
-        <div class="border-t border-slate-700/60 pt-2 grid grid-cols-2 gap-2 text-center text-[11px]">
-          <div>
-            <div class="text-white/60">更次時長</div>
-            <div id="metric-duration" class="text-white font-bold font-mono mt-0.5">-- 小時</div>
-          </div>
-          <div>
-            <div class="text-white/60">時薪（每小時淨利）</div>
-            <div id="metric-profit-per-hour" class="text-amber-300 font-extrabold font-mono mt-0.5">--</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-4">
-      <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-stats')">
-        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-          <span class="ico w-4 h-4 text-amber-500" data-icon="bar-chart-3"></span> 統計總覽
-        </h2>
-        <span class="ico w-4 h-4 text-slate-400" data-icon="chevron-down" data-card-chevron="card-stats"></span>
-      </div>
-
-      <div class="space-y-4" data-card-body="card-stats">
-        <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
-          <button type="button" onclick="setStatsPeriod('day')"   id="period-btn-day"   class="py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition">最近一更</button>
-          <button type="button" onclick="setStatsPeriod('week')"  id="period-btn-week"  class="py-1.5 rounded-lg text-slate-600 transition">最近一星期</button>
-          <button type="button" onclick="setStatsPeriod('month')" id="period-btn-month" class="py-1.5 rounded-lg text-slate-600 transition">最近一個月</button>
-        </div>
-
-        <div class="space-y-3 pt-1">
-          <div class="bg-amber-50/60 border border-amber-100 rounded-xl p-3.5 space-y-2.5">
-            <div class="flex justify-between items-center">
-              <div class="min-w-0">
-                <div id="stats-period-title" class="text-xs font-semibold text-amber-800">最近一更總收入</div>
-                <div class="text-2xl font-extrabold text-amber-900 mt-0.5" id="stats-total-revenue">$0.0</div>
-                <div id="stats-total-expense-line" class="text-[11px] text-rose-600 font-semibold mt-0.5 hidden"></div>
-              </div>
-              <div class="w-10 h-10 bg-amber-500 text-white rounded-xl flex items-center justify-center shadow-xs shrink-0">
-                <span class="ico w-5 h-5" data-icon="trending-up"></span>
-              </div>
-            </div>
-            <div class="flex justify-between items-center pt-2 border-t border-amber-200/60 gap-2">
-              <div class="min-w-0">
-                <div class="text-[11px] text-amber-800 font-semibold">期間總利潤</div>
-                <div class="text-[10px] text-amber-700/70 mt-0.5 leading-tight">收入 − 租車 − 油費 − 行程支出</div>
-              </div>
-              <div id="stats-total-profit" class="text-base font-extrabold text-emerald-700 font-mono shrink-0">$0.0</div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-3 gap-2">
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-center">
-              <div class="text-[11px] text-slate-500 font-medium">街客</div>
-              <div id="stats-type-street" class="text-sm font-bold text-slate-800 mt-1">$0</div>
-            </div>
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-center">
-              <div class="text-[11px] text-slate-500 font-medium">Uber</div>
-              <div id="stats-type-uber" class="text-sm font-bold text-slate-800 mt-1">$0</div>
-            </div>
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-center">
-              <div class="text-[11px] text-slate-500 font-medium">其他</div>
-              <div id="stats-type-other" class="text-sm font-bold text-slate-800 mt-1">$0</div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
-            <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 text-center">
-              <div class="text-[11px] text-emerald-700 font-semibold flex items-center justify-center gap-1">
-                <span class="ico w-3 h-3" data-icon="trending-up"></span>收入筆數
-              </div>
-              <div id="stats-income-count" class="text-base font-extrabold text-emerald-700 mt-1 font-mono">0</div>
-            </div>
-            <div class="bg-rose-50 p-2.5 rounded-xl border border-rose-200 text-center">
-              <div class="text-[11px] text-rose-600 font-semibold flex items-center justify-center gap-1">
-                <span class="ico w-3 h-3" data-icon="alert-triangle"></span>支出筆數
-              </div>
-              <div id="stats-expense-count" class="text-base font-extrabold text-rose-600 mt-1 font-mono">0</div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100">
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-center">
-              <div class="text-[11px] text-slate-500 font-medium">總里程</div>
-              <div id="stats-period-mileage" class="text-sm font-bold text-slate-800 mt-1 font-mono">--</div>
-            </div>
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-center">
-              <div class="text-[11px] text-slate-500 font-medium">每公里收入</div>
-              <div id="stats-period-rev-per-km" class="text-sm font-bold text-slate-800 mt-1 font-mono">--</div>
-            </div>
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-center">
-              <div class="text-[11px] text-slate-500 font-medium">更次數</div>
-              <div id="stats-period-shift-count" class="text-sm font-bold text-slate-800 mt-1 font-mono">0</div>
-            </div>
+          <div class="bg-purple-50 rounded-lg py-2 border border-purple-200">
+            <div class="text-purple-700">其他</div>
+            <div id="stats-type-other" class="text-purple-700 font-bold font-mono mt-0.5">$0</div>
           </div>
         </div>
       </div>
@@ -991,7 +942,8 @@ var NOTE_TAGS = {
    B-0. 卡片折疊狀態
    ========================================================= */
 var CARD_STATES_KEY = 'taxi_card_states';
-var ALL_CARD_IDS = ['card-settings','card-net','card-stats','card-data'];
+/* ★ 合併後：card-net 與 card-stats 合成為 card-combined */
+var ALL_CARD_IDS = ['card-settings','card-combined','card-data'];
 
 function getCardStates(){
   try { return JSON.parse(localStorage.getItem(CARD_STATES_KEY)) || {}; }
@@ -2751,7 +2703,6 @@ function openShiftHistoryModal(){
 
       var profitPerKm = (km && km > 0) ? (fin.profit / km) : null;
       var profitPerHour = (duration && duration > 0) ? (fin.profit / duration) : null;
-      /* ★ 新增：每公里油費 */
       var fuelPerKm = (km && km > 0) ? (fin.fuel / km) : null;
 
       html +=
@@ -3716,10 +3667,12 @@ function saveSettings(){
   showToast('設定已保存');
 }
 
+/* ★ 時段切換按鈕（淺色風格，與整體風格一致） */
 function setStatsPeriod(period){
   statsPeriod = period;
   ['day','week','month'].forEach(function(p){
     var btn = document.getElementById('period-btn-' + p);
+    if (!btn) return;
     if (p === period){
       btn.className = 'py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition font-bold';
     } else {
@@ -3752,70 +3705,14 @@ function shiftKeyInPeriod(key, period, now, currentShiftKey){
   return false;
 }
 
-function updateStatsAndNet(){
-  var now = new Date();
-  updateTripCount();
+/* ★ 工具：安全設定文字 */
+function setText(id, text){
+  var el = document.getElementById(id);
+  if (el) el.innerText = text;
+}
 
-  var lastKey    = getLastShiftKey();
-  var currentKey = getCurrentShiftKey();
-  var lastCfg    = getLastSettings(false);
-
-  var fin = getShiftFinance(lastKey);
-
-  document.getElementById('net-gross').innerText = '$' + fin.gross.toFixed(1);
-  document.getElementById('net-cost').innerText  = '$' + fin.totalCost.toFixed(1);
-  var profitElem = document.getElementById('net-profit');
-  profitElem.innerText = '$' + fin.profit.toFixed(1);
-  profitElem.className = fin.profit >= 0
-    ? 'text-base font-extrabold text-amber-400 mt-0.5'
-    : 'text-base font-extrabold text-rose-400 mt-0.5';
-
-  var breakdownEl = document.getElementById('net-cost-breakdown');
-  if (breakdownEl){
-    breakdownEl.innerText =
-      '租 $' + fin.rental.toFixed(1) +
-      '　·　油 $' + fin.fuel.toFixed(1) +
-      '　·　行程支出 $' + fin.expenseTrip.toFixed(1);
-  }
-
-  var incomeCountEl  = document.getElementById('net-income-count');
-  var expenseCountEl = document.getElementById('net-expense-count');
-  if (incomeCountEl)  incomeCountEl.innerText  = fin.incomeCount;
-  if (expenseCountEl) expenseCountEl.innerText = fin.expenseCount;
-
-  var shiftTagEl = document.getElementById('net-shift-tag');
-  if (shiftTagEl){
-    if (lastKey !== currentKey){
-      shiftTagEl.innerText = '（' + lastKey + '）';
-      shiftTagEl.className = 'text-[10px] text-amber-300 font-mono ml-1';
-    } else {
-      shiftTagEl.innerText = '';
-    }
-  }
-
-  var timeRangeText = '';
-  if (lastCfg && lastCfg.startedAt){
-    if (lastCfg.endedAt){
-      timeRangeText = (lastCfg.startTime || '--') + ' - ' + (lastCfg.endTime || '--');
-    } else {
-      timeRangeText = (lastCfg.startTime || '--') + ' - 工作中';
-    }
-  }
-  document.getElementById('current-shift-time-range').innerText = timeRangeText;
-
-  var badge = document.getElementById('current-shift-date-badge');
-  if (badge) badge.innerText = lastKey;
-
-  var timeDisplay = document.getElementById('setting-shift-time-display');
-  if (timeDisplay) timeDisplay.innerText = timeRangeText || '未設定';
-
-  var fuelInput = document.getElementById('setting-fuel');
-  if (fuelInput && document.activeElement !== fuelInput){
-    fuelInput.value = lastCfg ? fin.fuel : '0';
-  }
-
-  /* ★ 每公里指標（含新增：每公里油費、每公里成本） */
-  var km = lastCfg ? getShiftMileage(lastCfg) : null;
+/* ★ 工具：更新每公里指標（淺色風格） */
+function updateMileageMetrics(km, data){
   var metricKm         = document.getElementById('metric-mileage');
   var metricRevPerKm   = document.getElementById('metric-rev-per-km');
   var metricProfPerKm  = document.getElementById('metric-profit-per-km');
@@ -3830,51 +3727,107 @@ function updateStatsAndNet(){
     if (metricCostPerKm) metricCostPerKm.innerText = '--';
   } else {
     if (metricKm)        metricKm.innerText        = km.toFixed(1) + ' km';
-    if (metricRevPerKm)  metricRevPerKm.innerText  = '$' + (fin.gross / km).toFixed(2);
-    if (metricProfPerKm) metricProfPerKm.innerText = '$' + (fin.profit / km).toFixed(2);
-    if (metricFuelPerKm) metricFuelPerKm.innerText = '$' + (fin.fuel / km).toFixed(2);
-    if (metricCostPerKm) metricCostPerKm.innerText = '$' + (fin.totalCost / km).toFixed(2);
+    if (metricRevPerKm)  metricRevPerKm.innerText  = '$' + (data.gross / km).toFixed(2);
+    if (metricProfPerKm) metricProfPerKm.innerText = '$' + (data.profit / km).toFixed(2);
+    if (metricFuelPerKm) metricFuelPerKm.innerText = '$' + (data.fuel / km).toFixed(2);
+    if (metricCostPerKm) metricCostPerKm.innerText = '$' + (data.totalCost / km).toFixed(2);
   }
+}
 
-  var duration = lastCfg ? getShiftDuration(lastCfg) : null;
-  var metricDuration       = document.getElementById('metric-duration');
-  var metricProfitPerHour  = document.getElementById('metric-profit-per-hour');
+/* ★ 工具：更新時效指標 */
+function updateDurationMetrics(duration, profit){
+  var metricDuration      = document.getElementById('metric-duration');
+  var metricProfitPerHour = document.getElementById('metric-profit-per-hour');
+
+  if (!metricDuration || !metricProfitPerHour) return;
 
   if (!duration || duration <= 0){
     metricDuration.innerText = '-- 小時';
     metricProfitPerHour.innerText = '--';
   } else {
     metricDuration.innerText = duration.toFixed(1) + ' 小時';
-    metricProfitPerHour.innerText = '$' + (fin.profit / duration).toFixed(2);
-    metricProfitPerHour.className = (fin.profit / duration) >= 0
-      ? 'text-amber-300 font-extrabold font-mono mt-0.5'
-      : 'text-rose-400 font-extrabold font-mono mt-0.5';
+    metricProfitPerHour.innerText = '$' + (profit / duration).toFixed(2);
+    metricProfitPerHour.className = (profit / duration) >= 0
+      ? 'text-amber-800 font-extrabold font-mono mt-0.5'
+      : 'text-rose-600 font-extrabold font-mono mt-0.5';
+  }
+}
+
+/* ★ 最近一更視圖 */
+function renderDayStatsView(lastKey, lastCfg){
+  var fin = getShiftFinance(lastKey);
+
+  // 標題 + 更次數
+  setText('stats-period-title', '最近一更利潤（' + lastKey + '）');
+  setText('stats-period-shift-count-badge', '1 更');
+
+  // 三格
+  setText('net-gross', '$' + fin.gross.toFixed(1));
+  setText('net-cost', '$' + fin.totalCost.toFixed(1));
+  var profitElem = document.getElementById('net-profit');
+  if (profitElem){
+    profitElem.innerText = '$' + fin.profit.toFixed(1);
+    profitElem.className = fin.profit >= 0
+      ? 'text-base font-extrabold text-amber-800 mt-0.5 font-mono'
+      : 'text-base font-extrabold text-rose-600 mt-0.5 font-mono';
   }
 
-  updateMileagePanel(lastCfg);
+  // 成本明細
+  setText('net-cost-breakdown',
+    '租 $' + fin.rental.toFixed(1) +
+    '　·　油 $' + fin.fuel.toFixed(1) +
+    '　·　行程支出 $' + fin.expenseTrip.toFixed(1));
 
-  var titleMap = { day:'最近一更總收入', week:'最近一星期總收入', month:'最近一個月總收入' };
-  var titleText = titleMap[statsPeriod] || '總收入';
-  if (statsPeriod === 'day' && lastKey){
-    titleText = '最近一更總收入（' + lastKey + '）';
-  }
-  document.getElementById('stats-period-title').innerText = titleText;
+  // 交易筆數
+  setText('net-income-count', fin.incomeCount);
+  setText('net-expense-count', fin.expenseCount);
 
-  var totalRev          = 0;
-  var totalExpenseTrip  = 0;
-  var periodProfit      = 0;
-  var typeRev           = { '街客':0, 'Uber':0, '其他':0 };
-  var periodMileage     = 0;
-  var periodShiftCount  = 0;
+  // 每公里指標
+  var km = lastCfg ? getShiftMileage(lastCfg) : null;
+  updateMileageMetrics(km, fin);
+
+  // 時效指標
+  var duration = lastCfg ? getShiftDuration(lastCfg) : null;
+  updateDurationMetrics(duration, fin.profit);
+
+  // 顯示時效列
+  var durRow = document.getElementById('duration-metrics-row');
+  if (durRow) durRow.style.display = 'grid';
+
+  // 類型分布
+  var typeRev = { '街客':0, 'Uber':0, '其他':0 };
+  fin.list.forEach(function(t){
+    var v = parseFloat(t.fare) || 0;
+    if (v <= 0) return;
+    if (typeRev[t.type] !== undefined) typeRev[t.type] += v;
+    else if (t.type === 'Other') typeRev['其他'] += v;
+  });
+  setText('stats-type-street', '$' + typeRev['街客'].toFixed(1));
+  setText('stats-type-uber',   '$' + typeRev['Uber'].toFixed(1));
+  setText('stats-type-other',  '$' + typeRev['其他'].toFixed(1));
+}
+
+/* ★ 週 / 月視圖 */
+function renderPeriodStatsView(period, now, lastKey){
+  var totalRev         = 0;
+  var totalExpenseTrip = 0;
+  var periodProfit     = 0;
+  var periodRental     = 0;
+  var periodFuel       = 0;
+  var periodMileage    = 0;
+  var periodShiftCount = 0;
   var periodIncomeCount  = 0;
   var periodExpenseCount = 0;
+  var typeRev = { '街客':0, 'Uber':0, '其他':0 };
 
   Object.keys(shiftSettings).forEach(function(k){
-    if (!shiftKeyInPeriod(k, statsPeriod, now, lastKey)) return;
+    if (!shiftKeyInPeriod(k, period, now, lastKey)) return;
     periodShiftCount++;
 
     var finK = getShiftFinance(k);
     periodProfit += finK.profit;
+    periodRental += finK.rental;
+    periodFuel   += finK.fuel;
 
     finK.list.forEach(function(t){
       var v = parseFloat(t.fare) || 0;
@@ -3885,57 +3838,112 @@ function updateStatsAndNet(){
       }
       totalRev += v;
       periodIncomeCount++;
-      if (typeRev[t.type] !== undefined){
-        typeRev[t.type] += v;
-      } else if (t.type === 'Other'){
-        typeRev['其他'] += v;
-      }
+      if (typeRev[t.type] !== undefined) typeRev[t.type] += v;
+      else if (t.type === 'Other') typeRev['其他'] += v;
     });
 
     var shiftKm = getShiftMileage(shiftSettings[k]);
     if (shiftKm !== null && shiftKm > 0) periodMileage += shiftKm;
   });
 
-  document.getElementById('stats-total-revenue').innerText = '$' + totalRev.toFixed(1);
-  document.getElementById('stats-type-street').innerText   = '$' + typeRev['街客'].toFixed(1);
-  document.getElementById('stats-type-uber').innerText     = '$' + typeRev['Uber'].toFixed(1);
-  document.getElementById('stats-type-other').innerText    = '$' + typeRev['其他'].toFixed(1);
+  var periodTotalCost = periodRental + periodFuel + totalExpenseTrip;
 
-  var statsIncomeCountEl  = document.getElementById('stats-income-count');
-  var statsExpenseCountEl = document.getElementById('stats-expense-count');
-  if (statsIncomeCountEl)  statsIncomeCountEl.innerText  = periodIncomeCount;
-  if (statsExpenseCountEl) statsExpenseCountEl.innerText = periodExpenseCount;
+  // 標題 + 更次數
+  var titleMap = { week: '最近一星期利潤', month: '最近一個月利潤' };
+  setText('stats-period-title', titleMap[period] || '期間利潤');
+  setText('stats-period-shift-count-badge', periodShiftCount + ' 更');
 
-  var profitPeriodEl = document.getElementById('stats-total-profit');
-  if (profitPeriodEl){
-    profitPeriodEl.innerText = '$' + periodProfit.toFixed(1);
-    profitPeriodEl.className = periodProfit >= 0
-      ? 'text-base font-extrabold text-emerald-700 font-mono shrink-0'
-      : 'text-base font-extrabold text-rose-600 font-mono shrink-0';
+  // 三格
+  setText('net-gross', '$' + totalRev.toFixed(1));
+  setText('net-cost', '$' + periodTotalCost.toFixed(1));
+  var profitElem = document.getElementById('net-profit');
+  if (profitElem){
+    profitElem.innerText = '$' + periodProfit.toFixed(1);
+    profitElem.className = periodProfit >= 0
+      ? 'text-base font-extrabold text-amber-800 mt-0.5 font-mono'
+      : 'text-base font-extrabold text-rose-600 mt-0.5 font-mono';
   }
 
-  var expLine = document.getElementById('stats-total-expense-line');
-  if (expLine){
-    if (totalExpenseTrip > 0){
-      expLine.classList.remove('hidden');
-      expLine.innerText = '行程支出 -$' + totalExpenseTrip.toFixed(1) + '　淨收入 $' + (totalRev - totalExpenseTrip).toFixed(1);
+  // 成本明細
+  setText('net-cost-breakdown',
+    '租 $' + periodRental.toFixed(1) +
+    '　·　油 $' + periodFuel.toFixed(1) +
+    '　·　行程支出 $' + totalExpenseTrip.toFixed(1));
+
+  // 交易筆數
+  setText('net-income-count', periodIncomeCount);
+  setText('net-expense-count', periodExpenseCount);
+
+  // 每公里指標
+  updateMileageMetrics(periodMileage, {
+    gross: totalRev,
+    profit: periodProfit,
+    fuel: periodFuel,
+    totalCost: periodTotalCost
+  });
+
+  // 隱藏時效列（週 / 月無意義）
+  var durRow = document.getElementById('duration-metrics-row');
+  if (durRow) durRow.style.display = 'none';
+
+  // 類型分布
+  setText('stats-type-street', '$' + typeRev['街客'].toFixed(1));
+  setText('stats-type-uber',   '$' + typeRev['Uber'].toFixed(1));
+  setText('stats-type-other',  '$' + typeRev['其他'].toFixed(1));
+}
+
+/* ★ 主入口 */
+function updateStatsAndNet(){
+  var now = new Date();
+  updateTripCount();
+
+  var lastKey    = getLastShiftKey();
+  var currentKey = getCurrentShiftKey();
+  var lastCfg    = getLastSettings(false);
+
+  // 通用：更次標籤（僅當最後更次不是當前更次時顯示）
+  var shiftTagEl = document.getElementById('net-shift-tag');
+  if (shiftTagEl){
+    if (lastKey !== currentKey){
+      shiftTagEl.innerText = '（' + lastKey + '）';
+      shiftTagEl.className = 'text-[10px] text-amber-600 font-mono ml-1';
     } else {
-      expLine.classList.add('hidden');
+      shiftTagEl.innerText = '';
+      shiftTagEl.className = 'text-[10px] text-amber-600 font-mono ml-1';
     }
   }
 
-  var periodMileageEl    = document.getElementById('stats-period-mileage');
-  var periodRevPerKmEl   = document.getElementById('stats-period-rev-per-km');
-  var periodShiftCountEl = document.getElementById('stats-period-shift-count');
-
-  if (periodMileage > 0){
-    periodMileageEl.innerText = periodMileage.toFixed(1) + ' km';
-    periodRevPerKmEl.innerText = '$' + (totalRev / periodMileage).toFixed(2);
-  } else {
-    periodMileageEl.innerText = '--';
-    periodRevPerKmEl.innerText = '--';
+  // 通用：最後更次時間範圍（卡片標題右側）
+  var timeRangeText = '';
+  if (lastCfg && lastCfg.startedAt){
+    if (lastCfg.endedAt){
+      timeRangeText = (lastCfg.startTime || '--') + ' - ' + (lastCfg.endTime || '--');
+    } else {
+      timeRangeText = (lastCfg.startTime || '--') + ' - 工作中';
+    }
   }
-  periodShiftCountEl.innerText = periodShiftCount;
+  setText('current-shift-time-range', timeRangeText);
+
+  // 同步更新「成本與設定」卡片中的資訊
+  var badge = document.getElementById('current-shift-date-badge');
+  if (badge) badge.innerText = lastKey;
+
+  var timeDisplay = document.getElementById('setting-shift-time-display');
+  if (timeDisplay) timeDisplay.innerText = timeRangeText || '未設定';
+
+  var fuelInput = document.getElementById('setting-fuel');
+  if (fuelInput && document.activeElement !== fuelInput){
+    fuelInput.value = lastCfg ? getFuelTotal(lastCfg) : '0';
+  }
+
+  updateMileagePanel(lastCfg);
+
+  // ★ 根據時段渲染
+  if (statsPeriod === 'day'){
+    renderDayStatsView(lastKey, lastCfg);
+  } else {
+    renderPeriodStatsView(statsPeriod, now, lastKey);
+  }
 
   updateDateTimePreview();
   updateHeaderWorked();
