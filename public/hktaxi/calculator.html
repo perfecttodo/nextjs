@@ -3538,6 +3538,25 @@ function applyAmapPaste(){
   }
 }
 
+/* ★ 高德粘貼面板的展開 / 收起 */
+function toggleAmapPastePanel(){
+  var body = document.getElementById('amap-paste-body');
+  var chev = document.getElementById('amap-paste-chevron');
+  if (!body) return;
+  var isHidden = body.classList.contains('hidden');
+  if (isHidden){
+    body.classList.remove('hidden');
+    if (chev) chev.style.transform = 'rotate(180deg)';
+    setTimeout(function(){
+      var inp = document.getElementById('amap-paste-input');
+      if (inp) inp.focus();
+    }, 80);
+  } else {
+    body.classList.add('hidden');
+    if (chev) chev.style.transform = '';
+  }
+}
+
 function openAddPlaceModal(){
   currentEditingPlaceId = null;
 
@@ -3551,29 +3570,34 @@ function openAddPlaceModal(){
 
   var html = '<div class="space-y-3 text-sm">' +
 
-    /* ★ 高德連結 / 座標粘貼 */
-    '<div class="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">' +
-      '<div class="flex justify-between items-center gap-2">' +
+    /* ★ 高德連結 / 座標粘貼（默認收起，點擊標題展開） */
+    '<div class="bg-amber-50 border border-amber-200 rounded-xl overflow-hidden">' +
+      '<button type="button" onclick="toggleAmapPastePanel()" ' +
+        'class="w-full flex justify-between items-center gap-2 px-3 py-2.5 hover:bg-amber-100 active:bg-amber-100 transition text-left">' +
         '<span class="text-xs font-bold text-amber-800 flex items-center gap-1.5 min-w-0">' +
           '<span class="ico w-3.5 h-3.5 text-amber-600 shrink-0" data-icon="link"></span>' +
           '<span class="truncate">粘貼高德分享連結／座標</span>' +
+          '<span class="text-[10px] text-amber-600 font-normal shrink-0">（點擊展開）</span>' +
         '</span>' +
-        '<button type="button" onclick="pasteFromClipboard()" ' +
-          'class="text-[11px] px-2 py-1 bg-white border border-amber-300 hover:bg-amber-100 text-amber-800 font-bold rounded-lg transition shrink-0 flex items-center gap-1">' +
-          '<span class="ico w-3 h-3" data-icon="clipboard"></span>粘貼' +
-        '</button>' +
+        '<span id="amap-paste-chevron" class="ico w-3.5 h-3.5 text-amber-600 shrink-0 transition" data-icon="chevron-down" style="transition:transform .2s"></span>' +
+      '</button>' +
+      '<div id="amap-paste-body" class="hidden px-3 pb-3 space-y-2 border-t border-amber-200/60 pt-2.5">' +
+        '<div class="flex gap-1.5">' +
+          '<input type="text" id="amap-paste-input" autocomplete="off" ' +
+            'placeholder="https://uri.amap.com/marker?position=..." ' +
+            'class="flex-1 min-w-0 px-2.5 py-2 text-[11px] bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">' +
+          '<button type="button" onclick="pasteFromClipboard()" ' +
+            'class="text-[11px] px-2.5 py-2 bg-white border border-amber-300 hover:bg-amber-100 text-amber-800 font-bold rounded-lg transition shrink-0 flex items-center gap-1">' +
+            '<span class="ico w-3 h-3" data-icon="clipboard"></span>粘貼' +
+          '</button>' +
+          '<button type="button" onclick="applyAmapPaste()" ' +
+            'class="px-3 py-2 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-900 font-bold rounded-lg text-xs transition shrink-0">解析</button>' +
+        '</div>' +
+        '<p class="text-[11px] text-amber-700 leading-relaxed">' +
+          '在高德 App 長按地點 → 分享 → 複製連結（<span class="font-mono">uri.amap.com</span> 開頭），' +
+          '或分享文本中的「經度,緯度」座標貼到此處，可自動填寫名稱與座標。' +
+        '</p>' +
       '</div>' +
-      '<div class="flex gap-1.5">' +
-        '<input type="text" id="amap-paste-input" autocomplete="off" ' +
-          'placeholder="https://uri.amap.com/marker?position=..." ' +
-          'class="flex-1 min-w-0 px-2.5 py-2 text-[11px] bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">' +
-        '<button type="button" onclick="applyAmapPaste()" ' +
-          'class="px-3 py-2 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-900 font-bold rounded-lg text-xs transition shrink-0">解析</button>' +
-      '</div>' +
-      '<p class="text-[11px] text-amber-700 leading-relaxed">' +
-        '在高德 App 長按地點 → 分享 → 複製連結（<span class="font-mono">uri.amap.com</span> 開頭），' +
-        '或分享文本中的「經度,緯度」座標貼到此處，可自動填寫名稱與座標。' +
-      '</p>' +
     '</div>' +
 
     '<button type="button" id="place-autofill-btn" onclick="autoFillPlaceByLocation()" ' +
