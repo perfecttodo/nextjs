@@ -887,6 +887,65 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
       </div>
     </div>
 
+    <!-- ★★★ 新增：收入走勢圖卡片 ★★★ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+      <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-chart')">
+        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5 min-w-0">
+          <span class="ico w-4 h-4 text-amber-500 shrink-0" data-icon="trending-up"></span>
+          <span class="truncate">收入走勢</span>
+        </h2>
+        <div class="flex items-center gap-2 shrink-0">
+          <span id="chart-peak-tag" class="text-[10px] text-amber-600 font-mono"></span>
+          <span class="ico w-4 h-4 text-slate-400" data-icon="chevron-down" data-card-chevron="card-chart"></span>
+        </div>
+      </div>
+
+      <div class="space-y-3 border-t border-slate-100 pt-3" data-card-body="card-chart">
+
+        <!-- 範圍 -->
+        <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <button type="button" id="chart-range-7"  onclick="setChartRange(7)"  class="py-1.5 rounded-lg transition">最近 7 天</button>
+          <button type="button" id="chart-range-14" onclick="setChartRange(14)" class="py-1.5 rounded-lg transition">最近 14 天</button>
+          <button type="button" id="chart-range-30" onclick="setChartRange(30)" class="py-1.5 rounded-lg transition">最近 30 天</button>
+        </div>
+
+        <!-- 模式 -->
+        <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <button type="button" id="chart-mode-daily"  onclick="setChartMode('daily')"  class="py-1.5 rounded-lg transition">按日走勢</button>
+          <button type="button" id="chart-mode-hourly" onclick="setChartMode('hourly')" class="py-1.5 rounded-lg transition">按時段分佈</button>
+        </div>
+
+        <!-- 指標 -->
+        <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <button type="button" id="chart-metric-gross"  onclick="setChartMetric('gross')"  class="py-1.5 rounded-lg transition">營業額</button>
+          <button type="button" id="chart-metric-profit" onclick="setChartMetric('profit')" class="py-1.5 rounded-lg transition">淨利</button>
+          <button type="button" id="chart-metric-count"  onclick="setChartMetric('count')"  class="py-1.5 rounded-lg transition">筆數</button>
+        </div>
+
+        <!-- 摘要 -->
+        <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+          <div class="bg-slate-50 rounded-lg py-2 border border-slate-100">
+            <div class="text-slate-500">總計</div>
+            <div id="chart-sum" class="text-slate-800 font-bold font-mono mt-0.5">--</div>
+          </div>
+          <div class="bg-emerald-50 rounded-lg py-2 border border-emerald-200">
+            <div class="text-emerald-700">平均</div>
+            <div id="chart-avg" class="text-emerald-700 font-bold font-mono mt-0.5">--</div>
+          </div>
+          <div class="bg-amber-50 rounded-lg py-2 border border-amber-200">
+            <div class="text-amber-700">最高</div>
+            <div id="chart-max" class="text-amber-800 font-extrabold font-mono mt-0.5">--</div>
+          </div>
+        </div>
+
+        <!-- 圖表本體 -->
+        <div id="chart-container" class="relative select-none"></div>
+
+        <p id="chart-hint" class="text-[11px] text-slate-400 leading-relaxed text-center"></p>
+      </div>
+    </div>
+    <!-- ★★★ 收入走勢圖卡片結束 ★★★ -->
+
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
       <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-data')">
         <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
@@ -1193,7 +1252,7 @@ var NOTE_TAGS = {
    B-0. 卡片折疊狀態
    ========================================================= */
 var CARD_STATES_KEY = 'taxi_card_states';
-var ALL_CARD_IDS = ['card-settings','card-combined','card-data'];
+var ALL_CARD_IDS = ['card-settings','card-chart','card-combined','card-data'];
 
 function getCardStates(){
   try { return JSON.parse(localStorage.getItem(CARD_STATES_KEY)) || {}; }
@@ -1219,6 +1278,7 @@ function toggleCard(id){
   states[id] = !states[id];
   saveCardStates(states);
   applyCardState(id, states[id]);
+  if (id === 'card-chart' && !states[id]) renderTrendChart();
 }
 function applyAllCardStates(){
   var states = getCardStates();
@@ -2277,7 +2337,10 @@ window.addEventListener('DOMContentLoaded', function(){
   updateHeaderTime();
   setInterval(updateHeaderTime, 1000);
   renderTripList();
-  updateStatsAndNet();
+
+  applyChartUIState();      /* ★ 走勢圖 UI 狀態 */
+  updateStatsAndNet();      /* ★ 內部會呼叫 renderTrendChart */
+
   renderPlaceFilters();
   renderPlacesList();
 });
@@ -2403,6 +2466,7 @@ function switchTab(tabName){
   }
   if (tabName === 'stats'){
     initSettingsForm();
+    applyChartUIState();
     updateStatsAndNet();
   }
   hydrateIcons();
@@ -5218,6 +5282,408 @@ function renderPeriodStatsView(period, now, lastKey){
   renderPaymentBreakdown(paymentRev);
 }
 
+/* =========================================================
+   M-2. ★ 收入走勢圖
+   ========================================================= */
+var chartMode   = localStorage.getItem('taxi_chart_mode')   || 'daily';
+var chartMetric = localStorage.getItem('taxi_chart_metric') || 'gross';
+var chartRange  = parseInt(localStorage.getItem('taxi_chart_range'), 10);
+if (!chartRange || [7,14,30].indexOf(chartRange) === -1) chartRange = 7;
+
+function setChartMode(m){
+  if (chartMode === m) return;
+  chartMode = m;
+  localStorage.setItem('taxi_chart_mode', m);
+  if (m === 'hourly' && chartMetric === 'profit') chartMetric = 'gross';
+  applyChartUIState();
+  renderTrendChart();
+}
+
+function setChartMetric(m){
+  if (chartMode === 'hourly' && m === 'profit') return;
+  chartMetric = m;
+  localStorage.setItem('taxi_chart_metric', m);
+  applyChartUIState();
+  renderTrendChart();
+}
+
+function setChartRange(r){
+  chartRange = r;
+  localStorage.setItem('taxi_chart_range', String(r));
+  applyChartUIState();
+  renderTrendChart();
+}
+
+function applyChartUIState(){
+  var segOn  = 'py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition font-bold';
+  var segOff = 'py-1.5 rounded-lg text-slate-600 transition font-medium';
+  var segDis = 'py-1.5 rounded-lg text-slate-300 transition font-medium cursor-not-allowed';
+
+  [7,14,30].forEach(function(r){
+    var b = document.getElementById('chart-range-' + r);
+    if (b) b.className = (r === chartRange) ? segOn : segOff;
+  });
+
+  var bd = document.getElementById('chart-mode-daily');
+  var bh = document.getElementById('chart-mode-hourly');
+  if (bd) bd.className = (chartMode === 'daily') ? segOn : segOff;
+  if (bh) bh.className = (chartMode === 'hourly') ? segOn : segOff;
+
+  var mg = document.getElementById('chart-metric-gross');
+  var mp = document.getElementById('chart-metric-profit');
+  var mc = document.getElementById('chart-metric-count');
+
+  if (mg) mg.className = (chartMetric === 'gross') ? segOn : segOff;
+  if (mc) mc.className = (chartMetric === 'count') ? segOn : segOff;
+  if (mp){
+    if (chartMode === 'hourly'){
+      mp.className = segDis;
+      mp.disabled = true;
+    } else {
+      mp.disabled = false;
+      mp.className = (chartMetric === 'profit') ? segOn : segOff;
+    }
+  }
+}
+
+/* --- 組裝資料 --- */
+function buildDailySeries(days){
+  var now = new Date();
+  var agg = {};
+  trips.forEach(function(t){
+    var k = t.shiftDate;
+    if (!k) return;
+    if (!agg[k]) agg[k] = { gross: 0, expense: 0, incomeCount: 0 };
+    var v = parseFloat(t.fare) || 0;
+    if (v < 0) agg[k].expense += -v;
+    else { agg[k].gross += v; agg[k].incomeCount += 1; }
+  });
+
+  var wd = ['日','一','二','三','四','五','六'];
+  var out = [];
+  for (var i = days - 1; i >= 0; i--){
+    var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    var key = localDateStr(d);
+    var a = agg[key] || { gross: 0, expense: 0, incomeCount: 0 };
+
+    var cfg = shiftSettings[key];
+    if (cfg) ensureShiftFields(cfg);
+    var rental = cfg ? (parseFloat(cfg.rental) || 0) : 0;
+    var fuel   = cfg ? getFuelTotal(cfg) : 0;
+    var cost   = rental + fuel + a.expense;
+
+    out.push({
+      key: key,
+      label: (d.getMonth() + 1) + '/' + d.getDate(),
+      fullLabel: key + '（週' + wd[d.getDay()] + '）',
+      gross: a.gross,
+      profit: a.gross - cost,
+      count: a.incomeCount,
+      isToday: i === 0
+    });
+  }
+  return out;
+}
+
+function buildHourlySeries(days){
+  var now = new Date();
+  var start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1));
+  start.setHours(0, 0, 0, 0);
+  var startMs = start.getTime();
+
+  var buckets = [];
+  for (var h = 0; h < 24; h++){
+    var hh = (h < 10 ? '0' : '') + h;
+    buckets.push({
+      hour: h,
+      label: hh + ':00',
+      fullLabel: hh + ':00 - ' + hh + ':59',
+      gross: 0,
+      profit: 0,
+      count: 0
+    });
+  }
+
+  trips.forEach(function(t){
+    if (!t.timestamp || t.timestamp < startMs) return;
+    var v = parseFloat(t.fare) || 0;
+    if (v <= 0) return;
+    var hIdx = new Date(t.timestamp).getHours();
+    buckets[hIdx].gross += v;
+    buckets[hIdx].count += 1;
+  });
+
+  return buckets;
+}
+
+/* --- 平滑曲線（Catmull-Rom → 三次貝塞爾） --- */
+function buildSmoothPath(pts, minY, maxY){
+  var n = pts.length;
+  if (n === 0) return '';
+  if (n === 1) return 'M' + pts[0].x.toFixed(2) + ',' + pts[0].y.toFixed(2);
+  if (n === 2) return 'M' + pts[0].x.toFixed(2) + ',' + pts[0].y.toFixed(2) +
+                      'L' + pts[1].x.toFixed(2) + ',' + pts[1].y.toFixed(2);
+
+  var d = 'M' + pts[0].x.toFixed(2) + ',' + pts[0].y.toFixed(2);
+  for (var i = 0; i < n - 1; i++){
+    var p0 = pts[i - 1] || pts[i];
+    var p1 = pts[i];
+    var p2 = pts[i + 1];
+    var p3 = pts[i + 2] || p2;
+
+    var c1x = p1.x + (p2.x - p0.x) / 6;
+    var c1y = p1.y + (p2.y - p0.y) / 6;
+    var c2x = p2.x - (p3.x - p1.x) / 6;
+    var c2y = p2.y - (p3.y - p1.y) / 6;
+
+    if (c1y < minY) c1y = minY;
+    if (c1y > maxY) c1y = maxY;
+    if (c2y < minY) c2y = minY;
+    if (c2y > maxY) c2y = maxY;
+
+    d += ' C' + c1x.toFixed(2) + ',' + c1y.toFixed(2) +
+         ' ' + c2x.toFixed(2) + ',' + c2y.toFixed(2) +
+         ' ' + p2.x.toFixed(2) + ',' + p2.y.toFixed(2);
+  }
+  return d;
+}
+
+function fmtChartVal(v, isMoney){
+  if (!isMoney) return (Math.round(v * 10) / 10) + ' 筆';
+  return '$' + v.toFixed(1);
+}
+
+function renderTrendChart(){
+  var container = document.getElementById('chart-container');
+  if (!container) return;
+
+  var isHourly = (chartMode === 'hourly');
+  var data = isHourly ? buildHourlySeries(chartRange) : buildDailySeries(chartRange);
+
+  var metric = chartMetric;
+  if (isHourly && metric === 'profit') metric = 'gross';
+  var isMoney = (metric !== 'count');
+
+  var series = data.map(function(d){
+    if (metric === 'profit') return d.profit;
+    if (metric === 'count')  return d.count;
+    return d.gross;
+  });
+
+  /* 摘要 */
+  var total = 0, maxV = 0, minV = 0;
+  series.forEach(function(v){
+    total += v;
+    if (v > maxV) maxV = v;
+    if (v < minV) minV = v;
+  });
+  var nonZeroCount = series.filter(function(v){ return Math.abs(v) > 0.0001; }).length;
+  var avg = nonZeroCount ? total / nonZeroCount : 0;
+
+  setText('chart-sum', fmtChartVal(total, isMoney));
+  setText('chart-avg', fmtChartVal(avg, isMoney));
+  setText('chart-max', fmtChartVal(maxV, isMoney));
+
+  var peakTag = document.getElementById('chart-peak-tag');
+  if (peakTag){
+    if (maxV > 0){
+      peakTag.innerText = '峰值 ' + fmtChartVal(maxV, isMoney);
+    } else {
+      peakTag.innerText = '';
+    }
+  }
+
+  setText('chart-hint', isHourly
+    ? '最近 ' + chartRange + ' 天內，每個時段的累計' + (isMoney ? '金額' : '筆數') + '（滑動／點擊曲線查看）'
+    : '最近 ' + chartRange + ' 天的每日' + (isMoney ? '金額' : '筆數') + '走勢（滑動／點擊曲線查看）');
+
+  /* 空資料 */
+  if (maxV <= 0 && minV >= 0 && nonZeroCount === 0){
+    container.innerHTML =
+      '<div class="py-10 text-center text-slate-300 text-xs leading-relaxed">' +
+        '此期間暫無' + (isMoney ? '收入' : '行程') + '數據<br>' +
+        '<span class="text-[11px] text-slate-300">新增紀錄後即會顯示走勢</span>' +
+      '</div>';
+    return;
+  }
+
+  /* 幾何 */
+  var n = data.length;
+  var W = 340, H = 172;
+  var padL = 8, padR = 8, padT = 22, padB = 26;
+  var plotW = W - padL - padR;
+  var plotH = H - padT - padB;
+
+  var topV = maxV;
+  var botV = minV;
+  if (topV < 0) topV = 0;
+  if (botV > 0) botV = 0;
+  var span = topV - botV;
+  if (span <= 0) span = 1;
+
+  function px(i){
+    if (n <= 1) return padL + plotW / 2;
+    return padL + (plotW * i) / (n - 1);
+  }
+  function py(v){
+    return padT + plotH - ((v - botV) / span) * plotH;
+  }
+
+  var pts = series.map(function(v, i){
+    return { x: px(i), y: py(v), v: v };
+  });
+
+  var pathD = buildSmoothPath(pts, padT - 6, padT + plotH + 6);
+
+  var zeroY = py(0);
+  var fillD = pathD +
+    ' L' + pts[n - 1].x.toFixed(2) + ',' + zeroY.toFixed(2) +
+    ' L' + pts[0].x.toFixed(2) + ',' + zeroY.toFixed(2) + ' Z';
+
+  /* 網格 */
+  var gridHtml = '';
+  for (var g = 0; g <= 3; g++){
+    var gy = padT + (plotH * g) / 3;
+    gridHtml += '<line x1="' + padL + '" y1="' + gy.toFixed(1) + '" x2="' + (W - padR) +
+                '" y2="' + gy.toFixed(1) + '" stroke="#e2e8f0" stroke-width="1"' +
+                (g === 3 ? '' : ' stroke-dasharray="3 4"') + '/>';
+  }
+
+  /* X 軸標籤 */
+  var step = 1;
+  if (n > 20) step = 4;
+  else if (n > 12) step = 3;
+  else if (n > 7) step = 2;
+
+  var labelHtml = '';
+  for (var li = 0; li < n; li++){
+    var isLast = (li === n - 1);
+    if (!isLast){
+      if (li % step !== 0) continue;
+      if ((n - 1 - li) < step) continue;
+    }
+    var lx = px(li);
+    var anchor = 'middle';
+    if (li === 0) anchor = 'start';
+    if (isLast) anchor = 'end';
+    labelHtml += '<text x="' + lx.toFixed(1) + '" y="' + (H - 8) +
+                 '" font-size="9" fill="#94a3b8" text-anchor="' + anchor +
+                 '" font-family="ui-monospace,Menlo,monospace">' +
+                 escapeHtml(data[li].label) + '</text>';
+  }
+
+  /* 資料點 */
+  var dotsHtml = '';
+  if (n <= 16){
+    for (var di = 0; di < n; di++){
+      var isLastDot = (di === n - 1);
+      var isToday = !isHourly && data[di].isToday;
+      var hi = (isLastDot || isToday);
+      dotsHtml += '<circle cx="' + pts[di].x.toFixed(1) + '" cy="' + pts[di].y.toFixed(1) +
+                  '" r="' + (hi ? 4 : 3) + '" fill="' + (hi ? '#f59e0b' : '#ffffff') +
+                  '" stroke="#f59e0b" stroke-width="2"/>';
+    }
+  } else {
+    var lastIdx = n - 1;
+    dotsHtml += '<circle cx="' + pts[lastIdx].x.toFixed(1) + '" cy="' + pts[lastIdx].y.toFixed(1) +
+                '" r="4" fill="#f59e0b" stroke="#ffffff" stroke-width="2"/>';
+  }
+
+  container.innerHTML =
+    '<svg id="trend-svg" viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="auto" ' +
+      'preserveAspectRatio="xMidYMid meet" style="display:block;touch-action:none;overflow:visible">' +
+      '<defs>' +
+        '<linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">' +
+          '<stop offset="0%" stop-color="#f59e0b" stop-opacity="0.35"/>' +
+          '<stop offset="100%" stop-color="#f59e0b" stop-opacity="0.02"/>' +
+        '</linearGradient>' +
+        '<linearGradient id="trendStroke" x1="0" y1="0" x2="1" y2="0">' +
+          '<stop offset="0%" stop-color="#fbbf24"/>' +
+          '<stop offset="100%" stop-color="#d97706"/>' +
+        '</linearGradient>' +
+      '</defs>' +
+      gridHtml +
+      '<path d="' + fillD + '" fill="url(#trendFill)" stroke="none"/>' +
+      '<path d="' + pathD + '" fill="none" stroke="url(#trendStroke)" stroke-width="2.5" ' +
+        'stroke-linecap="round" stroke-linejoin="round"/>' +
+      dotsHtml +
+      labelHtml +
+      '<line id="trend-cursor-line" x1="0" y1="' + padT + '" x2="0" y2="' + (padT + plotH) +
+        '" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>' +
+      '<circle id="trend-cursor-dot" cx="0" cy="0" r="5" fill="#f59e0b" stroke="#ffffff" ' +
+        'stroke-width="2" opacity="0"/>' +
+      '<rect id="trend-hit" x="' + padL + '" y="' + padT + '" width="' + plotW + '" height="' + plotH +
+        '" fill="transparent" pointer-events="all" style="touch-action:none;cursor:crosshair"/>' +
+    '</svg>' +
+    '<div id="trend-tip" class="hidden absolute pointer-events-none bg-slate-900 text-white ' +
+      'text-[10px] rounded-lg px-2 py-1 shadow-lg leading-tight whitespace-nowrap z-10"></div>';
+
+  /* 互動 */
+  var svgEl      = document.getElementById('trend-svg');
+  var tipEl      = document.getElementById('trend-tip');
+  var cursorLine = document.getElementById('trend-cursor-line');
+  var cursorDot  = document.getElementById('trend-cursor-dot');
+  var hit        = document.getElementById('trend-hit');
+  if (!hit || n === 0) return;
+
+  function showAt(clientX){
+    var rect = svgEl.getBoundingClientRect();
+    if (!rect.width) return;
+    var vx = ((clientX - rect.left) / rect.width) * W;
+
+    var idx;
+    if (n <= 1){
+      idx = 0;
+    } else {
+      idx = Math.round(((vx - padL) / plotW) * (n - 1));
+      if (idx < 0) idx = 0;
+      if (idx > n - 1) idx = n - 1;
+    }
+
+    var p = pts[idx];
+    var d = data[idx];
+
+    var extra = '';
+    if (isMoney && metric !== 'count' && d.count > 0){
+      extra = '　·　' + d.count + ' 筆';
+    }
+    tipEl.innerHTML = escapeHtml(d.fullLabel) + '　' + fmtChartVal(p.v, isMoney) + extra;
+    tipEl.classList.remove('hidden');
+
+    var leftPct = (p.x / W) * 100;
+    if (leftPct < 14) leftPct = 14;
+    if (leftPct > 86) leftPct = 86;
+
+    tipEl.style.left = leftPct + '%';
+    tipEl.style.top  = ((p.y / H) * 100) + '%';
+    tipEl.style.transform = 'translate(-50%, calc(-100% - 10px))';
+
+    cursorLine.setAttribute('x1', p.x.toFixed(2));
+    cursorLine.setAttribute('x2', p.x.toFixed(2));
+    cursorLine.setAttribute('opacity', '1');
+    cursorDot.setAttribute('cx', p.x.toFixed(2));
+    cursorDot.setAttribute('cy', p.y.toFixed(2));
+    cursorDot.setAttribute('opacity', '1');
+  }
+
+  function hideTip(){
+    tipEl.classList.add('hidden');
+    cursorLine.setAttribute('opacity', '0');
+    cursorDot.setAttribute('opacity', '0');
+  }
+
+  hit.addEventListener('pointerdown', function(e){ showAt(e.clientX); });
+  hit.addEventListener('pointermove', function(e){
+    if (e.pointerType === 'mouse' && e.buttons === 0 && e.pointerType !== 'touch'){
+      showAt(e.clientX);
+      return;
+    }
+    showAt(e.clientX);
+  });
+  hit.addEventListener('pointerleave', hideTip);
+  hit.addEventListener('pointercancel', hideTip);
+}
+
 function updateStatsAndNet(){
   var now = new Date();
   updateTripCount();
@@ -5265,6 +5731,9 @@ function updateStatsAndNet(){
   } else {
     renderPeriodStatsView(statsPeriod, now, lastKey);
   }
+
+  /* ★ 走勢圖跟著更新 */
+  renderTrendChart();
 
   updateDateTimePreview();
   updateHeaderWorked();
