@@ -226,6 +226,7 @@ body{
 .text-emerald-800{color:#065f46}
 .text-orange-700{color:#c2410c}
 .text-purple-700{color:#7e22ce}
+.text-indigo-700{color:#4338ca}
 
 .bg-white{background-color:#fff}
 .bg-slate-50{background-color:#f8fafc}
@@ -256,6 +257,7 @@ body{
 .bg-orange-50{background-color:#fff7ed}
 .bg-cyan-50{background-color:#ecfeff}
 .bg-cyan-100{background-color:#cffafe}
+.bg-indigo-50{background-color:#eef2ff}
 .bg-emerald-500\/15{background-color:rgba(16,185,129,.15)}
 .bg-rose-500\/15{background-color:rgba(244,63,94,.15)}
 .bg-slate-800\/80{background-color:rgba(30,41,59,.8)}
@@ -297,6 +299,7 @@ body{
 .border-purple-200{border-color:#e9d5ff}
 .border-cyan-200{border-color:#a5f3fc}
 .border-cyan-300{border-color:#67e8f9}
+.border-indigo-200{border-color:#c7d2fe}
 
 .rounded{border-radius:.25rem}
 .rounded-md{border-radius:.375rem}
@@ -419,6 +422,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
               class="text-xs text-slate-400 font-medium text-right leading-tight cursor-pointer select-none hover:text-slate-600 transition"></span>
       </div>
 
+      <!-- 車資 -->
       <div>
         <div class="flex justify-between items-center mb-1">
           <label class="block text-sm font-semibold text-slate-700">車資金額 (HKD)</label>
@@ -442,28 +446,24 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </div>
         <p class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
           <span class="ico w-3 h-3" data-icon="info"></span>
-          可直接輸入負數（如 -50），或點「收入」切換為「支出」，用於記錄入油、隧道費、維修賠償等開支
+          可直接輸入負數（如 -50），或點「收入」切換為「支出」
         </p>
       </div>
 
+      <!-- 類型（默認只顯示前3個） -->
       <div>
         <label class="block text-sm font-semibold text-slate-700 mb-1.5">類型</label>
-        <div class="grid grid-cols-3 gap-2">
-          <button type="button" onclick="setTripType('街客')" id="type-street"
-            class="py-2.5 px-3 rounded-xl border font-medium text-sm flex items-center justify-center gap-1.5 transition">
-            <span class="ico w-4 h-4" data-icon="flag"></span> 街客
-          </button>
-          <button type="button" onclick="setTripType('Uber')" id="type-uber"
-            class="py-2.5 px-3 rounded-xl border font-medium text-sm flex items-center justify-center gap-1.5 transition">
-            <span class="ico w-4 h-4" data-icon="smartphone"></span> Uber
-          </button>
-          <button type="button" onclick="setTripType('其他')" id="type-other"
-            class="py-2.5 px-3 rounded-xl border font-medium text-sm flex items-center justify-center gap-1.5 transition">
-            <span class="ico w-4 h-4" data-icon="layers"></span> 其他
-          </button>
-        </div>
+        <div id="trip-type-buttons" class="grid grid-cols-3 gap-2"></div>
+        <button type="button" id="trip-type-toggle" onclick="toggleTripTypeExpanded()"
+          class="mt-2 w-full py-1.5 text-[11px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-semibold transition flex items-center justify-center gap-1">
+          <span id="trip-type-toggle-text">更多網約車平台</span>
+          <svg id="trip-type-toggle-chevron" style="width:11px;height:11px;transition:transform .2s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+        </button>
       </div>
 
+      <!-- 收到客戶付款 -->
       <div id="payment-block" class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-3">
         <div>
           <div class="flex justify-between items-center mb-1">
@@ -495,26 +495,47 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </div>
       </div>
 
-      <div>
-        <div class="flex justify-between items-center mb-1">
-          <label class="block text-sm font-semibold text-slate-700">備注 (選填)</label>
-          <div class="flex items-center gap-1.5">
-            <button type="button" id="note-clear-btn" onclick="clearNote()"
-              class="text-[11px] px-2 py-0.5 rounded-full border font-medium transition bg-white text-rose-600 border-rose-200 hover:bg-rose-50 hidden">
-              清除
-            </button>
-            <button type="button" id="note-tags-toggle" onclick="toggleNoteTagsPanel()"
-              class="text-[11px] px-2 py-0.5 rounded-full border font-medium transition bg-white text-slate-600 border-slate-200 hover:bg-slate-100 flex items-center gap-1">
-              <svg style="width:11px;height:11px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-              <span id="note-tags-toggle-text">快速標籤</span>
-            </button>
+      <!-- 更多設置按鈕 -->
+      <button type="button" id="advanced-toggle" onclick="toggleAdvancedSettings()"
+        class="w-full py-2.5 text-xs bg-slate-50 hover:bg-slate-100 border border-slate-200 border-dashed rounded-xl text-slate-600 font-semibold transition flex items-center justify-center gap-1.5">
+        <span class="ico w-3.5 h-3.5" data-icon="settings"></span>
+        <span id="advanced-toggle-text">更多設置（付款方式、備註）</span>
+        <svg id="advanced-toggle-chevron" style="width:12px;height:12px;transition:transform .2s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m6 9 6 6 6-6"/>
+        </svg>
+      </button>
+
+      <!-- 進階設置區（默認隱藏） -->
+      <div id="advanced-settings" class="hidden space-y-4 pt-1">
+        <div id="payment-method-block">
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="block text-sm font-semibold text-slate-700">付款方式</label>
+            <span class="text-[11px] text-slate-400">用於統計現金／八達通收入</span>
           </div>
+          <div id="trip-payment-buttons" class="grid grid-cols-3 gap-2"></div>
         </div>
-        <input type="text" id="trip-note" placeholder="例如：過海、機場、隧道口等..."
-          autocomplete="off" enterkeyhint="done"
-          oninput="renderNoteTags()"
-          class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
-        <div id="note-quick-tags" class="flex-wrap gap-1.5 mt-2 p-2 bg-slate-50 border border-slate-200 rounded-xl" style="display:none"></div>
+
+        <div id="note-block">
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-sm font-semibold text-slate-700">備注 (選填)</label>
+            <div class="flex items-center gap-1.5">
+              <button type="button" id="note-clear-btn" onclick="clearNote()"
+                class="text-[11px] px-2 py-0.5 rounded-full border font-medium transition bg-white text-rose-600 border-rose-200 hover:bg-rose-50 hidden">
+                清除
+              </button>
+              <button type="button" id="note-tags-toggle" onclick="toggleNoteTagsPanel()"
+                class="text-[11px] px-2 py-0.5 rounded-full border font-medium transition bg-white text-slate-600 border-slate-200 hover:bg-slate-100 flex items-center gap-1">
+                <svg style="width:11px;height:11px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                <span id="note-tags-toggle-text">快速標籤</span>
+              </button>
+            </div>
+          </div>
+          <input type="text" id="trip-note" placeholder="例如：過海、機場、隧道口等..."
+            autocomplete="off" enterkeyhint="done"
+            oninput="renderNoteTags()"
+            class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+          <div id="note-quick-tags" class="flex-wrap gap-1.5 mt-2 p-2 bg-slate-50 border border-slate-200 rounded-xl" style="display:none"></div>
+        </div>
       </div>
 
       <button type="button" onclick="saveTrip()"
@@ -536,19 +557,47 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           class="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
       </div>
 
+      <!-- ★ 類型篩選（多選）+ 全部 -->
       <div>
         <label class="block text-xs font-semibold text-slate-500 mb-1.5">類型篩選（多選）</label>
-        <div class="grid grid-cols-3 gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200/80">
-          <label class="flex items-center space-x-1.5 cursor-pointer text-xs font-medium text-slate-700 select-none">
-            <input type="checkbox" id="chk-type-street" checked onchange="renderTripList()">
+        <div class="grid grid-cols-4 gap-1.5 bg-slate-50 p-2 rounded-xl border border-slate-200/80">
+          <label class="flex items-center space-x-1 cursor-pointer text-xs font-bold text-amber-700 select-none">
+            <input type="checkbox" id="chk-type-all" checked onchange="toggleAllTripTypes(this.checked)">
+            <span>全部</span>
+          </label>
+          <label class="flex items-center space-x-1 cursor-pointer text-xs font-medium text-slate-700 select-none">
+            <input type="checkbox" id="chk-type-street" checked onchange="onTripTypeFilterChange()">
             <span>街客</span>
           </label>
-          <label class="flex items-center space-x-1.5 cursor-pointer text-xs font-medium text-slate-700 select-none">
-            <input type="checkbox" id="chk-type-uber" checked onchange="renderTripList()">
+          <label class="flex items-center space-x-1 cursor-pointer text-xs font-medium text-slate-700 select-none">
+            <input type="checkbox" id="chk-type-uber" checked onchange="onTripTypeFilterChange()">
             <span>Uber</span>
           </label>
-          <label class="flex items-center space-x-1.5 cursor-pointer text-xs font-medium text-slate-700 select-none">
-            <input type="checkbox" id="chk-type-other" checked onchange="renderTripList()">
+          <label class="flex items-center space-x-1 cursor-pointer text-xs font-medium text-slate-700 select-none">
+            <input type="checkbox" id="chk-type-other" checked onchange="onTripTypeFilterChange()">
+            <span>網約車</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 付款方式篩選 -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1.5">付款方式篩選</label>
+        <div class="grid grid-cols-4 gap-1.5 bg-slate-50 p-2 rounded-xl border border-slate-200/80">
+          <label class="flex items-center space-x-1 cursor-pointer text-xs font-bold text-amber-700 select-none">
+            <input type="checkbox" id="chk-pay-all" checked onchange="toggleAllPaymentMethods(this.checked)">
+            <span>全部</span>
+          </label>
+          <label class="flex items-center space-x-1 cursor-pointer text-xs font-medium text-slate-700 select-none">
+            <input type="checkbox" id="chk-pay-cash" checked onchange="onPaymentFilterChange()">
+            <span>現金</span>
+          </label>
+          <label class="flex items-center space-x-1 cursor-pointer text-xs font-medium text-slate-700 select-none">
+            <input type="checkbox" id="chk-pay-octopus" checked onchange="onPaymentFilterChange()">
+            <span>八達通</span>
+          </label>
+          <label class="flex items-center space-x-1 cursor-pointer text-xs font-medium text-slate-700 select-none">
+            <input type="checkbox" id="chk-pay-other" checked onchange="onPaymentFilterChange()">
             <span>其他</span>
           </label>
         </div>
@@ -580,7 +629,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
   <!-- TAB 4: 收藏地點 -->
   <section id="tab-places" class="space-y-3 hidden">
     <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 space-y-3">
-      <!-- 搜尋 -->
       <div class="relative">
         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
           <span class="ico w-4 h-4" data-icon="search"></span>
@@ -590,25 +638,21 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           class="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
       </div>
 
-      <!-- 區域篩選 -->
       <div>
         <label class="block text-xs font-semibold text-slate-500 mb-1.5">區域</label>
         <div id="place-region-tabs" class="flex gap-1.5 overflow-x-auto pb-1"></div>
       </div>
 
-      <!-- 分區篩選 -->
       <div id="place-district-wrap" class="hidden">
         <label class="block text-xs font-semibold text-slate-500 mb-1.5">分區</label>
         <div id="place-district-tabs" class="flex gap-1.5 overflow-x-auto pb-1"></div>
       </div>
 
-      <!-- 類型篩選 -->
       <div>
         <label class="block text-xs font-semibold text-slate-500 mb-1.5">類型</label>
         <div id="place-type-tabs" class="flex gap-1.5 overflow-x-auto pb-1"></div>
       </div>
 
-      <!-- 操作按鈕 -->
       <div class="flex gap-2 pt-2 border-t border-slate-100">
         <button type="button" id="nearby-btn" onclick="toggleNearbyPlaces()"
           class="flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 active:scale-[0.98] text-blue-700 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 border border-blue-200">
@@ -621,7 +665,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </button>
       </div>
 
-      <!-- 狀態列 -->
       <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-xs gap-2">
         <span id="nearby-status" class="text-blue-600 font-medium hidden truncate"></span>
         <span id="place-count-badge" class="text-slate-400 font-medium ml-auto shrink-0">共 0 個</span>
@@ -780,6 +823,13 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </div>
         <div id="net-cost-breakdown" class="text-[11px] text-slate-500 text-center"></div>
 
+        <div class="border-t border-slate-100 pt-2">
+          <div class="text-[10px] text-slate-500 font-semibold mb-1.5 px-1 flex items-center gap-1">
+            <span class="ico w-3 h-3" data-icon="credit-card"></span>付款方式分布（收入）
+          </div>
+          <div id="stats-payment-breakdown" class="grid grid-cols-3 gap-2 text-center text-[11px]"></div>
+        </div>
+
         <div class="border-t border-slate-100 pt-2 space-y-2 text-center text-[11px]">
           <div class="grid grid-cols-3 gap-2">
             <div class="bg-slate-50 rounded-lg py-2 border border-slate-100">
@@ -833,20 +883,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           </div>
         </div>
 
-        <div class="border-t border-slate-100 pt-2 grid grid-cols-3 gap-2 text-center text-[11px]">
-          <div class="bg-emerald-50 rounded-lg py-2 border border-emerald-200">
-            <div class="text-emerald-700">街客</div>
-            <div id="stats-type-street" class="text-emerald-700 font-bold font-mono mt-0.5">$0</div>
-          </div>
-          <div class="bg-blue-50 rounded-lg py-2 border border-blue-200">
-            <div class="text-blue-700">Uber</div>
-            <div id="stats-type-uber" class="text-blue-700 font-bold font-mono mt-0.5">$0</div>
-          </div>
-          <div class="bg-purple-50 rounded-lg py-2 border border-purple-200">
-            <div class="text-purple-700">其他</div>
-            <div id="stats-type-other" class="text-purple-700 font-bold font-mono mt-0.5">$0</div>
-          </div>
-        </div>
+        <div id="stats-type-breakdown" class="border-t border-slate-100 pt-2 grid grid-cols-3 gap-2 text-center text-[11px]"></div>
       </div>
     </div>
 
@@ -957,6 +994,7 @@ const ICONS = {
   'search':'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
   'settings':'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/>',
   'wallet':'<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M16.5 14.5h1"/>',
+  'credit-card':'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
   'bar-chart-3':'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
   'trending-up':'<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
   'database':'<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
@@ -1010,6 +1048,59 @@ function hydrateIcons(root){
 }
 
 /* =========================================================
+   A-1. 記帳類型配置表
+   ========================================================= */
+var TRIP_TYPE_CONFIG = [
+  { name:'街客',       icon:'flag',       color:'emerald',  hot:true  },
+  { name:'Uber',       icon:'smartphone', color:'blue',     hot:true  },
+  { name:'HKTaxi',     icon:'smartphone', color:'cyan',     hot:true  },
+  { name:'飛的',       icon:'smartphone', color:'orange',   hot:false },
+  { name:'滴滴',       icon:'smartphone', color:'amber',    hot:false },
+  { name:'其他',       icon:'layers',     color:'purple',   hot:false },
+  { name:'高德打車',   icon:'smartphone', color:'rose',     hot:false },
+  { name:'星群',       icon:'smartphone', color:'cyan',     hot:false },
+  { name:'BigBoss',    icon:'smartphone', color:'blue',     hot:false }
+];
+
+var TRIP_TYPE_THEME = {
+  emerald: { card:'bg-emerald-50 border-emerald-200', text:'text-emerald-700' },
+  blue:    { card:'bg-blue-50 border-blue-200',       text:'text-blue-700' },
+  cyan:    { card:'bg-cyan-50 border-cyan-200',       text:'text-cyan-700' },
+  orange:  { card:'bg-orange-50 border-orange-200',   text:'text-orange-700' },
+  amber:   { card:'bg-amber-50 border-amber-200',     text:'text-amber-700' },
+  purple:  { card:'bg-purple-50 border-purple-200',   text:'text-purple-700' },
+  rose:    { card:'bg-rose-50 border-rose-200',       text:'text-rose-700' },
+  indigo:  { card:'bg-indigo-50 border-indigo-200',   text:'text-indigo-700' },
+  slate:   { card:'bg-slate-50 border-slate-200',     text:'text-slate-700' }
+};
+
+function getAllTripTypes(){ return TRIP_TYPE_CONFIG.map(function(t){ return t.name; }); }
+function getTripTypeConfig(type){
+  var cfg = TRIP_TYPE_CONFIG.find(function(t){ return t.name === type; });
+  if (cfg) return cfg;
+  return { name: type, icon:'layers', color:'purple', hot:false };
+}
+
+/* =========================================================
+   A-2. 付款方式配置表
+   ========================================================= */
+var PAYMENT_METHOD_CONFIG = [
+  { name:'現金',   icon:'coins',       color:'emerald', hot:true },
+  { name:'八達通', icon:'credit-card', color:'blue',    hot:true },
+  { name:'其他',   icon:'wallet',      color:'purple',  hot:true }
+];
+
+function getAllPaymentMethods(){
+  return PAYMENT_METHOD_CONFIG.map(function(p){ return p.name; });
+}
+
+function getPaymentMethodConfig(name){
+  var cfg = PAYMENT_METHOD_CONFIG.find(function(p){ return p.name === name; });
+  if (cfg) return cfg;
+  return { name: name, icon:'wallet', color:'slate' };
+}
+
+/* =========================================================
    B. 應用狀態
    ========================================================= */
 var trips         = JSON.parse(localStorage.getItem('taxi_trips')) || [];
@@ -1027,12 +1118,6 @@ var REGIONS = {
   '新界': ['元朗區', '屯門區', '沙田區', '大埔區', '北區', '西貢區', '葵青區', '荃灣區', '離島區']
 };
 
-/* ★★★ 地點類型統一配置表 ★★★
-   ─ 每個類型只需一行：icon（圖示名稱）、cls（顏色樣式）
-   ─ 順序即為下拉選單和篩選列的顯示順序
-   ─ 要新增類型，直接在這裡加一行即可，其他地方會自動生效
-   例：想加「停車場」：'停車場': { icon: 'map-pin', cls: 'bg-slate-100 text-slate-700 border-slate-300' }
-*/
 var PLACE_TYPE_CONFIG = {
   '餐廳':   { icon: 'utensils',       cls: 'bg-orange-50 text-orange-700 border-orange-200' },
   '的士站': { icon: 'car-taxi-front', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
@@ -1041,14 +1126,9 @@ var PLACE_TYPE_CONFIG = {
   '重要':   { icon: 'star',           cls: 'bg-rose-50 text-rose-700 border-rose-200' },
   '其他':   { icon: 'map-pin',        cls: 'bg-purple-50 text-purple-700 border-purple-200' }
 };
-
-/* 由配置表自動派生的類型名稱陣列（順序同配置表） */
 var PLACE_TYPES = Object.keys(PLACE_TYPE_CONFIG);
-
-/* 遇到未知類型時的樣式回退（通常是「其他」的樣式） */
 var PLACE_TYPE_FALLBACK = { icon: 'map-pin', cls: 'bg-purple-50 text-purple-700 border-purple-200' };
 
-/* 取得某個類型的樣式；找不到時回退到預設 */
 function getPlaceTypeStyle(type){
   return PLACE_TYPE_CONFIG[type] || PLACE_TYPE_FALLBACK;
 }
@@ -1091,6 +1171,10 @@ var userLng = null;
 var currentEditingPlaceId = null;
 
 var activeTripType   = localStorage.getItem('taxi_last_type') || '街客';
+var tripTypeExpanded = false;
+var activePaymentMethod = localStorage.getItem('taxi_last_payment') || '現金';
+var advancedSettingsOpen = localStorage.getItem('taxi_advanced_open') === '1';
+
 var statsPeriod      = 'day';
 var currentEditingId = null;
 var lastDeletedTrips = null;
@@ -1377,6 +1461,10 @@ function getLastSettings(createIfMissing){
 
   var tripsChanged = false;
   trips.forEach(function(t){
+    if (t.payment === undefined || t.payment === null || t.payment === ''){
+      t.payment = '現金';
+      tripsChanged = true;
+    }
     if (!t.shiftDate){
       t.shiftDate = localDateStr(new Date(t.timestamp));
       tripsChanged = true;
@@ -2165,7 +2253,23 @@ window.addEventListener('DOMContentLoaded', function(){
   hydrateIcons();
   applyAllCardStates();
   initSettingsForm();
-  setTripType(activeTripType);
+
+  var allTypes = getAllTripTypes();
+  if (allTypes.indexOf(activeTripType) === -1){
+    activeTripType = '街客';
+    localStorage.setItem('taxi_last_type', activeTripType);
+  }
+  renderTripTypeButtons();
+
+  var allPayments = getAllPaymentMethods();
+  if (allPayments.indexOf(activePaymentMethod) === -1){
+    activePaymentMethod = '現金';
+    localStorage.setItem('taxi_last_payment', activePaymentMethod);
+  }
+  renderPaymentMethodButtons();
+
+  applyAdvancedSettingsState();
+
   updateFareSignUI();
   renderNoteTags();
   updateDateTimePreview();
@@ -2177,6 +2281,31 @@ window.addEventListener('DOMContentLoaded', function(){
   renderPlaceFilters();
   renderPlacesList();
 });
+
+function toggleAdvancedSettings(){
+  advancedSettingsOpen = !advancedSettingsOpen;
+  localStorage.setItem('taxi_advanced_open', advancedSettingsOpen ? '1' : '0');
+  applyAdvancedSettingsState();
+}
+
+function applyAdvancedSettingsState(){
+  var panel = document.getElementById('advanced-settings');
+  var btnText = document.getElementById('advanced-toggle-text');
+  var chev = document.getElementById('advanced-toggle-chevron');
+
+  if (panel){
+    if (advancedSettingsOpen) panel.classList.remove('hidden');
+    else panel.classList.add('hidden');
+  }
+  if (btnText){
+    btnText.innerText = advancedSettingsOpen
+      ? '收起設置'
+      : '更多設置（付款方式、備註）';
+  }
+  if (chev){
+    chev.style.transform = advancedSettingsOpen ? 'rotate(180deg)' : '';
+  }
+}
 
 function updateDateTimePreview(){
   var now = new Date();
@@ -2280,18 +2409,113 @@ function switchTab(tabName){
 }
 
 /* =========================================================
-   G. 類型
+   G. 記帳類型（動態渲染 + 展開/收起）
    ========================================================= */
+function renderTripTypeButtons(){
+  var container = document.getElementById('trip-type-buttons');
+  if (!container) return;
+
+  var list = tripTypeExpanded
+    ? TRIP_TYPE_CONFIG
+    : TRIP_TYPE_CONFIG.filter(function(t){ return t.hot; });
+
+  container.innerHTML = list.map(function(t){
+    var active = (activeTripType === t.name);
+    var cls = active
+      ? 'py-2.5 px-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-1 transition bg-amber-500 text-slate-900 border-amber-600 shadow-sm'
+      : 'py-2.5 px-2.5 rounded-xl border font-medium text-xs flex items-center justify-center gap-1 transition bg-white text-slate-700 border-slate-200 hover:bg-slate-100';
+    return '<button type="button" onclick="setTripType(\'' + escapeHtml(t.name) + '\')" class="' + cls + '">' +
+      ico(t.icon, 'w-3.5 h-3.5 shrink-0') +
+      '<span class="truncate">' + escapeHtml(t.name) + '</span>' +
+    '</button>';
+  }).join('');
+
+  var toggleText = document.getElementById('trip-type-toggle-text');
+  var chev = document.getElementById('trip-type-toggle-chevron');
+  var hiddenCount = TRIP_TYPE_CONFIG.filter(function(t){ return !t.hot; }).length;
+
+  if (toggleText){
+    toggleText.innerText = tripTypeExpanded
+      ? '收起'
+      : (hiddenCount > 0 ? '更多網約車平台（+' + hiddenCount + '）' : '更多');
+  }
+  if (chev){
+    chev.style.transform = tripTypeExpanded ? 'rotate(180deg)' : '';
+  }
+}
+
+function toggleTripTypeExpanded(){
+  tripTypeExpanded = !tripTypeExpanded;
+  renderTripTypeButtons();
+}
+
 function setTripType(type){
   activeTripType = type;
   localStorage.setItem('taxi_last_type', type);
-  ['street','uber','other'].forEach(function(t){
-    var btn = document.getElementById('type-' + t);
-    if (btn) btn.className = 'py-2.5 px-3 rounded-xl border font-medium text-sm flex items-center justify-center gap-1.5 transition bg-white text-slate-700 border-slate-200';
-  });
-  var key = type === '街客' ? 'street' : (type === 'Uber' ? 'uber' : 'other');
-  var activeBtn = document.getElementById('type-' + key);
-  if (activeBtn) activeBtn.className = 'py-2.5 px-3 rounded-xl border font-bold text-sm flex items-center justify-center gap-1.5 transition bg-amber-500 text-slate-900 border-amber-600 shadow-sm';
+  renderTripTypeButtons();
+}
+
+/* =========================================================
+   G-2. 付款方式
+   ========================================================= */
+function renderPaymentMethodButtons(){
+  var container = document.getElementById('trip-payment-buttons');
+  if (!container) return;
+
+  var list = PAYMENT_METHOD_CONFIG.filter(function(p){ return p.hot; });
+
+  container.innerHTML = list.map(function(p){
+    var active = (activePaymentMethod === p.name);
+    var cls = active
+      ? 'py-2.5 px-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-1 transition bg-amber-500 text-slate-900 border-amber-600 shadow-sm'
+      : 'py-2.5 px-2.5 rounded-xl border font-medium text-xs flex items-center justify-center gap-1 transition bg-white text-slate-700 border-slate-200 hover:bg-slate-100';
+    return '<button type="button" onclick="setPaymentMethod(\'' + escapeHtml(p.name) + '\')" class="' + cls + '">' +
+      ico(p.icon, 'w-3.5 h-3.5 shrink-0') +
+      '<span class="truncate">' + escapeHtml(p.name) + '</span>' +
+    '</button>';
+  }).join('');
+}
+
+function setPaymentMethod(name){
+  activePaymentMethod = name;
+  localStorage.setItem('taxi_last_payment', name);
+  renderPaymentMethodButtons();
+}
+
+/* =========================================================
+   G-3. ★ 類型篩選「全部」連動
+   ========================================================= */
+function toggleAllTripTypes(checked){
+  document.getElementById('chk-type-street').checked = checked;
+  document.getElementById('chk-type-uber').checked = checked;
+  document.getElementById('chk-type-other').checked = checked;
+  renderTripList();
+}
+
+function onTripTypeFilterChange(){
+  var s = document.getElementById('chk-type-street').checked;
+  var u = document.getElementById('chk-type-uber').checked;
+  var o = document.getElementById('chk-type-other').checked;
+  document.getElementById('chk-type-all').checked = (s && u && o);
+  renderTripList();
+}
+
+/* =========================================================
+   G-4. ★ 付款方式篩選「全部」連動
+   ========================================================= */
+function toggleAllPaymentMethods(checked){
+  document.getElementById('chk-pay-cash').checked = checked;
+  document.getElementById('chk-pay-octopus').checked = checked;
+  document.getElementById('chk-pay-other').checked = checked;
+  renderTripList();
+}
+
+function onPaymentFilterChange(){
+  var c = document.getElementById('chk-pay-cash').checked;
+  var o = document.getElementById('chk-pay-octopus').checked;
+  var t = document.getElementById('chk-pay-other').checked;
+  document.getElementById('chk-pay-all').checked = (c && o && t);
+  renderTripList();
 }
 
 /* =========================================================
@@ -2573,6 +2797,7 @@ function saveTrip(){
     dateStr:   toLocalISOString(now),
     fare:      fare,
     type:      activeTripType,
+    payment:   activePaymentMethod,
     received:  received,
     change:    changeVal,
     note:      note,
@@ -2591,12 +2816,13 @@ function saveTrip(){
   calculateChange();
 
   var prefix = isManual ? '【補錄 ' + shiftDate + '】' : '';
+  var payTag = isExpense ? '' : '[' + activePaymentMethod + '] ';
   if (isExpense){
     showToast(prefix + '支出記錄已保存：-$' + Math.abs(fare).toFixed(1));
   } else if (changeVal < 0){
-    showToast(prefix + '行程已保存，客戶尚欠 $' + Math.abs(changeVal).toFixed(1));
+    showToast(prefix + payTag + '行程已保存，客戶尚欠 $' + Math.abs(changeVal).toFixed(1));
   } else {
-    showToast(prefix + '行程已成功保存！');
+    showToast(prefix + payTag + '行程已成功保存！');
   }
   updateStatsAndNet();
 }
@@ -2616,22 +2842,33 @@ function renderTripList(){
   var allowIncome      = document.getElementById('chk-flow-income').checked;
   var allowExpense     = document.getElementById('chk-flow-expense').checked;
 
+  var allowCash    = document.getElementById('chk-pay-cash').checked;
+  var allowOctopus = document.getElementById('chk-pay-octopus').checked;
+  var allowPayOther= document.getElementById('chk-pay-other').checked;
+
   var lastShiftKey  = getLastShiftKey();
 
   var filtered = trips.filter(function(t){
     var matchKeyword = (t.note || '').toLowerCase().indexOf(keyword) !== -1 ||
                        t.fare.toString().indexOf(keyword) !== -1;
+
     var matchType = false;
     if (t.type === '街客' && allowStreet) matchType = true;
-    if (t.type === 'Uber' && allowUber)   matchType = true;
-    if (t.type === '其他' && allowOther)  matchType = true;
+    else if (t.type === 'Uber' && allowUber) matchType = true;
+    else if (t.type !== '街客' && t.type !== 'Uber' && allowOther) matchType = true;
 
     var fareNum   = parseFloat(t.fare) || 0;
     var isExpense = fareNum < 0;
     var matchFlow = (isExpense && allowExpense) || (!isExpense && allowIncome);
 
+    var pay = t.payment || '現金';
+    var matchPayment = false;
+    if (pay === '現金' && allowCash) matchPayment = true;
+    else if (pay === '八達通' && allowOctopus) matchPayment = true;
+    else if (pay !== '現金' && pay !== '八達通' && allowPayOther) matchPayment = true;
+
     var matchShift = !onlyCurrentShift || (t.shiftDate === lastShiftKey);
-    return matchKeyword && matchType && matchFlow && matchShift;
+    return matchKeyword && matchType && matchFlow && matchPayment && matchShift;
   });
 
   document.getElementById('trip-count-badge').innerText = '共 ' + filtered.length + ' 筆';
@@ -2655,9 +2892,18 @@ function renderTripList(){
     var fareAbs   = Math.abs(fareNum);
     var fareText  = (isExpense ? '-$' : '$') + fareAbs;
 
-    var typeColor = t.type === '街客' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                    t.type === 'Uber' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                        'bg-purple-50 text-purple-700 border-purple-200';
+    var typeCfg = getTripTypeConfig(t.type);
+    var theme = TRIP_TYPE_THEME[typeCfg.color] || TRIP_TYPE_THEME.slate;
+    var typeColor = theme.card + ' ' + theme.text;
+
+    var payBadge = '';
+    if (!isExpense){
+      var payCfg = getPaymentMethodConfig(t.payment || '現金');
+      var payTheme = TRIP_TYPE_THEME[payCfg.color] || TRIP_TYPE_THEME.slate;
+      payBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-full border font-medium flex items-center gap-0.5 ' + payTheme.card + ' ' + payTheme.text + '">' +
+        ico(payCfg.icon, 'w-2.5 h-2.5') + escapeHtml(payCfg.name) +
+      '</span>';
+    }
 
     var expenseBadge = isExpense
       ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-1">' +
@@ -2682,9 +2928,10 @@ function renderTripList(){
           '<span class="text-slate-400">' + dateStr + '</span>' +
         '</div>' +
         '<div class="min-w-0">' +
-          '<div class="flex items-center gap-2 flex-wrap">' +
+          '<div class="flex items-center gap-1.5 flex-wrap">' +
             '<span class="text-base font-extrabold ' + (isExpense ? 'text-rose-600' : 'text-slate-900') + '">' + fareText + '</span>' +
             '<span class="text-[10px] px-2 py-0.5 rounded-full border font-semibold ' + typeColor + '">' + escapeHtml(t.type) + '</span>' +
+            payBadge +
             expenseBadge +
             debtBadge +
           '</div>' +
@@ -2704,7 +2951,6 @@ function renderTripList(){
    J-2. 收藏地點專區
    ========================================================= */
 
-/* 距離計算（Haversine） */
 function getDistance(lat1, lon1, lat2, lon2){
   var R = 6371000;
   var f1 = lat1 * Math.PI / 180;
@@ -2724,7 +2970,6 @@ function formatDistance(meters){
   return (meters / 1000).toFixed(1) + ' km';
 }
 
-/* 渲染篩選標籤 */
 function renderPlaceFilters(){
   var regionWrap = document.getElementById('place-region-tabs');
   var districtWrap = document.getElementById('place-district-wrap');
@@ -2786,7 +3031,6 @@ function setPlaceFilterType(t){
   renderPlacesList();
 }
 
-/* 渲染地點列表 */
 function renderPlacesList(){
   var container = document.getElementById('places-list-container');
   if (!container) return;
@@ -2901,7 +3145,6 @@ function renderPlacesList(){
   }).join('');
 }
 
-/* 用高德 App 導航（優先喚起 App，失敗回退網頁） */
 function openPlaceInMaps(id){
   var p = places.find(function(x){ return x.id === id; });
   if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
@@ -2964,7 +3207,6 @@ function openPlaceInMaps(id){
   }
 }
 
-/* 附近地點切換 */
 function toggleNearbyPlaces(){
   var btnText = document.getElementById('nearby-btn-text');
   var btn = document.getElementById('nearby-btn');
@@ -3007,7 +3249,6 @@ function toggleNearbyPlaces(){
   );
 }
 
-/* ★ 新增地點彈窗（永遠以「新增」模式開啟） */
 function openAddPlaceModal(){
   currentEditingPlaceId = null;
 
@@ -3015,7 +3256,6 @@ function openAddPlaceModal(){
     return '<option value="' + r + '">' + r + '</option>';
   }).join('');
 
-  /* ★ 類型下拉選單由 PLACE_TYPE_CONFIG 自動生成 */
   var typeOptions = PLACE_TYPES.map(function(t){
     return '<option value="' + t + '">' + t + '</option>';
   }).join('');
@@ -3107,7 +3347,6 @@ function openAddPlaceModal(){
   hydrateIcons();
 }
 
-/* 區域變更 → 更新分區下拉 */
 function onPlaceRegionChange(){
   var region = document.getElementById('place-region').value;
   var districtEl = document.getElementById('place-district');
@@ -3124,7 +3363,6 @@ function onPlaceRegionChange(){
     }).join('');
 }
 
-/* 只填入座標（不解析地址） */
 function useCurrentLocationForPlace(){
   if (!navigator.geolocation){
     showToast('此瀏覽器不支援定位功能');
@@ -3146,7 +3384,6 @@ function useCurrentLocationForPlace(){
   );
 }
 
-/* 自動填寫按鈕：定位 + 逆向地理編碼 + 自動填寫所有欄位 */
 function autoFillPlaceByLocation(){
   var btn = document.getElementById('place-autofill-btn');
 
@@ -3197,7 +3434,6 @@ function autoFillPlaceByLocation(){
   );
 }
 
-/* 還原自動填寫按鈕狀態 */
 function resetAutoFillButton(){
   var btn = document.getElementById('place-autofill-btn');
   if (!btn) return;
@@ -3211,7 +3447,6 @@ function resetAutoFillButton(){
   hydrateIcons(btn);
 }
 
-/* 呼叫 Nominatim 逆地理編碼 */
 function reverseGeocode(lat, lng, callback){
   var url = 'https://nominatim.openstreetmap.org/reverse' +
             '?format=jsonv2&lat=' + lat + '&lon=' + lng +
@@ -3251,7 +3486,6 @@ function reverseGeocode(lat, lng, callback){
   });
 }
 
-/* 從 Nominatim 結果匹配香港 18 區 */
 function matchDistrictFromAddress(addr){
   var hay = [
     addr.state || '',
@@ -3279,7 +3513,6 @@ function matchDistrictFromAddress(addr){
   return null;
 }
 
-/* 將解析結果寫入表單 */
 function applyGeocodeResult(data){
   var addr = data.address || {};
 
@@ -3328,7 +3561,6 @@ function applyGeocodeResult(data){
   return matched;
 }
 
-/* 保存地點（新增 / 修改共用） */
 function savePlace(){
   var nameEl     = document.getElementById('place-name');
   var regionEl   = document.getElementById('place-region');
@@ -3388,7 +3620,6 @@ function savePlace(){
   renderPlacesList();
 }
 
-/* 編輯地點 —— 先開彈窗，再設定編輯 ID */
 function openEditPlaceModal(id){
   var p = places.find(function(x){ return x.id === id; });
   if (!p){
@@ -3412,7 +3643,6 @@ function openEditPlaceModal(id){
   document.getElementById('place-lng').value = (typeof p.lng === 'number') ? p.lng : '';
 }
 
-/* 刪除地點 */
 function deletePlace(id){
   if (!confirm('確定要刪除此收藏地點嗎？')) return;
   places = places.filter(function(p){ return p.id !== id; });
@@ -3451,6 +3681,16 @@ function openDetailModal(id){
     ? '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">性質</span><span class="font-bold text-rose-600">支出</span></div>'
     : '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">性質</span><span class="font-medium text-emerald-700">收入</span></div>';
 
+  var payMethodRow = '';
+  if (!isExpense){
+    var payCfg = getPaymentMethodConfig(t.payment || '現金');
+    payMethodRow = '<div class="flex justify-between py-1 border-b border-slate-100">' +
+      '<span class="text-slate-500">付款方式</span>' +
+      '<span class="font-medium flex items-center gap-1">' +
+        ico(payCfg.icon,'w-3.5 h-3.5') + escapeHtml(payCfg.name) +
+      '</span></div>';
+  }
+
   document.getElementById('modal-title').innerText = '行程詳細內容';
   document.getElementById('modal-body').innerHTML =
     '<div class="space-y-2 text-sm">' +
@@ -3459,6 +3699,7 @@ function openDetailModal(id){
       kindRow +
       '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">車資</span><span class="' + fareCls + '">' + fareText + '</span></div>' +
       '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">類型</span><span class="font-medium">' + escapeHtml(t.type) + '</span></div>' +
+      payMethodRow +
       payRows +
       '<div class="flex justify-between py-1"><span class="text-slate-500">備注</span><span class="font-medium text-slate-700">' + (t.note ? escapeHtml(t.note) : '無') + '</span></div>' +
     '</div>';
@@ -3469,6 +3710,7 @@ function openDetailModal(id){
   var m = document.getElementById('trip-modal');
   m.classList.remove('hidden');
   m.classList.add('flex');
+  hydrateIcons();
 }
 
 function openEditModal(id){
@@ -3497,6 +3739,21 @@ function openEditModal(id){
     }
   }
 
+  var typeOptionsHtml = TRIP_TYPE_CONFIG.map(function(c){
+    return '<option value="' + escapeHtml(c.name) + '"' + (t.type === c.name ? ' selected' : '') + '>' + escapeHtml(c.name) + '</option>';
+  }).join('');
+  if (getAllTripTypes().indexOf(t.type) === -1){
+    typeOptionsHtml += '<option value="' + escapeHtml(t.type) + '" selected>' + escapeHtml(t.type) + '（舊）</option>';
+  }
+
+  var currentPay = t.payment || '現金';
+  var payOptionsHtml = PAYMENT_METHOD_CONFIG.map(function(p){
+    return '<option value="' + escapeHtml(p.name) + '"' + (currentPay === p.name ? ' selected' : '') + '>' + escapeHtml(p.name) + '</option>';
+  }).join('');
+  if (getAllPaymentMethods().indexOf(currentPay) === -1){
+    payOptionsHtml += '<option value="' + escapeHtml(currentPay) + '" selected>' + escapeHtml(currentPay) + '（舊）</option>';
+  }
+
   document.getElementById('modal-title').innerText = '修改記錄';
   document.getElementById('modal-body').innerHTML =
     '<div class="space-y-3 text-sm">' +
@@ -3522,9 +3779,13 @@ function openEditModal(id){
       '<div>' +
         '<label class="block text-xs font-semibold text-slate-600 mb-1">類型</label>' +
         '<select id="edit-type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2">' +
-          '<option value="街客"' + (t.type === '街客' ? ' selected' : '') + '>街客</option>' +
-          '<option value="Uber"' + (t.type === 'Uber' ? ' selected' : '') + '>Uber</option>' +
-          '<option value="其他"' + (t.type === '其他' ? ' selected' : '') + '>其他</option>' +
+          typeOptionsHtml +
+        '</select>' +
+      '</div>' +
+      '<div>' +
+        '<label class="block text-xs font-semibold text-slate-600 mb-1">付款方式</label>' +
+        '<select id="edit-payment" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2">' +
+          payOptionsHtml +
         '</select>' +
       '</div>' +
       '<div>' +
@@ -3547,6 +3808,7 @@ function saveEditedTrip(){
   var fareRaw = document.getElementById('edit-fare').value;
   var fare = parseFloat(fareRaw);
   var type = document.getElementById('edit-type').value;
+  var payment = document.getElementById('edit-payment').value;
   var note = document.getElementById('edit-note').value.trim();
 
   if (isNaN(fare) || fare === 0){ showToast('請輸入有效車資（可為負數）！'); return; }
@@ -3556,6 +3818,7 @@ function saveEditedTrip(){
     var isExpense = fare < 0;
     trips[index].fare      = fare;
     trips[index].type      = type;
+    trips[index].payment   = payment;
     trips[index].note      = note;
     trips[index].isExpense = isExpense;
     if (isExpense){
@@ -4748,6 +5011,74 @@ function updateCombinedShiftNote(cfg){
   }
 }
 
+function renderTypeBreakdown(typeRev){
+  var container = document.getElementById('stats-type-breakdown');
+  if (!container) return;
+
+  var entries = Object.keys(typeRev).filter(function(k){ return typeRev[k] > 0.001; });
+
+  var orderMap = {};
+  TRIP_TYPE_CONFIG.forEach(function(t, i){ orderMap[t.name] = i; });
+  entries.sort(function(a, b){
+    var ia = (orderMap[a] === undefined) ? 999 : orderMap[a];
+    var ib = (orderMap[b] === undefined) ? 999 : orderMap[b];
+    return ia - ib;
+  });
+
+  if (entries.length === 0){
+    container.style.gridTemplateColumns = '';
+    container.innerHTML = '<div class="col-span-3 text-slate-400 text-[11px] py-1">暫無收入記錄</div>';
+    return;
+  }
+
+  var cols = Math.min(entries.length, 3);
+  container.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0,1fr))';
+
+  container.innerHTML = entries.map(function(name){
+    var cfg = getTripTypeConfig(name);
+    var theme = TRIP_TYPE_THEME[cfg.color] || TRIP_TYPE_THEME.slate;
+    return '<div class="rounded-lg py-2 border ' + theme.card + '">' +
+      '<div class="' + theme.text + ' font-medium truncate px-1">' + escapeHtml(name) + '</div>' +
+      '<div class="' + theme.text + ' font-bold font-mono mt-0.5">$' + typeRev[name].toFixed(1) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderPaymentBreakdown(paymentRev){
+  var container = document.getElementById('stats-payment-breakdown');
+  if (!container) return;
+
+  var entries = Object.keys(paymentRev).filter(function(k){ return paymentRev[k] > 0.001; });
+
+  var orderMap = {};
+  PAYMENT_METHOD_CONFIG.forEach(function(p, i){ orderMap[p.name] = i; });
+  entries.sort(function(a, b){
+    var ia = (orderMap[a] === undefined) ? 999 : orderMap[a];
+    var ib = (orderMap[b] === undefined) ? 999 : orderMap[b];
+    return ia - ib;
+  });
+
+  if (entries.length === 0){
+    container.style.gridTemplateColumns = '';
+    container.innerHTML = '<div class="col-span-3 text-slate-400 text-[11px] py-1">暫無收入記錄</div>';
+    return;
+  }
+
+  var cols = Math.min(entries.length, 3);
+  container.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0,1fr))';
+
+  container.innerHTML = entries.map(function(name){
+    var cfg = getPaymentMethodConfig(name);
+    var theme = TRIP_TYPE_THEME[cfg.color] || TRIP_TYPE_THEME.slate;
+    return '<div class="rounded-lg py-2 border ' + theme.card + ' flex flex-col items-center">' +
+      '<div class="' + theme.text + ' font-medium truncate px-1 flex items-center gap-0.5">' +
+        ico(cfg.icon, 'w-3 h-3') + escapeHtml(name) +
+      '</div>' +
+      '<div class="' + theme.text + ' font-bold font-mono mt-0.5">$' + paymentRev[name].toFixed(1) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
 function renderDayStatsView(lastKey, lastCfg){
   var fin = getShiftFinance(lastKey);
 
@@ -4783,16 +5114,23 @@ function renderDayStatsView(lastKey, lastCfg){
 
   updateCombinedShiftNote(lastCfg);
 
-  var typeRev = { '街客':0, 'Uber':0, '其他':0 };
+  var typeRev = {};
+  TRIP_TYPE_CONFIG.forEach(function(t){ typeRev[t.name] = 0; });
+  var paymentRev = {};
+  PAYMENT_METHOD_CONFIG.forEach(function(p){ paymentRev[p.name] = 0; });
+
   fin.list.forEach(function(t){
     var v = parseFloat(t.fare) || 0;
     if (v <= 0) return;
     if (typeRev[t.type] !== undefined) typeRev[t.type] += v;
-    else if (t.type === 'Other') typeRev['其他'] += v;
+    else typeRev['其他'] += v;
+
+    var pay = t.payment || '現金';
+    if (paymentRev[pay] !== undefined) paymentRev[pay] += v;
+    else paymentRev['其他'] += v;
   });
-  setText('stats-type-street', '$' + typeRev['街客'].toFixed(1));
-  setText('stats-type-uber',   '$' + typeRev['Uber'].toFixed(1));
-  setText('stats-type-other',  '$' + typeRev['其他'].toFixed(1));
+  renderTypeBreakdown(typeRev);
+  renderPaymentBreakdown(paymentRev);
 }
 
 function renderPeriodStatsView(period, now, lastKey){
@@ -4805,7 +5143,10 @@ function renderPeriodStatsView(period, now, lastKey){
   var periodShiftCount = 0;
   var periodIncomeCount  = 0;
   var periodExpenseCount = 0;
-  var typeRev = { '街客':0, 'Uber':0, '其他':0 };
+  var typeRev = {};
+  TRIP_TYPE_CONFIG.forEach(function(t){ typeRev[t.name] = 0; });
+  var paymentRev = {};
+  PAYMENT_METHOD_CONFIG.forEach(function(p){ paymentRev[p.name] = 0; });
 
   Object.keys(shiftSettings).forEach(function(k){
     if (!shiftKeyInPeriod(k, period, now, lastKey)) return;
@@ -4826,7 +5167,11 @@ function renderPeriodStatsView(period, now, lastKey){
       totalRev += v;
       periodIncomeCount++;
       if (typeRev[t.type] !== undefined) typeRev[t.type] += v;
-      else if (t.type === 'Other') typeRev['其他'] += v;
+      else typeRev['其他'] += v;
+
+      var pay = t.payment || '現金';
+      if (paymentRev[pay] !== undefined) paymentRev[pay] += v;
+      else paymentRev['其他'] += v;
     });
 
     var shiftKm = getShiftMileage(shiftSettings[k]);
@@ -4869,9 +5214,8 @@ function renderPeriodStatsView(period, now, lastKey){
 
   updateCombinedShiftNote(null);
 
-  setText('stats-type-street', '$' + typeRev['街客'].toFixed(1));
-  setText('stats-type-uber',   '$' + typeRev['Uber'].toFixed(1));
-  setText('stats-type-other',  '$' + typeRev['其他'].toFixed(1));
+  renderTypeBreakdown(typeRev);
+  renderPaymentBreakdown(paymentRev);
 }
 
 function updateStatsAndNet(){
