@@ -754,8 +754,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </h2>
       </div>
 
-  
-
       <!-- 日期選擇 -->
       <div class="flex gap-2">
         <input type="date" id="airport-date"
@@ -778,6 +776,15 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           <span class="ico w-3.5 h-3.5" data-icon="plane-takeoff"></span> 離港
         </button>
       </div>
+
+      <!-- ★ 隱藏過期航班開關 -->
+      <label class="flex items-center justify-between gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 cursor-pointer select-none">
+        <span class="flex items-center gap-1.5 min-w-0">
+          <span class="ico w-3.5 h-3.5 text-amber-500 shrink-0" data-icon="clock"></span>
+          <span id="airport-hide-label" class="text-xs font-semibold text-slate-700 truncate">隱藏過期航班</span>
+        </span>
+        <input type="checkbox" id="airport-hide-expired" onchange="toggleHideExpiredFlights(this.checked)">
+      </label>
 
       <!-- 狀態 -->
       <div id="flight-status" class="text-[11px] text-slate-400 text-center font-medium"></div>
@@ -6794,6 +6801,67 @@ function closeDrawer(){
 var flightTabArrival = true;
 var airportInitialized = false;
 
+/* ── 隱藏過期航班 ───────────────────────────────── */
+var HIDE_EXPIRED_KEY = 'taxi_airport_hide_expired';
+var hideExpiredFlights = localStorage.getItem(HIDE_EXPIRED_KEY) !== '0'; // 預設開啟
+var FLIGHT_EXPIRE_MINUTES = 60;   // ★ 想改門檻就改這裡（分鐘）
+
+function toggleHideExpiredFlights(checked){
+  hideExpiredFlights = checked;
+  localStorage.setItem(HIDE_EXPIRED_KEY, checked ? '1' : '0');
+  loadFlightList();
+}
+
+/* 供「顯示全部」按鈕使用 */
+function showAllFlights(){
+  var chk = document.getElementById('airport-hide-expired');
+  if (chk) chk.checked = false;
+  toggleHideExpiredFlights(false);
+}
+
+/* 依抵港／離港更新開關文字 */
+function updateAirportHideLabel(){
+  var el = document.getElementById('airport-hide-label');
+  if (!el) return;
+  var h = FLIGHT_EXPIRE_MINUTES / 60;
+  var hText = (h === Math.floor(h)) ? String(h) : h.toFixed(1);
+  el.innerText = flightTabArrival
+    ? '隱藏已到港逾 ' + hText + ' 小時'
+    : '隱藏距起飛不足 ' + hText + ' 小時';
+}
+
+/* "14:30" → 870（分鐘）；解析不到回 null */
+function parseFlightMinutes(timeStr){
+  if (!timeStr) return null;
+  var m = String(timeStr).match(/(\d{1,2})\s*[:：]\s*(\d{1,2})/);
+  if (!m) return null;
+  var hh = parseInt(m[1], 10);
+  var mm = parseInt(m[2], 10);
+  if (isNaN(hh) || isNaN(mm) || hh > 23 || mm > 59) return null;
+  return hh * 60 + mm;
+}
+
+/* 核心過濾 */
+function filterExpiredFlights(list, date, isArrival){
+  if (!hideExpiredFlights) return list;
+
+  // 只對「今天」生效；查歷史／其他日期不過濾
+  if (date !== localDateStr(new Date())) return list;
+
+  var now = new Date();
+  var nowMin = now.getHours() * 60 + now.getMinutes();
+  var th = FLIGHT_EXPIRE_MINUTES;
+
+  return list.filter(function(f){
+    var fm = parseFlightMinutes(f.time);
+    if (fm === null) return true;          // 時間解析不到 → 保留，避免誤刪
+
+    return isArrival
+      ? fm >= nowMin - th                  // 到港：只留最近 1 小時內（含未到）
+      : fm >= nowMin + th;                 // 離港：只留 1 小時後才起飛
+  });
+}
+
 function initAirportTab(){
   var dateEl = document.getElementById('airport-date');
   if (dateEl && !dateEl.value){
@@ -6801,6 +6869,11 @@ function initAirportTab(){
     dateEl.value = localDateStr(today);
     dateEl.max = localDateStr(today);
   }
+
+  // 同步開關狀態
+  var hideChk = document.getElementById('airport-hide-expired');
+  if (hideChk) hideChk.checked = hideExpiredFlights;
+  updateAirportHideLabel();
 
   // 首次進入自動載入
   if (!airportInitialized){
@@ -6817,10 +6890,12 @@ function setFlightTab(isArrival){
   var off = 'py-1.5 rounded-lg text-slate-600 font-medium transition flex items-center justify-center gap-1';
   if (arrBtn) arrBtn.className = isArrival ? on : off;
   if (depBtn) depBtn.className = isArrival ? off : on;
+  updateAirportHideLabel();
   loadFlightList();
 }
+
 async function fetchFlights(date, isArrival){
-  var apiUrl = 
+  var apiUrl =
     '?date=' + encodeURIComponent(date) +
     '&arrival=' + (isArrival ? 'true' : 'false') +
     '&span=1' +
@@ -6829,12 +6904,10 @@ async function fetchFlights(date, isArrival){
 
   var proxyUrl = '/api/hkflights?url=' + encodeURIComponent(apiUrl);
 
-  
   var res = await fetch(proxyUrl, { method: 'GET' });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   return await res.json();
 }
-
 
 /* =========================================================
    從回應中抽出指定日期的航班列表
@@ -6904,7 +6977,11 @@ async function loadFlightList(){
     var json = await fetchFlights(date, flightTabArrival);
 
     // ★ 從可能的多日期回應中，抽取出目標日期的航班列表
-    var flights = extractFlightsForDate(json, date);
+    var allFlights = extractFlightsForDate(json, date);
+
+    // ★ 過濾掉過期航班
+    var flights = filterExpiredFlights(allFlights, date, flightTabArrival);
+    var hiddenCount = allFlights.length - flights.length;
 
     // 診斷訊息：如果 API 回傳多日期但目標日期無資料，提示使用者
     var returnedDates = [];
@@ -6915,6 +6992,20 @@ async function loadFlightList(){
     }
 
     if (!flights.length){
+      // ★ 有航班，但全部被過濾掉
+      if (allFlights.length){
+        statusEl.innerText = '共 ' + allFlights.length + ' 班（已全部隱藏）';
+        listEl.innerHTML =
+          '<div class="bg-white rounded-2xl p-8 text-center border border-slate-100 text-slate-400 space-y-2">' +
+            '<div class="ico w-10 h-10 mx-auto text-slate-300">' + ico('clock','w-10 h-10') + '</div>' +
+            '<p class="text-sm font-medium">' + allFlights.length + ' 班航班全部符合隱藏條件</p>' +
+            '<p class="text-[11px] text-slate-400">可關閉上方開關查看全部</p>' +
+            '<button onclick="showAllFlights()" ' +
+              'class="mt-2 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg text-xs transition">顯示全部</button>' +
+          '</div>';
+        return;
+      }
+
       statusEl.innerText = '此日期無航班記錄';
 
       var hint = '';
@@ -6940,7 +7031,8 @@ async function loadFlightList(){
     }
 
     statusEl.innerText = '共 ' + flights.length + ' 班 · ' + date +
-      (flightTabArrival ? '（抵港）' : '（離港）');
+      (flightTabArrival ? '（抵港）' : '（離港）') +
+      (hiddenCount > 0 ? ' · 已隱藏 ' + hiddenCount + ' 班' : '');
 
     listEl.innerHTML = flights.map(function(f){
       var flightArr = Array.isArray(f.flight) ? f.flight : [];
@@ -7003,6 +7095,7 @@ async function loadFlightList(){
       '</div>';
   }
 }
+
 /* =========================================================
    O. Service Worker
    ========================================================= */
