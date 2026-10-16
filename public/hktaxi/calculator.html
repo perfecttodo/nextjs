@@ -6798,9 +6798,7 @@ function initAirportTab(){
   var dateEl = document.getElementById('airport-date');
   if (dateEl && !dateEl.value){
     var today = new Date();
-    var yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    dateEl.value = localDateStr(yesterday);
+    dateEl.value = localDateStr(today);
     dateEl.max = localDateStr(today);
   }
 
@@ -6822,14 +6820,14 @@ function setFlightTab(isArrival){
   loadFlightList();
 }
 async function fetchFlights(date, isArrival){
-  var apiUrl = 'https://www.hongkongairport.com/flightinfo-rest/rest/flights' +
+  var apiUrl = 
     '?date=' + encodeURIComponent(date) +
     '&arrival=' + (isArrival ? 'true' : 'false') +
     '&span=1' +
     '&cargo=false' +
     '&lang=zh_HK';
 
-  var proxyUrl = '/api/corsproxy?url=' + encodeURIComponent(apiUrl);
+  var proxyUrl = '/api/hkflights?url=' + encodeURIComponent(apiUrl);
 
   
   var res = await fetch(proxyUrl, { method: 'GET' });
