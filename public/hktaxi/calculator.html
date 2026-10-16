@@ -736,7 +736,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
   </section>
 
   <!-- ═══════════════════════════════════════════════════════════
-       TAB 5: 機場航班（新增，不出現在底部導航）
+       TAB 5: 機場航班（列表 + 統計）
        ═══════════════════════════════════════════════════════════ -->
   <section id="tab-airport" class="space-y-3 hidden">
 
@@ -777,6 +777,18 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </button>
       </div>
 
+      <!-- ★ 列表 / 統計 子分頁 -->
+      <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+        <button type="button" id="airport-view-list" onclick="setAirportView('list')"
+          class="py-1.5 rounded-lg bg-white shadow-xs text-slate-800 font-bold transition flex items-center justify-center gap-1">
+          <span class="ico w-3.5 h-3.5" data-icon="list-bullet"></span> 列表
+        </button>
+        <button type="button" id="airport-view-stats" onclick="setAirportView('stats')"
+          class="py-1.5 rounded-lg text-slate-600 font-medium transition flex items-center justify-center gap-1">
+          <span class="ico w-3.5 h-3.5" data-icon="bar-chart-3"></span> 統計
+        </button>
+      </div>
+
       <!-- ★ 隱藏過期航班開關 -->
       <label class="flex items-center justify-between gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 cursor-pointer select-none">
         <span class="flex items-center gap-1.5 min-w-0">
@@ -791,8 +803,47 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
 
     </div>
 
-    <!-- 航班列表 -->
-    <div id="flight-list" class="space-y-2"></div>
+    <!-- ★ 列表視圖 -->
+    <div id="airport-list-view">
+      <div id="flight-list" class="space-y-2"></div>
+    </div>
+
+    <!-- ★ 統計視圖 -->
+    <div id="airport-stats-view" class="space-y-3 hidden">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+            <span class="ico w-4 h-4 text-amber-500" data-icon="bar-chart-3"></span>
+            <span>時段分佈</span>
+          </h3>
+          <span id="airport-stats-subtitle" class="text-[11px] text-slate-400 font-mono"></span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+          <div class="bg-slate-50 rounded-lg py-2 border border-slate-100">
+            <div class="text-slate-500">航班總數</div>
+            <div id="airport-stat-total" class="text-slate-800 font-bold font-mono mt-0.5">--</div>
+          </div>
+          <div class="bg-amber-50 rounded-lg py-2 border border-amber-200">
+            <div class="text-amber-700">最忙時段</div>
+            <div id="airport-stat-peak" class="text-amber-800 font-extrabold font-mono mt-0.5">--</div>
+          </div>
+          <div class="bg-emerald-50 rounded-lg py-2 border border-emerald-200">
+            <div class="text-emerald-700">平均每小時</div>
+            <div id="airport-stat-avg" class="text-emerald-700 font-bold font-mono mt-0.5">--</div>
+          </div>
+        </div>
+
+        <div id="airport-chart-container" class="relative select-none"></div>
+
+        <p id="airport-stats-hint" class="text-[11px] text-slate-400 leading-relaxed text-center">
+          每小時的航班數量分佈（滑動／點擊曲線查看）
+        </p>
+
+
+      </div>
+    </div>
   </section>
 
   <!-- TAB 3 -->
@@ -6796,10 +6847,19 @@ function closeDrawer(){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   R. 香港國際機場航班（Tab 版）
+   R. 香港國際機場航班（列表 + 統計）
    ═══════════════════════════════════════════════════════════ */
 var flightTabArrival = true;
 var airportInitialized = false;
+
+/* 子分頁狀態 */
+var airportView = 'list';   // 'list' | 'stats'
+
+/* 快取 */
+var airportAllFlights  = [];   // 未過濾
+var airportFlights     = [];   // 已過濾（目前顯示）
+var airportHiddenCount = 0;
+var airportLoaded      = false;
 
 /* ── 隱藏過期航班 ───────────────────────────────── */
 var HIDE_EXPIRED_KEY = 'taxi_airport_hide_expired';
@@ -6809,7 +6869,7 @@ var FLIGHT_EXPIRE_MINUTES = 60;   // ★ 想改門檻就改這裡（分鐘）
 function toggleHideExpiredFlights(checked){
   hideExpiredFlights = checked;
   localStorage.setItem(HIDE_EXPIRED_KEY, checked ? '1' : '0');
-  loadFlightList();
+  applyAirportFilterAndRender();
 }
 
 /* 供「顯示全部」按鈕使用 */
@@ -6862,6 +6922,350 @@ function filterExpiredFlights(list, date, isArrival){
   });
 }
 
+/* ── 子分頁切換 ─────────────────────────────────── */
+function setAirportView(v){
+  airportView = v;
+
+  var on  = 'py-1.5 rounded-lg bg-white shadow-xs text-slate-800 font-bold transition flex items-center justify-center gap-1';
+  var off = 'py-1.5 rounded-lg text-slate-600 font-medium transition flex items-center justify-center gap-1';
+
+  var listBtn  = document.getElementById('airport-view-list');
+  var statsBtn = document.getElementById('airport-view-stats');
+  if (listBtn)  listBtn.className  = (v === 'list')  ? on : off;
+  if (statsBtn) statsBtn.className = (v === 'stats') ? on : off;
+
+  var listWrap  = document.getElementById('airport-list-view');
+  var statsWrap = document.getElementById('airport-stats-view');
+  if (listWrap)  listWrap.classList.toggle('hidden',  v !== 'list');
+  if (statsWrap) statsWrap.classList.toggle('hidden', v !== 'stats');
+
+  if (v === 'stats') renderAirportStats();
+}
+
+/* ── 過濾 + 渲染 ─────────────────────────────────── */
+function applyAirportFilterAndRender(){
+  var dateEl = document.getElementById('airport-date');
+  var date = dateEl ? dateEl.value : '';
+
+  airportFlights = filterExpiredFlights(airportAllFlights, date, flightTabArrival);
+  airportHiddenCount = airportAllFlights.length - airportFlights.length;
+
+  renderAirportList();
+  if (airportView === 'stats') renderAirportStats();
+  updateAirportStatus();
+}
+
+function updateAirportStatus(){
+  var statusEl = document.getElementById('flight-status');
+  if (!statusEl) return;
+
+  var dateEl = document.getElementById('airport-date');
+  var date = dateEl ? dateEl.value : '';
+
+  if (!airportLoaded){
+    statusEl.innerText = '';
+    return;
+  }
+
+  if (!airportAllFlights.length){
+    statusEl.innerText = '此日期無航班記錄';
+    return;
+  }
+
+  if (!airportFlights.length){
+    statusEl.innerText = '共 ' + airportAllFlights.length + ' 班（已全部隱藏）';
+    return;
+  }
+
+  statusEl.innerText = '共 ' + airportFlights.length + ' 班 · ' + date +
+    (flightTabArrival ? '（抵港）' : '（離港）') +
+    (airportHiddenCount > 0 ? ' · 已隱藏 ' + airportHiddenCount + ' 班' : '');
+}
+
+/* ── 渲染列表 ───────────────────────────────────── */
+function renderAirportList(){
+  var listEl = document.getElementById('flight-list');
+  if (!listEl) return;
+
+  if (!airportLoaded){
+    listEl.innerHTML = '';
+    return;
+  }
+
+  if (!airportFlights.length){
+    if (airportAllFlights.length){
+      listEl.innerHTML =
+        '<div class="bg-white rounded-2xl p-8 text-center border border-slate-100 text-slate-400 space-y-2">' +
+          '<div class="ico w-10 h-10 mx-auto text-slate-300">' + ico('clock','w-10 h-10') + '</div>' +
+          '<p class="text-sm font-medium">' + airportAllFlights.length + ' 班航班全部符合隱藏條件</p>' +
+          '<p class="text-[11px] text-slate-400">可關閉上方開關查看全部</p>' +
+          '<button onclick="showAllFlights()" ' +
+            'class="mt-2 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg text-xs transition">顯示全部</button>' +
+        '</div>';
+    } else {
+      listEl.innerHTML =
+        '<div class="bg-white rounded-2xl p-8 text-center border border-slate-100 text-slate-400 space-y-2">' +
+          '<div class="ico w-10 h-10 mx-auto text-slate-300">' + ico('plane-takeoff','w-10 h-10') + '</div>' +
+          '<p class="text-sm font-medium">沒有找到航班資料</p>' +
+        '</div>';
+    }
+    return;
+  }
+
+  listEl.innerHTML = airportFlights.map(function(f){
+    var flightArr = Array.isArray(f.flight) ? f.flight : [];
+    var flightNos = flightArr.map(function(x){ return x.no; }).filter(Boolean).join(' / ') || '--';
+    var airline = flightArr.length && flightArr[0].airline ? flightArr[0].airline : '';
+    var time = f.time || '--:--';
+    var status = f.status || '';
+    var origin = f.origin || '';
+    var dest = f.destination || '';
+    var terminal = f.terminal || '';
+    var carousel = f.carousel || '';
+
+    var isAbnormal = /delay|cancel|取消|延誤|改期/i.test(status);
+
+    var routeText = flightTabArrival
+      ? ('來自 ' + escapeHtml(origin || '--'))
+      : ('前往 ' + escapeHtml(dest || '--'));
+
+    var extraBadges = '';
+    if (terminal){
+      extraBadges += '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200 font-medium">' +
+        escapeHtml(terminal) + '</span>';
+    }
+    if (flightTabArrival && carousel){
+      extraBadges += '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-medium">' +
+        escapeHtml(carousel) + '</span>';
+    }
+
+    return '' +
+      '<div class="bg-white rounded-2xl border ' + (isAbnormal ? 'border-rose-200' : 'border-slate-100') + ' shadow-sm p-3">' +
+        '<div class="flex justify-between items-start gap-2">' +
+          '<div class="min-w-0 flex-1">' +
+            '<div class="flex items-center gap-1.5 flex-wrap">' +
+              '<span class="text-sm font-black text-slate-900 font-mono">' + escapeHtml(flightNos) + '</span>' +
+              (airline ? '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200 font-medium truncate max-w-[9rem]">' + escapeHtml(airline) + '</span>' : '') +
+            '</div>' +
+            '<div class="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">' +
+              routeText +
+              (extraBadges ? extraBadges : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="text-right shrink-0">' +
+            '<div class="font-mono font-bold text-sm ' + (isAbnormal ? 'text-rose-600' : 'text-slate-800') + '">' + escapeHtml(time) + '</div>' +
+            (status ? '<div class="text-[10px] mt-0.5 ' + (isAbnormal ? 'text-rose-500 font-bold' : 'text-slate-400') + '">' + escapeHtml(status) + '</div>' : '') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }).join('');
+}
+
+/* ── 渲染統計 ───────────────────────────────────── */
+function renderAirportStats(){
+  var container = document.getElementById('airport-chart-container');
+  var barsEl    = document.getElementById('airport-hour-bars');
+  if (!container) return;
+
+  var dateEl = document.getElementById('airport-date');
+  var date = dateEl ? dateEl.value : '';
+
+  // 副標題
+  var subtitleEl = document.getElementById('airport-stats-subtitle');
+  if (subtitleEl){
+    subtitleEl.innerText = date + (flightTabArrival ? ' · 抵港' : ' · 離港');
+  }
+
+  // 按小時統計
+  var buckets = new Array(24);
+  for (var i = 0; i < 24; i++) buckets[i] = 0;
+
+  var totalFlights = 0;
+  (airportFlights || []).forEach(function(f){
+    var m = parseFlightMinutes(f.time);
+    if (m === null) return;
+    var h = Math.floor(m / 60);
+    if (h < 0 || h > 23) return;
+    buckets[h]++;
+    totalFlights++;
+  });
+
+  var maxV = 0, peakHour = 0;
+  for (var i2 = 0; i2 < 24; i2++){
+    if (buckets[i2] > maxV){ maxV = buckets[i2]; peakHour = i2; }
+  }
+  var nonZero = buckets.filter(function(v){ return v > 0; }).length;
+  var avg = nonZero ? totalFlights / nonZero : 0;
+
+  setText('airport-stat-total', totalFlights + ' 班');
+  setText('airport-stat-peak', maxV > 0 ? (pad2(peakHour) + ':00 · ' + maxV + ' 班') : '--');
+  setText('airport-stat-avg', nonZero ? avg.toFixed(1) + ' 班' : '--');
+
+  // 空狀態
+  if (totalFlights === 0){
+    container.innerHTML =
+      '<div class="py-10 text-center text-slate-300 text-xs leading-relaxed">' +
+        (airportAllFlights.length
+          ? '目前顯示範圍內暫無航班<br><span class="text-[11px]">可關閉上方開關查看全部</span>'
+          : '此日期暫無航班時段數據') +
+      '</div>';
+    if (barsEl) barsEl.innerHTML = '';
+    return;
+  }
+
+  /* ── 繪製平滑曲線 ── */
+  var W = 340, H = 176;
+  var padL = 10, padR = 10, padT = 24, padB = 30;
+  var plotW = W - padL - padR;
+  var plotH = H - padT - padB;
+  var n = 24;
+
+  var topV = maxV > 0 ? maxV : 1;
+  var botV = 0;
+  var span = topV - botV;
+  if (span <= 0) span = 1;
+
+  function px(i){ return padL + (plotW * i) / (n - 1); }
+  function py(v){ return padT + plotH - ((v - botV) / span) * plotH; }
+
+  var pts = [];
+  for (var k = 0; k < n; k++){
+    pts.push({ x: px(k), y: py(buckets[k]), v: buckets[k], h: k });
+  }
+
+  var pathD = buildSmoothPath(pts, padT - 6, padT + plotH + 6);
+
+  var zeroY = py(0);
+  var fillD = pathD +
+    ' L' + pts[n - 1].x.toFixed(2) + ',' + zeroY.toFixed(2) +
+    ' L' + pts[0].x.toFixed(2) + ',' + zeroY.toFixed(2) + ' Z';
+
+  // 網格
+  var gridHtml = '';
+  for (var g = 0; g <= 3; g++){
+    var gy = padT + (plotH * g) / 3;
+    gridHtml += '<line x1="' + padL + '" y1="' + gy.toFixed(1) + '" x2="' + (W - padR) +
+                '" y2="' + gy.toFixed(1) + '" stroke="#e2e8f0" stroke-width="1"' +
+                (g === 3 ? '' : ' stroke-dasharray="3 4"') + '/>';
+  }
+
+  // 時間軸標籤
+  var labelHtml = '';
+  [0, 3, 6, 9, 12, 15, 18, 21].forEach(function(h){
+    var lx = px(h);
+    var anchor = (h === 0) ? 'start' : 'middle';
+    labelHtml += '<text x="' + lx.toFixed(1) + '" y="' + (H - 8) +
+                 '" font-size="9" fill="#94a3b8" text-anchor="' + anchor +
+                 '" font-family="ui-monospace,Menlo,monospace">' + pad2(h) + ':00</text>';
+  });
+
+  // 資料點
+  var dotsHtml = '';
+  for (var d = 0; d < n; d++){
+    if (buckets[d] <= 0) continue;
+    var isPeak = (d === peakHour);
+    dotsHtml += '<circle cx="' + pts[d].x.toFixed(1) + '" cy="' + pts[d].y.toFixed(1) +
+                '" r="' + (isPeak ? 4.5 : 2.8) + '" fill="' + (isPeak ? '#f59e0b' : '#ffffff') +
+                '" stroke="#f59e0b" stroke-width="2"/>';
+  }
+
+  container.innerHTML =
+    '<svg id="airport-chart-svg" viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="auto" ' +
+      'preserveAspectRatio="xMidYMid meet" style="display:block;touch-action:none;overflow:visible">' +
+      '<defs>' +
+        '<linearGradient id="fltFill" x1="0" y1="0" x2="0" y2="1">' +
+          '<stop offset="0%" stop-color="#3b82f6" stop-opacity="0.35"/>' +
+          '<stop offset="100%" stop-color="#3b82f6" stop-opacity="0.02"/>' +
+        '</linearGradient>' +
+        '<linearGradient id="fltStroke" x1="0" y1="0" x2="1" y2="0">' +
+          '<stop offset="0%" stop-color="#60a5fa"/>' +
+          '<stop offset="100%" stop-color="#2563eb"/>' +
+        '</linearGradient>' +
+      '</defs>' +
+      gridHtml +
+      '<path d="' + fillD + '" fill="url(#fltFill)" stroke="none"/>' +
+      '<path d="' + pathD + '" fill="none" stroke="url(#fltStroke)" stroke-width="2.5" ' +
+        'stroke-linecap="round" stroke-linejoin="round"/>' +
+      dotsHtml +
+      labelHtml +
+      '<line id="flt-cursor-line" x1="0" y1="' + padT + '" x2="0" y2="' + (padT + plotH) +
+        '" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>' +
+      '<circle id="flt-cursor-dot" cx="0" cy="0" r="5" fill="#3b82f6" stroke="#ffffff" ' +
+        'stroke-width="2" opacity="0"/>' +
+      '<rect id="flt-hit" x="' + padL + '" y="' + padT + '" width="' + plotW + '" height="' + plotH +
+        '" fill="transparent" pointer-events="all" style="touch-action:none;cursor:crosshair"/>' +
+    '</svg>' +
+    '<div id="flt-tip" class="hidden absolute pointer-events-none bg-slate-900 text-white ' +
+      'text-[10px] rounded-lg px-2 py-1 shadow-lg leading-tight whitespace-nowrap z-10"></div>';
+
+  var svgEl      = document.getElementById('airport-chart-svg');
+  var tipEl      = document.getElementById('flt-tip');
+  var cursorLine = document.getElementById('flt-cursor-line');
+  var cursorDot  = document.getElementById('flt-cursor-dot');
+  var hit        = document.getElementById('flt-hit');
+
+  if (hit && svgEl){
+    function showAt(clientX){
+      var rect = svgEl.getBoundingClientRect();
+      if (!rect.width) return;
+      var vx = ((clientX - rect.left) / rect.width) * W;
+
+      var idx = Math.round(((vx - padL) / plotW) * (n - 1));
+      if (idx < 0) idx = 0;
+      if (idx > n - 1) idx = n - 1;
+
+      var p = pts[idx];
+      var cnt = buckets[idx];
+
+      tipEl.innerHTML = pad2(idx) + ':00 - ' + pad2(idx) + ':59　<b>' + cnt + '</b> 班';
+      tipEl.classList.remove('hidden');
+
+      var leftPct = (p.x / W) * 100;
+      if (leftPct < 16) leftPct = 16;
+      if (leftPct > 84) leftPct = 84;
+
+      tipEl.style.left = leftPct + '%';
+      tipEl.style.top  = ((p.y / H) * 100) + '%';
+      tipEl.style.transform = 'translate(-50%, calc(-100% - 10px))';
+
+      cursorLine.setAttribute('x1', p.x.toFixed(2));
+      cursorLine.setAttribute('x2', p.x.toFixed(2));
+      cursorLine.setAttribute('opacity', '1');
+      cursorDot.setAttribute('cx', p.x.toFixed(2));
+      cursorDot.setAttribute('cy', p.y.toFixed(2));
+      cursorDot.setAttribute('opacity', '1');
+    }
+
+    function hideTip(){
+      tipEl.classList.add('hidden');
+      cursorLine.setAttribute('opacity', '0');
+      cursorDot.setAttribute('opacity', '0');
+    }
+
+    hit.addEventListener('pointerdown', function(e){ showAt(e.clientX); });
+    hit.addEventListener('pointermove', function(e){ showAt(e.clientX); });
+    hit.addEventListener('pointerleave', hideTip);
+    hit.addEventListener('pointercancel', hideTip);
+  }
+
+  /* ── 下方每小時小格 ── */
+  if (barsEl){
+    barsEl.innerHTML = new Array(24).fill(0).map(function(_, h){
+      var v = buckets[h];
+      var isPeak = (h === peakHour && v > 0);
+      var isActive = v > 0;
+      var bgCls = isPeak
+        ? 'bg-amber-100 border-amber-300 text-amber-900'
+        : (isActive ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-100 text-slate-300');
+      return '<div class="rounded-lg border py-1 text-center ' + bgCls + '">' +
+        '<div class="font-mono font-bold text-[10px] leading-none">' + pad2(h) + '</div>' +
+        '<div class="font-mono font-extrabold text-[11px] leading-none mt-0.5">' + v + '</div>' +
+      '</div>';
+    }).join('');
+  }
+}
+
+/* ── 進入機場 tab ───────────────────────────────── */
 function initAirportTab(){
   var dateEl = document.getElementById('airport-date');
   if (dateEl && !dateEl.value){
@@ -6870,15 +7274,29 @@ function initAirportTab(){
     dateEl.max = localDateStr(today);
   }
 
-  // 同步開關狀態
   var hideChk = document.getElementById('airport-hide-expired');
   if (hideChk) hideChk.checked = hideExpiredFlights;
   updateAirportHideLabel();
+
+  // 同步子分頁 UI（不重複渲染，僅切換 class）
+  var on  = 'py-1.5 rounded-lg bg-white shadow-xs text-slate-800 font-bold transition flex items-center justify-center gap-1';
+  var off = 'py-1.5 rounded-lg text-slate-600 font-medium transition flex items-center justify-center gap-1';
+  var listBtn  = document.getElementById('airport-view-list');
+  var statsBtn = document.getElementById('airport-view-stats');
+  if (listBtn)  listBtn.className  = (airportView === 'list')  ? on : off;
+  if (statsBtn) statsBtn.className = (airportView === 'stats') ? on : off;
+
+  var listWrap  = document.getElementById('airport-list-view');
+  var statsWrap = document.getElementById('airport-stats-view');
+  if (listWrap)  listWrap.classList.toggle('hidden',  airportView !== 'list');
+  if (statsWrap) statsWrap.classList.toggle('hidden', airportView !== 'stats');
 
   // 首次進入自動載入
   if (!airportInitialized){
     airportInitialized = true;
     loadFlightList();
+  } else if (airportView === 'stats'){
+    renderAirportStats();
   }
 }
 
@@ -6911,24 +7329,17 @@ async function fetchFlights(date, isArrival){
 
 /* =========================================================
    從回應中抽出指定日期的航班列表
-   API 可能回傳：
-     [ { date:'2026-10-14', arrival:true, cargo:false, list:[...] },
-       { date:'2026-10-15', arrival:true, cargo:false, list:[...] } ]
-   或（部分環境/舊格式）：
-     { date:'2026-10-15', list:[...] }
    ========================================================= */
 function extractFlightsForDate(json, targetDate){
   if (!json) return [];
 
   // 情況 1：回應為陣列（多日期）
   if (Array.isArray(json)){
-    // 優先精確匹配
     var exact = json.find(function(item){
       return item && item.date === targetDate;
     });
     if (exact && Array.isArray(exact.list)) return exact.list;
 
-    // 退一步：找最後一筆有 list 的（避免空陣列）
     for (var i = json.length - 1; i >= 0; i--){
       var it = json[i];
       if (it && Array.isArray(it.list) && it.list.length){
@@ -6940,7 +7351,6 @@ function extractFlightsForDate(json, targetDate){
 
   // 情況 2：回應為單一物件
   if (json.list && Array.isArray(json.list)){
-    // 若有 date 欄位，也檢查一下
     if (json.date && json.date !== targetDate){
       return [];
     }
@@ -6972,18 +7382,16 @@ async function loadFlightList(){
     '</span>';
   hydrateIcons(statusEl);
   listEl.innerHTML = '';
+  airportLoaded = false;
 
   try {
     var json = await fetchFlights(date, flightTabArrival);
 
-    // ★ 從可能的多日期回應中，抽取出目標日期的航班列表
     var allFlights = extractFlightsForDate(json, date);
+    airportAllFlights = allFlights;
+    airportLoaded = true;
 
-    // ★ 過濾掉過期航班
-    var flights = filterExpiredFlights(allFlights, date, flightTabArrival);
-    var hiddenCount = allFlights.length - flights.length;
-
-    // 診斷訊息：如果 API 回傳多日期但目標日期無資料，提示使用者
+    // 診斷訊息用
     var returnedDates = [];
     if (Array.isArray(json)){
       returnedDates = json.map(function(x){ return x && x.date; }).filter(Boolean);
@@ -6991,98 +7399,41 @@ async function loadFlightList(){
       returnedDates = [json.date];
     }
 
-    if (!flights.length){
-      // ★ 有航班，但全部被過濾掉
-      if (allFlights.length){
-        statusEl.innerText = '共 ' + allFlights.length + ' 班（已全部隱藏）';
-        listEl.innerHTML =
-          '<div class="bg-white rounded-2xl p-8 text-center border border-slate-100 text-slate-400 space-y-2">' +
-            '<div class="ico w-10 h-10 mx-auto text-slate-300">' + ico('clock','w-10 h-10') + '</div>' +
-            '<p class="text-sm font-medium">' + allFlights.length + ' 班航班全部符合隱藏條件</p>' +
-            '<p class="text-[11px] text-slate-400">可關閉上方開關查看全部</p>' +
-            '<button onclick="showAllFlights()" ' +
-              'class="mt-2 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg text-xs transition">顯示全部</button>' +
-          '</div>';
-        return;
-      }
+    // 過濾 + 渲染
+    airportFlights = filterExpiredFlights(allFlights, date, flightTabArrival);
+    airportHiddenCount = allFlights.length - airportFlights.length;
 
-      statusEl.innerText = '此日期無航班記錄';
+    renderAirportList();
+    if (airportView === 'stats') renderAirportStats();
+    updateAirportStatus();
 
+    // 若真的完全沒資料，補上診斷提示
+    if (!allFlights.length){
       var hint = '';
       if (returnedDates.length > 1){
         hint = '<p class="text-[11px] text-slate-400 mt-1">' +
                'API 回傳了 ' + returnedDates.length + ' 個日期：' +
                returnedDates.join('、') +
-               '<br>其中不包含 ' + date +
-               '</p>';
+               '<br>其中不包含 ' + date + '</p>';
       } else if (returnedDates.length === 1 && returnedDates[0] !== date){
         hint = '<p class="text-[11px] text-slate-400 mt-1">' +
-               'API 回傳日期：' + returnedDates[0] +
-               '（非所選日期）</p>';
+               'API 回傳日期：' + returnedDates[0] + '（非所選日期）</p>';
       }
-
-      listEl.innerHTML =
-        '<div class="bg-white rounded-2xl p-8 text-center border border-slate-100 text-slate-400 space-y-2">' +
-          '<div class="ico w-10 h-10 mx-auto text-slate-300">' + ico('plane-takeoff','w-10 h-10') + '</div>' +
-          '<p class="text-sm font-medium">沒有找到航班資料</p>' +
-          hint +
-        '</div>';
-      return;
+      if (hint){
+        listEl.innerHTML =
+          '<div class="bg-white rounded-2xl p-8 text-center border border-slate-100 text-slate-400 space-y-2">' +
+            '<div class="ico w-10 h-10 mx-auto text-slate-300">' + ico('plane-takeoff','w-10 h-10') + '</div>' +
+            '<p class="text-sm font-medium">沒有找到航班資料</p>' + hint +
+          '</div>';
+      }
     }
 
-    statusEl.innerText = '共 ' + flights.length + ' 班 · ' + date +
-      (flightTabArrival ? '（抵港）' : '（離港）') +
-      (hiddenCount > 0 ? ' · 已隱藏 ' + hiddenCount + ' 班' : '');
-
-    listEl.innerHTML = flights.map(function(f){
-      var flightArr = Array.isArray(f.flight) ? f.flight : [];
-      var flightNos = flightArr.map(function(x){ return x.no; }).filter(Boolean).join(' / ') || '--';
-      var airline = flightArr.length && flightArr[0].airline ? flightArr[0].airline : '';
-      var time = f.time || '--:--';
-      var status = f.status || '';
-      var origin = f.origin || '';
-      var dest = f.destination || '';
-      var terminal = f.terminal || '';
-      var carousel = f.carousel || '';
-
-      var isAbnormal = /delay|cancel|取消|延誤|改期/i.test(status);
-
-      var routeText = flightTabArrival
-        ? ('來自 ' + escapeHtml(origin || '--'))
-        : ('前往 ' + escapeHtml(dest || '--'));
-
-      var extraBadges = '';
-      if (terminal){
-        extraBadges += '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200 font-medium">' +
-          escapeHtml(terminal) + '</span>';
-      }
-      if (flightTabArrival && carousel){
-        extraBadges += '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-medium">' +
-          escapeHtml(carousel) + '</span>';
-      }
-
-      return '' +
-        '<div class="bg-white rounded-2xl border ' + (isAbnormal ? 'border-rose-200' : 'border-slate-100') + ' shadow-sm p-3">' +
-          '<div class="flex justify-between items-start gap-2">' +
-            '<div class="min-w-0 flex-1">' +
-              '<div class="flex items-center gap-1.5 flex-wrap">' +
-                '<span class="text-sm font-black text-slate-900 font-mono">' + escapeHtml(flightNos) + '</span>' +
-                (airline ? '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200 font-medium truncate max-w-[9rem]">' + escapeHtml(airline) + '</span>' : '') +
-              '</div>' +
-              '<div class="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">' +
-                routeText +
-                (extraBadges ? extraBadges : '') +
-              '</div>' +
-            '</div>' +
-            '<div class="text-right shrink-0">' +
-              '<div class="font-mono font-bold text-sm ' + (isAbnormal ? 'text-rose-600' : 'text-slate-800') + '">' + escapeHtml(time) + '</div>' +
-              (status ? '<div class="text-[10px] mt-0.5 ' + (isAbnormal ? 'text-rose-500 font-bold' : 'text-slate-400') + '">' + escapeHtml(status) + '</div>' : '') +
-            '</div>' +
-          '</div>' +
-        '</div>';
-    }).join('');
-
   } catch (err) {
+    airportLoaded = true;
+    airportAllFlights = [];
+    airportFlights = [];
+    airportHiddenCount = 0;
+
     statusEl.innerText = '載入失敗';
     listEl.innerHTML =
       '<div class="bg-white rounded-2xl p-6 text-center border border-rose-200 text-rose-500 space-y-2">' +
@@ -7093,6 +7444,8 @@ async function loadFlightList(){
           '重試' +
         '</button>' +
       '</div>';
+
+    if (airportView === 'stats') renderAirportStats();
   }
 }
 
