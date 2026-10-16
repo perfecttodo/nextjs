@@ -424,9 +424,16 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
 
       <!-- 車資 -->
       <div>
-        <div class="flex justify-between items-center mb-1">
-          <label class="block text-sm font-semibold text-slate-700">車資金額 (HKD)</label>
-          <div class="flex items-center gap-1.5">
+        <div class="flex justify-between items-center mb-1 gap-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <label class="block text-sm font-semibold text-slate-700 shrink-0">車資金額 (HKD)</label>
+            <button type="button" id="trip-time-chip" onclick="openTripTimeModal()"
+              class="text-[11px] px-2 py-0.5 rounded-full border font-medium transition bg-white text-slate-600 border-slate-200 hover:bg-slate-100 flex items-center gap-1 shrink-0">
+              <span class="ico w-3 h-3" data-icon="clock"></span>
+              <span id="trip-time-chip-text">--:--</span>
+            </button>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
             <button type="button" id="fare-clear-btn" onclick="clearFare()"
               class="text-[11px] px-2.5 py-1 rounded-full border font-medium transition bg-white text-rose-600 border-rose-200 hover:bg-rose-50 hidden">
               清除
@@ -790,11 +797,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
       </div>
 
       <div class="space-y-3 border-t border-slate-100 pt-3" data-card-body="card-combined">
-
-        <div id="combined-shift-note-box" class="hidden bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-xs text-amber-800 flex items-start gap-1.5">
-          <span class="ico w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" data-icon="edit-3"></span>
-          <span id="combined-shift-note" class="leading-relaxed"></span>
-        </div>
 
         <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
           <button type="button" onclick="setStatsPeriod('day')"   id="period-btn-day"   class="py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition font-bold">最近一更</button>
@@ -1243,6 +1245,7 @@ var lastDeletedShiftSettings = null;
 var fareSign         = 1;
 var noteTagsOpen     = false;
 var manualShiftKey   = null;
+var manualTripTime   = null;   /* ★ 'HH:MM' 或 null（表示用當前時間） */
 var shiftTimeMode    = 'quick';
 
 var NOTE_TAGS = {
@@ -1703,6 +1706,7 @@ function applyCustomShiftDate(){
 
 function selectManualShift(key){
   manualShiftKey = key;
+  manualTripTime = null;   /* ★ 切換更次後重置行程時間 */
 
   if (key && !shiftSettings[key]){
     var keys = Object.keys(shiftSettings).sort().reverse();
@@ -1719,6 +1723,7 @@ function selectManualShift(key){
 
   closeModal();
   updateDateTimePreview();
+  updateTripTimeChip();    /* ★ */
   initSettingsForm();
   updateStatsAndNet();
   renderTripList();
@@ -1759,6 +1764,7 @@ function startShift(){
   closeModal();
   initSettingsForm();
   updateDateTimePreview();
+  updateTripTimeChip();
   updateStatsAndNet();
   renderTripList();
   updateHeaderWorked();
@@ -1784,6 +1790,7 @@ function endShift(){
   closeModal();
   initSettingsForm();
   updateDateTimePreview();
+  updateTripTimeChip();
   updateStatsAndNet();
   renderTripList();
   updateHeaderWorked();
@@ -2268,6 +2275,7 @@ function saveManualShiftTime(){
   closeModal();
   initSettingsForm();
   updateDateTimePreview();
+  updateTripTimeChip();
   updateStatsAndNet();
   renderTripList();
   updateHeaderWorked();
@@ -2335,13 +2343,14 @@ window.addEventListener('DOMContentLoaded', function(){
   updateFareSignUI();
   renderNoteTags();
   updateDateTimePreview();
+  updateTripTimeChip();
   setInterval(updateDateTimePreview, 1000);
   updateHeaderTime();
   setInterval(updateHeaderTime, 1000);
   renderTripList();
 
-  applyChartUIState();      /* ★ 走勢圖 UI 狀態 */
-  updateStatsAndNet();      /* ★ 內部會呼叫 renderTrendChart */
+  applyChartUIState();
+  updateStatsAndNet();
 
   renderPlaceFilters();
   renderPlacesList();
@@ -2377,29 +2386,31 @@ function updateDateTimePreview(){
   var dateStr = now.toLocaleDateString('zh-HK', { month:'2-digit', day:'2-digit' });
   var weekStr = now.toLocaleDateString('zh-HK', { weekday:'long' });
   var el = document.getElementById('current-date-time-preview');
-  if (!el) return;
+  if (el){
+    if (manualShiftKey){
+      el.className = 'text-xs font-bold text-right leading-tight text-amber-700 ' +
+                     'bg-amber-100 border border-amber-300 px-2.5 py-1 rounded-lg ' +
+                     'cursor-pointer select-none transition';
+      el.innerHTML =
+        '<span class="block">📌 補錄模式</span>' +
+        '<span class="block text-[10px] text-amber-600 font-mono">' + manualShiftKey + '</span>';
+    } else {
+      var status = getShiftStatus();
+      var rangeText;
+      if (status === 'working')   rangeText = '工作中';
+      else if (status === 'ended') rangeText = '已收工';
+      else                         rangeText = '未開工';
 
-  if (manualShiftKey){
-    el.className = 'text-xs font-bold text-right leading-tight text-amber-700 ' +
-                   'bg-amber-100 border border-amber-300 px-2.5 py-1 rounded-lg ' +
-                   'cursor-pointer select-none transition';
-    el.innerHTML =
-      '<span class="block">📌 補錄模式</span>' +
-      '<span class="block text-[10px] text-amber-600 font-mono">' + manualShiftKey + '</span>';
-    return;
+      el.className = 'text-xs text-slate-400 font-medium text-right leading-tight ' +
+                     'cursor-pointer select-none hover:text-slate-600 transition';
+      el.innerHTML =
+        '<span class="block">' + dateStr + ' ' + weekStr + '</span>' +
+        '<span class="block text-[10px] text-slate-400">' + rangeText + '</span>';
+    }
   }
 
-  var status = getShiftStatus();
-  var rangeText;
-  if (status === 'working')   rangeText = '工作中';
-  else if (status === 'ended') rangeText = '已收工';
-  else                         rangeText = '未開工';
-
-  el.className = 'text-xs text-slate-400 font-medium text-right leading-tight ' +
-                 'cursor-pointer select-none hover:text-slate-600 transition';
-  el.innerHTML =
-    '<span class="block">' + dateStr + ' ' + weekStr + '</span>' +
-    '<span class="block text-[10px] text-slate-400">' + rangeText + '</span>';
+  /* ★ 讓行程時間 chip 也跟著每秒刷新 */
+  updateTripTimeChip();
 }
 
 function updateHeaderTime(){
@@ -2832,6 +2843,231 @@ function confirmReceivedInput(){
 }
 
 /* =========================================================
+   H-2. ★ 行程時間（可手動調整，限制在該更次範圍內）
+   ========================================================= */
+function getTargetShiftKey(){
+  if (manualShiftKey) return manualShiftKey;
+  var activeKey = getActiveShiftKey();
+  if (activeKey) return activeKey;
+  return localDateStr(new Date());
+}
+
+function updateTripTimeChip(){
+  var textEl = document.getElementById('trip-time-chip-text');
+  var chip   = document.getElementById('trip-time-chip');
+  if (!textEl || !chip) return;
+
+  if (manualTripTime){
+    textEl.innerText = manualTripTime;
+    chip.className = 'text-[11px] px-2 py-0.5 rounded-full border font-bold transition ' +
+      'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200 flex items-center gap-1 shrink-0';
+  } else {
+    var now = new Date();
+    textEl.innerText = '現在 ' + pad2(now.getHours()) + ':' + pad2(now.getMinutes());
+    chip.className = 'text-[11px] px-2 py-0.5 rounded-full border font-medium transition ' +
+      'bg-white text-slate-600 border-slate-200 hover:bg-slate-100 flex items-center gap-1 shrink-0';
+  }
+}
+
+/**
+ * 將「HH:MM」解析成合法的 timestamp。
+ * 必須落在該更次的 [startedAt, endedAt|now] 範圍內；
+ * 若更次未開工，只做日期限制。
+ * 回傳 timestamp，或 null 表示不合法。
+ */
+function resolveTripTimestamp(hh, mm){
+  var shiftKey = getTargetShiftKey();
+  var cfg = shiftSettings[shiftKey];
+  if (cfg) ensureShiftFields(cfg);
+
+  var base = new Date(shiftKey + 'T00:00:00');
+  if (isNaN(base.getTime())) return null;
+
+  var d = new Date(base);
+  d.setHours(hh, mm, 0, 0);
+  var ts = d.getTime();
+
+  // 更次未開工 → 只限制日期
+  if (!cfg || !cfg.startedAt) return ts;
+
+  var start = cfg.startedAt;
+  var end   = cfg.endedAt || Date.now();
+
+  if (ts >= start && ts <= end) return ts;
+
+  // 嘗試跨午夜（+1 天）
+  var d2 = new Date(base);
+  d2.setDate(d2.getDate() + 1);
+  d2.setHours(hh, mm, 0, 0);
+  var ts2 = d2.getTime();
+  if (ts2 >= start && ts2 <= end) return ts2;
+
+  return null;
+}
+
+function openTripTimeModal(){
+  var shiftKey = getTargetShiftKey();
+  var cfg = shiftSettings[shiftKey];
+  if (cfg) ensureShiftFields(cfg);
+
+  var now = new Date();
+  var currentVal = manualTripTime ||
+                   (pad2(now.getHours()) + ':' + pad2(now.getMinutes()));
+
+  var rangeText;
+  if (cfg && cfg.startedAt){
+    var s = new Date(cfg.startedAt);
+    var startStr = pad2(s.getHours()) + ':' + pad2(s.getMinutes());
+    if (cfg.endedAt){
+      var e = new Date(cfg.endedAt);
+      rangeText = startStr + ' - ' + pad2(e.getHours()) + ':' + pad2(e.getMinutes());
+    } else {
+      rangeText = startStr + ' - 工作中';
+    }
+  } else {
+    rangeText = '此更次尚未開工，時間不限';
+  }
+
+  var wkDay = '';
+  var dd = new Date(shiftKey + 'T12:00:00');
+  if (!isNaN(dd.getTime())){
+    wkDay = dd.toLocaleDateString('zh-HK', { weekday:'short' });
+  }
+
+  var html = '<div class="space-y-3">';
+
+  html +=
+    '<div class="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 space-y-1">' +
+      '<div class="flex justify-between items-center">' +
+        '<span class="text-[11px] font-semibold text-amber-800">所屬更次</span>' +
+        '<span class="font-bold text-amber-900 font-mono text-xs">' + shiftKey +
+          (wkDay ? ' <span class="text-[10px] text-amber-600 font-normal">' + wkDay + '</span>' : '') +
+        '</span>' +
+      '</div>' +
+      '<div class="flex justify-between items-center pt-1 border-t border-amber-200/60">' +
+        '<span class="text-[11px] text-amber-700">可用時間範圍</span>' +
+        '<span class="text-xs text-amber-900 font-mono font-semibold">' + rangeText + '</span>' +
+      '</div>' +
+    '</div>';
+
+  html +=
+    '<div>' +
+      '<label class="block text-xs font-semibold text-slate-600 mb-1">行程時間（小時：分鐘）</label>' +
+      '<input type="time" id="trip-time-input" value="' + currentVal + '" ' +
+        'class="w-full px-3 py-3 text-lg font-bold bg-slate-50 border border-slate-200 rounded-xl ' +
+        'focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono text-center">' +
+    '</div>';
+
+  html +=
+    '<div class="grid grid-cols-4 gap-1.5">' +
+      '<button type="button" onclick="setTripTimeQuickNow()" ' +
+        'class="py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-lg text-[11px] transition border border-blue-200">現在</button>' +
+      '<button type="button" onclick="setTripTimeQuick(-5)" ' +
+        'class="py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold rounded-lg text-[11px] transition border border-slate-200">-5 分</button>' +
+      '<button type="button" onclick="setTripTimeQuick(-15)" ' +
+        'class="py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold rounded-lg text-[11px] transition border border-slate-200">-15 分</button>' +
+      '<button type="button" onclick="setTripTimeQuick(-30)" ' +
+        'class="py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold rounded-lg text-[11px] transition border border-slate-200">-30 分</button>' +
+    '</div>';
+
+  html += '<div id="trip-time-error" class="hidden text-[11px] text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-2 leading-relaxed"></div>';
+
+  html +=
+    '<p class="text-[11px] text-slate-400 leading-relaxed flex items-start gap-1.5">' +
+      '<span class="ico w-3.5 h-3.5 mt-0.5 shrink-0" data-icon="info"></span>' +
+      '<span>時間必須落在上述更次範圍內。儲存後只影響這一筆紀錄；不設即為現在時間。</span>' +
+    '</p>';
+
+  html += '</div>';
+
+  document.getElementById('modal-title').innerText = '設定行程時間';
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-footer').innerHTML =
+    '<button onclick="closeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition">取消</button>' +
+    '<button onclick="saveTripTime()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl text-xs transition">確定</button>';
+
+  var m = document.getElementById('trip-modal');
+  m.classList.remove('hidden');
+  m.classList.add('flex');
+  hydrateIcons();
+}
+
+function setTripTimeQuickNow(){
+  var input = document.getElementById('trip-time-input');
+  if (!input) return;
+  var now = new Date();
+  input.value = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
+  hideTripTimeError();
+}
+
+function setTripTimeQuick(deltaMin){
+  var input = document.getElementById('trip-time-input');
+  if (!input) return;
+  var base;
+  if (input.value){
+    var parts = input.value.split(':');
+    base = new Date();
+    base.setHours(parseInt(parts[0], 10) || 0, parseInt(parts[1], 10) || 0, 0, 0);
+  } else {
+    base = new Date();
+  }
+  base.setMinutes(base.getMinutes() + deltaMin);
+  input.value = pad2(base.getHours()) + ':' + pad2(base.getMinutes());
+  hideTripTimeError();
+}
+
+function showTripTimeError(msg){
+  var el = document.getElementById('trip-time-error');
+  if (!el) return;
+  el.innerText = msg;
+  el.classList.remove('hidden');
+}
+function hideTripTimeError(){
+  var el = document.getElementById('trip-time-error');
+  if (el) el.classList.add('hidden');
+}
+
+function saveTripTime(){
+  var input = document.getElementById('trip-time-input');
+  if (!input || !input.value){
+    showTripTimeError('請選擇時間');
+    return;
+  }
+
+  var parts = input.value.split(':');
+  var hh = parseInt(parts[0], 10);
+  var mm = parseInt(parts[1], 10);
+  if (isNaN(hh) || isNaN(mm) || hh < 0 || hh > 23 || mm < 0 || mm > 59){
+    showTripTimeError('時間格式不正確');
+    return;
+  }
+
+  var resolved = resolveTripTimestamp(hh, mm);
+  if (resolved === null){
+    var sk = getTargetShiftKey();
+    var cfg = shiftSettings[sk];
+    var rangeStr = '';
+    if (cfg && cfg.startTime){
+      rangeStr = cfg.startTime + ' - ' + (cfg.endTime || '工作中');
+    }
+    showTripTimeError('所選時間不在更次範圍內' +
+      (rangeStr ? '（' + rangeStr + '）' : '') + '，請重新選擇。');
+    return;
+  }
+
+  var now = new Date();
+  if (hh === now.getHours() && mm === now.getMinutes()){
+    manualTripTime = null;
+  } else {
+    manualTripTime = pad2(hh) + ':' + pad2(mm);
+  }
+
+  closeModal();
+  updateTripTimeChip();
+  showToast(manualTripTime ? '行程時間已設為 ' + manualTripTime : '行程時間已重置為現在');
+}
+
+/* =========================================================
    I. 儲存行程
    ========================================================= */
 function saveTrip(){
@@ -2851,16 +3087,29 @@ function saveTrip(){
   var changeVal = isExpense ? 0 : (received - fare);
   var note      = noteInput.value.trim();
   var now       = new Date();
-  var ts        = now.getTime();
   var cfg       = getCurrentSettings();
   var isManual  = !!manualShiftKey;
-  var shiftDate = isManual ? manualShiftKey : calcShiftDate(ts, cfg);
+
+  /* ★ 決定行程時間：若設了 manualTripTime，用它；否則用現在 */
+  var tripTimestamp = now.getTime();
+  if (manualTripTime){
+    var tp = manualTripTime.split(':');
+    var hh = parseInt(tp[0], 10);
+    var mm = parseInt(tp[1], 10);
+    var resolved = resolveTripTimestamp(hh, mm);
+    if (resolved !== null){
+      tripTimestamp = resolved;
+    }
+  }
+
+  var tripDateObj = new Date(tripTimestamp);
+  var shiftDate = isManual ? manualShiftKey : calcShiftDate(tripTimestamp, cfg);
 
   var newTrip = {
-    id: 'trip_' + ts,
-    timestamp: ts,
+    id: 'trip_' + tripTimestamp + '_' + Math.floor(Math.random() * 1000),
+    timestamp: tripTimestamp,
     shiftDate: shiftDate,
-    dateStr:   toLocalISOString(now),
+    dateStr:   toLocalISOString(tripDateObj),
     fare:      fare,
     type:      activeTripType,
     payment:   activePaymentMethod,
@@ -2870,13 +3119,16 @@ function saveTrip(){
     isExpense: isExpense
   };
 
-  trips.unshift(newTrip);
+  trips.push(newTrip);
+  trips.sort(function(a, b){ return b.timestamp - a.timestamp; });
   localStorage.setItem('taxi_trips', JSON.stringify(trips));
 
   fareInput.value = '';
   receivedInput.value = '';
   noteInput.value = '';
   fareSign = 1;
+  manualTripTime = null;          /* ★ 重置 */
+  updateTripTimeChip();           /* ★ */
   updateFareSignUI();
   collapseNoteTags();
   calculateChange();
@@ -3328,14 +3580,8 @@ function getAmapParam(text, key){
   return v;
 }
 
-/**
- * 嘗試從高德短連結中解析座標。
- * 高德短連結（surl.amap.com/xxxx）無法直接解出座標，
- * 這裡使用短鏈特徵值對照表；若未來失效，可提示用戶使用其他方式。
- */
 var AMAP_SHORTLINK_MAP = {
   '2wg3Fwqyya3G': { lat: 22.53893, lng: 114.13269, name: '香園圍公路' }
-  /* 可根據實際使用情況擴充 */
 };
 
 function parseAmapShortLink(shortUrl){
@@ -3350,17 +3596,6 @@ function parseAmapShortLink(shortUrl){
   return null;
 }
 
-/**
- * 解析高德分享的鏈接 / 座標文本。
- * 支援：
- *  - https://uri.amap.com/marker?position=lng,lat&name=xxx&coordinate=gaode
- *  - https://uri.amap.com/navigation?...&to=lng,lat,name
- *  - https://uri.amap.com/regeo?lng=&lat=&name=
- *  - amapuri://...?dlat=..&dlon=..&dname=..
- *  - surl.amap.com/xxxx（短連結，透過對照表）
- *  - 純文字「114.123456,22.123456」
- * 回傳 { name, lat, lng, address, coordinate } 或 null
- */
 function parseAmapShareText(raw){
   if (!raw) return null;
   var text = String(raw).replace(/&amp;/g, '&').trim();
@@ -3371,14 +3606,12 @@ function parseAmapShareText(raw){
   var c = getAmapParam(text, 'coordinate');
   if (c) out.coordinate = c.toLowerCase();
 
-  /* position=lng,lat */
   var m = text.match(/[?&]position=(-?[\d.]+)\s*[,，]\s*(-?[\d.]+)/i);
   if (m){
     out.lng = parseFloat(m[1]);
     out.lat = parseFloat(m[2]);
   }
 
-  /* to=lng,lat[,name] */
   if (out.lat === null){
     var m2 = text.match(/[?&]to=(-?[\d.]+)\s*[,，]\s*(-?[\d.]+)(?:[,，]([^&#\s]*))?/i);
     if (m2){
@@ -3393,7 +3626,6 @@ function parseAmapShareText(raw){
     }
   }
 
-  /* dlon / dlat */
   if (out.lat === null){
     var dlon = text.match(/[?&]dlon=(-?[\d.]+)/i);
     var dlat = text.match(/[?&]dlat=(-?[\d.]+)/i);
@@ -3403,7 +3635,6 @@ function parseAmapShareText(raw){
     }
   }
 
-  /* lng / lat 或 lon / lat */
   if (out.lat === null){
     var lg = text.match(/[?&](?:lng|lon|longitude)=(-?[\d.]+)/i);
     var lt = text.match(/[?&](?:lat|latitude)=(-?[\d.]+)/i);
@@ -3413,7 +3644,6 @@ function parseAmapShareText(raw){
     }
   }
 
-  /* 名稱 */
   if (!out.name){
     var nm2 = getAmapParam(text, 'name') ||
               getAmapParam(text, 'dname') ||
@@ -3422,11 +3652,9 @@ function parseAmapShareText(raw){
     if (nm2) out.name = nm2.trim();
   }
 
-  /* 地址 */
   var addr = getAmapParam(text, 'address') || getAmapParam(text, 'addr') || getAmapParam(text, 'addressName');
   if (addr) out.address = addr.trim();
 
-  /* 純文字座標兜底 */
   if (out.lat === null || out.lng === null ||
       isNaN(out.lat) || isNaN(out.lng)){
     var m3 = text.match(/(-?\d{1,3}\.\d{3,})\s*[,，]\s*(-?\d{1,3}\.\d{3,})/);
@@ -3443,7 +3671,6 @@ function parseAmapShareText(raw){
     }
   }
 
-  /* 短連結兜底 */
   if (out.lat === null || out.lng === null){
     var shortHit = parseAmapShortLink(text);
     if (shortHit){
@@ -3453,7 +3680,6 @@ function parseAmapShareText(raw){
     }
   }
 
-  /* 校驗 */
   if (out.lat === null || out.lng === null) return null;
   if (isNaN(out.lat) || isNaN(out.lng)) return null;
   if (Math.abs(out.lat) > 90 || Math.abs(out.lng) > 180) return null;
@@ -3501,13 +3727,11 @@ function applyAmapPaste(){
     return;
   }
 
-  /* 座標（必填） */
   var latEl = document.getElementById('place-lat');
   var lngEl = document.getElementById('place-lng');
   if (latEl) latEl.value = parsed.lat.toFixed(6);
   if (lngEl) lngEl.value = parsed.lng.toFixed(6);
 
-  /* 名稱（若用戶未填才覆蓋） */
   var nameEl = document.getElementById('place-name');
   var nameFilled = false;
   if (nameEl && parsed.name && !nameEl.value.trim()){
@@ -3515,7 +3739,6 @@ function applyAmapPaste(){
     nameFilled = true;
   }
 
-  /* 地址（若用戶未填才覆蓋） */
   var addrEl = document.getElementById('place-address');
   var addrFilled = false;
   if (addrEl && parsed.address && !addrEl.value.trim()){
@@ -3528,7 +3751,6 @@ function applyAmapPaste(){
   if (addrFilled) parts.push('地址');
   showToast('已解析並填入：' + parts.join('、'));
 
-  /* 若區域未填，嘗試反向解析 */
   var regionEl = document.getElementById('place-region');
   if (regionEl && !regionEl.value){
     reverseGeocode(parsed.lat, parsed.lng, function(err, data){
@@ -3538,7 +3760,6 @@ function applyAmapPaste(){
   }
 }
 
-/* ★ 高德粘貼面板的展開 / 收起 */
 function toggleAmapPastePanel(){
   var body = document.getElementById('amap-paste-body');
   var chev = document.getElementById('amap-paste-chevron');
@@ -3570,7 +3791,6 @@ function openAddPlaceModal(){
 
   var html = '<div class="space-y-3 text-sm">' +
 
-    /* ★ 高德連結 / 座標粘貼（默認收起，點擊標題展開） */
     '<div class="bg-amber-50 border border-amber-200 rounded-xl overflow-hidden">' +
       '<button type="button" onclick="toggleAmapPastePanel()" ' +
         'class="w-full flex justify-between items-center gap-2 px-3 py-2.5 hover:bg-amber-100 active:bg-amber-100 transition text-left">' +
@@ -4090,6 +4310,12 @@ function openEditModal(id){
     payOptionsHtml += '<option value="' + escapeHtml(currentPay) + '" selected>' + escapeHtml(currentPay) + '（舊）</option>';
   }
 
+  var tripTimeVal = '';
+  var tDateObj = new Date(t.timestamp);
+  if (!isNaN(tDateObj.getTime())){
+    tripTimeVal = pad2(tDateObj.getHours()) + ':' + pad2(tDateObj.getMinutes());
+  }
+
   document.getElementById('modal-title').innerText = '修改記錄';
   document.getElementById('modal-body').innerHTML =
     '<div class="space-y-3 text-sm">' +
@@ -4106,6 +4332,12 @@ function openEditModal(id){
           '<span class="text-[11px] text-amber-700">時段</span>' +
           '<span class="text-xs text-amber-900 font-mono font-semibold">' + shiftTimeText + '</span>' +
         '</div>' +
+      '</div>' +
+      '<div>' +
+        '<label class="block text-xs font-semibold text-slate-600 mb-1">行程時間</label>' +
+        '<input type="time" id="edit-trip-time" value="' + tripTimeVal + '" ' +
+          'class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 font-mono font-bold">' +
+        '<p class="text-[11px] text-slate-400 mt-1">修改後會更新該筆記錄的時間（限該更次範圍內）。</p>' +
       '</div>' +
       '<div>' +
         '<label class="block text-xs font-semibold text-slate-600 mb-1">車資金額（負數＝支出）</label>' +
@@ -4146,32 +4378,81 @@ function saveEditedTrip(){
   var type = document.getElementById('edit-type').value;
   var payment = document.getElementById('edit-payment').value;
   var note = document.getElementById('edit-note').value.trim();
+  var timeInput = document.getElementById('edit-trip-time');
 
   if (isNaN(fare) || fare === 0){ showToast('請輸入有效車資（可為負數）！'); return; }
 
   var index = trips.findIndex(function(item){ return item.id === currentEditingId; });
-  if (index !== -1){
-    var isExpense = fare < 0;
-    trips[index].fare      = fare;
-    trips[index].type      = type;
-    trips[index].payment   = payment;
-    trips[index].note      = note;
-    trips[index].isExpense = isExpense;
-    if (isExpense){
-      trips[index].received = fare;
-      trips[index].change   = 0;
-    } else {
-      var rec = parseFloat(trips[index].received);
-      if (isNaN(rec) || rec === 0) rec = fare;
-      trips[index].received = rec;
-      trips[index].change   = rec - fare;
+  if (index === -1) return;
+
+  var targetTrip = trips[index];
+
+  /* ★ 更新時間（若使用者有改） */
+  if (timeInput && timeInput.value){
+    var tp = timeInput.value.split(':');
+    var hh = parseInt(tp[0], 10);
+    var mm = parseInt(tp[1], 10);
+    if (!isNaN(hh) && !isNaN(mm)){
+      var shiftKey = targetTrip.shiftDate || getLastShiftKey();
+      var cfgS = shiftSettings[shiftKey];
+      if (cfgS) ensureShiftFields(cfgS);
+
+      var base = new Date(shiftKey + 'T00:00:00');
+      if (!isNaN(base.getTime())){
+        var d = new Date(base);
+        d.setHours(hh, mm, 0, 0);
+        var ts = d.getTime();
+
+        /* 驗證：若更次有開工/收工時間，限制在範圍內 */
+        var valid = true;
+        if (cfgS && cfgS.startedAt){
+          var endMs = cfgS.endedAt || Date.now();
+          if (ts < cfgS.startedAt || ts > endMs){
+            /* 嘗試跨日 */
+            var d2 = new Date(base);
+            d2.setDate(d2.getDate() + 1);
+            d2.setHours(hh, mm, 0, 0);
+            var ts2 = d2.getTime();
+            if (ts2 >= cfgS.startedAt && ts2 <= endMs){
+              ts = ts2;
+            } else {
+              valid = false;
+            }
+          }
+        }
+        if (!valid){
+          showToast('所選時間不在該更次範圍內，請重新選擇');
+          return;
+        }
+        targetTrip.timestamp = ts;
+        targetTrip.dateStr = toLocalISOString(new Date(ts));
+      }
     }
-    localStorage.setItem('taxi_trips', JSON.stringify(trips));
-    closeModal();
-    renderTripList();
-    updateStatsAndNet();
-    showToast('行程已更新！');
   }
+
+  var isExpense = fare < 0;
+  targetTrip.fare      = fare;
+  targetTrip.type      = type;
+  targetTrip.payment   = payment;
+  targetTrip.note      = note;
+  targetTrip.isExpense = isExpense;
+
+  if (isExpense){
+    targetTrip.received = fare;
+    targetTrip.change   = 0;
+  } else {
+    var rec = parseFloat(targetTrip.received);
+    if (isNaN(rec) || rec === 0) rec = fare;
+    targetTrip.received = rec;
+    targetTrip.change   = rec - fare;
+  }
+
+  trips.sort(function(a, b){ return b.timestamp - a.timestamp; });
+  localStorage.setItem('taxi_trips', JSON.stringify(trips));
+  closeModal();
+  renderTripList();
+  updateStatsAndNet();
+  showToast('行程已更新！');
 }
 
 function deleteTrip(id){
@@ -4652,6 +4933,7 @@ function deleteShift(key){
 
   if (manualShiftKey === key){
     manualShiftKey = null;
+    manualTripTime = null;
   }
 
   localStorage.setItem('taxi_trips', JSON.stringify(trips));
@@ -4661,6 +4943,7 @@ function deleteShift(key){
   updateStatsAndNet();
   initSettingsForm();
   updateHeaderWorked();
+  updateTripTimeChip();
 
   var bannerText = '已刪除更次 ' + key + '（' + list.length + ' 筆）';
   showUndoBanner(bannerText);
@@ -5331,22 +5614,6 @@ function updateDurationMetrics(duration, profit){
   }
 }
 
-function updateCombinedShiftNote(cfg){
-  var box = document.getElementById('combined-shift-note-box');
-  var textEl = document.getElementById('combined-shift-note');
-  if (!box || !textEl) return;
-
-  if (cfg && cfg.note && cfg.note.trim()){
-    box.classList.remove('hidden');
-    box.style.display = 'flex';
-    textEl.innerText = cfg.note.trim();
-  } else {
-    box.classList.add('hidden');
-    box.style.display = '';
-    textEl.innerText = '';
-  }
-}
-
 function renderTypeBreakdown(typeRev){
   var container = document.getElementById('stats-type-breakdown');
   if (!container) return;
@@ -5448,8 +5715,6 @@ function renderDayStatsView(lastKey, lastCfg){
   var durRow = document.getElementById('duration-metrics-row');
   if (durRow) durRow.style.display = 'grid';
 
-  updateCombinedShiftNote(lastCfg);
-
   var typeRev = {};
   TRIP_TYPE_CONFIG.forEach(function(t){ typeRev[t.name] = 0; });
   var paymentRev = {};
@@ -5548,8 +5813,6 @@ function renderPeriodStatsView(period, now, lastKey){
   var durRow = document.getElementById('duration-metrics-row');
   if (durRow) durRow.style.display = 'none';
 
-  updateCombinedShiftNote(null);
-
   renderTypeBreakdown(typeRev);
   renderPaymentBreakdown(paymentRev);
 }
@@ -5618,7 +5881,6 @@ function applyChartUIState(){
   }
 }
 
-/* --- 組裝資料 --- */
 function buildDailySeries(days){
   var now = new Date();
   var agg = {};
@@ -5688,7 +5950,6 @@ function buildHourlySeries(days){
   return buckets;
 }
 
-/* --- 平滑曲線（Catmull-Rom → 三次貝塞爾） --- */
 function buildSmoothPath(pts, minY, maxY){
   var n = pts.length;
   if (n === 0) return '';
@@ -5742,7 +6003,6 @@ function renderTrendChart(){
     return d.gross;
   });
 
-  /* 摘要 */
   var total = 0, maxV = 0, minV = 0;
   series.forEach(function(v){
     total += v;
@@ -5769,7 +6029,6 @@ function renderTrendChart(){
     ? '最近 ' + chartRange + ' 天內，每個時段的累計' + (isMoney ? '金額' : '筆數') + '（滑動／點擊曲線查看）'
     : '最近 ' + chartRange + ' 天的每日' + (isMoney ? '金額' : '筆數') + '走勢（滑動／點擊曲線查看）');
 
-  /* 空資料 */
   if (maxV <= 0 && minV >= 0 && nonZeroCount === 0){
     container.innerHTML =
       '<div class="py-10 text-center text-slate-300 text-xs leading-relaxed">' +
@@ -5779,7 +6038,6 @@ function renderTrendChart(){
     return;
   }
 
-  /* 幾何 */
   var n = data.length;
   var W = 340, H = 172;
   var padL = 8, padR = 8, padT = 22, padB = 26;
@@ -5812,7 +6070,6 @@ function renderTrendChart(){
     ' L' + pts[n - 1].x.toFixed(2) + ',' + zeroY.toFixed(2) +
     ' L' + pts[0].x.toFixed(2) + ',' + zeroY.toFixed(2) + ' Z';
 
-  /* 網格 */
   var gridHtml = '';
   for (var g = 0; g <= 3; g++){
     var gy = padT + (plotH * g) / 3;
@@ -5821,7 +6078,6 @@ function renderTrendChart(){
                 (g === 3 ? '' : ' stroke-dasharray="3 4"') + '/>';
   }
 
-  /* X 軸標籤 */
   var step = 1;
   if (n > 20) step = 4;
   else if (n > 12) step = 3;
@@ -5844,7 +6100,6 @@ function renderTrendChart(){
                  escapeHtml(data[li].label) + '</text>';
   }
 
-  /* 資料點 */
   var dotsHtml = '';
   if (n <= 16){
     for (var di = 0; di < n; di++){
@@ -5890,7 +6145,6 @@ function renderTrendChart(){
     '<div id="trend-tip" class="hidden absolute pointer-events-none bg-slate-900 text-white ' +
       'text-[10px] rounded-lg px-2 py-1 shadow-lg leading-tight whitespace-nowrap z-10"></div>';
 
-  /* 互動 */
   var svgEl      = document.getElementById('trend-svg');
   var tipEl      = document.getElementById('trend-tip');
   var cursorLine = document.getElementById('trend-cursor-line');
@@ -6004,7 +6258,6 @@ function updateStatsAndNet(){
     renderPeriodStatsView(statsPeriod, now, lastKey);
   }
 
-  /* ★ 走勢圖跟著更新 */
   renderTrendChart();
 
   updateDateTimePreview();
