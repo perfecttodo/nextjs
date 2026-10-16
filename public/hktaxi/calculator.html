@@ -291,6 +291,7 @@ body{
 .border-amber-100{border-color:#fef3c7}
 .border-amber-200{border-color:#fde68a}
 .border-amber-200\/60{border-color:rgba(253,230,138,.6)}
+.border-amber-300{border-color:#fcd34d}
 .border-amber-400{border-color:#fbbf24}
 .border-amber-500\/30{border-color:rgba(245,158,11,.3)}
 .border-amber-600{border-color:#d97706}
@@ -432,7 +433,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
               class="text-xs text-slate-400 font-medium text-right leading-tight cursor-pointer select-none hover:text-slate-600 transition"></span>
       </div>
 
-      <!-- 車資 -->
       <div>
         <div class="flex justify-between items-center mb-1 gap-2">
           <div class="flex items-center gap-2 min-w-0">
@@ -472,7 +472,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </p>
       </div>
 
-      <!-- 類型（默認只顯示前3個） -->
       <div>
         <label class="block text-sm font-semibold text-slate-700 mb-1.5">類型</label>
         <div id="trip-type-buttons" class="grid grid-cols-3 gap-2"></div>
@@ -485,7 +484,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </button>
       </div>
 
-      <!-- 收到客戶付款 -->
       <div id="payment-block" class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-3">
         <div>
           <div class="flex justify-between items-center mb-1">
@@ -517,7 +515,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </div>
       </div>
 
-      <!-- 更多設置按鈕 -->
       <button type="button" id="advanced-toggle" onclick="toggleAdvancedSettings()"
         class="w-full py-2.5 text-xs bg-slate-50 hover:bg-slate-100 border border-slate-200 border-dashed rounded-xl text-slate-600 font-semibold transition flex items-center justify-center gap-1.5">
         <span class="ico w-3.5 h-3.5" data-icon="settings"></span>
@@ -527,7 +524,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </svg>
       </button>
 
-      <!-- 進階設置區（默認隱藏） -->
       <div id="advanced-settings" class="hidden space-y-4 pt-1">
         <div id="payment-method-block">
           <div class="flex justify-between items-center mb-1.5">
@@ -658,19 +654,29 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
           class="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
       </div>
 
+      <!-- ★ 區域：flex-wrap，不滾動 -->
       <div>
         <label class="block text-xs font-semibold text-slate-500 mb-1.5">區域</label>
-        <div id="place-region-tabs" class="flex gap-1.5 overflow-x-auto pb-1"></div>
+        <div id="place-region-tabs" class="flex flex-wrap gap-1.5"></div>
       </div>
 
+      <!-- ★ 分區：flex-wrap，不滾動 -->
       <div id="place-district-wrap" class="hidden">
         <label class="block text-xs font-semibold text-slate-500 mb-1.5">分區</label>
-        <div id="place-district-tabs" class="flex gap-1.5 overflow-x-auto pb-1"></div>
+        <div id="place-district-tabs" class="flex flex-wrap gap-1.5"></div>
       </div>
 
+      <!-- ★ 類型：標題行右側加「更多／收起」切換，主體 flex-wrap -->
       <div>
-        <label class="block text-xs font-semibold text-slate-500 mb-1.5">類型</label>
-        <div id="place-type-tabs" class="flex gap-1.5 overflow-x-auto pb-1"></div>
+        <div class="flex justify-between items-center mb-1.5">
+          <label class="block text-xs font-semibold text-slate-500">類型</label>
+          <button type="button" id="place-type-toggle" onclick="togglePlaceTypeExpanded()"
+            class="text-[11px] text-amber-700 hover:text-amber-800 font-semibold transition flex items-center gap-1 hidden">
+            <span id="place-type-toggle-text">更多</span>
+            <svg id="place-type-toggle-chevron" style="width:10px;height:10px;transition:transform .2s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+        </div>
+        <div id="place-type-tabs" class="flex flex-wrap gap-1.5"></div>
       </div>
 
       <div class="flex gap-2 pt-2 border-t border-slate-100">
@@ -1198,6 +1204,10 @@ var PLACE_TYPE_CONFIG = {
 };
 var PLACE_TYPES = Object.keys(PLACE_TYPE_CONFIG);
 var PLACE_TYPE_FALLBACK = { icon: 'map-pin', cls: 'bg-purple-50 text-purple-700 border-purple-200' };
+
+/* ★ 類型篩選：默認顯示上限（含「全部」），超過的部分收進「更多」 */
+var PLACE_TYPE_HOT_LIMIT = 5;
+var placeTypeExpanded = localStorage.getItem('taxi_place_type_expanded') === '1';
 
 function getPlaceTypeStyle(type){
   return PLACE_TYPE_CONFIG[type] || PLACE_TYPE_FALLBACK;
@@ -1923,7 +1933,7 @@ function endShift(){
 }
 
 /* =========================================================
-   B-6. 更次時間彈窗（快速 / 手動兩種模式）
+   B-6. 更次時間彈窗
    ========================================================= */
 function openShiftTimeModal(){
   shiftTimeMode = 'quick';
@@ -2611,7 +2621,7 @@ function switchTab(tabName){
 }
 
 /* =========================================================
-   G. 記帳類型（動態渲染 + 展開/收起）
+   G. 記帳類型
    ========================================================= */
 function renderTripTypeButtons(){
   var container = document.getElementById('trip-type-buttons');
@@ -2685,7 +2695,7 @@ function setPaymentMethod(name){
 }
 
 /* =========================================================
-   G-3. 類型篩選「全部」連動
+   G-3. 類型篩選
    ========================================================= */
 function toggleAllTripTypes(checked){
   document.getElementById('chk-type-street').checked = checked;
@@ -2703,7 +2713,7 @@ function onTripTypeFilterChange(){
 }
 
 /* =========================================================
-   G-4. 付款方式篩選「全部」連動
+   G-4. 付款方式篩選
    ========================================================= */
 function toggleAllPaymentMethods(checked){
   document.getElementById('chk-pay-cash').checked = checked;
@@ -3185,7 +3195,7 @@ function saveTripTime(){
 }
 
 /* =========================================================
-   I. 儲存行程（含位置）
+   I. 儲存行程
    ========================================================= */
 function saveTrip(){
   var fareInput     = document.getElementById('trip-fare');
@@ -3268,7 +3278,7 @@ function saveTrip(){
 }
 
 /* =========================================================
-   J. 行程列表（★ 卡片優化版）
+   J. 行程列表
    ========================================================= */
 function renderTripList(){
   var container = document.getElementById('trip-list-container');
@@ -3336,7 +3346,6 @@ function renderTripList(){
     var theme = TRIP_TYPE_THEME[typeCfg.color] || TRIP_TYPE_THEME.slate;
     var typeColor = theme.card + ' ' + theme.text;
 
-    /* ── 第 1 行：緊急狀態標（支出 / 欠款） ── */
     var urgentBadge = '';
     if (isExpense){
       urgentBadge =
@@ -3350,7 +3359,6 @@ function renderTripList(){
         '</span>';
     }
 
-    /* ── 第 2 行：付款方式（收縮樣式） ── */
     var payBadge = '';
     if (!isExpense){
       var payCfg = getPaymentMethodConfig(t.payment || '現金');
@@ -3362,7 +3370,6 @@ function renderTripList(){
         '</span>';
     }
 
-    /* ── 第 2 行：位置徽章（純圖標） ── */
     var hasLocation = t.location && typeof t.location.lat === 'number';
     var locationBadge = hasLocation
       ? '<span class="text-[10px] px-1 py-0.5 rounded-md border font-medium flex items-center bg-blue-50 text-blue-700 border-blue-200 shrink-0" title="已記錄位置">' +
@@ -3373,7 +3380,6 @@ function renderTripList(){
     var cardBorder = isExpense ? 'border-rose-200' :
                      (urgentBadge ? 'border-rose-200' : 'border-slate-100');
 
-    /* ── 操作區按鈕 ── */
     var locationBtn = hasLocation
       ? '<button onclick="event.stopPropagation(); openTripLocationInMaps(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-blue-500 transition" title="查看位置">' +
           ico('map-pin','w-3.5 h-3.5') +
@@ -3383,22 +3389,16 @@ function renderTripList(){
     return '' +
     '<div class="bg-white rounded-2xl border ' + cardBorder + ' shadow-sm">' +
       '<div class="p-3 flex items-start gap-2.5">' +
-
-        /* 左側：時間塊（縮小） */
         '<div class="w-11 shrink-0 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center py-1.5">' +
           '<span class="font-mono font-bold text-slate-800 text-[11px] leading-none">' + timeStr + '</span>' +
           '<span class="font-mono text-slate-400 text-[9px] leading-none mt-1">' + dateStr + '</span>' +
         '</div>' +
-
-        /* 中間：主內容 */
         '<div class="min-w-0 flex-1">' +
-          /* 第 1 行：價格 + 類型徽章 + 緊急標 */
           '<div class="flex items-center gap-1.5 flex-wrap">' +
             '<span class="text-base font-black ' + (isExpense ? 'text-rose-600' : 'text-slate-900') + ' leading-tight tracking-tight">' + fareText + '</span>' +
             '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-semibold ' + typeColor + '">' + escapeHtml(t.type) + '</span>' +
             urgentBadge +
           '</div>' +
-          /* 第 2 行：付款 + 位置 + 備註 */
           '<div class="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500 min-w-0">' +
             payBadge +
             locationBadge +
@@ -3407,22 +3407,19 @@ function renderTripList(){
               : '<span class="text-slate-300">無備注</span>') +
           '</div>' +
         '</div>' +
-
-        /* 右側：操作按鈕（緊湊） */
         '<div class="flex items-center shrink-0 -mr-1">' +
           locationBtn +
           '<button onclick="openDetailModal(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-amber-500 transition" title="詳情">' + ico('eye','w-3.5 h-3.5') + '</button>' +
           '<button onclick="openEditModal(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-blue-500 transition" title="編輯">' + ico('edit-3','w-3.5 h-3.5') + '</button>' +
           '<button onclick="deleteTrip(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-rose-500 transition" title="刪除">' + ico('trash-2','w-3.5 h-3.5') + '</button>' +
         '</div>' +
-
       '</div>' +
     '</div>';
   }).join('');
 }
 
 /* =========================================================
-   J-2. 收藏地點專區
+   J-2. 收藏地點
    ========================================================= */
 function getDistance(lat1, lon1, lat2, lon2){
   var R = 6371000;
@@ -3443,46 +3440,86 @@ function formatDistance(meters){
   return (meters / 1000).toFixed(1) + ' km';
 }
 
+/* ★ 類型篩選展開 / 收起 */
+function togglePlaceTypeExpanded(){
+  placeTypeExpanded = !placeTypeExpanded;
+  localStorage.setItem('taxi_place_type_expanded', placeTypeExpanded ? '1' : '0');
+  renderPlaceFilters();
+}
+
+/* ★ 通用：渲染篩選按鈕（緊湊版） */
+function buildPlaceFilterBtn(label, isActive, onClick){
+  var cls = isActive
+    ? 'px-2.5 py-1 rounded-md text-[11px] font-bold border transition bg-amber-500 text-slate-900 border-amber-600 shadow-xs whitespace-nowrap'
+    : 'px-2.5 py-1 rounded-md text-[11px] font-medium border transition bg-white text-slate-600 border-slate-200 hover:bg-slate-100 whitespace-nowrap';
+  return '<button type="button" onclick="' + onClick + '" class="' + cls + '">' + escapeHtml(label) + '</button>';
+}
+
 function renderPlaceFilters(){
-  var regionWrap = document.getElementById('place-region-tabs');
+  var regionWrap   = document.getElementById('place-region-tabs');
   var districtWrap = document.getElementById('place-district-wrap');
-  var typeWrap = document.getElementById('place-type-tabs');
+  var typeWrap     = document.getElementById('place-type-tabs');
+  var typeToggle   = document.getElementById('place-type-toggle');
+  var typeToggleText = document.getElementById('place-type-toggle-text');
+  var typeChev     = document.getElementById('place-type-toggle-chevron');
+
   if (!regionWrap || !typeWrap) return;
 
+  /* ── 區域：固定 4 個，flex-wrap ── */
   var regionKeys = [''].concat(Object.keys(REGIONS));
   regionWrap.innerHTML = regionKeys.map(function(r){
-    var active = placeFilterRegion === r;
     var label = r === '' ? '全部' : r;
-    var cls = active
-      ? 'px-3 py-1.5 rounded-lg text-xs font-bold border transition bg-amber-500 text-slate-900 border-amber-600 shadow-xs whitespace-nowrap shrink-0'
-      : 'px-3 py-1.5 rounded-lg text-xs font-medium border transition bg-white text-slate-600 border-slate-200 hover:bg-slate-100 whitespace-nowrap shrink-0';
-    return '<button type="button" onclick="setPlaceFilterRegion(\'' + r + '\')" class="' + cls + '">' + label + '</button>';
+    return buildPlaceFilterBtn(label, placeFilterRegion === r, "setPlaceFilterRegion('" + r + "')");
   }).join('');
 
+  /* ── 分區：只在選了區域後顯示，flex-wrap ── */
   if (placeFilterRegion && REGIONS[placeFilterRegion]){
     districtWrap.classList.remove('hidden');
     var districts = [''].concat(REGIONS[placeFilterRegion]);
     document.getElementById('place-district-tabs').innerHTML = districts.map(function(d){
-      var active = placeFilterDistrict === d;
       var label = d === '' ? '全部' : d;
-      var cls = active
-        ? 'px-3 py-1.5 rounded-lg text-xs font-bold border transition bg-amber-500 text-slate-900 border-amber-600 shadow-xs whitespace-nowrap shrink-0'
-        : 'px-3 py-1.5 rounded-lg text-xs font-medium border transition bg-white text-slate-600 border-slate-200 hover:bg-slate-100 whitespace-nowrap shrink-0';
-      return '<button type="button" onclick="setPlaceFilterDistrict(\'' + d + '\')" class="' + cls + '">' + label + '</button>';
+      return buildPlaceFilterBtn(label, placeFilterDistrict === d, "setPlaceFilterDistrict('" + d + "')");
     }).join('');
   } else {
     districtWrap.classList.add('hidden');
   }
 
-  var types = [''].concat(PLACE_TYPES);
-  typeWrap.innerHTML = types.map(function(t){
-    var active = placeFilterType === t;
+  /* ── 類型：折疊式，默認只顯示前 PLACE_TYPE_HOT_LIMIT 個 ── */
+  var allTypes = [''].concat(PLACE_TYPES); // ['', '餐廳', '的士站', ...]
+  var totalCount = allTypes.length;
+  var hasMore = totalCount > PLACE_TYPE_HOT_LIMIT;
+
+  var visibleTypes;
+  if (!hasMore || placeTypeExpanded){
+    visibleTypes = allTypes;
+  } else {
+    visibleTypes = allTypes.slice(0, PLACE_TYPE_HOT_LIMIT);
+    /* 若當前選中的類型不在默認顯示範圍，補上它（避免選中但不可見） */
+    if (placeFilterType && visibleTypes.indexOf(placeFilterType) === -1){
+      visibleTypes = visibleTypes.concat([placeFilterType]);
+    }
+  }
+
+  typeWrap.innerHTML = visibleTypes.map(function(t){
     var label = t === '' ? '全部' : t;
-    var cls = active
-      ? 'px-3 py-1.5 rounded-lg text-xs font-bold border transition bg-amber-500 text-slate-900 border-amber-600 shadow-xs whitespace-nowrap shrink-0'
-      : 'px-3 py-1.5 rounded-lg text-xs font-medium border transition bg-white text-slate-600 border-slate-200 hover:bg-slate-100 whitespace-nowrap shrink-0';
-    return '<button type="button" onclick="setPlaceFilterType(\'' + t + '\')" class="' + cls + '">' + label + '</button>';
+    return buildPlaceFilterBtn(label, placeFilterType === t, "setPlaceFilterType('" + t + "')");
   }).join('');
+
+  /* 更新「更多／收起」按鈕 */
+  if (typeToggle){
+    if (hasMore){
+      typeToggle.classList.remove('hidden');
+      var hiddenCount = totalCount - PLACE_TYPE_HOT_LIMIT;
+      typeToggleText.innerText = placeTypeExpanded
+        ? '收起'
+        : ('更多（+' + hiddenCount + '）');
+      if (typeChev){
+        typeChev.style.transform = placeTypeExpanded ? 'rotate(180deg)' : '';
+      }
+    } else {
+      typeToggle.classList.add('hidden');
+    }
+  }
 }
 
 function setPlaceFilterRegion(r){
