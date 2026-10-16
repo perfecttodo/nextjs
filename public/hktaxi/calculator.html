@@ -410,9 +410,6 @@ input[type=checkbox]:checked::after{
 
 nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
 
-/* ═══════════════════════════════════════════════════════════
-   側滑菜單動畫（修復）
-   ═══════════════════════════════════════════════════════════ */
 #drawer-overlay{
   opacity:0;
   visibility:hidden;
@@ -735,14 +732,11 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
     <div id="places-list-container" class="space-y-2.5"></div>
   </section>
 
-  <!-- ═══════════════════════════════════════════════════════════
-       TAB 5: 機場航班（新增，不出現在底部導航）
-       ═══════════════════════════════════════════════════════════ -->
+  <!-- TAB 5: 機場航班（AirLabs 版，不出現在底部導航） -->
   <section id="tab-airport" class="space-y-3 hidden">
 
     <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 space-y-3">
 
-      <!-- 頂部：返回按鈕 + 標題 -->
       <div class="flex items-center gap-2 border-b pb-3">
         <button type="button" onclick="switchTab('trip')"
           class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition active:scale-[0.95] shrink-0">
@@ -754,13 +748,11 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </h2>
       </div>
 
-      <!-- 提示 -->
       <div class="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 text-[11px] text-amber-800 leading-relaxed flex items-start gap-1.5">
         <span class="ico w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" data-icon="info"></span>
-        <span>官方 API 僅提供<b>前一日及更早</b>的歷史數據（非即時）。</span>
+        <span>由 <b>AirLabs</b> 提供<b>即時及未來</b>航班排程（免費方案每次最多 50 班）。</span>
       </div>
 
-      <!-- 日期選擇 -->
       <div class="flex gap-2">
         <input type="date" id="airport-date"
           onchange="loadFlightList()"
@@ -771,7 +763,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </button>
       </div>
 
-      <!-- 抵港/離港切換 -->
       <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
         <button type="button" id="flt-tab-arr" onclick="setFlightTab(true)"
           class="py-1.5 rounded-lg bg-white shadow-xs text-slate-800 font-bold transition flex items-center justify-center gap-1">
@@ -783,12 +774,10 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </button>
       </div>
 
-      <!-- 狀態 -->
       <div id="flight-status" class="text-[11px] text-slate-400 text-center font-medium"></div>
 
     </div>
 
-    <!-- 航班列表 -->
     <div id="flight-list" class="space-y-2"></div>
   </section>
 
@@ -1126,9 +1115,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
   </div>
 </nav>
 
-<!-- ═══════════════════════════════════════════════════════════
-     側滑菜單
-     ═══════════════════════════════════════════════════════════ -->
 <div id="drawer-overlay"
      class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-60"
      onclick="closeDrawer()"></div>
@@ -1302,6 +1288,30 @@ function getPaymentMethodConfig(name){
 }
 
 /* =========================================================
+   A-3. AirLabs 航班 API 配置（新增）
+   =========================================================
+   重要：需要在後端部署一個代理，保護 API Key 並解決 CORS。
+   前端會呼叫 /api/flights?date=YYYY-MM-DD&arrival=true|false
+   ========================================================= */
+var AIRLABS_CONFIG = {
+  // 前端使用相對路徑呼叫你的後端代理
+  proxyUrl: '/api/flights',
+  // 香港國際機場 IATA
+  airportIata: 'HKG'
+};
+
+// AirLabs 航班狀態中英對照表
+var FLIGHT_STATUS_MAP = {
+  'scheduled': '預定',
+  'en-route':  '在途',
+  'landed':    '已降落',
+  'cancelled': '已取消',
+  'delayed':   '延誤',
+  'diverted':  '備降',
+  'unknown':   '未知'
+};
+
+/* =========================================================
    B. 應用狀態
    ========================================================= */
 var trips         = JSON.parse(localStorage.getItem('taxi_trips')) || [];
@@ -1397,7 +1407,7 @@ var NOTE_TAGS = {
   expense: ['隧道費', '入氣', '入油', '租車費', '維修', '賠償', '罰款', '泊車']
 };
 
-/* ★ 記錄當前活動的 tab（用於返回按鈕） */
+/* 記錄當前活動的 tab */
 var currentTab = 'trip';
 
 /* =========================================================
@@ -1995,7 +2005,7 @@ function selectManualShift(key){
 }
 
 /* =========================================================
-   B-5. 開工 / 收工 / 手動模式
+   B-5. 開工 / 收工
    ========================================================= */
 function startShift(){
   var activeKey = getActiveShiftKey();
@@ -2617,7 +2627,6 @@ window.addEventListener('DOMContentLoaded', function(){
   initLocationTracking();
   updateLocationChip();
 
-  // 側滑菜單：初始化選單 + 綁定 Logo 點擊
   renderDrawerMenu();
   var logoBtn = document.getElementById('header-logo-btn');
   if (logoBtn){
@@ -2627,7 +2636,6 @@ window.addEventListener('DOMContentLoaded', function(){
     });
   }
 
-  // 初始化機場 tab 日期
   initAirportTab();
 });
 
@@ -2732,7 +2740,7 @@ function escapeHtml(s){
 }
 
 /* =========================================================
-   F. Tab 切換（支援 airport）
+   F. Tab 切換
    ========================================================= */
 var TAB_NAMES = ['trip','list','places','stats','airport'];
 
@@ -2776,7 +2784,6 @@ function switchTab(tabName){
   }
   hydrateIcons();
 
-  // 切換 tab 後回到頂部
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -6771,7 +6778,6 @@ function openDrawer(){
   var drawer  = document.getElementById('side-drawer');
   if (!overlay || !drawer) return;
 
-  // 強制 reflow，讓初始狀態先應用，再觸發 transition
   void overlay.offsetWidth;
 
   overlay.classList.add('visible');
@@ -6793,22 +6799,60 @@ function closeDrawer(){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   R. 香港國際機場航班（Tab 版）
-   ═══════════════════════════════════════════════════════════ */
+   R. 香港國際機場航班（AirLabs 版）
+   ═══════════════════════════════════════════════════════════
+
+   ⚠️ 部署提示：你需要在後端部署一個 API 代理（例如 Cloudflare Workers），
+      路徑為 /api/flights，接收 query 參數：
+        - date    : YYYY-MM-DD（僅作為前端過濾，AirLabs 免費方案按時間排序返回）
+        - arrival : 'true' 表示抵港（arr_iata=HKG）、'false' 表示離港（dep_iata=HKG）
+
+      Cloudflare Workers 參考實作：
+      ------------------------------------------------------------
+      export default {
+        async fetch(request, env) {
+          if (request.method === 'OPTIONS') {
+            return new Response(null, { headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type',
+            }});
+          }
+          const url = new URL(request.url);
+          const arrival = url.searchParams.get('arrival') === 'true';
+          const airlabsUrl = new URL('https://airlabs.co/api/v9/schedules');
+          airlabsUrl.searchParams.set('api_key', env.AIRLABS_API_KEY);
+          airlabsUrl.searchParams.set('limit', '50');
+          if (arrival) {
+            airlabsUrl.searchParams.set('arr_iata', 'HKG');
+          } else {
+            airlabsUrl.searchParams.set('dep_iata', 'HKG');
+          }
+          const res = await fetch(airlabsUrl.toString());
+          const data = await res.json();
+          return new Response(JSON.stringify(data), { headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Cache-Control': 'public, max-age=120',
+          }});
+        }
+      }
+      ------------------------------------------------------------
+      記得在 Cloudflare Workers 環境變數中設定 AIRLABS_API_KEY。
+
+   ========================================================= */
 var flightTabArrival = true;
 var airportInitialized = false;
 
 function initAirportTab(){
   var dateEl = document.getElementById('airport-date');
   if (dateEl && !dateEl.value){
-    var today = new Date();
-    var yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    dateEl.value = localDateStr(yesterday);
-    dateEl.max = localDateStr(today);
+    // AirLabs 提供即時與未來航班，預設顯示「今天」
+    dateEl.value = localDateStr(new Date());
+    // 移除 max 限制，允許查詢未來日期
+    dateEl.removeAttribute('max');
   }
 
-  // 首次進入自動載入
   if (!airportInitialized){
     airportInitialized = true;
     loadFlightList();
@@ -6826,66 +6870,103 @@ function setFlightTab(isArrival){
   loadFlightList();
 }
 
+/* -----------------------------------------------------------
+   呼叫後端代理取得航班
+   ----------------------------------------------------------- */
 async function fetchFlights(date, isArrival){
-  var apiUrl = 'https://www.hongkongairport.com/flightinfo-rest/rest/flights/past' +
-    '?date=' + encodeURIComponent(date) +
-    '&arrival=' + (isArrival ? 'true' : 'false') +
-    '&cargo=false' +
-    '&lang=zh_HK';
+  var proxyUrl = AIRLABS_CONFIG.proxyUrl
+    + '?date=' + encodeURIComponent(date)
+    + '&arrival=' + (isArrival ? 'true' : 'false');
 
-  var proxyUrl = '/api/corsproxy?url=' + encodeURIComponent(apiUrl);
-
-  
   var res = await fetch(proxyUrl, { method: 'GET' });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   return await res.json();
 }
 
-
-/* =========================================================
-   從回應中抽出指定日期的航班列表
-   API 可能回傳：
-     [ { date:'2026-10-14', arrival:true, cargo:false, list:[...] },
-       { date:'2026-10-15', arrival:true, cargo:false, list:[...] } ]
-   或（部分環境/舊格式）：
-     { date:'2026-10-15', list:[...] }
-   ========================================================= */
+/* -----------------------------------------------------------
+   將 AirLabs 回應轉換為 UI 所需格式
+   AirLabs 回應結構（節錄）：
+   {
+     "response": [
+       {
+         "airline_iata": "CX",
+         "flight_iata": "CX123",
+         "dep_iata": "HKG", "dep_terminal": "1",
+         "arr_iata": "NRT", "arr_terminal": "1",
+         "dep_time": "2025-01-15 14:30",
+         "arr_time": "2025-01-15 19:45",
+         "dep_estimated": "...", "arr_estimated": "...",
+         "status": "scheduled" | "en-route" | "landed" | "cancelled" | "diverted",
+         ...
+       }, ...
+     ]
+   }
+   ----------------------------------------------------------- */
 function extractFlightsForDate(json, targetDate){
-  if (!json) return [];
+  var flights = (json && json.response) ? json.response : [];
+  if (!Array.isArray(flights) || flights.length === 0) return [];
 
-  // 情況 1：回應為陣列（多日期）
-  if (Array.isArray(json)){
-    // 優先精確匹配
-    var exact = json.find(function(item){
-      return item && item.date === targetDate;
+  // 若前端有指定日期，做一次時間過濾（只在能解析出時間戳時）
+  var filtered = flights;
+  if (targetDate){
+    var dayStart = new Date(targetDate + 'T00:00:00').getTime();
+    var dayEnd   = dayStart + 24 * 3600 * 1000;
+    filtered = flights.filter(function(f){
+      var t = flightTabArrival ? (f.arr_time || f.arr_estimated) : (f.dep_time || f.dep_estimated);
+      if (!t || typeof t !== 'string') return true; // 無法判斷時保留
+      // "YYYY-MM-DD HH:mm" 轉 timestamp（視為本地時間）
+      var m = t.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+      if (!m) return true;
+      var ts = new Date(parseInt(m[1],10), parseInt(m[2],10)-1, parseInt(m[3],10),
+                        parseInt(m[4],10), parseInt(m[5],10), 0, 0).getTime();
+      return ts >= dayStart && ts < dayEnd;
     });
-    if (exact && Array.isArray(exact.list)) return exact.list;
+    // 若過濾後全空，退回原清單，避免因時區問題全部隱藏
+    if (filtered.length === 0) filtered = flights;
+  }
 
-    // 退一步：找最後一筆有 list 的（避免空陣列）
-    for (var i = json.length - 1; i >= 0; i--){
-      var it = json[i];
-      if (it && Array.isArray(it.list) && it.list.length){
-        return it.list;
+  return filtered.map(function(f){
+    var isAbnormal = ['cancelled', 'delayed', 'diverted'].indexOf(f.status) !== -1;
+
+    // 顯示時間：抵港看 arr_time，離港看 dep_time
+    var timeSource = flightTabArrival
+      ? (f.arr_actual || f.arr_estimated || f.arr_time)
+      : (f.dep_actual || f.dep_estimated || f.dep_time);
+
+    var displayTime = '--:--';
+    if (timeSource && typeof timeSource === 'string'){
+      var m = timeSource.match(/[ T](\d{2}:\d{2})/);
+      if (m) displayTime = m[1];
+      else {
+        // 兼容只有時間的情況
+        var m2 = timeSource.match(/^(\d{2}:\d{2})/);
+        if (m2) displayTime = m2[1];
       }
     }
-    return [];
-  }
 
-  // 情況 2：回應為單一物件
-  if (json.list && Array.isArray(json.list)){
-    // 若有 date 欄位，也檢查一下
-    if (json.date && json.date !== targetDate){
-      return [];
+    // 航班號：AirLabs 可能有多個共享航班編號
+    var flightNos = f.flight_iata || f.flight_icao || '--';
+    if (f.cs_flight_iata && f.cs_flight_iata !== flightNos){
+      flightNos = flightNos + ' / ' + f.cs_flight_iata;
     }
-    return json.list;
-  }
 
-  return [];
+    return {
+      flight: [{ no: flightNos }],
+      airline: f.airline_iata || '',
+      time: displayTime,
+      status: FLIGHT_STATUS_MAP[f.status] || f.status || '',
+      origin:      flightTabArrival ? (f.dep_iata || '--') : '',
+      destination: !flightTabArrival ? (f.arr_iata || '--') : '',
+      terminal: flightTabArrival ? (f.arr_terminal || '') : (f.dep_terminal || ''),
+      carousel: flightTabArrival ? (f.arr_baggage || '') : '',
+      isAbnormal: isAbnormal
+    };
+  });
 }
 
-/* =========================================================
+/* -----------------------------------------------------------
    載入航班列表
-   ========================================================= */
+   ----------------------------------------------------------- */
 async function loadFlightList(){
   var dateEl   = document.getElementById('airport-date');
   var listEl   = document.getElementById('flight-list');
@@ -6898,7 +6979,6 @@ async function loadFlightList(){
     return;
   }
 
-  // Loading 狀態
   statusEl.innerHTML =
     '<span class="inline-flex items-center gap-1">' +
       '<span class="ico w-3 h-3 animate-spin" data-icon="loader"></span>載入中...' +
@@ -6908,39 +6988,15 @@ async function loadFlightList(){
 
   try {
     var json = await fetchFlights(date, flightTabArrival);
-
-    // ★ 從可能的多日期回應中，抽取出目標日期的航班列表
     var flights = extractFlightsForDate(json, date);
-
-    // 診斷訊息：如果 API 回傳多日期但目標日期無資料，提示使用者
-    var returnedDates = [];
-    if (Array.isArray(json)){
-      returnedDates = json.map(function(x){ return x && x.date; }).filter(Boolean);
-    } else if (json && json.date){
-      returnedDates = [json.date];
-    }
 
     if (!flights.length){
       statusEl.innerText = '此日期無航班記錄';
-
-      var hint = '';
-      if (returnedDates.length > 1){
-        hint = '<p class="text-[11px] text-slate-400 mt-1">' +
-               'API 回傳了 ' + returnedDates.length + ' 個日期：' +
-               returnedDates.join('、') +
-               '<br>其中不包含 ' + date +
-               '</p>';
-      } else if (returnedDates.length === 1 && returnedDates[0] !== date){
-        hint = '<p class="text-[11px] text-slate-400 mt-1">' +
-               'API 回傳日期：' + returnedDates[0] +
-               '（非所選日期）</p>';
-      }
-
       listEl.innerHTML =
         '<div class="bg-white rounded-2xl p-8 text-center border border-slate-100 text-slate-400 space-y-2">' +
           '<div class="ico w-10 h-10 mx-auto text-slate-300">' + ico('plane-takeoff','w-10 h-10') + '</div>' +
           '<p class="text-sm font-medium">沒有找到航班資料</p>' +
-          hint +
+          '<p class="text-[11px] text-slate-400">AirLabs 免費方案每次最多返回 50 班，可能未包含所選日期</p>' +
         '</div>';
       return;
     }
@@ -6951,7 +7007,7 @@ async function loadFlightList(){
     listEl.innerHTML = flights.map(function(f){
       var flightArr = Array.isArray(f.flight) ? f.flight : [];
       var flightNos = flightArr.map(function(x){ return x.no; }).filter(Boolean).join(' / ') || '--';
-      var airline = flightArr.length && flightArr[0].airline ? flightArr[0].airline : '';
+      var airline = f.airline || '';
       var time = f.time || '--:--';
       var status = f.status || '';
       var origin = f.origin || '';
@@ -6959,7 +7015,7 @@ async function loadFlightList(){
       var terminal = f.terminal || '';
       var carousel = f.carousel || '';
 
-      var isAbnormal = /delay|cancel|取消|延誤|改期/i.test(status);
+      var isAbnormal = !!f.isAbnormal;
 
       var routeText = flightTabArrival
         ? ('來自 ' + escapeHtml(origin || '--'))
@@ -7002,13 +7058,14 @@ async function loadFlightList(){
       '<div class="bg-white rounded-2xl p-6 text-center border border-rose-200 text-rose-500 space-y-2">' +
         '<div class="ico w-10 h-10 mx-auto text-rose-300">' + ico('alert-triangle','w-10 h-10') + '</div>' +
         '<p class="text-xs font-medium">' + escapeHtml(err.message || '網絡錯誤') + '</p>' +
-        '<p class="text-[10px] text-slate-400">可能原因：CORS 代理繁忙、網絡問題或日期範圍錯誤</p>' +
+        '<p class="text-[10px] text-slate-400">可能原因：後端代理未部署、API Key 未設定、免費額度用盡或網絡問題</p>' +
         '<button onclick="loadFlightList()" class="mt-2 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg text-xs transition">' +
           '重試' +
         '</button>' +
       '</div>';
   }
 }
+
 /* =========================================================
    O. Service Worker
    ========================================================= */
