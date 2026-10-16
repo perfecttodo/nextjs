@@ -36,7 +36,6 @@ body{
   min-height:100vh;
   display:flex;
   flex-direction:column;
-  /* 底部導航 h-16 (4rem) + 1rem 緩衝 + 安全區域 */
   padding-bottom:calc(5rem + env(safe-area-inset-bottom, 0px));
 }
 .ico{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -94,6 +93,7 @@ body{
 .gap-1{gap:.25rem}
 .gap-1\.5{gap:.375rem}
 .gap-2{gap:.5rem}
+.gap-2\.5{gap:.625rem}
 .gap-3{gap:.75rem}
 .gap-x-2{column-gap:.5rem}
 .gap-y-1\.5{row-gap:.375rem}
@@ -107,6 +107,7 @@ body{
 .space-x-3 > * + *{margin-left:.75rem}
 
 .p-1{padding:.25rem}
+.p-1\.5{padding:.375rem}
 .p-2{padding:.5rem}
 .p-2\.5{padding:.625rem}
 .p-3{padding:.75rem}
@@ -114,6 +115,7 @@ body{
 .p-4{padding:1rem}
 .p-5{padding:1.25rem}
 .p-8{padding:2rem}
+.px-1\.5{padding-left:.375rem;padding-right:.375rem}
 .px-2{padding-left:.5rem;padding-right:.5rem}
 .px-2\.5{padding-left:.625rem;padding-right:.625rem}
 .px-3{padding-left:.75rem;padding-right:.75rem}
@@ -153,6 +155,8 @@ body{
 .ml-auto{margin-left:auto}
 .-mr-1{margin-right:-.25rem}
 
+.w-2\.5{width:.625rem}
+.h-2\.5{height:.625rem}
 .w-3{width:.75rem}
 .h-3{height:.75rem}
 .w-3\.5{width:.875rem}
@@ -167,6 +171,8 @@ body{
 .h-7{height:1.75rem}
 .w-10{width:2.5rem}
 .h-10{height:2.5rem}
+.w-11{width:2.75rem}
+.h-11{height:2.75rem}
 .h-16{height:4rem}
 .max-h-40{max-height:10rem}
 .max-h-64{max-height:16rem}
@@ -355,6 +361,7 @@ body{
 
 .active\:scale-\[0\.99\]:active{transform:scale(.99)}
 .active\:scale-\[0\.98\]:active{transform:scale(.98)}
+.active\:scale-\[0\.995\]:active{transform:scale(.995)}
 
 .focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}
 .focus\:ring-2:focus{box-shadow:0 0 0 3px rgba(245,158,11,.35)}
@@ -411,7 +418,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
   </div>
 </header>
 
-<!-- ★ 移除 mb-4（body padding-bottom 已足夠） -->
 <main class="flex-1 max-w-md w-full mx-auto p-4">
 
   <!-- TAB 1 -->
@@ -637,7 +643,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
       </div>
     </div>
 
-    <div id="trip-list-container" class="space-y-2.5"></div>
+    <div id="trip-list-container" class="space-y-2"></div>
   </section>
 
   <!-- TAB 4: 收藏地點 -->
@@ -1250,7 +1256,7 @@ var manualTripTime   = null;
 var shiftTimeMode    = 'quick';
 
 /* ★ 位置追蹤 */
-var cachedLocation    = null;   /* { lat, lng, accuracy, timestamp } */
+var cachedLocation    = null;
 var locationTrackTimer = null;
 
 var NOTE_TAGS = {
@@ -1560,8 +1566,6 @@ function getLastSettings(createIfMissing){
 function initLocationTracking(){
   if (!navigator.geolocation) return;
 
-  /* 若瀏覽器支援 Permissions API，只在已授權時主動獲取；
-     未決定 / 已拒絕時不主動請求（避免首次打開就彈窗） */
   if (navigator.permissions && navigator.permissions.query){
     navigator.permissions.query({ name: 'geolocation' }).then(function(result){
       if (result.state === 'granted'){
@@ -1572,12 +1576,9 @@ function initLocationTracking(){
           refreshLocation();
         }
       };
-    }).catch(function(){
-      /* 支援失敗，保守不主動獲取 */
-    });
+    }).catch(function(){});
   }
 
-  /* 每 2 分鐘自動刷新（僅在前台） */
   if (locationTrackTimer) clearInterval(locationTrackTimer);
   locationTrackTimer = setInterval(function(){
     if (!document.hidden && cachedLocation) refreshLocation();
@@ -1663,7 +1664,6 @@ function openTripLocationInMaps(tripId){
   var label = d.toLocaleString('zh-HK', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
   var name = encodeURIComponent('行程 ' + label);
 
-  /* 高德 marker URL（支援 coordinate=wgs84 自動轉換） */
   var url = 'https://uri.amap.com/marker' +
             '?position=' + lng + ',' + lat +
             '&name=' + name +
@@ -2478,7 +2478,6 @@ window.addEventListener('DOMContentLoaded', function(){
   renderPlaceFilters();
   renderPlacesList();
 
-  /* ★ 初始化位置追蹤 */
   initLocationTracking();
   updateLocationChip();
 });
@@ -3222,7 +3221,6 @@ function saveTrip(){
   var tripDateObj = new Date(tripTimestamp);
   var shiftDate = isManual ? manualShiftKey : calcShiftDate(tripTimestamp, cfg);
 
-  /* ★ 附上當前位置（若有） */
   var tripLocation = buildTripLocation();
 
   var newTrip = {
@@ -3266,12 +3264,11 @@ function saveTrip(){
   }
   updateStatsAndNet();
 
-  /* 為下一筆記錄預熱位置 */
   setTimeout(function(){ refreshLocation(); }, 100);
 }
 
 /* =========================================================
-   J. 行程列表
+   J. 行程列表（★ 卡片優化版）
    ========================================================= */
 function renderTripList(){
   var container = document.getElementById('trip-list-container');
@@ -3339,66 +3336,86 @@ function renderTripList(){
     var theme = TRIP_TYPE_THEME[typeCfg.color] || TRIP_TYPE_THEME.slate;
     var typeColor = theme.card + ' ' + theme.text;
 
+    /* ── 第 1 行：緊急狀態標（支出 / 欠款） ── */
+    var urgentBadge = '';
+    if (isExpense){
+      urgentBadge =
+        '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-0.5">' +
+          ico('alert-triangle','w-2.5 h-2.5') + '支出' +
+        '</span>';
+    } else if (typeof t.change === 'number' && t.change < 0){
+      urgentBadge =
+        '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-0.5">' +
+          ico('alert-triangle','w-2.5 h-2.5') + '欠 $' + Math.abs(t.change).toFixed(1) +
+        '</span>';
+    }
+
+    /* ── 第 2 行：付款方式（收縮樣式） ── */
     var payBadge = '';
     if (!isExpense){
       var payCfg = getPaymentMethodConfig(t.payment || '現金');
       var payTheme = TRIP_TYPE_THEME[payCfg.color] || TRIP_TYPE_THEME.slate;
-      payBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-full border font-medium flex items-center gap-0.5 ' + payTheme.card + ' ' + payTheme.text + '">' +
-        ico(payCfg.icon, 'w-2.5 h-2.5') + escapeHtml(payCfg.name) +
-      '</span>';
+      payBadge =
+        '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-medium flex items-center gap-0.5 shrink-0 ' +
+          payTheme.card + ' ' + payTheme.text + '">' +
+          ico(payCfg.icon, 'w-2.5 h-2.5') + escapeHtml(payCfg.name) +
+        '</span>';
     }
 
-    var expenseBadge = isExpense
-      ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-1">' +
-        ico('alert-triangle','w-3 h-3') + '支出' +
-        '</span>'
-      : '';
-
-    var debtBadge = '';
-    if (!isExpense && typeof t.change === 'number' && t.change < 0){
-      debtBadge = '<span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-1">' +
-        ico('alert-triangle','w-3 h-3') + '欠 $' + Math.abs(t.change).toFixed(1) +
-      '</span>';
-    }
-
-    /* ★ 位置徽章 */
+    /* ── 第 2 行：位置徽章（純圖標） ── */
     var hasLocation = t.location && typeof t.location.lat === 'number';
     var locationBadge = hasLocation
-      ? '<span class="text-[10px] px-1.5 py-0.5 rounded-full border font-medium flex items-center gap-0.5 bg-blue-50 text-blue-700 border-blue-200">' +
-          ico('map-pin','w-2.5 h-2.5') + '位置' +
+      ? '<span class="text-[10px] px-1 py-0.5 rounded-md border font-medium flex items-center bg-blue-50 text-blue-700 border-blue-200 shrink-0" title="已記錄位置">' +
+          ico('map-pin','w-2.5 h-2.5') +
         '</span>'
       : '';
 
-    var cardBorder = isExpense ? 'border-rose-200' : (debtBadge ? 'border-rose-200' : 'border-slate-100');
+    var cardBorder = isExpense ? 'border-rose-200' :
+                     (urgentBadge ? 'border-rose-200' : 'border-slate-100');
 
+    /* ── 操作區按鈕 ── */
     var locationBtn = hasLocation
-      ? '<button onclick="openTripLocationInMaps(\'' + t.id + '\')" class="p-2 text-slate-400 hover:text-blue-500 transition" title="查看位置">' + ico('map-pin','w-4 h-4') + '</button>'
+      ? '<button onclick="event.stopPropagation(); openTripLocationInMaps(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-blue-500 transition" title="查看位置">' +
+          ico('map-pin','w-3.5 h-3.5') +
+        '</button>'
       : '';
 
     return '' +
-    '<div class="bg-white rounded-2xl p-3.5 border ' + cardBorder + ' shadow-sm flex items-center justify-between gap-3">' +
-      '<div class="flex items-center space-x-3 min-w-0">' +
-        '<div class="w-10 h-10 rounded-xl bg-slate-100 flex flex-col items-center justify-center text-slate-600 font-mono text-[10px] shrink-0">' +
-          '<span class="font-bold">' + timeStr + '</span>' +
-          '<span class="text-slate-400">' + dateStr + '</span>' +
+    '<div class="bg-white rounded-2xl border ' + cardBorder + ' shadow-sm">' +
+      '<div class="p-3 flex items-start gap-2.5">' +
+
+        /* 左側：時間塊（縮小） */
+        '<div class="w-11 shrink-0 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center py-1.5">' +
+          '<span class="font-mono font-bold text-slate-800 text-[11px] leading-none">' + timeStr + '</span>' +
+          '<span class="font-mono text-slate-400 text-[9px] leading-none mt-1">' + dateStr + '</span>' +
         '</div>' +
-        '<div class="min-w-0">' +
+
+        /* 中間：主內容 */
+        '<div class="min-w-0 flex-1">' +
+          /* 第 1 行：價格 + 類型徽章 + 緊急標 */
           '<div class="flex items-center gap-1.5 flex-wrap">' +
-            '<span class="text-base font-extrabold ' + (isExpense ? 'text-rose-600' : 'text-slate-900') + '">' + fareText + '</span>' +
-            '<span class="text-[10px] px-2 py-0.5 rounded-full border font-semibold ' + typeColor + '">' + escapeHtml(t.type) + '</span>' +
-            payBadge +
-            expenseBadge +
-            debtBadge +
-            locationBadge +
+            '<span class="text-base font-black ' + (isExpense ? 'text-rose-600' : 'text-slate-900') + ' leading-tight tracking-tight">' + fareText + '</span>' +
+            '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-semibold ' + typeColor + '">' + escapeHtml(t.type) + '</span>' +
+            urgentBadge +
           '</div>' +
-          '<p class="text-xs text-slate-500 truncate mt-0.5">' + (t.note ? escapeHtml(t.note) : '無備注') + '</p>' +
+          /* 第 2 行：付款 + 位置 + 備註 */
+          '<div class="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500 min-w-0">' +
+            payBadge +
+            locationBadge +
+            (t.note
+              ? '<span class="truncate">' + escapeHtml(t.note) + '</span>'
+              : '<span class="text-slate-300">無備注</span>') +
+          '</div>' +
         '</div>' +
-      '</div>' +
-      '<div class="flex items-center gap-1 shrink-0">' +
-        locationBtn +
-        '<button onclick="openDetailModal(\'' + t.id + '\')" class="p-2 text-slate-400 hover:text-amber-500 transition">' + ico('eye','w-4 h-4') + '</button>' +
-        '<button onclick="openEditModal(\'' + t.id + '\')" class="p-2 text-slate-400 hover:text-blue-500 transition">' + ico('edit-3','w-4 h-4') + '</button>' +
-        '<button onclick="deleteTrip(\'' + t.id + '\')" class="p-2 text-slate-400 hover:text-rose-500 transition">' + ico('trash-2','w-4 h-4') + '</button>' +
+
+        /* 右側：操作按鈕（緊湊） */
+        '<div class="flex items-center shrink-0 -mr-1">' +
+          locationBtn +
+          '<button onclick="openDetailModal(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-amber-500 transition" title="詳情">' + ico('eye','w-3.5 h-3.5') + '</button>' +
+          '<button onclick="openEditModal(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-blue-500 transition" title="編輯">' + ico('edit-3','w-3.5 h-3.5') + '</button>' +
+          '<button onclick="deleteTrip(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-rose-500 transition" title="刪除">' + ico('trash-2','w-3.5 h-3.5') + '</button>' +
+        '</div>' +
+
       '</div>' +
     '</div>';
   }).join('');
@@ -4385,7 +4402,6 @@ function openDetailModal(id){
       '</span></div>';
   }
 
-  /* ★ 位置行 */
   var hasLocation = t.location && typeof t.location.lat === 'number';
   var locationRow;
   if (hasLocation){
@@ -4488,7 +4504,6 @@ function openEditModal(id){
     tripTimeVal = pad2(tDateObj.getHours()) + ':' + pad2(tDateObj.getMinutes());
   }
 
-  /* ★ 位置編輯行 */
   var hasLocation = t.location && typeof t.location.lat === 'number';
   var locationEditHtml;
   if (hasLocation){
