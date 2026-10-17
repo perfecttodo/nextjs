@@ -7268,10 +7268,15 @@ function renderAirportStats(){
 /* ── 進入機場 tab ───────────────────────────────── */
 function initAirportTab(){
   var dateEl = document.getElementById('airport-date');
-  if (dateEl && !dateEl.value){
+  if (dateEl){
     var today = new Date();
-    dateEl.value = localDateStr(today);
-    dateEl.max = localDateStr(today);
+    var tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    dateEl.max = localDateStr(tomorrow);   // 最大可选明天
+
+    if (!dateEl.value){
+      dateEl.value = localDateStr(today);  // 默认选中今天
+    }
   }
 
   var hideChk = document.getElementById('airport-hide-expired');
