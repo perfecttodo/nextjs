@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 驗證 URL 格式
-    const real = 'https://www.hongkongairport.com/flightinfo-rest/rest/flights'+targetUrl;
+    const real = process.env.HK_AIR+targetUrl;
     try {
       console.log()
       new URL(real);
