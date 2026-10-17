@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 
 // =========================================================
 // 香港國際機場官方 REST API 代理
@@ -16,7 +16,7 @@ const USER_AGENT =
   '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 // 航班狀態碼 → 中文對照
-const STATUS_CODE_MAP = {
+const STATUS_CODE_MAP: Record<string, string> = {
   AR: '已抵達',
   DP: '已出發',
   DL: '延誤',
@@ -29,7 +29,7 @@ const STATUS_CODE_MAP = {
   EN: '在途',
 };
 
-export async function GET(request) {
+export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
 
   const date = searchParams.get('date');
@@ -82,7 +82,7 @@ export async function GET(request) {
       count: flights.length,
       flights,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('[HKIA Flights API]', error);
     return NextResponse.json(
       { success: false, error: error.message },
@@ -95,26 +95,26 @@ export async function GET(request) {
 // 數據轉換：將官方 API 回應轉為前端格式
 // =========================================================
 
-function transformFlightData(rawData, isArrival) {
+function transformFlightData(rawData: any, isArrival: boolean) {
   // rawData 可能是陣列（多日期）或單一物件
-  var dateGroups = Array.isArray(rawData) ? rawData : [rawData];
+  const dateGroups = Array.isArray(rawData) ? rawData : [rawData];
 
-  var flights = [];
+  const flights: any[] = [];
 
   dateGroups.forEach(function (group) {
     if (!group || !Array.isArray(group.list)) return;
 
-    group.list.forEach(function (item) {
+    group.list.forEach(function (item: any) {
       if (!item || !item.flight || !item.flight.length) return;
 
-      var primaryFlight = item.flight[0];
-      var flightNo = primaryFlight.no || '--';
-      var airlineCode = primaryFlight.airline || '';
-      var statusCode = primaryFlight.statusCode || '';
-      var statusText = primaryFlight.status || '';
+      const primaryFlight = item.flight[0];
+      const flightNo = primaryFlight.no || '--';
+      const airlineCode = primaryFlight.airline || '';
+      const statusCode = primaryFlight.statusCode || '';
+      const statusText = primaryFlight.status || '';
 
       // 組合共享航班號（如有）
-      var allFlightNos = item.flight.map(function (f) {
+      const allFlightNos = item.flight.map(function (f: any) {
         return f.no;
       }).filter(Boolean);
 
@@ -143,9 +143,9 @@ function transformFlightData(rawData, isArrival) {
   });
 
   // 去重
-  var seen = new Set();
+  const seen = new Set();
   return flights.filter(function (f) {
-    var key = f.flightNo + '_' + f.time;
+    const key = f.flightNo + '_' + f.time;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -158,13 +158,13 @@ function transformFlightData(rawData, isArrival) {
 // 將 "HH:mm" 轉為 timestamp
 // ---------------------------------------------------------
 
-function parseTimeToTimestamp(timeStr) {
+function parseTimeToTimestamp(timeStr: string) {
   if (!timeStr) return null;
-  var m = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+  const m = timeStr.match(/^(\d{1,2}):(\d{2})$/);
   if (!m) return null;
 
-  var now = new Date();
-  var d = new Date(
+  const now = new Date();
+  const d = new Date(
     now.getFullYear(),
     now.getMonth(),
     now.getDate(),
