@@ -3845,29 +3845,105 @@ function resetAutoFillButton(){
   hydrateIcons(btn);
 }
 
-function reverseGeocode(lat, lng, callback){
-  var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lng + '&accept-language=zh-HK,zh-TW,zh,en&zoom=18&addressdetails=1';
+function reverseGeocode(lat, lng, callback) {
+  // 1. 後備服務：OpenStreetMap (Nominatim)
+  function fetchNominatimFallback(reasonMsg) {
+    var nominatimUrl = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lng + '&accept-language=zh-HK,zh-TW,zh,en&zoom=18&addressdetails=1';
+    
+    var nomFinished = false;
+    var nomTimer = setTimeout(function() {
+      if (!nomFinished) {
+        nomFinished = true;
+        callback('所有地圖服務均失敗 (高德失敗: ' + reasonMsg + '，且 Nominatim 逾時)');
+      }
+    }, 10000);
 
-  var finished = false;
-  var timer = setTimeout(function(){
-    if (!finished){ finished = true; callback('請求逾時'); }
-  }, 12000);
+    fetch(nominatimUrl, { method: 'GET', headers: { 'Accept': 'application/json' } })
+      .then(function(res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function(data) {
+        if (nomFinished) return;
+        nomFinished = true;
+        clearTimeout(nomTimer);
 
-  fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } })
-  .then(function(res){ if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
-  .then(function(data){
-    if (finished) return;
-    finished = true;
-    clearTimeout(timer);
-    if (!data || !data.address){ callback('無法解析地址'); return; }
-    callback(null, data);
-  })
-  .catch(function(err){
-    if (finished) return;
-    finished = true;
-    clearTimeout(timer);
-    callback(err && err.message ? err.message : '網絡錯誤');
-  });
+        if (!data || !data.address) {
+          callback('高德與 Nominatim 後備均無法解析地址');
+          return;
+        }
+
+        // 整理 Nominatim 欄位
+        var addr = data.address || {};
+        var building = addr.building || addr.amenity || addr.building_name || addr.house_name || addr.office || '';
+        var road = addr.road || addr.pedestrian || addr.footway || '';
+
+        data.provider = 'nominatim';
+        data.extracted_building = building;
+        data.extracted_road = road;
+
+        callback(null, data);
+      })
+      .catch(function(err) {
+        if (nomFinished) return;
+        nomFinished = true;
+        clearTimeout(nomTimer);
+        callback('高德失敗 (' + reasonMsg + ') 且 Nominatim 後備失敗: ' + (err && err.message ? err.message : '網絡錯誤'));
+      });
+  }
+
+  // 2. 主服務：高德 (透過 Next.js API Route)
+  var amapApiUrl = '/api/amap-regeo?lat=' + lat + '&lng=' + lng;
+  
+  var amapFinished = false;
+  var amapTimer = setTimeout(function() {
+    if (!amapFinished) {
+      amapFinished = true;
+      // 高德逾時 -> 切換至 Nominatim 後備
+      fetchNominatimFallback('高德請求逾時');
+    }
+  }, 10000);
+
+  fetch(amapApiUrl, { method: 'GET', headers: { 'Accept': 'application/json' } })
+    .then(function(res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    })
+    .then(function(data) {
+      if (amapFinished) return;
+
+      if (!data || !data.success) {
+        amapFinished = true;
+        clearTimeout(amapTimer);
+        // 高德解析失敗 -> 切換至 Nominatim 後備
+        fetchNominatimFallback(data && data.error ? data.error : '高德解析失敗');
+        return;
+      }
+
+      amapFinished = true;
+      clearTimeout(amapTimer);
+
+      // 整理高德回傳資料
+      var normalizedData = {
+        provider: 'amap',
+        display_name: data.formatted_address,
+        address: {
+          building: data.building,
+          road: data.road,
+          formatted_address: data.formatted_address
+        },
+        raw: data.raw
+      };
+
+      callback(null, normalizedData);
+    })
+    .catch(function(err) {
+      if (amapFinished) return;
+      amapFinished = true;
+      clearTimeout(amapTimer);
+      // 高德網路或伺服器錯誤 -> 切換至 Nominatim 後備
+      fetchNominatimFallback(err && err.message ? err.message : '高德網絡錯誤');
+    });
 }
 
 function matchDistrictFromAddress(addr){
