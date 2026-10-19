@@ -410,9 +410,6 @@ input[type=checkbox]:checked::after{
 
 nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
 
-/* ═══════════════════════════════════════════════════════════
-   側滑菜單動畫（修復）
-   ═══════════════════════════════════════════════════════════ */
 #drawer-overlay{
   opacity:0;
   visibility:hidden;
@@ -459,7 +456,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
 
 <main class="flex-1 max-w-md w-full mx-auto p-4">
 
-  <!-- TAB 1 -->
   <section id="tab-trip" class="space-y-4">
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
@@ -601,7 +597,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
     </div>
   </section>
 
-  <!-- TAB 2 -->
   <section id="tab-list" class="space-y-3 hidden">
     <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 space-y-3">
       <div class="relative">
@@ -680,7 +675,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
     <div id="trip-list-container" class="space-y-2"></div>
   </section>
 
-  <!-- TAB 4: 收藏地點 -->
   <section id="tab-places" class="space-y-3 hidden">
     <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 space-y-3">
       <div class="relative">
@@ -735,14 +729,8 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
     <div id="places-list-container" class="space-y-2.5"></div>
   </section>
 
-  <!-- ═══════════════════════════════════════════════════════════
-       TAB 5: 機場航班（列表 + 統計）
-       ═══════════════════════════════════════════════════════════ -->
   <section id="tab-airport" class="space-y-3 hidden">
-
     <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 space-y-3">
-
-      <!-- 頂部：返回按鈕 + 標題 -->
       <div class="flex items-center gap-2 border-b pb-3">
         <button type="button" onclick="switchTab('trip')"
           class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition active:scale-[0.95] shrink-0">
@@ -754,7 +742,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </h2>
       </div>
 
-      <!-- 日期選擇 -->
       <div class="flex gap-2">
         <input type="date" id="airport-date"
           onchange="loadFlightList()"
@@ -765,7 +752,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </button>
       </div>
 
-      <!-- 抵港/離港切換 -->
       <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
         <button type="button" id="flt-tab-arr" onclick="setFlightTab(true)"
           class="py-1.5 rounded-lg bg-white shadow-xs text-slate-800 font-bold transition flex items-center justify-center gap-1">
@@ -777,7 +763,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </button>
       </div>
 
-      <!-- ★ 列表 / 統計 子分頁 -->
       <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
         <button type="button" id="airport-view-list" onclick="setAirportView('list')"
           class="py-1.5 rounded-lg bg-white shadow-xs text-slate-800 font-bold transition flex items-center justify-center gap-1">
@@ -789,7 +774,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         </button>
       </div>
 
-      <!-- ★ 隱藏過期航班開關 -->
       <label class="flex items-center justify-between gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 cursor-pointer select-none">
         <span class="flex items-center gap-1.5 min-w-0">
           <span class="ico w-3.5 h-3.5 text-amber-500 shrink-0" data-icon="clock"></span>
@@ -798,20 +782,15 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         <input type="checkbox" id="airport-hide-expired" onchange="toggleHideExpiredFlights(this.checked)">
       </label>
 
-      <!-- 狀態 -->
       <div id="flight-status" class="text-[11px] text-slate-400 text-center font-medium"></div>
-
     </div>
 
-    <!-- ★ 列表視圖 -->
     <div id="airport-list-view">
       <div id="flight-list" class="space-y-2"></div>
     </div>
 
-    <!-- ★ 統計視圖 -->
     <div id="airport-stats-view" class="space-y-3 hidden">
       <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
-
         <div class="flex justify-between items-center">
           <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
             <span class="ico w-4 h-4 text-amber-500" data-icon="bar-chart-3"></span>
@@ -840,15 +819,11 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
         <p id="airport-stats-hint" class="text-[11px] text-slate-400 leading-relaxed text-center">
           每小時的航班數量分佈（滑動／點擊曲線查看）
         </p>
-
-
       </div>
     </div>
   </section>
 
-  <!-- TAB 3 -->
   <section id="tab-stats" class="space-y-4 hidden">
-
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
       <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-settings')">
         <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
@@ -962,7 +937,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
       </div>
 
       <div class="space-y-3 border-t border-slate-100 pt-3" data-card-body="card-combined">
-
         <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
           <button type="button" onclick="setStatsPeriod('day')"   id="period-btn-day"   class="py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition font-bold">最近一更</button>
           <button type="button" onclick="setStatsPeriod('week')"  id="period-btn-week"  class="py-1.5 rounded-lg text-slate-600 transition font-medium">最近一星期</button>
@@ -1067,7 +1041,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
       </div>
 
       <div class="space-y-3 border-t border-slate-100 pt-3" data-card-body="card-chart">
-
         <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
           <button type="button" id="chart-range-7"  onclick="setChartRange(7)"  class="py-1.5 rounded-lg transition">最近 7 天</button>
           <button type="button" id="chart-range-14" onclick="setChartRange(14)" class="py-1.5 rounded-lg transition">最近 14 天</button>
@@ -1180,9 +1153,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
   </div>
 </nav>
 
-<!-- ═══════════════════════════════════════════════════════════
-     側滑菜單
-     ═══════════════════════════════════════════════════════════ -->
 <div id="drawer-overlay"
      class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-60"
      onclick="closeDrawer()"></div>
@@ -1302,9 +1272,6 @@ function hydrateIcons(root){
   });
 }
 
-/* =========================================================
-   A-1. 記帳類型配置表
-   ========================================================= */
 var TRIP_TYPE_CONFIG = [
   { name:'街客',       icon:'flag',       color:'emerald',  hot:true  },
   { name:'Uber',       icon:'smartphone', color:'blue',     hot:true  },
@@ -1336,9 +1303,6 @@ function getTripTypeConfig(type){
   return { name: type, icon:'layers', color:'purple', hot:false };
 }
 
-/* =========================================================
-   A-2. 付款方式配置表
-   ========================================================= */
 var PAYMENT_METHOD_CONFIG = [
   { name:'現金',   icon:'coins',       color:'emerald', hot:true },
   { name:'八達通', icon:'credit-card', color:'blue',    hot:true },
@@ -1355,9 +1319,6 @@ function getPaymentMethodConfig(name){
   return { name: name, icon:'wallet', color:'slate' };
 }
 
-/* =========================================================
-   B. 應用狀態
-   ========================================================= */
 var trips         = JSON.parse(localStorage.getItem('taxi_trips')) || [];
 var shiftSettings = JSON.parse(localStorage.getItem('taxi_shift_settings')) || {};
 var places        = JSON.parse(localStorage.getItem('taxi_places')) || [];
@@ -1451,12 +1412,8 @@ var NOTE_TAGS = {
   expense: ['隧道費', '入氣', '入油', '租車費', '維修', '賠償', '罰款', '泊車']
 };
 
-/* ★ 記錄當前活動的 tab（用於返回按鈕） */
 var currentTab = 'trip';
 
-/* =========================================================
-   B-0. 卡片折疊狀態
-   ========================================================= */
 var CARD_STATES_KEY = 'taxi_card_states';
 var ALL_CARD_IDS = ['card-settings','card-chart','card-combined','card-data'];
 
@@ -1493,9 +1450,6 @@ function applyAllCardStates(){
   });
 }
 
-/* =========================================================
-   B-1. 更次日期工具
-   ========================================================= */
 function pad2(n){ return String(n).padStart(2, '0'); }
 function localDateStr(d){
   return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
@@ -1750,9 +1704,6 @@ function getLastSettings(createIfMissing){
   if (tripsChanged) localStorage.setItem('taxi_trips', JSON.stringify(trips));
 })();
 
-/* =========================================================
-   B-2. 位置追蹤
-   ========================================================= */
 function initLocationTracking(){
   if (!navigator.geolocation) return;
 
@@ -1862,9 +1813,6 @@ function openTripLocationInMaps(tripId){
   window.open(url, '_blank');
 }
 
-/* =========================================================
-   B-3. 加油偏好記憶
-   ========================================================= */
 function getFuelPrefs(){
   var prefs;
   try { prefs = JSON.parse(localStorage.getItem('taxi_fuel_prefs')) || {}; }
@@ -1913,9 +1861,6 @@ function rebuildFuelPrefsFromHistory(){
   return prefs;
 }
 
-/* =========================================================
-   B-4. 補錄模式
-   ========================================================= */
 function openShiftPickerModal(){
   var currentKey = getCurrentShiftKey();
   var candidates = Object.keys(shiftSettings).sort().reverse();
@@ -2048,9 +1993,6 @@ function selectManualShift(key){
   }
 }
 
-/* =========================================================
-   B-5. 開工 / 收工 / 手動模式
-   ========================================================= */
 function startShift(){
   var activeKey = getActiveShiftKey();
   if (activeKey){
@@ -2112,9 +2054,6 @@ function endShift(){
   showToast('已收工：' + cfg.endTime + '（工時 ' + duration.toFixed(1) + 'h）');
 }
 
-/* =========================================================
-   B-6. 更次時間彈窗
-   ========================================================= */
 function openShiftTimeModal(){
   shiftTimeMode = 'quick';
   renderShiftTimeModal();
@@ -2599,9 +2538,6 @@ function saveManualShiftTime(){
   showToast(msg);
 }
 
-/* =========================================================
-   C. 手勢防縮放
-   ========================================================= */
 document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, { passive:false });
 var lastTouchEnd = 0;
 document.addEventListener('touchend', function(e){
@@ -2610,9 +2546,6 @@ document.addEventListener('touchend', function(e){
   lastTouchEnd = now;
 }, { passive:false });
 
-/* =========================================================
-   D. 點擊空白處自動確認輸入
-   ========================================================= */
 (function setupTapToDismiss(){
   function isFormField(el){
     if (!el) return false;
@@ -2629,9 +2562,6 @@ document.addEventListener('touchend', function(e){
   document.addEventListener('mousedown', dismissKeyboard);
 })();
 
-/* =========================================================
-   E. 初始化
-   ========================================================= */
 window.addEventListener('DOMContentLoaded', function(){
   hydrateIcons();
   applyAllCardStates();
@@ -2671,7 +2601,6 @@ window.addEventListener('DOMContentLoaded', function(){
   initLocationTracking();
   updateLocationChip();
 
-  // 側滑菜單：初始化選單 + 綁定 Logo 點擊
   renderDrawerMenu();
   var logoBtn = document.getElementById('header-logo-btn');
   if (logoBtn){
@@ -2681,7 +2610,6 @@ window.addEventListener('DOMContentLoaded', function(){
     });
   }
 
-  // 初始化機場 tab 日期
   initAirportTab();
 });
 
@@ -2785,9 +2713,6 @@ function escapeHtml(s){
     .replace(/'/g, '&#39;');
 }
 
-/* =========================================================
-   F. Tab 切換（支援 airport）
-   ========================================================= */
 var TAB_NAMES = ['trip','list','places','stats','airport'];
 
 function switchTab(tabName){
@@ -2830,13 +2755,9 @@ function switchTab(tabName){
   }
   hydrateIcons();
 
-  // 切換 tab 後回到頂部
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-/* =========================================================
-   G. 記帳類型
-   ========================================================= */
 function renderTripTypeButtons(){
   var container = document.getElementById('trip-type-buttons');
   if (!container) return;
@@ -2881,9 +2802,6 @@ function setTripType(type){
   renderTripTypeButtons();
 }
 
-/* =========================================================
-   G-2. 付款方式
-   ========================================================= */
 function renderPaymentMethodButtons(){
   var container = document.getElementById('trip-payment-buttons');
   if (!container) return;
@@ -2908,9 +2826,6 @@ function setPaymentMethod(name){
   renderPaymentMethodButtons();
 }
 
-/* =========================================================
-   G-3. 類型篩選
-   ========================================================= */
 function toggleAllTripTypes(checked){
   document.getElementById('chk-type-street').checked = checked;
   document.getElementById('chk-type-uber').checked = checked;
@@ -2926,9 +2841,6 @@ function onTripTypeFilterChange(){
   renderTripList();
 }
 
-/* =========================================================
-   G-4. 付款方式篩選
-   ========================================================= */
 function toggleAllPaymentMethods(checked){
   document.getElementById('chk-pay-cash').checked = checked;
   document.getElementById('chk-pay-octopus').checked = checked;
@@ -2944,9 +2856,6 @@ function onPaymentFilterChange(){
   renderTripList();
 }
 
-/* =========================================================
-   G-1. 備注快速標籤
-   ========================================================= */
 function parseNoteParts(val){
   if (!val) return [];
   return val.split(/[、,]\s*/).map(function(s){ return s.trim(); }).filter(Boolean);
@@ -3039,9 +2948,6 @@ document.addEventListener('click', function(e){
   toggleNoteTag(btn.dataset.noteTag);
 });
 
-/* =========================================================
-   H. 車資與找零
-   ========================================================= */
 function updateFareSignUI(){
   var btn = document.getElementById('fare-sign-toggle');
   if (!btn) return;
@@ -3191,9 +3097,6 @@ function confirmReceivedInput(){
   calculateChange();
 }
 
-/* =========================================================
-   H-2. 行程時間
-   ========================================================= */
 function getTargetShiftKey(){
   if (manualShiftKey) return manualShiftKey;
   var activeKey = getActiveShiftKey();
@@ -3408,9 +3311,6 @@ function saveTripTime(){
   showToast(manualTripTime ? '行程時間已設為 ' + manualTripTime : '行程時間已重置為現在');
 }
 
-/* =========================================================
-   I. 儲存行程
-   ========================================================= */
 function saveTrip(){
   var fareInput     = document.getElementById('trip-fare');
   var receivedInput = document.getElementById('trip-received');
@@ -3491,9 +3391,6 @@ function saveTrip(){
   setTimeout(function(){ refreshLocation(); }, 100);
 }
 
-/* =========================================================
-   J. 行程列表
-   ========================================================= */
 function renderTripList(){
   var container = document.getElementById('trip-list-container');
   if (!container) return;
@@ -3632,9 +3529,6 @@ function renderTripList(){
   }).join('');
 }
 
-/* =========================================================
-   J-2. 收藏地點
-   ========================================================= */
 function getDistance(lat1, lon1, lat2, lon2){
   var R = 6371000;
   var f1 = lat1 * Math.PI / 180;
@@ -3967,123 +3861,23 @@ function toggleNearbyPlaces(){
 }
 
 /* =========================================================
-   高德分享鏈接 / 座標解析
+   高德地點解析：統一走後端 /api/amap-place
    ========================================================= */
-function getAmapParam(text, key){
-  var re = new RegExp('[?&]' + key + '=([^&#\\s]+)', 'i');
-  var m = text.match(re);
-  if (!m) return null;
-  var v = m[1];
-  try { v = decodeURIComponent(v); } catch(e){}
-  v = v.replace(/\+/g, ' ');
-  return v;
-}
+async function resolveAmapPlace(input){
+  var res = await fetch('/api/amap-place', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ input: input })
+  });
 
-var AMAP_SHORTLINK_MAP = {
-  '2wg3Fwqyya3G': { lat: 22.53893, lng: 114.13269, name: '香園圍公路' }
-};
+  var data;
+  try { data = await res.json(); }
+  catch (e){ throw new Error('後端回傳非 JSON'); }
 
-function parseAmapShortLink(shortUrl){
-  if (!shortUrl) return null;
-  var m = shortUrl.match(/surl\.amap\.com\/([A-Za-z0-9]+)/);
-  if (!m) return null;
-  var code = m[1];
-  var hit = AMAP_SHORTLINK_MAP[code];
-  if (hit){
-    return { lat: hit.lat, lng: hit.lng, name: hit.name || '' };
+  if (!res.ok || !data.success){
+    throw new Error(data.error || ('HTTP ' + res.status));
   }
-  return null;
-}
-
-function parseAmapShareText(raw){
-  if (!raw) return null;
-  var text = String(raw).replace(/&amp;/g, '&').trim();
-  if (!text) return null;
-
-  var out = { name:'', lat:null, lng:null, address:'', coordinate:'' };
-
-  var c = getAmapParam(text, 'coordinate');
-  if (c) out.coordinate = c.toLowerCase();
-
-  var m = text.match(/[?&]position=(-?[\d.]+)\s*[,，]\s*(-?[\d.]+)/i);
-  if (m){
-    out.lng = parseFloat(m[1]);
-    out.lat = parseFloat(m[2]);
-  }
-
-  if (out.lat === null){
-    var m2 = text.match(/[?&]to=(-?[\d.]+)\s*[,，]\s*(-?[\d.]+)(?:[,，]([^&#\s]*))?/i);
-    if (m2){
-      out.lng = parseFloat(m2[1]);
-      out.lat = parseFloat(m2[2]);
-      if (m2[3]){
-        var nm = m2[3];
-        try { nm = decodeURIComponent(nm); } catch(e){}
-        nm = nm.replace(/\+/g, ' ').trim();
-        if (nm) out.name = nm;
-      }
-    }
-  }
-
-  if (out.lat === null){
-    var dlon = text.match(/[?&]dlon=(-?[\d.]+)/i);
-    var dlat = text.match(/[?&]dlat=(-?[\d.]+)/i);
-    if (dlon && dlat){
-      out.lng = parseFloat(dlon[1]);
-      out.lat = parseFloat(dlat[1]);
-    }
-  }
-
-  if (out.lat === null){
-    var lg = text.match(/[?&](?:lng|lon|longitude)=(-?[\d.]+)/i);
-    var lt = text.match(/[?&](?:lat|latitude)=(-?[\d.]+)/i);
-    if (lg && lt){
-      out.lng = parseFloat(lg[1]);
-      out.lat = parseFloat(lt[1]);
-    }
-  }
-
-  if (!out.name){
-    var nm2 = getAmapParam(text, 'name') ||
-              getAmapParam(text, 'dname') ||
-              getAmapParam(text, 'pname') ||
-              getAmapParam(text, 'title');
-    if (nm2) out.name = nm2.trim();
-  }
-
-  var addr = getAmapParam(text, 'address') || getAmapParam(text, 'addr') || getAmapParam(text, 'addressName');
-  if (addr) out.address = addr.trim();
-
-  if (out.lat === null || out.lng === null ||
-      isNaN(out.lat) || isNaN(out.lng)){
-    var m3 = text.match(/(-?\d{1,3}\.\d{3,})\s*[,，]\s*(-?\d{1,3}\.\d{3,})/);
-    if (m3){
-      var a = parseFloat(m3[1]);
-      var b = parseFloat(m3[2]);
-      if (Math.abs(a) > 90 && Math.abs(b) <= 90){
-        out.lng = a; out.lat = b;
-      } else if (Math.abs(b) > 90 && Math.abs(a) <= 90){
-        out.lng = b; out.lat = a;
-      } else {
-        out.lng = a; out.lat = b;
-      }
-    }
-  }
-
-  if (out.lat === null || out.lng === null){
-    var shortHit = parseAmapShortLink(text);
-    if (shortHit){
-      out.lat = shortHit.lat;
-      out.lng = shortHit.lng;
-      if (shortHit.name && !out.name) out.name = shortHit.name;
-    }
-  }
-
-  if (out.lat === null || out.lng === null) return null;
-  if (isNaN(out.lat) || isNaN(out.lng)) return null;
-  if (Math.abs(out.lat) > 90 || Math.abs(out.lng) > 180) return null;
-
-  return out;
+  return data;
 }
 
 function pasteFromClipboard(){
@@ -4110,52 +3904,61 @@ function pasteFromClipboard(){
   });
 }
 
-function applyAmapPaste(){
+async function applyAmapPaste(){
   var input = document.getElementById('amap-paste-input');
   if (!input) return;
+
   var raw = input.value.trim();
   if (!raw){
-    showToast('請先貼上高德連結或座標');
+    showToast('請先貼上連結、座標，或輸入地名');
     input.focus();
     return;
   }
 
-  var parsed = parseAmapShareText(raw);
-  if (!parsed){
-    showToast('無法解析，請確認已複製完整連結或座標');
-    return;
-  }
+  showToast('正在解析...');
 
-  var latEl = document.getElementById('place-lat');
-  var lngEl = document.getElementById('place-lng');
-  if (latEl) latEl.value = parsed.lat.toFixed(6);
-  if (lngEl) lngEl.value = parsed.lng.toFixed(6);
+  try {
+    var result = await resolveAmapPlace(raw);
 
-  var nameEl = document.getElementById('place-name');
-  var nameFilled = false;
-  if (nameEl && parsed.name && !nameEl.value.trim()){
-    nameEl.value = parsed.name;
-    nameFilled = true;
-  }
+    var latEl = document.getElementById('place-lat');
+    var lngEl = document.getElementById('place-lng');
+    if (latEl) latEl.value = result.lat.toFixed(6);
+    if (lngEl) lngEl.value = result.lng.toFixed(6);
 
-  var addrEl = document.getElementById('place-address');
-  var addrFilled = false;
-  if (addrEl && parsed.address && !addrEl.value.trim()){
-    addrEl.value = parsed.address;
-    addrFilled = true;
-  }
+    var nameEl = document.getElementById('place-name');
+    var nameFilled = false;
+    if (nameEl && result.name && !nameEl.value.trim()){
+      nameEl.value = result.name;
+      nameFilled = true;
+    }
 
-  var parts = ['座標'];
-  if (nameFilled) parts.push('名稱');
-  if (addrFilled) parts.push('地址');
-  showToast('已解析並填入：' + parts.join('、'));
+    var addrEl = document.getElementById('place-address');
+    var addrFilled = false;
+    if (addrEl && result.address && !addrEl.value.trim()){
+      addrEl.value = result.address;
+      addrFilled = true;
+    }
 
-  var regionEl = document.getElementById('place-region');
-  if (regionEl && !regionEl.value){
-    reverseGeocode(parsed.lat, parsed.lng, function(err, data){
-      if (err) return;
-      applyGeocodeResult(data);
-    });
+    var sourceText = {
+      geocode: '地理編碼',
+      expand: '短連結展開',
+      shortlink: '連結解析'
+    }[result.source] || result.source;
+
+    var parts = ['座標'];
+    if (nameFilled) parts.push('名稱');
+    if (addrFilled) parts.push('地址');
+    showToast('已透過' + sourceText + '填入：' + parts.join('、'));
+
+    var regionEl = document.getElementById('place-region');
+    if (regionEl && !regionEl.value){
+      reverseGeocode(result.lat, result.lng, function(err, data){
+        if (err) return;
+        applyGeocodeResult(data);
+      });
+    }
+  } catch (e) {
+    showToast('解析失敗：' + (e.message || '未知錯誤'));
   }
 }
 
@@ -4195,7 +3998,7 @@ function openAddPlaceModal(){
         'class="w-full flex justify-between items-center gap-2 px-3 py-2.5 hover:bg-amber-100 active:bg-amber-100 transition text-left">' +
         '<span class="text-xs font-bold text-amber-800 flex items-center gap-1.5 min-w-0">' +
           '<span class="ico w-3.5 h-3.5 text-amber-600 shrink-0" data-icon="link"></span>' +
-          '<span class="truncate">粘貼高德分享連結／座標</span>' +
+          '<span class="truncate">貼上高德連結、座標或地名</span>' +
           '<span class="text-[10px] text-amber-600 font-normal shrink-0">（點擊展開）</span>' +
         '</span>' +
         '<span id="amap-paste-chevron" class="ico w-3.5 h-3.5 text-amber-600 shrink-0 transition" data-icon="chevron-down" style="transition:transform .2s"></span>' +
@@ -4203,8 +4006,8 @@ function openAddPlaceModal(){
       '<div id="amap-paste-body" class="hidden px-3 pb-3 space-y-2 border-t border-amber-200/60 pt-2.5">' +
         '<div class="flex gap-1.5">' +
           '<input type="text" id="amap-paste-input" autocomplete="off" ' +
-            'placeholder="https://uri.amap.com/marker?position=..." ' +
-            'class="flex-1 min-w-0 px-2.5 py-2 text-[11px] bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">' +
+            'placeholder="貼上連結、座標，或輸入地名（如：香港国际机场）" ' +
+            'class="flex-1 min-w-0 px-2.5 py-2 text-[11px] bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">' +
           '<button type="button" onclick="pasteFromClipboard()" ' +
             'class="text-[11px] px-2.5 py-2 bg-white border border-amber-300 hover:bg-amber-100 text-amber-800 font-bold rounded-lg transition shrink-0 flex items-center gap-1">' +
             '<span class="ico w-3 h-3" data-icon="clipboard"></span>粘貼' +
@@ -4213,8 +4016,8 @@ function openAddPlaceModal(){
             'class="px-3 py-2 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-900 font-bold rounded-lg text-xs transition shrink-0">解析</button>' +
         '</div>' +
         '<p class="text-[11px] text-amber-700 leading-relaxed">' +
-          '在高德 App 長按地點 → 分享 → 複製連結（<span class="font-mono">uri.amap.com</span> 開頭），' +
-          '或分享文本中的「經度,緯度」座標貼到此處，可自動填寫名稱與座標。' +
+          '可貼上高德分享連結、經緯度座標，或直接輸入地名（需後端配置高德 Key）。<br>' +
+          '短連結 <span class="font-mono">surl.amap.com</span> 會自動展開；未配置 Key 時僅支援連結與座標。' +
         '</p>' +
       '</div>' +
     '</div>' +
@@ -4606,9 +4409,6 @@ function deletePlace(id){
   showToast('地點已刪除');
 }
 
-/* =========================================================
-   K. Modal
-   ========================================================= */
 function openDetailModal(id){
   var t = trips.find(function(item){ return item.id === id; });
   if (!t) return;
@@ -4967,9 +4767,6 @@ function closeModal(){
   shiftTimeMode    = 'quick';
 }
 
-/* =========================================================
-   K-2. 歷史更次彈窗
-   ========================================================= */
 function openShiftHistoryModal(){
   var keys = Object.keys(shiftSettings).sort().reverse();
   var lastKey = getLastShiftKey();
@@ -5450,9 +5247,6 @@ function deleteShift(key){
   }
 }
 
-/* =========================================================
-   K-3. 新增加油彈窗
-   ========================================================= */
 function calcFuelLiters(){
   var amountEl = document.getElementById('fuel-add-amount');
   var priceEl  = document.getElementById('fuel-add-price');
@@ -5731,9 +5525,6 @@ function deleteFuelEntry(id){
   openFuelHistoryModal();
 }
 
-/* =========================================================
-   L. 批次刪除 + 撤銷
-   ========================================================= */
 var DELETE_PERIODS = {
   day:   { daysBack: 1,  label: '一天前',   desc: '昨天及之前的更次' },
   week:  { daysBack: 7,  label: '一星期前', desc: '7 天前的更次' },
@@ -5875,9 +5666,6 @@ function updateTripCount(){
   if (el) el.innerText = trips.length;
 }
 
-/* =========================================================
-   M. 設定與統計
-   ========================================================= */
 function initSettingsForm(){
   var lastKey = getLastShiftKey();
   var cfg     = getLastSettings(false);
@@ -6310,9 +6098,6 @@ function renderPeriodStatsView(period, now, lastKey){
   renderPaymentBreakdown(paymentRev);
 }
 
-/* =========================================================
-   M-2. 收入走勢圖
-   ========================================================= */
 var chartMode   = localStorage.getItem('taxi_chart_mode')   || 'daily';
 var chartMetric = localStorage.getItem('taxi_chart_metric') || 'gross';
 var chartRange  = parseInt(localStorage.getItem('taxi_chart_range'), 10);
@@ -6757,9 +6542,6 @@ function updateStatsAndNet(){
   updateHeaderWorked();
 }
 
-/* =========================================================
-   N. Toast
-   ========================================================= */
 function showToast(message){
   var toast = document.getElementById('toast');
   toast.innerText = message;
@@ -6770,9 +6552,6 @@ function showToast(message){
   }, 2800);
 }
 
-/* ═══════════════════════════════════════════════════════════
-   Q. 側滑菜單
-   ═══════════════════════════════════════════════════════════ */
 var DRAWER_ITEMS = [
   { id: 'home',    label: '首頁',       desc: '返回記帳主頁',        icon: 'home',          tab: 'trip' },
   { id: 'airport', label: '機場航班',   desc: '查詢香港國際機場航班', icon: 'plane-takeoff', tab: 'airport' },
@@ -6825,7 +6604,6 @@ function openDrawer(){
   var drawer  = document.getElementById('side-drawer');
   if (!overlay || !drawer) return;
 
-  // 強制 reflow，讓初始狀態先應用，再觸發 transition
   void overlay.offsetWidth;
 
   overlay.classList.add('visible');
@@ -6846,25 +6624,17 @@ function closeDrawer(){
   document.body.style.overflow = '';
 }
 
-/* ═══════════════════════════════════════════════════════════
-   R. 香港國際機場航班（列表 + 統計）
-   ═══════════════════════════════════════════════════════════ */
 var flightTabArrival = true;
 var airportInitialized = false;
-
-/* 子分頁狀態 */
-var airportView = 'list';   // 'list' | 'stats'
-
-/* 快取 */
-var airportAllFlights  = [];   // 未過濾
-var airportFlights     = [];   // 已過濾（目前顯示）
+var airportView = 'list';
+var airportAllFlights  = [];
+var airportFlights     = [];
 var airportHiddenCount = 0;
 var airportLoaded      = false;
 
-/* ── 隱藏過期航班 ───────────────────────────────── */
 var HIDE_EXPIRED_KEY = 'taxi_airport_hide_expired';
-var hideExpiredFlights = localStorage.getItem(HIDE_EXPIRED_KEY) !== '0'; // 預設開啟
-var FLIGHT_EXPIRE_MINUTES = 60;   // ★ 想改門檻就改這裡（分鐘）
+var hideExpiredFlights = localStorage.getItem(HIDE_EXPIRED_KEY) !== '0';
+var FLIGHT_EXPIRE_MINUTES = 60;
 
 function toggleHideExpiredFlights(checked){
   hideExpiredFlights = checked;
@@ -6872,14 +6642,12 @@ function toggleHideExpiredFlights(checked){
   applyAirportFilterAndRender();
 }
 
-/* 供「顯示全部」按鈕使用 */
 function showAllFlights(){
   var chk = document.getElementById('airport-hide-expired');
   if (chk) chk.checked = false;
   toggleHideExpiredFlights(false);
 }
 
-/* 依抵港／離港更新開關文字 */
 function updateAirportHideLabel(){
   var el = document.getElementById('airport-hide-label');
   if (!el) return;
@@ -6890,7 +6658,6 @@ function updateAirportHideLabel(){
     : '隱藏距起飛不足 ' + hText + ' 小時';
 }
 
-/* "14:30" → 870（分鐘）；解析不到回 null */
 function parseFlightMinutes(timeStr){
   if (!timeStr) return null;
   var m = String(timeStr).match(/(\d{1,2})\s*[:：]\s*(\d{1,2})/);
@@ -6901,11 +6668,8 @@ function parseFlightMinutes(timeStr){
   return hh * 60 + mm;
 }
 
-/* 核心過濾 */
 function filterExpiredFlights(list, date, isArrival){
   if (!hideExpiredFlights) return list;
-
-  // 只對「今天」生效；查歷史／其他日期不過濾
   if (date !== localDateStr(new Date())) return list;
 
   var now = new Date();
@@ -6914,15 +6678,11 @@ function filterExpiredFlights(list, date, isArrival){
 
   return list.filter(function(f){
     var fm = parseFlightMinutes(f.time);
-    if (fm === null) return true;          // 時間解析不到 → 保留，避免誤刪
-
-    return isArrival
-      ? fm >= nowMin - th                  // 到港：只留最近 1 小時內（含未到）
-      : fm >= nowMin + th;                 // 離港：只留 1 小時後才起飛
+    if (fm === null) return true;
+    return isArrival ? fm >= nowMin - th : fm >= nowMin + th;
   });
 }
 
-/* ── 子分頁切換 ─────────────────────────────────── */
 function setAirportView(v){
   airportView = v;
 
@@ -6942,7 +6702,6 @@ function setAirportView(v){
   if (v === 'stats') renderAirportStats();
 }
 
-/* ── 過濾 + 渲染 ─────────────────────────────────── */
 function applyAirportFilterAndRender(){
   var dateEl = document.getElementById('airport-date');
   var date = dateEl ? dateEl.value : '';
@@ -6982,7 +6741,6 @@ function updateAirportStatus(){
     (airportHiddenCount > 0 ? ' · 已隱藏 ' + airportHiddenCount + ' 班' : '');
 }
 
-/* ── 渲染列表 ───────────────────────────────────── */
 function renderAirportList(){
   var listEl = document.getElementById('flight-list');
   if (!listEl) return;
@@ -7061,7 +6819,6 @@ function renderAirportList(){
   }).join('');
 }
 
-/* ── 渲染統計 ───────────────────────────────────── */
 function renderAirportStats(){
   var container = document.getElementById('airport-chart-container');
   var barsEl    = document.getElementById('airport-hour-bars');
@@ -7070,13 +6827,11 @@ function renderAirportStats(){
   var dateEl = document.getElementById('airport-date');
   var date = dateEl ? dateEl.value : '';
 
-  // 副標題
   var subtitleEl = document.getElementById('airport-stats-subtitle');
   if (subtitleEl){
     subtitleEl.innerText = date + (flightTabArrival ? ' · 抵港' : ' · 離港');
   }
 
-  // 按小時統計
   var buckets = new Array(24);
   for (var i = 0; i < 24; i++) buckets[i] = 0;
 
@@ -7101,7 +6856,6 @@ function renderAirportStats(){
   setText('airport-stat-peak', maxV > 0 ? (pad2(peakHour) + ':00 · ' + maxV + ' 班') : '--');
   setText('airport-stat-avg', nonZero ? avg.toFixed(1) + ' 班' : '--');
 
-  // 空狀態
   if (totalFlights === 0){
     container.innerHTML =
       '<div class="py-10 text-center text-slate-300 text-xs leading-relaxed">' +
@@ -7113,7 +6867,6 @@ function renderAirportStats(){
     return;
   }
 
-  /* ── 繪製平滑曲線 ── */
   var W = 340, H = 176;
   var padL = 10, padR = 10, padT = 24, padB = 30;
   var plotW = W - padL - padR;
@@ -7140,7 +6893,6 @@ function renderAirportStats(){
     ' L' + pts[n - 1].x.toFixed(2) + ',' + zeroY.toFixed(2) +
     ' L' + pts[0].x.toFixed(2) + ',' + zeroY.toFixed(2) + ' Z';
 
-  // 網格
   var gridHtml = '';
   for (var g = 0; g <= 3; g++){
     var gy = padT + (plotH * g) / 3;
@@ -7149,7 +6901,6 @@ function renderAirportStats(){
                 (g === 3 ? '' : ' stroke-dasharray="3 4"') + '/>';
   }
 
-  // 時間軸標籤
   var labelHtml = '';
   [0, 3, 6, 9, 12, 15, 18, 21].forEach(function(h){
     var lx = px(h);
@@ -7159,7 +6910,6 @@ function renderAirportStats(){
                  '" font-family="ui-monospace,Menlo,monospace">' + pad2(h) + ':00</text>';
   });
 
-  // 資料點
   var dotsHtml = '';
   for (var d = 0; d < n; d++){
     if (buckets[d] <= 0) continue;
@@ -7248,7 +6998,6 @@ function renderAirportStats(){
     hit.addEventListener('pointercancel', hideTip);
   }
 
-  /* ── 下方每小時小格 ── */
   if (barsEl){
     barsEl.innerHTML = new Array(24).fill(0).map(function(_, h){
       var v = buckets[h];
@@ -7265,17 +7014,16 @@ function renderAirportStats(){
   }
 }
 
-/* ── 進入機場 tab ───────────────────────────────── */
 function initAirportTab(){
   var dateEl = document.getElementById('airport-date');
   if (dateEl){
     var today = new Date();
     var tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    dateEl.max = localDateStr(tomorrow);   // 最大可选明天
+    dateEl.max = localDateStr(tomorrow);
 
     if (!dateEl.value){
-      dateEl.value = localDateStr(today);  // 默认选中今天
+      dateEl.value = localDateStr(today);
     }
   }
 
@@ -7283,7 +7031,6 @@ function initAirportTab(){
   if (hideChk) hideChk.checked = hideExpiredFlights;
   updateAirportHideLabel();
 
-  // 同步子分頁 UI（不重複渲染，僅切換 class）
   var on  = 'py-1.5 rounded-lg bg-white shadow-xs text-slate-800 font-bold transition flex items-center justify-center gap-1';
   var off = 'py-1.5 rounded-lg text-slate-600 font-medium transition flex items-center justify-center gap-1';
   var listBtn  = document.getElementById('airport-view-list');
@@ -7296,7 +7043,6 @@ function initAirportTab(){
   if (listWrap)  listWrap.classList.toggle('hidden',  airportView !== 'list');
   if (statsWrap) statsWrap.classList.toggle('hidden', airportView !== 'stats');
 
-  // 首次進入自動載入
   if (!airportInitialized){
     airportInitialized = true;
     loadFlightList();
@@ -7332,13 +7078,9 @@ async function fetchFlights(date, isArrival){
   return await res.json();
 }
 
-/* =========================================================
-   從回應中抽出指定日期的航班列表
-   ========================================================= */
 function extractFlightsForDate(json, targetDate){
   if (!json) return [];
 
-  // 情況 1：回應為陣列（多日期）
   if (Array.isArray(json)){
     var exact = json.find(function(item){
       return item && item.date === targetDate;
@@ -7354,7 +7096,6 @@ function extractFlightsForDate(json, targetDate){
     return [];
   }
 
-  // 情況 2：回應為單一物件
   if (json.list && Array.isArray(json.list)){
     if (json.date && json.date !== targetDate){
       return [];
@@ -7365,9 +7106,6 @@ function extractFlightsForDate(json, targetDate){
   return [];
 }
 
-/* =========================================================
-   載入航班列表
-   ========================================================= */
 async function loadFlightList(){
   var dateEl   = document.getElementById('airport-date');
   var listEl   = document.getElementById('flight-list');
@@ -7380,7 +7118,6 @@ async function loadFlightList(){
     return;
   }
 
-  // Loading 狀態
   statusEl.innerHTML =
     '<span class="inline-flex items-center gap-1">' +
       '<span class="ico w-3 h-3 animate-spin" data-icon="loader"></span>載入中...' +
@@ -7396,7 +7133,6 @@ async function loadFlightList(){
     airportAllFlights = allFlights;
     airportLoaded = true;
 
-    // 診斷訊息用
     var returnedDates = [];
     if (Array.isArray(json)){
       returnedDates = json.map(function(x){ return x && x.date; }).filter(Boolean);
@@ -7404,7 +7140,6 @@ async function loadFlightList(){
       returnedDates = [json.date];
     }
 
-    // 過濾 + 渲染
     airportFlights = filterExpiredFlights(allFlights, date, flightTabArrival);
     airportHiddenCount = allFlights.length - airportFlights.length;
 
@@ -7412,7 +7147,6 @@ async function loadFlightList(){
     if (airportView === 'stats') renderAirportStats();
     updateAirportStatus();
 
-    // 若真的完全沒資料，補上診斷提示
     if (!allFlights.length){
       var hint = '';
       if (returnedDates.length > 1){
@@ -7454,9 +7188,6 @@ async function loadFlightList(){
   }
 }
 
-/* =========================================================
-   O. Service Worker
-   ========================================================= */
 if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   window.addEventListener('load', function(){
     navigator.serviceWorker.register('./sw.js')
@@ -7465,9 +7196,6 @@ if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   });
 }
 
-/* =========================================================
-   P. Modal 開啟時鎖背景滾動
-   ========================================================= */
 document.addEventListener('touchmove', function(e){
   var tripModal = document.getElementById('trip-modal');
   var drawer    = document.getElementById('side-drawer');
