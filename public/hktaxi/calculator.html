@@ -6078,8 +6078,21 @@ function renderAirportStats(){
   var dateEl = document.getElementById('airport-date');
   var date = dateEl ? dateEl.value : '';
 
+  // ── 判断是否今天，用于显示「现在」标记 ──
+  var now = new Date();
+  var todayStr = localDateStr(now);
+  var isToday = (date === todayStr);
+  var currentHour = isToday ? now.getHours() : -1;
+
+  // ── 副标题：日期 · 抵港/离港 · 現在 HH:00 ──
   var subtitleEl = document.getElementById('airport-stats-subtitle');
-  if (subtitleEl) subtitleEl.innerText = date + (flightTabArrival ? ' · 抵港' : ' · 離港');
+  if (subtitleEl){
+    var subtitleText = date + (flightTabArrival ? ' · 抵港' : ' · 離港');
+    if (isToday){
+      subtitleText += ' · 現在 ' + pad2(currentHour) + ':00';
+    }
+    subtitleEl.innerText = subtitleText;
+  }
 
   var buckets = new Array(24);
   for (var i = 0; i < 24; i++) buckets[i] = 0;
@@ -6105,10 +6118,23 @@ function renderAirportStats(){
   setText('airport-stat-peak', maxV > 0 ? (pad2(peakHour) + ':00 · ' + maxV + ' 班') : '--');
   setText('airport-stat-avg', nonZero ? avg.toFixed(1) + ' 班' : '--');
 
+  // ── 底部提示：当前时段航班数 ──
+  var hintEl = document.getElementById('airport-stats-hint');
+  if (hintEl){
+    if (isToday && currentHour >= 0){
+      var curCnt = buckets[currentHour] || 0;
+      hintEl.innerHTML = '現在 <b class="text-rose-600">' + pad2(currentHour) + ':00</b> 有 <b class="text-rose-600">' + curCnt + '</b> 班航班 · 滑動／點擊曲線查看詳情';
+    } else {
+      hintEl.innerText = '每小時的航班數量分佈（滑動／點擊曲線查看）';
+    }
+  }
+
   if (totalFlights === 0){
     container.innerHTML =
       '<div class="py-10 text-center text-slate-300 text-xs leading-relaxed">' +
-        (airportAllFlights.length ? '目前顯示範圍內暫無航班<br><span class="text-[11px]">可關閉上方開關查看全部</span>' : '此日期暫無航班時段數據') +
+        (airportAllFlights.length
+          ? '目前顯示範圍內暫無航班<br><span class="text-[11px]">可關閉上方開關查看全部</span>'
+          : '此日期暫無航班時段數據') +
       '</div>';
     if (barsEl) barsEl.innerHTML = '';
     return;
@@ -6129,7 +6155,9 @@ function renderAirportStats(){
   function py(v){ return padT + plotH - ((v - botV) / span) * plotH; }
 
   var pts = [];
-  for (var k = 0; k < n; k++){ pts.push({ x: px(k), y: py(buckets[k]), v: buckets[k], h: k }); }
+  for (var k = 0; k < n; k++){
+    pts.push({ x: px(k), y: py(buckets[k]), v: buckets[k], h: k });
+  }
 
   var pathD = buildSmoothPath(pts, padT - 6, padT + plotH + 6);
 
@@ -6150,18 +6178,62 @@ function renderAirportStats(){
   [0, 3, 6, 9, 12, 15, 18, 21].forEach(function(h){
     var lx = px(h);
     var anchor = (h === 0) ? 'start' : 'middle';
+    var isNowLabel = (isToday && h === currentHour);
     labelHtml += '<text x="' + lx.toFixed(1) + '" y="' + (H - 8) +
-                 '" font-size="9" fill="#94a3b8" text-anchor="' + anchor +
-                 '" font-family="ui-monospace,Menlo,monospace">' + pad2(h) + ':00</text>';
+                 '" font-size="9" fill="' + (isNowLabel ? '#ef4444' : '#94a3b8') + '" text-anchor="' + anchor +
+                 '" font-family="ui-monospace,Menlo,monospace"' +
+                 (isNowLabel ? ' font-weight="700"' : '') + '>' + pad2(h) + ':00</text>';
   });
 
   var dotsHtml = '';
   for (var d = 0; d < n; d++){
     if (buckets[d] <= 0) continue;
+    // 当前小时由 nowMarkerHtml 单独绘制，这里跳过
+    if (isToday && d === currentHour) continue;
     var isPeak = (d === peakHour);
     dotsHtml += '<circle cx="' + pts[d].x.toFixed(1) + '" cy="' + pts[d].y.toFixed(1) +
                 '" r="' + (isPeak ? 4.5 : 2.8) + '" fill="' + (isPeak ? '#f59e0b' : '#ffffff') +
                 '" stroke="#f59e0b" stroke-width="2"/>';
+  }
+
+  // ═══════════════════════════════════════════
+  // ★ 当前时间标记（仅今天显示）
+  // ═══════════════════════════════════════════
+  var nowMarkerHtml = '';
+  if (isToday && currentHour >= 0 && currentHour < 24){
+    var cx = px(currentHour);
+    var currentY = py(buckets[currentHour]);
+    var currentFlights = buckets[currentHour];
+
+    // 1. 垂直虚线（从顶部到底部）
+    nowMarkerHtml += '<line x1="' + cx.toFixed(1) + '" y1="' + (padT - 2) +
+                     '" x2="' + cx.toFixed(1) + '" y2="' + (padT + plotH) +
+                     '" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.55"/>';
+
+    // 2. 顶部「现在」标签
+    var labelW = 34, labelH = 13;
+    var labelX = cx - labelW / 2;
+    if (labelX < padL) labelX = padL;
+    if (labelX + labelW > W - padR) labelX = W - padR - labelW;
+    var labelY = padT - labelH - 4;
+    nowMarkerHtml += '<rect x="' + labelX.toFixed(1) + '" y="' + labelY.toFixed(1) +
+                     '" width="' + labelW + '" height="' + labelH +
+                     '" rx="3" fill="#ef4444"/>';
+    nowMarkerHtml += '<text x="' + (labelX + labelW / 2).toFixed(1) + '" y="' + (labelY + 9.5).toFixed(1) +
+                     '" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="700"' +
+                     ' font-family="-apple-system,BlinkMacSystemFont,sans-serif">現在</text>';
+
+    // 3. 当前小时的圆点高亮
+    if (currentFlights > 0){
+      nowMarkerHtml += '<circle cx="' + cx.toFixed(1) + '" cy="' + currentY.toFixed(1) +
+                       '" r="7.5" fill="none" stroke="#ef4444" stroke-width="2" opacity="0.25"/>';
+      nowMarkerHtml += '<circle cx="' + cx.toFixed(1) + '" cy="' + currentY.toFixed(1) +
+                       '" r="4" fill="#ef4444" stroke="#ffffff" stroke-width="1.5"/>';
+    } else {
+      // 当前小时无航班：在 x 轴处显示一个小红点
+      nowMarkerHtml += '<circle cx="' + cx.toFixed(1) + '" cy="' + (padT + plotH + 3).toFixed(1) +
+                       '" r="2.5" fill="#ef4444" stroke="#ffffff" stroke-width="0.8"/>';
+    }
   }
 
   container.innerHTML =
@@ -6179,13 +6251,20 @@ function renderAirportStats(){
       '</defs>' +
       gridHtml +
       '<path d="' + fillD + '" fill="url(#fltFill)" stroke="none"/>' +
-      '<path d="' + pathD + '" fill="none" stroke="url(#fltStroke)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
-      dotsHtml + labelHtml +
-      '<line id="flt-cursor-line" x1="0" y1="' + padT + '" x2="0" y2="' + (padT + plotH) + '" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>' +
-      '<circle id="flt-cursor-dot" cx="0" cy="0" r="5" fill="#3b82f6" stroke="#ffffff" stroke-width="2" opacity="0"/>' +
-      '<rect id="flt-hit" x="' + padL + '" y="' + padT + '" width="' + plotW + '" height="' + plotH + '" fill="transparent" pointer-events="all" style="touch-action:none;cursor:crosshair"/>' +
+      '<path d="' + pathD + '" fill="none" stroke="url(#fltStroke)" stroke-width="2.5" ' +
+        'stroke-linecap="round" stroke-linejoin="round"/>' +
+      dotsHtml +
+      nowMarkerHtml +
+      labelHtml +
+      '<line id="flt-cursor-line" x1="0" y1="' + padT + '" x2="0" y2="' + (padT + plotH) +
+        '" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>' +
+      '<circle id="flt-cursor-dot" cx="0" cy="0" r="5" fill="#3b82f6" stroke="#ffffff" ' +
+        'stroke-width="2" opacity="0"/>' +
+      '<rect id="flt-hit" x="' + padL + '" y="' + padT + '" width="' + plotW + '" height="' + plotH +
+        '" fill="transparent" pointer-events="all" style="touch-action:none;cursor:crosshair"/>' +
     '</svg>' +
-    '<div id="flt-tip" class="hidden absolute pointer-events-none bg-slate-900 text-white text-[10px] rounded-lg px-2 py-1 shadow-lg leading-tight whitespace-nowrap z-10"></div>';
+    '<div id="flt-tip" class="hidden absolute pointer-events-none bg-slate-900 text-white ' +
+      'text-[10px] rounded-lg px-2 py-1 shadow-lg leading-tight whitespace-nowrap z-10"></div>';
 
   var svgEl      = document.getElementById('airport-chart-svg');
   var tipEl      = document.getElementById('flt-tip');
@@ -6205,8 +6284,11 @@ function renderAirportStats(){
 
       var p = pts[idx];
       var cnt = buckets[idx];
+      var isCurrent = (isToday && idx === currentHour);
 
-      tipEl.innerHTML = pad2(idx) + ':00 - ' + pad2(idx) + ':59　<b>' + cnt + '</b> 班';
+      // Tooltip 内容：当前小时额外显示「現在」
+      tipEl.innerHTML = pad2(idx) + ':00 - ' + pad2(idx) + ':59　<b>' + cnt + '</b> 班' +
+        (isCurrent ? '　<span style="color:#fca5a5;font-weight:700">現在</span>' : '');
       tipEl.classList.remove('hidden');
 
       var leftPct = (p.x / W) * 100;
@@ -6216,6 +6298,11 @@ function renderAirportStats(){
       tipEl.style.left = leftPct + '%';
       tipEl.style.top  = ((p.y / H) * 100) + '%';
       tipEl.style.transform = 'translate(-50%, calc(-100% - 10px))';
+
+      // 光标线颜色：当前小时用红色，否则用蓝色
+      var lineColor = isCurrent ? '#ef4444' : '#3b82f6';
+      cursorLine.setAttribute('stroke', lineColor);
+      cursorDot.setAttribute('fill', lineColor);
 
       cursorLine.setAttribute('x1', p.x.toFixed(2));
       cursorLine.setAttribute('x2', p.x.toFixed(2));
@@ -6237,14 +6324,23 @@ function renderAirportStats(){
     hit.addEventListener('pointercancel', hideTip);
   }
 
+  // ── 底部小时格（若存在）高亮当前小时 ──
   if (barsEl){
     barsEl.innerHTML = new Array(24).fill(0).map(function(_, h){
       var v = buckets[h];
       var isPeak = (h === peakHour && v > 0);
       var isActive = v > 0;
-      var bgCls = isPeak
-        ? 'bg-amber-100 border-amber-300 text-amber-900'
-        : (isActive ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-100 text-slate-300');
+      var isNow = (isToday && h === currentHour);
+      var bgCls;
+      if (isNow){
+        bgCls = 'bg-rose-50 border-rose-400 text-rose-700 ring-2 ring-rose-300';
+      } else if (isPeak){
+        bgCls = 'bg-amber-100 border-amber-300 text-amber-900';
+      } else if (isActive){
+        bgCls = 'bg-blue-50 border-blue-200 text-blue-700';
+      } else {
+        bgCls = 'bg-slate-50 border-slate-100 text-slate-300';
+      }
       return '<div class="rounded-lg border py-1 text-center ' + bgCls + '">' +
         '<div class="font-mono font-bold text-[10px] leading-none">' + pad2(h) + '</div>' +
         '<div class="font-mono font-extrabold text-[11px] leading-none mt-0.5">' + v + '</div>' +
@@ -6252,7 +6348,6 @@ function renderAirportStats(){
     }).join('');
   }
 }
-
 function initAirportTab(){
   var dateEl = document.getElementById('airport-date');
   if (dateEl){
