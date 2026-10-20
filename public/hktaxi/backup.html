@@ -167,9 +167,8 @@ button:disabled{cursor:not-allowed}
   <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
     <p class="text-[11px] text-slate-400 leading-relaxed">
       ※ 備份包含：行程、更次設定、收藏地點、加油記錄、偏好設定。<br>
-      ※ 檔案儲存在 Google Drive「應用程式資料」資料夾，只保留最近一份（覆蓋式）。<br>
-      ※ 上傳與下載前皆會自動進行版本比對，防止新舊數據互相覆蓋。<br>
-      ※ 操作前若偵測到衝突，將提供選項讓您自由選擇保留或覆蓋。
+      ※ 檔案儲存在 Google Drive「apps」資料夾內。<br>
+      ※ 上傳與下載前皆會自動進行版本比對，提供完整防護選項。
     </p>
   </div>
 
@@ -233,6 +232,7 @@ button:disabled{cursor:not-allowed}
 var CLIENT_ID = '802199089900-5n676d4hansnab5c66igukb1mch5m7m1.apps.googleusercontent.com';
 var SCOPES = 'https://www.googleapis.com/auth/drive.file';
 var FILE_NAME = 'hk-taxi-helper-backup.json';
+var FOLDER_NAME = 'apps'; // 指定的目錄名稱
 
 /* ═══════════════════════════════════════════════════════════
    圖示與提示
@@ -246,7 +246,7 @@ var ICONS = {
   'check-circle':'<circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.3 2.3 4.7-5"/>'
 };
 function hydrateIcons(root){
-  (root || document).querySelectorAll('[data-icon]').forEach(function(el){
+  (root || document.querySelectorAll('[data-icon]')).forEach(function(el){
     if (el.dataset.done) return;
     el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
                    'stroke-linecap="round" stroke-linejoin="round" style="width:100%;height:100%">' +
@@ -404,7 +404,7 @@ function updateLocalStats(){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   Drive API
+   Drive API 與資料夾管理
    ═══════════════════════════════════════════════════════════ */
 async function api(url, options){
   var token = getStoredAccessToken();
@@ -424,8 +424,35 @@ async function api(url, options){
   return resp;
 }
 
+// 取得或自動建立指定名稱的資料夾 (apps)
+async function getOrCreateFolderId(){
+  var q = encodeURIComponent("name = '" + FOLDER_NAME + "' and mimeType = 'application/vnd.google-apps.folder' and trashed = false");
+  var url = 'https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)&pageSize=1';
+  var resp = await api(url);
+  var data = await resp.json();
+
+  if (data.files && data.files.length > 0) {
+    return data.files[0].id;
+  }
+
+  // 如果資料夾不存在，自動建立一個
+  var createUrl = 'https://www.googleapis.com/drive/v3/files';
+  var folderMeta = {
+    name: FOLDER_NAME,
+    mimeType: 'application/vnd.google-apps.folder'
+  };
+  var createResp = await api(createUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(folderMeta)
+  });
+  var folderData = await createResp.json();
+  return folderData.id;
+}
+
 async function findBackupFile(){
-  var q = encodeURIComponent("name = '" + FILE_NAME + "' and trashed = false");
+  var folderId = await getOrCreateFolderId();
+  var q = encodeURIComponent("name = '" + FILE_NAME + "' and '" + folderId + "' in parents and trashed = false");
   var url = 'https://www.googleapis.com/drive/v3/files?q=' + q +
     '&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime desc&pageSize=1';
   var resp = await api(url);
@@ -498,22 +525,33 @@ function buildBackupPayload(){
   };
 }
 
-// 實際執行上傳的內部方法
+// 實際執行上傳（自動放入 apps 目錄）
 async function executeUpload(){
+  var folderId = await getOrCreateFolderId();
   var payload = buildBackupPayload();
   var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   var file = new File([blob], FILE_NAME, { type: 'application/json' });
 
   var existing = await findBackupFile();
-  var uploadUrl = existing
-    ? 'https://www.googleapis.com/upload/drive/v3/files/' + encodeURIComponent(existing.id) + '?uploadType=multipart'
-    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-
+  
+  var uploadUrl, method;
   var form = new FormData();
-  form.append('metadata', new Blob([JSON.stringify({ name: FILE_NAME, mimeType: 'application/json' })], { type: 'application/json' }));
+
+  if (existing) {
+    // 更新現有檔案
+    uploadUrl = 'https://www.googleapis.com/upload/drive/v3/files/' + encodeURIComponent(existing.id) + '?uploadType=multipart';
+    method = 'PATCH';
+    form.append('metadata', new Blob([JSON.stringify({ name: FILE_NAME })], { type: 'application/json' }));
+  } else {
+    // 建立新檔案並指定 parents 為 apps 資料夾 ID
+    uploadUrl = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+    method = 'POST';
+    form.append('metadata', new Blob([JSON.stringify({ name: FILE_NAME, parents: [folderId], mimeType: 'application/json' })], { type: 'application/json' }));
+  }
+  
   form.append('file', file);
 
-  var resp = await api(uploadUrl, { method: existing ? 'PATCH' : 'POST', body: form });
+  var resp = await api(uploadUrl, { method: method, body: form });
   var resultData = await resp.json();
 
   var newSyncTime = resultData.modifiedTime ? new Date(resultData.modifiedTime).getTime() : Date.now();
@@ -530,10 +568,10 @@ async function upload(){
     uploadBtn.disabled = true;
     uploadText.innerText = '上傳中...';
     loading.classList.remove('hidden');
-    loadingText.innerText = '正在上傳備份到 Google Drive...';
+    loadingText.innerText = '正在將備份上傳到 apps 資料夾...';
 
     await executeUpload();
-    showToast('備份已成功上傳到 Google Drive');
+    showToast('備份已成功上傳到 apps 資料夾');
   } catch(e){
     console.error('[gdrive] upload failed:', e);
     showToast('上傳失敗：' + e.message);
@@ -579,22 +617,17 @@ async function download(){
     downloadBtn.disabled = true;
     downloadText.innerText = '檢查中...';
     loading.classList.remove('hidden');
-    loadingText.innerText = '正在檢查雲端備份檔案...';
+    loadingText.innerText = '正在檢查 apps 目錄中的備份...';
 
     var file = await findBackupFile();
     if (!file){
       loading.classList.add('hidden');
-      showToast('Drive 上沒有找到備份檔案');
+      showToast('apps 目錄中沒有找到備份檔案');
       return;
     }
 
     var cloudModifiedTime = new Date(file.modifiedTime).getTime();
     var lastSyncTime = parseInt(localStorage.getItem('taxi_last_sync_time') || '0', 10);
-
-    // 檢查：如果本地最後同步時間大於零，且本地可能在上次同步後有修改（或者單純由邏輯判斷本地比雲端新）
-    // 這裡我們提供一個安全檢查：若雲端修改時間 < 本地最後同步/操作時間，代表本地有未同步的新改動
-    // 為了更精準，也可以讓用戶自由決定是否直接還原。這裡用「雲端時間 vs 本地上次同步時間」進行防護。
-    // 如果用戶希望每次下載都確認，也可以加上簡單的提示。
     
     loading.classList.add('hidden');
 
@@ -603,8 +636,6 @@ async function download(){
       '• 大小：' + (parseInt(file.size || '0', 10) / 1024).toFixed(1) + ' KB\n\n' +
       '下載還原會【覆蓋】目前所有本地數據，確定繼續嗎？';
 
-    // 如果偵測到本地有未同步的修改痕跡（例如本地修改大於雲端時間），彈出專屬衝突視窗
-    // 這裡定義：若本地沒有 sync 記錄，或者我們直接以標準提示框/Modal 確認
     if (lastSyncTime && lastSyncTime > cloudModifiedTime) {
       var cloudTimeStr = new Date(file.modifiedTime).toLocaleString('zh-HK');
       var localTimeStr = new Date(lastSyncTime).toLocaleString('zh-HK');
@@ -613,7 +644,7 @@ async function download(){
 
       if (choice === 'upload_first') {
         loading.classList.remove('hidden');
-        loadingText.innerText = '正在先備份本地資料到雲端...';
+        loadingText.innerText = '正在先備份本地資料到 apps 目錄...';
         await executeUpload();
         showToast('本地資料已安全備份！');
         loading.classList.add('hidden');
@@ -627,7 +658,6 @@ async function download(){
         return;
       }
     } else {
-      // 標準二次確認
       if (!confirm(confirmMsg)) return;
 
       loading.classList.remove('hidden');
