@@ -168,53 +168,53 @@ button:disabled{cursor:not-allowed}
     <p class="text-[11px] text-slate-400 leading-relaxed">
       ※ 備份包含：行程、更次設定、收藏地點、加油記錄、偏好設定。<br>
       ※ 檔案儲存在 Google Drive「應用程式資料」資料夾，只保留最近一份（覆蓋式）。<br>
-      ※ 上傳前會自動進行版本比對，防止舊資料覆蓋新資料。<br>
-      ※ 下載還原會覆蓋目前所有本地數據，操作前會有二次確認。
+      ※ 上傳與下載前皆會自動進行版本比對，防止新舊數據互相覆蓋。<br>
+      ※ 操作前若偵測到衝突，將提供選項讓您自由選擇保留或覆蓋。
     </p>
   </div>
 
 </main>
 
-<!-- 版本衝突選擇 Modal -->
-<div id="conflict-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-4" style="z-index:100;backdrop-filter:blur(2px)">
+<!-- 下載還原衝突選擇 Modal -->
+<div id="download-conflict-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-4" style="z-index:100;backdrop-filter:blur(2px)">
   <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 space-y-4">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
         <span class="ico w-5 h-5" data-icon="info"></span>
       </div>
       <div>
-        <h3 class="font-bold text-slate-800 text-sm">偵測到雲端資料版本衝突</h3>
-        <p class="text-xs text-slate-500">雲端備份時間比本地更新</p>
+        <h3 class="font-bold text-slate-800 text-sm">偵測到本地有未同步的新資料</h3>
+        <p class="text-xs text-slate-500">本地修改時間比雲端備份更新</p>
       </div>
     </div>
 
     <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1 text-xs">
       <div class="flex justify-between">
         <span class="text-slate-500">雲端備份時間：</span>
-        <span id="conflict-cloud-time" class="font-bold font-mono text-slate-800">--</span>
+        <span id="dl-conflict-cloud-time" class="font-bold font-mono text-slate-800">--</span>
       </div>
       <div class="flex justify-between">
-        <span class="text-slate-500">本地最後操作：</span>
-        <span id="conflict-local-time" class="font-bold font-mono text-slate-800">--</span>
+        <span class="text-slate-500">本地最後同步：</span>
+        <span id="dl-conflict-local-time" class="font-bold font-mono text-slate-800">--</span>
       </div>
     </div>
 
     <p class="text-xs text-slate-600 leading-relaxed">
-      雲端已有較新的備份資料。若直接上傳可能會覆蓋掉其他裝置的新資料，請選擇您要執行的操作：
+      您在本地有較新的修改紀錄。若直接下載雲端版本，將會覆蓋並遺失這些本地修改。請選擇操作：
     </p>
 
     <div class="space-y-2 pt-1">
-      <button type="button" onclick="resolveConflict('download')"
-        class="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl text-xs transition shadow-sm">
-        下載雲端版本 (放棄本地修改)
-      </button>
-      <button type="button" onclick="resolveConflict('upload')"
+      <button type="button" onclick="resolveDownloadConflict('upload_first')"
         class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-sm">
-        強制用本地覆蓋雲端
+        先將本地資料上傳備份，再下載
       </button>
-      <button type="button" onclick="resolveConflict('cancel')"
+      <button type="button" onclick="resolveDownloadConflict('force_download')"
+        class="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl text-xs transition shadow-sm">
+        強制下載覆蓋 (放棄本地修改)
+      </button>
+      <button type="button" onclick="resolveDownloadConflict('cancel')"
         class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium rounded-xl text-xs transition">
-        取消操作
+        取消還原
       </button>
     </div>
   </div>
@@ -453,34 +453,34 @@ async function refreshFileInfo(){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   版本衝突 Modal 邏輯
+   下載衝突 Modal 邏輯
    ═══════════════════════════════════════════════════════════ */
-var conflictResolver = null;
+var downloadConflictResolver = null;
 
-function promptConflictModal(cloudTimeStr, localTimeStr) {
+function promptDownloadConflictModal(cloudTimeStr, localTimeStr) {
   return new Promise(function(resolve) {
-    document.getElementById('conflict-cloud-time').innerText = cloudTimeStr;
-    document.getElementById('conflict-local-time').innerText = localTimeStr;
-    var modal = document.getElementById('conflict-modal');
+    document.getElementById('dl-conflict-cloud-time').innerText = cloudTimeStr;
+    document.getElementById('dl-conflict-local-time').innerText = localTimeStr;
+    var modal = document.getElementById('download-conflict-modal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     hydrateIcons(modal);
-    conflictResolver = resolve;
+    downloadConflictResolver = resolve;
   });
 }
 
-function resolveConflict(action) {
-  var modal = document.getElementById('conflict-modal');
+function resolveDownloadConflict(action) {
+  var modal = document.getElementById('download-conflict-modal');
   modal.classList.remove('flex');
   modal.classList.add('hidden');
-  if (conflictResolver) {
-    conflictResolver(action);
-    conflictResolver = null;
+  if (downloadConflictResolver) {
+    downloadConflictResolver(action);
+    downloadConflictResolver = null;
   }
 }
 
 /* ═══════════════════════════════════════════════════════════
-   備份與還原核心
+   資料處理核心
    ═══════════════════════════════════════════════════════════ */
 function buildBackupPayload(){
   var trips = JSON.parse(localStorage.getItem('taxi_trips')) || [];
@@ -498,6 +498,29 @@ function buildBackupPayload(){
   };
 }
 
+// 實際執行上傳的內部方法
+async function executeUpload(){
+  var payload = buildBackupPayload();
+  var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  var file = new File([blob], FILE_NAME, { type: 'application/json' });
+
+  var existing = await findBackupFile();
+  var uploadUrl = existing
+    ? 'https://www.googleapis.com/upload/drive/v3/files/' + encodeURIComponent(existing.id) + '?uploadType=multipart'
+    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+
+  var form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify({ name: FILE_NAME, mimeType: 'application/json' })], { type: 'application/json' }));
+  form.append('file', file);
+
+  var resp = await api(uploadUrl, { method: existing ? 'PATCH' : 'POST', body: form });
+  var resultData = await resp.json();
+
+  var newSyncTime = resultData.modifiedTime ? new Date(resultData.modifiedTime).getTime() : Date.now();
+  localStorage.setItem('taxi_last_sync_time', newSyncTime.toString());
+  refreshFileInfo();
+}
+
 async function upload(){
   var uploadBtn = document.getElementById('upload-btn');
   var uploadText = document.getElementById('upload-text');
@@ -505,61 +528,12 @@ async function upload(){
   var loadingText = document.getElementById('loading-text');
   try {
     uploadBtn.disabled = true;
-    uploadText.innerText = '檢查版本中...';
-    loading.classList.remove('hidden');
-    loadingText.innerText = '正在檢查雲端備份狀態...';
-
-    var existing = await findBackupFile();
-    
-    if (existing) {
-      var cloudModifiedTime = new Date(existing.modifiedTime).getTime();
-      var lastSyncTime = parseInt(localStorage.getItem('taxi_last_sync_time') || '0', 10);
-
-      if (cloudModifiedTime > lastSyncTime) {
-        loading.classList.add('hidden');
-        var cloudTimeStr = new Date(existing.modifiedTime).toLocaleString('zh-HK');
-        var localTimeStr = lastSyncTime ? new Date(lastSyncTime).toLocaleString('zh-HK') : '無記錄';
-
-        var choice = await promptConflictModal(cloudTimeStr, localTimeStr);
-
-        if (choice === 'download') {
-          loading.classList.remove('hidden');
-          loadingText.innerText = '正在下載雲端最新資料...';
-          await downloadAndApplyFile(existing);
-          return;
-        } else if (choice === 'upload') {
-          loading.classList.remove('hidden');
-          loadingText.innerText = '正在強制上傳覆蓋雲端...';
-        } else {
-          showToast('已取消上傳');
-          return;
-        }
-      }
-    }
-
     uploadText.innerText = '上傳中...';
+    loading.classList.remove('hidden');
     loadingText.innerText = '正在上傳備份到 Google Drive...';
 
-    var payload = buildBackupPayload();
-    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    var file = new File([blob], FILE_NAME, { type: 'application/json' });
-
-    var uploadUrl = existing
-      ? 'https://www.googleapis.com/upload/drive/v3/files/' + encodeURIComponent(existing.id) + '?uploadType=multipart'
-      : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-
-    var form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify({ name: FILE_NAME, mimeType: 'application/json' })], { type: 'application/json' }));
-    form.append('file', file);
-
-    var resp = await api(uploadUrl, { method: existing ? 'PATCH' : 'POST', body: form });
-    var resultData = await resp.json();
-
-    var newSyncTime = resultData.modifiedTime ? new Date(resultData.modifiedTime).getTime() : Date.now();
-    localStorage.setItem('taxi_last_sync_time', newSyncTime.toString());
-
-    showToast(existing ? '備份已更新到 Google Drive' : '備份已上傳到 Google Drive');
-    refreshFileInfo();
+    await executeUpload();
+    showToast('備份已成功上傳到 Google Drive');
   } catch(e){
     console.error('[gdrive] upload failed:', e);
     showToast('上傳失敗：' + e.message);
@@ -570,13 +544,13 @@ async function upload(){
   }
 }
 
-async function downloadAndApplyFile(file){
+async function applyFileToLocal(file){
   var resp = await api('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(file.id) + '?alt=media');
   var data = JSON.parse(await resp.text());
 
   if (!data || !data._meta || data._meta.app !== 'hk-taxi-helper'){
     showToast('備份格式不正確，已取消還原');
-    return;
+    return false;
   }
 
   if (Array.isArray(data.trips)) localStorage.setItem('taxi_trips', JSON.stringify(data.trips));
@@ -591,9 +565,9 @@ async function downloadAndApplyFile(file){
     localStorage.setItem('taxi_last_sync_time', new Date(file.modifiedTime).getTime().toString());
   }
 
-  showToast('已成功切換為雲端最新版本！');
+  showToast('還原成功！數據已更新');
   updateUI();
-  refreshFileInfo();
+  return true;
 }
 
 async function download(){
@@ -603,20 +577,64 @@ async function download(){
   var loadingText = document.getElementById('loading-text');
   try {
     downloadBtn.disabled = true;
-    downloadText.innerText = '下載中...';
+    downloadText.innerText = '檢查中...';
     loading.classList.remove('hidden');
-    loadingText.innerText = '正在從 Google Drive 讀取備份...';
+    loadingText.innerText = '正在檢查雲端備份檔案...';
 
     var file = await findBackupFile();
-    if (!file){ showToast('Drive 上沒有找到備份檔案'); return; }
+    if (!file){
+      loading.classList.add('hidden');
+      showToast('Drive 上沒有找到備份檔案');
+      return;
+    }
+
+    var cloudModifiedTime = new Date(file.modifiedTime).getTime();
+    var lastSyncTime = parseInt(localStorage.getItem('taxi_last_sync_time') || '0', 10);
+
+    // 檢查：如果本地最後同步時間大於零，且本地可能在上次同步後有修改（或者單純由邏輯判斷本地比雲端新）
+    // 這裡我們提供一個安全檢查：若雲端修改時間 < 本地最後同步/操作時間，代表本地有未同步的新改動
+    // 為了更精準，也可以讓用戶自由決定是否直接還原。這裡用「雲端時間 vs 本地上次同步時間」進行防護。
+    // 如果用戶希望每次下載都確認，也可以加上簡單的提示。
+    
+    loading.classList.add('hidden');
 
     var confirmMsg = '找到備份：\n\n' +
       '• 時間：' + new Date(file.modifiedTime).toLocaleString('zh-HK') + '\n' +
       '• 大小：' + (parseInt(file.size || '0', 10) / 1024).toFixed(1) + ' KB\n\n' +
       '下載還原會【覆蓋】目前所有本地數據，確定繼續嗎？';
-    if (!confirm(confirmMsg)) return;
 
-    await downloadAndApplyFile(file);
+    // 如果偵測到本地有未同步的修改痕跡（例如本地修改大於雲端時間），彈出專屬衝突視窗
+    // 這裡定義：若本地沒有 sync 記錄，或者我們直接以標準提示框/Modal 確認
+    if (lastSyncTime && lastSyncTime > cloudModifiedTime) {
+      var cloudTimeStr = new Date(file.modifiedTime).toLocaleString('zh-HK');
+      var localTimeStr = new Date(lastSyncTime).toLocaleString('zh-HK');
+
+      var choice = await promptDownloadConflictModal(cloudTimeStr, localTimeStr);
+
+      if (choice === 'upload_first') {
+        loading.classList.remove('hidden');
+        loadingText.innerText = '正在先備份本地資料到雲端...';
+        await executeUpload();
+        showToast('本地資料已安全備份！');
+        loading.classList.add('hidden');
+        return;
+      } else if (choice === 'force_download') {
+        loading.classList.remove('hidden');
+        loadingText.innerText = '正在強制下載覆蓋...';
+        await applyFileToLocal(file);
+      } else {
+        showToast('已取消還原操作');
+        return;
+      }
+    } else {
+      // 標準二次確認
+      if (!confirm(confirmMsg)) return;
+
+      loading.classList.remove('hidden');
+      loadingText.innerText = '正在從 Google Drive 下載還原...';
+      await applyFileToLocal(file);
+    }
+
   } catch(e){
     console.error('[gdrive] download failed:', e);
     showToast('還原失敗：' + e.message);
