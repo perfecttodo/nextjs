@@ -5917,6 +5917,7 @@ function showToast(message){
 var DRAWER_ITEMS = [
   { id: 'home',    label: '首頁',       desc: '返回記帳主頁',        icon: 'home',          tab: 'trip' },
   { id: 'airport', label: '機場航班',   desc: '查詢香港國際機場航班', icon: 'plane-takeoff', tab: 'airport' },
+  { id: 'gdrive',  label: 'Google Drive',  desc: '一鍵上傳／下載備份',      icon: 'database',      href: './backup.html' },
   { id: 'other',   label: '其他',       desc: '更多功能（開發中）',    icon: 'settings',      tab: null }
 ];
 
@@ -5945,6 +5946,13 @@ function handleDrawerItem(id){
   if (!item) return;
 
   setTimeout(function(){
+    if (item.href){
+      // 把当前页面完整 URL 作为来源传给目标页
+      var from = encodeURIComponent(window.location.href);
+      var sep = item.href.indexOf('?') === -1 ? '?' : '&';
+      window.location.href = item.href + sep + 'from=' + from;
+      return;
+    }
     if (item.tab) switchTab(item.tab);
     else showToast('此功能開發中');
   }, 280);
