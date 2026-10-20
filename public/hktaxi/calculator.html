@@ -6169,7 +6169,7 @@ function renderAirportStats(){
   }
   var n = displayEndHour - displayStartHour + 1;
 
-  // ── 副标题：日期 · 抵港/离港 · [窗口范围] ──
+  // ── 副标题 ──
   var subtitleEl = document.getElementById('airport-stats-subtitle');
   if (subtitleEl){
     var subtitleText = date + (flightTabArrival ? ' · 抵港' : ' · 離港');
@@ -6179,7 +6179,7 @@ function renderAirportStats(){
     subtitleEl.innerText = subtitleText;
   }
 
-  // ── 先按完整 24 小时统计（原始数据） ──
+  // ── 按小时统计 ──
   var buckets = new Array(24);
   for (var i = 0; i < 24; i++) buckets[i] = 0;
 
@@ -6191,7 +6191,7 @@ function renderAirportStats(){
     buckets[h]++;
   });
 
-  // ── 只统计窗口内的航班 ──
+  // ── 窗口内统计 ──
   var windowFlights = 0;
   var maxV = 0, peakHour = displayStartHour;
   var nonZero = 0;
@@ -6229,11 +6229,18 @@ function renderAirportStats(){
   }
 
   var W = 340, H = 176;
-  var padL = 10, padR = 10, padT = 24, padB = 30;
+  // ★ padL 增加至 32，为 y 轴数值腾出空间
+  var padL = 32, padR = 10, padT = 24, padB = 30;
   var plotW = W - padL - padR;
   var plotH = H - padT - padB;
 
-  var topV = maxV > 0 ? maxV : 1;
+  // ★ y 轴最大值向上取整为 3 的倍数，让 4 条网格线的刻度值整齐
+  // 例：maxV=13 → topV=15（刻度 15/10/5/0）
+  //     maxV=5  → topV=6（刻度 6/4/2/0）
+  //     maxV=1  → topV=3（刻度 3/2/1/0）
+  var topV = Math.max(1, Math.ceil(maxV));
+  if (topV % 3 !== 0) topV = Math.ceil(topV / 3) * 3;
+
   var botV = 0;
   var span = topV - botV;
   if (span <= 0) span = 1;
@@ -6244,7 +6251,6 @@ function renderAirportStats(){
   }
   function py(v){ return padT + plotH - ((v - botV) / span) * plotH; }
 
-  // ── 构建窗口内的数据点 ──
   var pts = [];
   for (var k = 0; k < n; k++){
     var hh = displayStartHour + k;
@@ -6258,15 +6264,28 @@ function renderAirportStats(){
     ' L' + pts[n - 1].x.toFixed(2) + ',' + zeroY.toFixed(2) +
     ' L' + pts[0].x.toFixed(2) + ',' + zeroY.toFixed(2) + ' Z';
 
+  // ═══════════════════════════════════════════
+  // ★ 网格线 + y 轴刻度数值
+  // ═══════════════════════════════════════════
   var gridHtml = '';
+  var yAxisHtml = '';
+
   for (var g = 0; g <= 3; g++){
     var gy = padT + (plotH * g) / 3;
+
+    // 网格线
     gridHtml += '<line x1="' + padL + '" y1="' + gy.toFixed(1) + '" x2="' + (W - padR) +
                 '" y2="' + gy.toFixed(1) + '" stroke="#e2e8f0" stroke-width="1"' +
                 (g === 3 ? '' : ' stroke-dasharray="3 4"') + '/>';
+
+    // 刻度数值：g=0 顶部 = topV，g=3 底部 = 0
+    var yVal = Math.round(topV * (3 - g) / 3);
+    yAxisHtml += '<text x="' + (padL - 5) + '" y="' + (gy + 3).toFixed(1) + '" ' +
+                 'font-size="9" fill="#94a3b8" text-anchor="end" ' +
+                 'font-family="ui-monospace,Menlo,monospace">' + yVal + '</text>';
   }
 
-  // ── x 轴标签（按窗口动态选取） ──
+  // ── x 轴标签 ──
   var labelHtml = '';
   var candidates = [0, 3, 6, 9, 12, 15, 18, 21];
   var labelHours = [];
@@ -6356,6 +6375,7 @@ function renderAirportStats(){
         '</linearGradient>' +
       '</defs>' +
       gridHtml +
+      yAxisHtml +
       '<path d="' + fillD + '" fill="url(#fltFill)" stroke="none"/>' +
       '<path d="' + pathD + '" fill="none" stroke="url(#fltStroke)" stroke-width="2.5" ' +
         'stroke-linecap="round" stroke-linejoin="round"/>' +
@@ -6434,7 +6454,7 @@ function renderAirportStats(){
     hit.addEventListener('pointercancel', hideTip);
   }
 
-  // ── 底部小时格（若存在） ──
+  // ── 底部小时格 ──
   if (barsEl){
     barsEl.innerHTML = pts.map(function(p){
       var hh4 = p.h;
