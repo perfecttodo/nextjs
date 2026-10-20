@@ -35,11 +35,14 @@ svg{display:block}
 .grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.grid-cols-7{grid-template-columns:repeat(7,minmax(0,1fr))}
+.aspect-square{aspect-ratio:1/1}
+.gap-0\.5{gap:.125rem}
 .gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}
 .space-y-1\.5 > * + *{margin-top:.375rem}
 .space-y-2 > * + *{margin-top:.5rem}
 .space-y-3 > * + *{margin-top:.75rem}
-.p-1\.5{padding:.375rem}.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}
+.p-1\.5{padding:.375rem}.p-2{padding:.5rem}.p-2\.5{padding:.625rem}.p-3{padding:.75rem}.p-4{padding:1rem}
 .px-3{padding-left:.75rem;padding-right:.75rem}
 .px-4{padding-left:1rem;padding-right:1rem}
 .py-1{padding-top:.25rem;padding-bottom:.25rem}
@@ -52,7 +55,7 @@ svg{display:block}
 .pl-3{padding-left:.75rem}.pl-8{padding-left:2rem}.pr-3{padding-right:.75rem}
 .pt-1{padding-top:.25rem}.pt-2{padding-top:.5rem}.pb-3{padding-bottom:.75rem}
 .mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}
-.mb-1{margin-bottom:.25rem}
+.mb-1{margin-bottom:.25rem}.mb-1\.5{margin-bottom:.375rem}.mb-2{margin-bottom:.5rem}
 .w-3{width:.75rem}.h-3{height:.75rem}.w-3\.5{width:.875rem}.h-3\.5{height:.875rem}
 .w-4{width:1rem}.h-4{height:1rem}.w-5{width:1.25rem}.h-5{height:1.25rem}
 .text-\[9px\]{font-size:9px;line-height:1.2}
@@ -67,7 +70,7 @@ svg{display:block}
 .font-medium{font-weight:500}.font-semibold{font-weight:600}.font-bold{font-weight:700}
 .font-extrabold{font-weight:800}.font-black{font-weight:900}
 .font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.leading-relaxed{line-height:1.625}
+.leading-relaxed{line-height:1.625}.leading-none{line-height:1}
 .underline{text-decoration:underline}
 .truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .min-w-0{min-width:0}.shrink-0{flex-shrink:0}
@@ -103,11 +106,15 @@ svg{display:block}
 .bg-orange-50{background-color:#fff7ed}
 .bg-orange-100{background-color:#ffedd5}
 .border{border-width:1px}.border-2{border-width:2px}
-.border-b{border-bottom-width:1px}
+.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}
 .border-slate-100{border-color:#f1f5f9}
 .border-slate-200{border-color:#e2e8f0}
+.border-slate-300{border-color:#cbd5e1}
+.border-slate-400{border-color:#94a3b8}
 .border-amber-200{border-color:#fde68a}
 .border-amber-300{border-color:#fcd34d}
+.border-amber-500{border-color:#f59e0b}
+.border-amber-600{border-color:#d97706}
 .border-emerald-200{border-color:#a7f3d0}
 .border-emerald-400{border-color:#34d399}
 .border-rose-200{border-color:#fecdd3}
@@ -130,20 +137,28 @@ svg{display:block}
 .hover\:bg-amber-700:hover{background-color:#b45309}
 .hover\:bg-slate-100:hover{background-color:#f1f5f9}
 .hover\:bg-slate-200:hover{background-color:#e2e8f0}
+.hover\:bg-amber-100:hover{background-color:#fef3c7}
 .hover\:text-amber-600:hover{color:#d97706}
 .hover\:text-rose-500:hover{color:#f43f5e}
-.active\:scale-\[0\.95\]:active{transform:scale(.95)}
+.active\:scale-95:active{transform:scale(.95)}
 .active\:scale-\[0\.98\]:active{transform:scale(.98)}
 .active\:scale-\[0\.99\]:active{transform:scale(.99)}
 input[type=number],input[type=text],select{
   border-width:1px;border-style:solid;border-color:#e2e8f0;
 }
-select{
-  -webkit-appearance:none;appearance:none;
-  padding-right:2rem;
-  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right .6rem center;
+
+/* ★ 日曆翻月按鈕禁用樣式 */
+.cal-nav-btn:disabled{opacity:0.3;cursor:not-allowed}
+
+/* ★ 横向更期卡片条滚动条样式 */
+#shift-strip{
+  scrollbar-width:thin;
+  scrollbar-color:#cbd5e1 transparent;
+  -webkit-overflow-scrolling:touch;
 }
+#shift-strip::-webkit-scrollbar{height:4px}
+#shift-strip::-webkit-scrollbar-track{background:transparent}
+#shift-strip::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
 </style>
 </head>
 
@@ -153,7 +168,7 @@ select{
   <div class="max-w-md mx-auto px-4 py-2.5 flex justify-between items-center">
     <div class="flex items-center gap-2">
       <button type="button" onclick="goBack()" id="back-btn"
-        class="p-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 active:scale-[0.95] transition text-white">
+        class="p-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 active:scale-95 transition text-white">
         <span class="ico w-4 h-4" data-icon="arrow-left"></span>
       </button>
       <h1 class="text-lg font-bold">現金盤點</h1>
@@ -200,7 +215,7 @@ select{
       </div>
     </div>
 
-    <!-- ★ 三个按钮：最新 / 上一個 / 下一個 -->
+    <!-- 三个快捷按钮 -->
     <div class="grid grid-cols-3 gap-1.5">
       <button type="button" onclick="setShiftQuick('latest')"
         class="py-1.5 text-[11px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-semibold transition flex items-center justify-center gap-1">
@@ -219,9 +234,59 @@ select{
       </button>
     </div>
 
-    <select id="shift-select" onchange="onShiftChange()"
-      class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">
-    </select>
+    <!-- 横向更期卡片条 -->
+    <div>
+      <div class="flex justify-between items-center mb-1.5">
+        <label class="block text-[11px] font-semibold text-slate-500">快速切換更期</label>
+        <span id="shift-strip-hint" class="text-[10px] text-slate-400"></span>
+      </div>
+      <div id="shift-strip" class="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+      </div>
+    </div>
+
+    <!-- ★ 自定义日历（无更期日期变灰） -->
+    <div>
+      <button type="button" onclick="toggleCalendar()"
+        class="w-full flex justify-between items-center px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 active:scale-[0.99] transition">
+        <span class="text-slate-600 flex items-center gap-1.5">
+          <span class="ico w-3.5 h-3.5 text-slate-400" data-icon="calendar-clock"></span>
+          <span>跳到指定日期</span>
+        </span>
+        <svg id="calendar-toggle-chevron" style="width:12px;height:12px;transition:transform .2s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+
+      <div id="calendar-panel" class="hidden mt-2 bg-white border border-slate-200 rounded-xl p-2.5">
+        <div class="flex justify-between items-center mb-2">
+          <button type="button" id="calendar-prev-btn" onclick="calendarPrevMonth()"
+            class="cal-nav-btn p-1.5 rounded-lg hover:bg-slate-100 active:scale-95 transition text-slate-600">
+            <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div id="calendar-month-title" class="text-sm font-bold text-slate-800 font-mono"></div>
+          <button type="button" id="calendar-next-btn" onclick="calendarNextMonth()"
+            class="cal-nav-btn p-1.5 rounded-lg hover:bg-slate-100 active:scale-95 transition text-slate-600">
+            <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+
+        <div id="calendar-grid" class="grid grid-cols-7 gap-0.5"></div>
+
+        <div class="flex items-center justify-center gap-3 mt-2 pt-2 border-t border-slate-100 text-[10px]">
+          <span class="flex items-center gap-1">
+            <span class="w-2.5 h-2.5 rounded bg-amber-50 border border-amber-300"></span>
+            <span class="text-slate-500">有更期</span>
+          </span>
+          <span class="flex items-center gap-1">
+            <span class="w-2.5 h-2.5 rounded bg-slate-100"></span>
+            <span class="text-slate-500">無更期</span>
+          </span>
+          <span class="flex items-center gap-1">
+            <span class="w-2.5 h-2.5 rounded bg-amber-500"></span>
+            <span class="text-slate-500">已選中</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
     <p class="text-[11px] text-slate-400 leading-relaxed">盤點以「更期」為單位，現金收入、現金油費、現金飯錢會自動統計該更期相關記錄。</p>
   </div>
 
@@ -441,6 +506,14 @@ function showToast(msg){
 }
 
 /* =========================================================
+   日期工具
+   ========================================================= */
+function pad2(n){ return String(n).padStart(2, '0'); }
+function localDateStr(d){
+  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+}
+
+/* =========================================================
    返回来源
    ========================================================= */
 function getReturnUrl(){
@@ -486,7 +559,7 @@ function getShiftKeys(){
   keys = keys.filter(function(k){
     return shifts[k] && (shifts[k].startedAt || shifts[k].startTime);
   });
-  keys.sort().reverse(); // 降序：keys[0] 最新，keys[length-1] 最早
+  keys.sort().reverse();
   return keys;
 }
 
@@ -613,49 +686,278 @@ function getExpectedOpeningBalance(currentShiftKey){
    当前选中更期
    ========================================================= */
 var currentShiftKey = null;
-function setCurrentShiftKey(key){ currentShiftKey = key; }
 
 /* =========================================================
-   更期下拉渲染
+   横向更期卡片条
    ========================================================= */
-function renderShiftSelect(){
-  var select = document.getElementById('shift-select');
-  var noShiftPanel = document.getElementById('no-shift-panel');
-  var card = document.getElementById('current-shift-card');
+function renderShiftStrip(){
+  var strip = document.getElementById('shift-strip');
+  if (!strip) return;
   var keys = getShiftKeys();
 
   if (!keys.length){
-    select.innerHTML = '<option value="">尚無更期</option>';
-    select.disabled = true;
-    noShiftPanel.classList.remove('hidden');
-    card.classList.add('hidden');
-    document.getElementById('save-btn').disabled = true;
-    document.getElementById('save-btn').classList.add('opacity-50', 'cursor-not-allowed');
+    strip.innerHTML = '<div class="text-center text-slate-400 text-xs py-3 w-full">尚無更期</div>';
     return;
   }
 
-  noShiftPanel.classList.add('hidden');
-  card.classList.remove('hidden');
-  document.getElementById('save-btn').disabled = false;
-  document.getElementById('save-btn').classList.remove('opacity-50', 'cursor-not-allowed');
-  select.disabled = false;
-
-  var selectedKey = currentShiftKey;
-  if (!selectedKey || keys.indexOf(selectedKey) === -1){
-    selectedKey = keys[0];
-    currentShiftKey = selectedKey;
-  }
-
-  select.innerHTML = keys.map(function(k){
+  strip.innerHTML = keys.map(function(k){
     var info = getShiftInfo(k);
-    var label = k + ' ' + info.weekday + ' · ' + info.timeRange + '（' + info.tripCount + ' 筆）';
-    return '<option value="' + escapeHtml(k) + '"' + (k === selectedKey ? ' selected' : '') + '>' +
-           escapeHtml(label) + '</option>';
+    var audited = getAuditByShift(k);
+    var isSelected = (k === currentShiftKey);
+    var parts = k.split('-');
+    var md = parts.length >= 3 ? (parts[1] + '-' + parts[2]) : k;
+    var wk = info.weekday || '';
+
+    var markHtml = audited
+      ? '<span class="text-[9px] text-emerald-600 font-bold leading-none mt-0.5">✓</span>'
+      : '<span class="text-[9px] leading-none mt-0.5" style="color:transparent">·</span>';
+
+    var cardCls = isSelected
+      ? 'shrink-0 w-[68px] py-2 rounded-lg border-2 transition flex flex-col items-center gap-0.5 border-amber-500 bg-amber-50 text-amber-900'
+      : 'shrink-0 w-[68px] py-2 rounded-lg border-2 transition flex flex-col items-center gap-0.5 border-slate-200 bg-white text-slate-600 hover:bg-slate-50';
+
+    return '<button type="button" data-shift-card="' + escapeHtml(k) + '" ' +
+      'onclick="selectShiftByKey(\'' + k + '\')" class="' + cardCls + '">' +
+      '<span class="text-[11px] font-mono font-bold leading-none">' + escapeHtml(md) + '</span>' +
+      '<span class="text-[9px] leading-none mt-0.5">' + escapeHtml(wk) + '</span>' +
+      markHtml +
+    '</button>';
   }).join('');
 
+  var hintEl = document.getElementById('shift-strip-hint');
+  if (hintEl){
+    hintEl.innerText = '共 ' + keys.length + ' 個';
+  }
+
+  setTimeout(scrollSelectedCardIntoView, 60);
+}
+
+function updateShiftSelectionUI(){
+  document.querySelectorAll('[data-shift-card]').forEach(function(el){
+    if (el.dataset.shiftCard === currentShiftKey){
+      el.className = 'shrink-0 w-[68px] py-2 rounded-lg border-2 transition flex flex-col items-center gap-0.5 border-amber-500 bg-amber-50 text-amber-900';
+    } else {
+      el.className = 'shrink-0 w-[68px] py-2 rounded-lg border-2 transition flex flex-col items-center gap-0.5 border-slate-200 bg-white text-slate-600 hover:bg-slate-50';
+    }
+  });
   updateShiftCard();
 }
 
+function scrollSelectedCardIntoView(){
+  var el = document.querySelector('[data-shift-card="' + currentShiftKey + '"]');
+  if (!el) return;
+  try {
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  } catch(e){
+    try { el.scrollIntoView(false); } catch(e2){}
+  }
+}
+
+/* =========================================================
+   ★ 自定义日历（无更期日期变灰）
+   ========================================================= */
+var calendarYear = null;
+var calendarMonth = null;
+var calendarOpen = false;
+
+function toggleCalendar(){
+  calendarOpen = !calendarOpen;
+  var panel = document.getElementById('calendar-panel');
+  var chev = document.getElementById('calendar-toggle-chevron');
+  if (calendarOpen){
+    syncCalendarToSelected();
+    panel.classList.remove('hidden');
+    if (chev) chev.style.transform = 'rotate(180deg)';
+    renderCalendar();
+  } else {
+    panel.classList.add('hidden');
+    if (chev) chev.style.transform = '';
+  }
+}
+
+function syncCalendarToSelected(){
+  var base = currentShiftKey || localDateStr(new Date());
+  var d = new Date(base + 'T12:00:00');
+  if (isNaN(d.getTime())) d = new Date();
+  calendarYear = d.getFullYear();
+  calendarMonth = d.getMonth();
+}
+
+function calendarPrevMonth(){
+  if (calendarMonth === null) syncCalendarToSelected();
+  calendarMonth--;
+  if (calendarMonth < 0){ calendarMonth = 11; calendarYear--; }
+  renderCalendar();
+}
+
+function calendarNextMonth(){
+  if (calendarMonth === null) syncCalendarToSelected();
+  calendarMonth++;
+  if (calendarMonth > 11){ calendarMonth = 0; calendarYear++; }
+  renderCalendar();
+}
+
+function renderCalendar(){
+  var container = document.getElementById('calendar-grid');
+  var titleEl = document.getElementById('calendar-month-title');
+  if (!container) return;
+
+  if (calendarYear === null || calendarMonth === null) syncCalendarToSelected();
+
+  var year = calendarYear;
+  var month = calendarMonth;
+
+  if (titleEl){
+    titleEl.innerText = year + ' 年 ' + (month + 1) + ' 月';
+  }
+
+  // 有更期的日期集合
+  var keys = getShiftKeys();
+  var shiftDateSet = {};
+  keys.forEach(function(k){ shiftDateSet[k] = true; });
+
+  var todayStr = localDateStr(new Date());
+  var selectedKey = currentShiftKey;
+
+  var firstDay = new Date(year, month, 1);
+  var daysInMonth = new Date(year, month + 1, 0).getDate();
+  var startWeekday = firstDay.getDay(); // 0=周日
+
+  var weekdayLabels = ['日','一','二','三','四','五','六'];
+  var html = '';
+
+  // 星期表头
+  weekdayLabels.forEach(function(w){
+    html += '<div class="text-[10px] text-slate-400 font-semibold text-center py-1">' + w + '</div>';
+  });
+
+  // 月初空白格
+  for (var i = 0; i < startWeekday; i++){
+    html += '<div></div>';
+  }
+
+  // 日期格
+  for (var d = 1; d <= daysInMonth; d++){
+    var dateStr = year + '-' + pad2(month + 1) + '-' + pad2(d);
+    var hasShift = !!shiftDateSet[dateStr];
+    var isToday = (dateStr === todayStr);
+    var isSelected = (dateStr === selectedKey);
+
+    var cls = 'aspect-square flex items-center justify-center text-xs font-mono rounded-lg transition ';
+    var attrs = '';
+
+    if (isSelected){
+      cls += 'bg-amber-500 text-white font-bold shadow-sm border-2 border-amber-600';
+      attrs = ' onclick="onCalendarDayClick(\'' + dateStr + '\')"';
+    } else if (hasShift){
+      cls += 'bg-amber-50 text-amber-900 font-bold border border-amber-300 cursor-pointer hover:bg-amber-100 active:scale-95';
+      attrs = ' onclick="onCalendarDayClick(\'' + dateStr + '\')"';
+    } else {
+      cls += 'bg-slate-100 text-slate-300 cursor-not-allowed border border-transparent';
+    }
+
+    if (isToday && !isSelected && hasShift){
+      cls += ' border-slate-400 border-2';
+    }
+
+    var tag = hasShift ? 'button' : 'div';
+    html += '<' + tag + (hasShift ? ' type="button"' : '') + ' class="' + cls + '"' + attrs + '>' + d + '</' + tag + '>';
+  }
+
+  container.innerHTML = html;
+
+  updateCalendarNavButtons(keys);
+}
+
+function updateCalendarNavButtons(keys){
+  var prevBtn = document.getElementById('calendar-prev-btn');
+  var nextBtn = document.getElementById('calendar-next-btn');
+  if (!prevBtn || !nextBtn) return;
+
+  if (!keys || !keys.length){
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    return;
+  }
+
+  var earliest = keys[keys.length - 1];
+  var latest = keys[0];
+  var eD = new Date(earliest + 'T12:00:00');
+  var lD = new Date(latest + 'T12:00:00');
+
+  var currentYM = calendarYear * 12 + calendarMonth;
+  var minYM = eD.getFullYear() * 12 + eD.getMonth();
+  var maxYM = lD.getFullYear() * 12 + lD.getMonth();
+
+  prevBtn.disabled = (currentYM <= minYM);
+  nextBtn.disabled = (currentYM >= maxYM);
+}
+
+function onCalendarDayClick(dateStr){
+  selectShiftByKey(dateStr);
+  // 收起日历
+  if (calendarOpen) toggleCalendar();
+}
+
+/* =========================================================
+   选中指定更期（统一入口）
+   ========================================================= */
+function selectShiftByKey(key){
+  if (!key) return;
+  var keys = getShiftKeys();
+  if (keys.indexOf(key) === -1){
+    showToast('該更期不存在');
+    return;
+  }
+  currentShiftKey = key;
+  updateShiftSelectionUI();
+  autoFillOpeningBalance();
+  refreshAll();
+  scrollSelectedCardIntoView();
+
+  // 如果日历展开，同步到新更期所在月
+  if (calendarOpen){
+    syncCalendarToSelected();
+    renderCalendar();
+  }
+}
+
+/* =========================================================
+   快捷切换（最新 / 上一个 / 下一个）
+   ========================================================= */
+function setShiftQuick(type){
+  var keys = getShiftKeys();
+  if (!keys.length){ showToast('尚無更期'); return; }
+
+  var targetKey;
+
+  if (type === 'latest'){
+    targetKey = keys[0];
+  } else if (type === 'prev'){
+    var idx = keys.indexOf(currentShiftKey);
+    if (idx === -1) idx = 0;
+    if (idx >= keys.length - 1){
+      showToast('已是最早一個更期');
+      return;
+    }
+    targetKey = keys[idx + 1];
+  } else if (type === 'next'){
+    var idx2 = keys.indexOf(currentShiftKey);
+    if (idx2 === -1) idx2 = keys.length - 1;
+    if (idx2 <= 0){
+      showToast('已是最新一個更期');
+      return;
+    }
+    targetKey = keys[idx2 - 1];
+  }
+
+  if (!targetKey) return;
+  selectShiftByKey(targetKey);
+}
+
+/* =========================================================
+   顶部更期卡片信息
+   ========================================================= */
 function updateShiftCard(){
   var key = currentShiftKey;
   var keyEl = document.getElementById('current-shift-key');
@@ -685,58 +987,6 @@ function updateShiftCard(){
   } else {
     auditedEl.classList.add('hidden');
   }
-}
-
-/* =========================================================
-   切换更期
-   ========================================================= */
-function onShiftChange(){
-  var select = document.getElementById('shift-select');
-  var key = select.value;
-  if (!key) return;
-  currentShiftKey = key;
-  autoFillOpeningBalance();
-  refreshAll();
-}
-
-/* ★ 支持 latest / prev / next 三种跳转 */
-function setShiftQuick(type){
-  var keys = getShiftKeys();
-  if (!keys.length){ showToast('尚無更期'); return; }
-
-  var targetKey;
-
-  if (type === 'latest'){
-    targetKey = keys[0]; // 最新更期
-
-  } else if (type === 'prev'){
-    // 上一個更期：往更早方向（index + 1）
-    var currentIndex = keys.indexOf(currentShiftKey);
-    if (currentIndex === -1) currentIndex = 0;
-    if (currentIndex >= keys.length - 1){
-      showToast('已是最早一個更期');
-      return;
-    }
-    targetKey = keys[currentIndex + 1];
-
-  } else if (type === 'next'){
-    // 下一個更期：往更晚方向（index - 1）
-    var currentIndex2 = keys.indexOf(currentShiftKey);
-    if (currentIndex2 === -1) currentIndex2 = keys.length - 1;
-    if (currentIndex2 <= 0){
-      showToast('已是最新一個更期');
-      return;
-    }
-    targetKey = keys[currentIndex2 - 1];
-  }
-
-  if (!targetKey) return;
-
-  currentShiftKey = targetKey;
-  var select = document.getElementById('shift-select');
-  if (select) select.value = targetKey;
-  autoFillOpeningBalance();
-  refreshAll();
 }
 
 /* =========================================================
@@ -770,7 +1020,7 @@ function resetOpeningBalance(){
 }
 
 /* =========================================================
-   实时计算（含油费 + 饭钱扣除）
+   实时计算
    ========================================================= */
 function recalculate(){
   var key = currentShiftKey;
@@ -1022,6 +1272,7 @@ function saveAudit(){
   document.getElementById('audit-note').value = '';
 
   refreshAll();
+  renderShiftStrip();
 }
 
 /* =========================================================
@@ -1032,6 +1283,7 @@ function deleteAudit(id){
   var audits = getAudits().filter(function(a){ return a.id !== id; });
   saveAudits(audits);
   refreshAll();
+  renderShiftStrip();
   showToast('記錄已刪除');
 }
 
@@ -1149,14 +1401,28 @@ document.addEventListener('DOMContentLoaded', function(){
   hydrateIcons();
 
   var keys = getShiftKeys();
+
+  var noShiftPanel = document.getElementById('no-shift-panel');
+  var currentShiftCard = document.getElementById('current-shift-card');
+  var saveBtn = document.getElementById('save-btn');
+
   if (!keys.length){
-    renderShiftSelect();
+    noShiftPanel.classList.remove('hidden');
+    currentShiftCard.classList.add('hidden');
+    saveBtn.disabled = true;
+    saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    renderShiftStrip();
     refreshAll();
     return;
   }
 
+  noShiftPanel.classList.add('hidden');
+  currentShiftCard.classList.remove('hidden');
+  saveBtn.disabled = false;
+  saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
   currentShiftKey = keys[0];
-  renderShiftSelect();
+  renderShiftStrip();
   autoFillOpeningBalance();
   refreshAll();
 });
