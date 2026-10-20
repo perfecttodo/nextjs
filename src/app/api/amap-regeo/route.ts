@@ -1,7 +1,24 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
-export async function GET(request) {
-  const { searchParams } = new URL(request.url);
+interface AmapRegeoResponse {
+  status: string;
+  info?: string;
+  regeocode?: {
+    formatted_address?: string;
+    addressComponent?: {
+      township?: string;
+      streetNumber?: {
+        street?: string;
+        number?: string;
+      };
+    };
+    aois?: { name: string }[];
+    pois?: { name: string }[];
+  };
+}
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
   const lat = searchParams.get('lat');
   const lng = searchParams.get('lng');
 
@@ -16,14 +33,14 @@ export async function GET(request) {
 
   // 高德位置格式要求：經度(lng),緯度(lat)
   const amapUrl = `https://restapi.amap.com/v3/geocode/regeo?key=${amapKey}&location=${lng},${lat}&extensions=all&output=json`;
-console.log(amapKey)
+
   try {
     const res = await fetch(amapUrl, { next: { revalidate: 3600 } }); // 可設快取時間，降低 API 調用量
     if (!res.ok) {
       throw new Error(`高德 API 響應 HTTP ${res.status}`);
     }
 
-    const data = await res.json();
+    const data: AmapRegeoResponse = await res.json();
 
     if (data.status !== '1' || !data.regeocode) {
       return NextResponse.json({ error: data.info || '高德解析失敗' }, { status: 400 });
@@ -41,20 +58,24 @@ console.log(amapKey)
     // 解析社區/大樓 (AOI 優先，其次 POI)
     const aois = regeo.aois || [];
     const pois = regeo.pois || [];
-    const building = aois.length > 0 
-      ? aois[0].name 
-      : (pois.length > 0 ? pois[0].name : '');
+    const building =
+      aois.length > 0
+        ? aois[0].name
+        : pois.length > 0
+          ? pois[0].name
+          : '';
 
     // 整合統一格式返回給前端
     return NextResponse.json({
       success: true,
       provider: 'amap',
       formatted_address: regeo.formatted_address || '',
-      building: building,
+      building,
       road: roadFormatted,
-      raw: data
+      raw: data,
     });
   } catch (error) {
-    return NextResponse.json({ error: error.message || '伺服器網絡錯誤' }, { status: 500 });
+    const message = error instanceof Error ? error.message : '伺服器網絡錯誤';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
