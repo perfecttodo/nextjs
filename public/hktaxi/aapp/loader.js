@@ -1,12 +1,20 @@
 /* ═══════════════════════════════════════════════════════════
-   loader.js — Shadow DOM 子页面加载器（防止重复 host）
+   loader.js — Shadow DOM 子页面加载器（支持所有 on* 内联事件）
    ═══════════════════════════════════════════════════════════ */
 (function(){
 'use strict';
 
-var loadedSubPages = {};   /* href -> { host, shadow, ns } */
-var pendingLoads = {};     /* href -> { loadingEl, controller } */
+var loadedSubPages = {};
+var pendingLoads = {};
 var currentSubPageHref = null;
+
+/* 需要处理的内联事件类型（onclick / oninput / onchange ...） */
+var EVENT_ATTRS = [
+  'click','input','change','blur','focus','keydown','keyup','keypress',
+  'submit','reset','mouseover','mouseout','mousedown','mouseup','mousemove',
+  'touchstart','touchend','touchmove','wheel','scroll',
+  'paste','copy','cut','select','load','error','animationend','transitionend'
+];
 
 function isSubPageHref(href){
   if (!href) return false;
@@ -20,16 +28,12 @@ function isSubPageHref(href){
 }
 
 function loadSubPage(href){
-  /* ── 场景 A：已经在显示当前页面，直接 return ── */
-  if (currentSubPageHref === href && loadedSubPages[href]){
-    return;
-  }
+  if (currentSubPageHref === href && loadedSubPages[href]) return;
 
   currentSubPageHref = href;
   window.__CURRENT_SUB_PAGE__ = href;
 
-  /* ── 隐藏所有 tab ── */
-  var TAB_NAMES = ['trip','list','places','stats','airport'];
+  var TAB_NAMES = ['trip','list','places','stats'];
   TAB_NAMES.forEach(function(t){
     var tabEl = document.getElementById('tab-' + t);
     if (tabEl) tabEl.classList.add('hidden');
@@ -52,26 +56,21 @@ function loadSubPage(href){
     window.scrollTo(0, 0);
   };
 
-  /* ── 隐藏所有已加载的 host ── */
   Object.keys(loadedSubPages).forEach(function(k){
     loadedSubPages[k].host.style.display = 'none';
   });
-
-  /* ── 隐藏所有 pending 的 loading ── */
   Object.keys(pendingLoads).forEach(function(k){
     if (pendingLoads[k].loadingEl && pendingLoads[k].loadingEl.parentNode){
       pendingLoads[k].loadingEl.style.display = 'none';
     }
   });
 
-  /* ── 场景 B：已经加载完成 → 直接显示，不再 fetch ── */
   if (loadedSubPages[href]){
     loadedSubPages[href].host.style.display = 'block';
     window.scrollTo(0, 0);
     return;
   }
 
-  /* ── 场景 C：正在加载中 → 只显示它的 loading，不再 fetch ── */
   if (pendingLoads[href]){
     if (pendingLoads[href].loadingEl){
       pendingLoads[href].loadingEl.style.display = 'block';
@@ -80,7 +79,6 @@ function loadSubPage(href){
     return;
   }
 
-  /* ── 场景 D：全新加载 ── */
   var loadingEl = document.createElement('div');
   loadingEl.className = 'py-20 text-center subpage-loading';
   loadingEl.innerHTML = '<div class="ico w-8 h-8 mx-auto text-amber-500 animate-spin" data-icon="loader"></div><p class="text-xs text-slate-500 mt-2">載入中...</p>';
@@ -99,13 +97,10 @@ function loadSubPage(href){
     .then(function(html){
       delete pendingLoads[href];
       if (loadingEl.parentNode) loadingEl.remove();
-
-      /* 防御性检查：如果已经有 host 就移除旧的，避免双 host */
       if (loadedSubPages[href] && loadedSubPages[href].host){
         loadedSubPages[href].host.remove();
         delete loadedSubPages[href];
       }
-
       var shouldShow = (currentSubPageHref === href);
       mountSubPage(href, html, container, shouldShow);
     })
@@ -113,7 +108,6 @@ function loadSubPage(href){
       delete pendingLoads[href];
       if (err && err.name === 'AbortError') return;
       if (loadingEl.parentNode) loadingEl.remove();
-
       if (currentSubPageHref !== href) return;
 
       var errEl = document.createElement('div');
@@ -136,6 +130,23 @@ function loadExternalScript(src){
     s.onload = function(){ resolve(); };
     s.onerror = function(){ reject(new Error('Failed: ' + src)); };
     document.head.appendChild(s);
+  });
+}
+
+/* ★ 把元素的所有 on* 内联属性转成 data-on-* ★ */
+function extractInlineEvents(el){
+  if (!el || !el.getAttributeNames) return;
+  EVENT_ATTRS.forEach(function(evt){
+    var attr = 'on' + evt;
+    if (el.hasAttribute && el.hasAttribute(attr)){
+      try {
+        var code = el.getAttribute(attr);
+        if (code){
+          el.setAttribute('data-on-' + evt, code);
+        }
+      } catch(e){}
+      el.removeAttribute(attr);
+    }
   });
 }
 
@@ -164,10 +175,9 @@ function mountSubPage(href, html, container, shouldShow){
   bodyDiv.innerHTML = doc.body.innerHTML;
   shadow.appendChild(bodyDiv);
 
-  bodyDiv.querySelectorAll('[onclick]').forEach(function(el){
-    el.dataset.onclick = el.getAttribute('onclick');
-    el.removeAttribute('onclick');
-  });
+  /* ★ 提取所有元素的 on* 属性（不只是 onclick） ★ */
+  bodyDiv.querySelectorAll('*').forEach(extractInlineEvents);
+  extractInlineEvents(bodyDiv);
 
   var inlineScripts = '';
   var externalScripts = [];
@@ -240,10 +250,11 @@ function mountSubPage(href, html, container, shouldShow){
       '  var btoa = __realWin__.btoa;\n' +
       '  var atob = __realWin__.atob;\n' +
       '  var Uint8Array = __realWin__.Uint8Array;\n' +
+      '  var MutationObserver = __realWin__.MutationObserver;\n' +
       '  function confirm(msg){ return __realWin__.confirm(msg); }\n' +
       '  function alert(msg){ return __realWin__.alert(msg); }\n' +
       '\n' +
-      /* 拦截 DOMContentLoaded / load 监听器（子页面初始化用） */
+      /* 拦截 DOMContentLoaded / load */
       '  var __origAdd__ = __realWin__.addEventListener;\n' +
       '  var __captured__ = [];\n' +
       '  __realWin__.addEventListener = function(type, handler, opts){\n' +
@@ -254,28 +265,37 @@ function mountSubPage(href, html, container, shouldShow){
       '    return __origAdd__.call(__realWin__, type, handler, opts);\n' +
       '  };\n' +
       '\n' +
+      /* ★★★ 通用事件绑定：处理所有 data-on-* 属性 ★★★ */
+      '  var __EVENT_ATTRS__ = ' + JSON.stringify(EVENT_ATTRS) + ';\n' +
+      '  function __bindAll__(el){\n' +
+      '    if (!el || !el.dataset) return;\n' +
+      '    __EVENT_ATTRS__.forEach(function(evt){\n' +
+      '      var dataKey = "on" + evt.charAt(0).toUpperCase() + evt.slice(1);\n' +
+      '      var code = el.dataset[dataKey];\n' +
+      '      if (!code) return;\n' +
+      '      var flag = "__bound_" + evt;\n' +
+      '      if (el[flag]) return;\n' +
+      '      el[flag] = true;\n' +
+      '      el.addEventListener(evt, function(e){\n' +
+      '        try { eval(code); }\n' +
+      '        catch(err){ console.error("[' + ns + '] on" + evt + " error:", err, code); }\n' +
+      '      });\n' +
+      '    });\n' +
+      '  }\n' +
+      '\n' +
       '  var __bindDone__ = false;\n' +
       '  try {\n' +
       inlineScripts + '\n' +
       '\n' +
-      '    (function __bindClick__(){\n' +
-      '      function __bind__(el){\n' +
-      '        if (!el || !el.dataset || !el.dataset.onclick || el.__subBound__) return;\n' +
-      '        el.__subBound__ = true;\n' +
-      '        var __code__ = el.dataset.onclick;\n' +
-      '        el.addEventListener("click", function(e){\n' +
-      '          e.stopPropagation();\n' +
-      '          try { eval(__code__); }\n' +
-      '          catch(err){ console.error("[' + ns + '] onclick error:", err, __code__); }\n' +
-      '        });\n' +
-      '      }\n' +
-      '      __shadow__.querySelectorAll("[data-onclick]").forEach(__bind__);\n' +
+      /* 初始扫描全部元素并绑定 */
+      '    (function __bindInit__(){\n' +
+      '      __shadow__.querySelectorAll("*").forEach(__bindAll__);\n' +
       '      var mo = new MutationObserver(function(muts){\n' +
       '        muts.forEach(function(m){\n' +
       '          m.addedNodes.forEach(function(node){\n' +
       '            if (!node || node.nodeType !== 1) return;\n' +
-      '            if (node.matches && node.matches("[data-onclick]")) __bind__(node);\n' +
-      '            if (node.querySelectorAll) node.querySelectorAll("[data-onclick]").forEach(__bind__);\n' +
+      '            __bindAll__(node);\n' +
+      '            if (node.querySelectorAll) node.querySelectorAll("*").forEach(__bindAll__);\n' +
       '          });\n' +
       '        });\n' +
       '      });\n' +
@@ -311,30 +331,18 @@ function mountSubPage(href, html, container, shouldShow){
       '    }\n' +
       '  }, 0);\n' +
       '\n' +
+      /* fallback（try 块抛错时，只处理 onclick） */
       '  if (!__bindDone__){\n' +
       '    console.warn("[' + ns + '] using fallback binding");\n' +
       '    (function __bindFallback__(){\n' +
-      '      function __bind__(el){\n' +
-      '        if (!el || !el.dataset || !el.dataset.onclick || el.__subBound__) return;\n' +
-      '        el.__subBound__ = true;\n' +
-      '        var __code__ = el.dataset.onclick;\n' +
+      '      __shadow__.querySelectorAll("[data-on-click]").forEach(function(el){\n' +
+      '        if (el.__subBoundC) return;\n' +
+      '        el.__subBoundC = true;\n' +
+      '        var code = el.dataset.onClick;\n' +
       '        el.addEventListener("click", function(e){\n' +
-      '          e.stopPropagation();\n' +
-      '          try { eval(__code__); }\n' +
-      '          catch(err){ console.error("[' + ns + '] onclick fallback error:", err, __code__); }\n' +
-      '        });\n' +
-      '      }\n' +
-      '      __shadow__.querySelectorAll("[data-onclick]").forEach(__bind__);\n' +
-      '      var mo2 = new MutationObserver(function(muts){\n' +
-      '        muts.forEach(function(m){\n' +
-      '          m.addedNodes.forEach(function(node){\n' +
-      '            if (!node || node.nodeType !== 1) return;\n' +
-      '            if (node.matches && node.matches("[data-onclick]")) __bind__(node);\n' +
-      '            if (node.querySelectorAll) node.querySelectorAll("[data-onclick]").forEach(__bind__);\n' +
-      '          });\n' +
+      '          try { eval(code); } catch(err){ console.error("[' + ns + '] fallback error:", err, code); }\n' +
       '        });\n' +
       '      });\n' +
-      '      mo2.observe(__shadow__, { childList:true, subtree:true });\n' +
       '    })();\n' +
       '  }\n' +
       '\n' +
@@ -367,12 +375,10 @@ function hideAllSubPages(){
   currentSubPageHref = null;
   window.__CURRENT_SUB_PAGE__ = null;
 
-  /* 隐藏所有 host（保留 DOM 状态） */
   Object.keys(loadedSubPages).forEach(function(k){
     loadedSubPages[k].host.style.display = 'none';
   });
 
-  /* abort 所有 pending fetch + 清理 loading */
   Object.keys(pendingLoads).forEach(function(k){
     if (pendingLoads[k].controller){
       try { pendingLoads[k].controller.abort(); } catch(e){}
@@ -385,7 +391,6 @@ function hideAllSubPages(){
 
   var container = document.getElementById('sub-page-container');
   if (container){
-    /* 清理所有非 host 的元素（loading / error 占位） */
     Array.prototype.slice.call(container.children).forEach(function(child){
       if (!child.classList.contains('subpage-host')){
         child.remove();

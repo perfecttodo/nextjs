@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>香港國際機場航班 · 的士助手</title>
+<meta name="theme-color" content="#f59e0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+*,*::before,*::after{box-sizing:border-box;border:0 solid #e2e8f0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+h1,h2,h3,p{margin:0;font-size:inherit;font-weight:inherit}
+button,input,select,textarea{font:inherit;color:inherit;margin:0}
+button{background:none;cursor:pointer;border:0;padding:0}
+input,select,textarea{background:none}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+svg{display:block}
+ul{list-style:none;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang HK","Hiragino Sans CNS","Microsoft JhengHei","Noto Sans TC",sans-serif;-webkit-tap-highlight-color:transparent;touch-action:manipulation;background-color:#f8fafc;color:#1e293b;min-height:100vh;display:flex;flex-direction:column;padding-bottom:calc(1rem + env(safe-area-inset-bottom, 0px))}
+.ico{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.flex{display:flex}.grid{display:grid}.hidden{display:none !important}.flex-1{flex:1 1 0%}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}
+.items-center{align-items:center}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-baseline{align-items:baseline}
+.justify-between{justify-content:space-between}.justify-center{justify-content:center}.justify-end{justify-content:flex-end}
+.text-center{text-align:center}.text-right{text-align:right}.mx-auto{margin-left:auto;margin-right:auto}.w-full{width:100%}
+.relative{position:relative}.absolute{position:absolute}.fixed{position:fixed}.sticky{position:sticky}
+.inset-0{top:0;right:0;bottom:0;left:0}.inset-y-0{top:0;bottom:0}.left-0{left:0}.right-0{right:0}
+.top-0{top:0}.bottom-0{bottom:0}.z-50{z-index:50}.z-60{z-index:60}.z-70{z-index:70}
+.shrink-0{flex-shrink:0}.min-w-0{min-width:0}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.pointer-events-none{pointer-events:none}
+.select-none{user-select:none;-webkit-user-select:none}
+.max-w-md{max-width:28rem}.max-w-sm{max-width:24rem}.max-w-\[9rem\]{max-width:9rem}
+.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}
+.space-y-2 > * + *{margin-top:.5rem}.space-y-3 > * + *{margin-top:.75rem}
+.p-1\.5{padding:.375rem}.p-2{padding:.5rem}.p-2\.5{padding:.625rem}.p-3{padding:.75rem}.p-3\.5{padding:.875rem}.p-4{padding:1rem}.p-8{padding:2rem}
+.px-2\.5{padding-left:.625rem;padding-right:.625rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}
+.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}
+.pt-2{padding-top:.5rem}.pb-3{padding-bottom:.75rem}
+.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-1\.5{margin-top:.375rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}
+.mb-1\.5{margin-bottom:.375rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}
+.w-3{width:.75rem}.h-3{height:.75rem}.w-3\.5{width:.875rem}.h-3\.5{height:.875rem}
+.w-4{width:1rem}.h-4{height:1rem}.w-5{width:1.25rem}.h-5{height:1.25rem}
+.w-10{width:2.5rem}.h-10{height:2.5rem}
+.text-\[9px\]{font-size:9px;line-height:1.2}.text-\[10px\]{font-size:10px;line-height:1.45}.text-\[11px\]{font-size:11px;line-height:1.45}
+.text-xs{font-size:.75rem;line-height:1.45}.text-sm{font-size:.875rem;line-height:1.45}.text-base{font-size:1rem;line-height:1.5}
+.text-lg{font-size:1.125rem;line-height:1.5}
+.font-medium{font-weight:500}.font-semibold{font-weight:600}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-black{font-weight:900}
+.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}.leading-none{line-height:1}
+.whitespace-nowrap{white-space:nowrap}
+.text-slate-300{color:#cbd5e1}.text-slate-400{color:#94a3b8}.text-slate-500{color:#64748b}.text-slate-600{color:#475569}
+.text-slate-700{color:#334155}.text-slate-800{color:#1e293b}.text-slate-900{color:#0f172a}.text-white{color:#fff}
+.text-amber-500{color:#f59e0b}.text-amber-600{color:#d97706}.text-amber-700{color:#b45309}.text-amber-800{color:#92400e}.text-amber-900{color:#78350f}
+.text-rose-500{color:#f43f5e}.text-rose-600{color:#e11d48}
+.text-emerald-700{color:#047857}
+.text-blue-500{color:#3b82f6}.text-blue-600{color:#2563eb}.text-blue-700{color:#1d4ed8}
+.bg-white{background-color:#fff}.bg-slate-50{background-color:#f8fafc}.bg-slate-100{background-color:#f1f5f9}.bg-slate-900{background-color:#0f172a}
+.bg-amber-50{background-color:#fffbeb}.bg-amber-100{background-color:#fef3c7}.bg-amber-500{background-color:#f59e0b}.bg-amber-600{background-color:#d97706}
+.bg-emerald-50{background-color:#ecfdf5}.bg-rose-50{background-color:#fff1f2}
+.bg-blue-50{background-color:#eff6ff}
+.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}
+.border-slate-100{border-color:#f1f5f9}.border-slate-200{border-color:#e2e8f0}.border-slate-300{border-color:#cbd5e1}
+.border-amber-200{border-color:#fde68a}.border-amber-300{border-color:#fcd34d}.border-amber-600{border-color:#d97706}
+.border-rose-200{border-color:#fecdd3}
+.border-emerald-200{border-color:#a7f3d0}
+.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}
+.shadow-sm{box-shadow:0 1px 3px rgba(15,23,42,.08),0 1px 2px rgba(15,23,42,.04)}
+.shadow-md{box-shadow:0 4px 10px rgba(15,23,42,.10),0 2px 4px rgba(15,23,42,.05)}
+.shadow-lg{box-shadow:0 8px 24px rgba(15,23,42,.12)}
+.transition{transition:all .2s ease}
+.animate-spin{animation:spin 1s linear infinite}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.hover\:bg-amber-600:hover{background-color:#d97706}.hover\:bg-amber-700:hover{background-color:#b45309}
+.hover\:bg-slate-100:hover{background-color:#f1f5f9}.hover\:bg-slate-200:hover{background-color:#e2e8f0}
+.active\:scale-\[0\.95\]:active{transform:scale(.95)}
+.active\:scale-\[0\.98\]:active{transform:scale(.98)}
+input[type=text],input[type=date]{border-width:1px;border-style:solid;border-color:#e2e8f0}
+input[type=date]{min-height:2.35rem}
+input[type=checkbox]{-webkit-appearance:none;appearance:none;width:1rem;height:1rem;border:1px solid #cbd5e1;border-radius:.25rem;background:#fff;position:relative;cursor:pointer;flex-shrink:0;transition:all .15s ease}
+input[type=checkbox]:checked{background-color:#f59e0b;border-color:#f59e0b}
+input[type=checkbox]:checked::after{content:'';position:absolute;left:5px;top:1px;width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+</style>
+</head>
+<body>
+
+<header class="bg-amber-500 text-slate-900 shadow-md sticky top-0 z-50">
+  <div class="max-w-md mx-auto px-4 py-2.5 flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <button type="button" onclick="goBack()" id="back-btn"
+        class="p-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 active:scale-[0.95] transition text-white">
+        <span class="ico w-4 h-4" data-icon="arrow-left"></span>
+      </button>
+      <h1 class="text-lg font-bold">香港國際機場航班</h1>
+    </div>
+    <span class="ico w-5 h-5" data-icon="plane-takeoff"></span>
+  </div>
+</header>
+
+<main class="max-w-md w-full mx-auto p-4 space-y-3">
+  <!-- 顶部控制卡片 -->
+  <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 space-y-3">
+    <!-- 日期选择 -->
+    <div class="flex gap-2">
+      <input type="date" id="airport-date" onchange="loadFlightList()"
+        class="flex-1 min-w-0 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">
+      <button type="button" onclick="loadFlightList()"
+        class="px-3 py-2 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-900 font-bold rounded-xl text-xs transition shrink-0 flex items-center gap-1">
+        <span class="ico w-3.5 h-3.5" data-icon="rotate-cw"></span>更新
+      </button>
+    </div>
+
+    <!-- 抵港/离港 -->
+    <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+      <button type="button" id="flt-tab-arr" onclick="setFlightTab(true)"
+        class="py-1.5 rounded-lg bg-white shadow-sm text-slate-800 font-bold transition flex items-center justify-center gap-1">
+        <span class="ico w-3.5 h-3.5" data-icon="plane-landing"></span> 抵港
+      </button>
+      <button type="button" id="flt-tab-dep" onclick="setFlightTab(false)"
+        class="py-1.5 rounded-lg text-slate-600 font-medium transition flex items-center justify-center gap-1">
+        <span class="ico w-3.5 h-3.5" data-icon="plane-takeoff"></span> 離港
+      </button>
+    </div>
+
+    <!-- 列表/统计 -->
+    <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+      <button type="button" id="airport-view-list" onclick="setAirportView('list')"
+        class="py-1.5 rounded-lg bg-white shadow-sm text-slate-800 font-bold transition flex items-center justify-center gap-1">
+        <span class="ico w-3.5 h-3.5" data-icon="list-bullet"></span> 列表
+      </button>
+      <button type="button" id="airport-view-stats" onclick="setAirportView('stats')"
+        class="py-1.5 rounded-lg text-slate-600 font-medium transition flex items-center justify-center gap-1">
+        <span class="ico w-3.5 h-3.5" data-icon="bar-chart-3"></span> 統計
+      </button>
+    </div>
+
+    <!-- 隐藏过期开关 -->
+    <label class="flex items-center justify-between gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 cursor-pointer select-none">
+      <span class="flex items-center gap-1.5 min-w-0">
+        <span class="ico w-3.5 h-3.5 text-amber-500 shrink-0" data-icon="clock"></span>
+        <span id="airport-hide-label" class="text-xs font-semibold text-slate-700 truncate">隱藏過期航班</span>
+      </span>
+      <input type="checkbox" id="airport-hide-expired" onchange="toggleHideExpiredFlights(this.checked)">
+    </label>
+
+    <div id="flight-status" class="text-[11px] text-slate-400 text-center font-medium"></div>
+  </div>
+
+  <!-- 列表视图 -->
+  <div id="airport-list-view">
+    <div id="flight-list" class="space-y-2"></div>
+  </div>
+
+  <!-- 统计视图 -->
+  <div id="airport-stats-view" class="space-y-3 hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+      <div class="flex justify-between items-center">
+        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+          <span class="ico w-4 h-4 text-amber-500" data-icon="bar-chart-3"></span><span>時段分佈</span>
+        </h3>
+        <span id="airport-stats-subtitle" class="text-[11px] text-slate-400 font-mono"></span>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+        <div class="bg-slate-50 rounded-lg py-2 border border-slate-100">
+          <div class="text-slate-500">航班總數</div>
+          <div id="airport-stat-total" class="text-slate-800 font-bold font-mono mt-0.5">--</div>
+        </div>
+        <div class="bg-amber-50 rounded-lg py-2 border border-amber-200">
+          <div class="text-amber-700">最忙時段</div>
+          <div id="airport-stat-peak" class="text-amber-800 font-extrabold font-mono mt-0.5">--</div>
+        </div>
+        <div class="bg-emerald-50 rounded-lg py-2 border border-emerald-200">
+          <div class="text-emerald-700">平均每小時</div>
+          <div id="airport-stat-avg" class="text-emerald-700 font-bold font-mono mt-0.5">--</div>
+        </div>
+      </div>
+
+      <div id="airport-chart-container" class="relative select-none"></div>
+
+      <p id="airport-stats-hint" class="text-[11px] text-slate-400 leading-relaxed text-center">
+        每小時的航班數量分佈（滑動／點擊曲線查看）
+      </p>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   ICONS
+   ═══════════════════════════════════════════════════════════ */
+var ICONS = {
+  'arrow-left':'<path d="M19 12H5M12 19l-7-7 7-7"/>',
+  'plane-takeoff':'<path d="M2 22h20M6.36 17.4 4 17l-2-4 1.1-.55a2 2 0 0 1 1.8 0l.17.1a2 2 0 0 0 1.8 0L8 12 5 6l1-.5c.3-.2.7-.2 1 0l5.5 3.5 3-3c.5-.5 1.3-.7 2-.5l2.1.7c.6.2 1 .8 1 1.4v.1c0 .4-.2.8-.5 1L16 14l-2 .5c-.3.1-.7.1-1 0l-3.7-1.8-2.1 2.1c-.2.2-.5.3-.8.3l-.1.1c-.3 0-.5-.1-.7-.2l-.6-.4a1.5 1.5 0 0 0-1.7-.1z"/>',
+  'plane-landing':'<path d="M2 22h20M3.77 10.35l-.6-.6a2 2 0 0 1 0-2.83l.7-.7 4.7 1.2 2.8-2.8a2 2 0 0 1 2.4-.35l1.6.8-3.3 3.3 4.7 1.2 3.2-1.6a2 2 0 0 1 2.4.35l1.4 1.4-4.2 4.2-4 1c-1.1.27-2.2-.07-3-.9l-4.3-4.3-4.5 1.15c-.3.08-.6-.05-.75-.3l-.35-.6a.75.75 0 0 1 .25-1l3.4-1.7z"/>',
+  'rotate-cw':'<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+  'list-bullet':'<path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>',
+  'bar-chart-3':'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  'clock':'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  'alert-triangle':'<path d="m10.3 3.6-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.4l-8-14a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+  'loader':'<path d="M21 12a9 9 0 1 1-6.219-8.56"/>'
+};
+
+function ico(name, cls){
+  cls = cls || 'w-4 h-4';
+  return '<svg class="' + cls + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+       + 'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+       + (ICONS[name] || '') + '</svg>';
+}
+
+function hydrateIcons(root){
+  (root || document).querySelectorAll('[data-icon]').forEach(function(el){
+    if (el.dataset.done) return;
+    el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+                 + 'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" '
+                 + 'style="width:100%;height:100%">' + (ICONS[el.dataset.icon] || '') + '</svg>';
+    el.dataset.done = '1';
+  });
+}
+
+function escapeHtml(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function pad2(n){ return String(n).padStart(2, '0'); }
+function localDateStr(d){ return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+
+function setText(id, text){
+  var el = document.getElementById(id);
+  if (el) el.innerText = text;
+}
+
+function showToast(msg){
+  var toast = document.getElementById('toast');
+  if (!toast){
+    toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.style.cssText = 'position:fixed;top:4rem;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:.5rem 1rem;border-radius:.75rem;font-size:.75rem;font-weight:500;box-shadow:0 8px 24px rgba(15,23,42,.25);z-index:80;transition:opacity .3s ease;opacity:0;pointer-events:none;max-width:calc(100vw - 2rem);text-align:center';
+    document.body.appendChild(toast);
+  }
+  toast.innerText = msg;
+  toast.style.opacity = '1';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(function(){ toast.style.opacity = '0'; }, 2800);
+}
+
+function buildSmoothPath(pts, minY, maxY){
+  var n = pts.length;
+  if (n === 0) return '';
+  if (n === 1) return 'M' + pts[0].x.toFixed(2) + ',' + pts[0].y.toFixed(2);
+  if (n === 2) return 'M' + pts[0].x.toFixed(2) + ',' + pts[0].y.toFixed(2) + 'L' + pts[1].x.toFixed(2) + ',' + pts[1].y.toFixed(2);
+
+  var d = 'M' + pts[0].x.toFixed(2) + ',' + pts[0].y.toFixed(2);
+  for (var i = 0; i < n - 1; i++){
+    var p0 = pts[i - 1] || pts[i];
+    var p1 = pts[i];
+    var p2 = pts[i + 1];
+    var p3 = pts[i + 2] || p2;
+
+    var c1x = p1.x + (p2.x - p0.x) / 6;
+    var c1y = p1.y + (p2.y - p0.y) / 6;
+    var c2x = p2.x - (p3.x - p1.x) / 6;
+    var c2y = p2.y - (p3.y - p1.y) / 6;
+
+    if (c1y < minY) c1y = minY;
+    if (c1y > maxY) c1y = maxY;
+    if (c2y < minY) c2y = minY;
+    if (c2y > maxY) c2y = maxY;
+
+    d += ' C' + c1x.toFixed(2) + ',' + c1y.toFixed(2) + ' ' + c2x.toFixed(2) + ',' + c2y.toFixed(2) + ' ' + p2.x.toFixed(2) + ',' + p2.y.toFixed(2);
+  }
+  return d;
+}
+
+function goBack(){
+  window.location.href = './index.html';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   机场航班状态
+   ═══════════════════════════════════════════════════════════ */
+var flightTabArrival = true;
+var airportInitialized = false;
+var airportView = 'stats';
+var airportAllFlights  = [];
+var airportFlights     = [];
+var airportHiddenCount = 0;
+var airportLoaded      = false;
+
+var HIDE_EXPIRED_KEY = 'taxi_airport_hide_expired';
+var hideExpiredFlights = localStorage.getItem(HIDE_EXPIRED_KEY) !== '0';
+var FLIGHT_EXPIRE_MINUTES = 60;
+
+/* ═══════════════════════════════════════════════════════════
+   核心函数
+   ═══════════════════════════════════════════════════════════ */
+function toggleHideExpiredFlights(checked){
+  hideExpiredFlights = checked;
+  localStorage.setItem(HIDE_EXPIRED_KEY, checked ? '1' : '0');
+  applyAirportFilterAndRender();
+}
+
+function showAllFlights(){
+  var chk = document.getElementById('airport-hide-expired');
+  if (chk) chk.checked = false;
+  toggleHideExpiredFlights(false);
+}
+
+function updateAirportHideLabel(){
+  var el = document.getElementById('airport-hide-label');
+  if (!el) return;
+  var h = FLIGHT_EXPIRE_MINUTES / 60;
+  var hText = (h === Math.floor(h)) ? String(h) : h.toFixed(1);
+  el.innerText = flightTabArrival ? '隱藏已到港逾 ' + hText + ' 小時' : '隱藏距起飛不足 ' + hText + ' 小時';
+}
+
+function parseFlightMinutes(timeStr){
+  if (!timeStr) return null;
+  var m = String(timeStr).match(/(\d{1,2})\s*[:：]\s*(\d{1,2})/);
+  if (!m) return null;
+  var hh = parseInt(m[1], 10);
+  var mm = parseInt(m[2], 10);
+  if (isNaN(hh) || isNaN(mm) || hh > 23 || mm > 59) return null;
+  return hh * 60 + mm;
+}
+
+function filterExpiredFlights(list, date, isArrival){
+  if (!hideExpiredFlights) return list;
+  if (date !== localDateStr(new Date())) return list;
+
+  var now = new Date();
+  var nowMin = now.getHours() * 60 + now.getMinutes();
+  var th = FLIGHT_EXPIRE_MINUTES;
+
+  return list.filter(function(f){
+    var fm = parseFlightMinutes(f.time);
+    if (fm === null) return true;
+    return isArrival ? fm >= nowMin - th : fm >= nowMin + th;
+  });
+}
+
+function setAirportView(v){
+  airportView = v;
+
+  var on  = 'py-1.5 rounded-lg bg-white shadow-sm text-slate-800 font-bold transition flex items-center justify-center gap-1';
+  var off = 'py-1.5 rounded-lg text-slate-600 font-medium transition flex items-center justify-center gap-1';
+
+  var listBtn  = document.getElementById('airport-view-list');
+  var statsBtn = document.getElementById('airport-view-stats');
+  if (listBtn)  listBtn.className  = (v === 'list')  ? on : off;
+  if (statsBtn) statsBtn.className = (v === 'stats') ? on : off;
+
+  var listWrap  = document.getElementById('airport-list-view');
+  var statsWrap = document.getElementById('airport-stats-view');
+  if (listWrap)  listWrap.classList.toggle('hidden',  v !== 'list');
+  if (statsWrap) statsWrap.classList.toggle('hidden', v !== 'stats');
+
+  if (v === 'stats') renderAirportStats();
+}
+
+function applyAirportFilterAndRender(){
+  var dateEl = document.getElementById('airport-date');
+  var date = dateEl ? dateEl.value : '';
+
+  airportFlights = filterExpiredFlights(airportAllFlights, date, flightTabArrival);
+  airportHiddenCount = airportAllFlights.length - airportFlights.length;
+
+  renderAirportList();
+  if (airportView === 'stats') renderAirportStats();
+  updateAirportStatus();
+}
+
+function updateAirportStatus(){
+  var statusEl = document.getElementById('flight-status');
+  if (!statusEl) return;
+
+  var dateEl = document.getElementById('airport-date');
+  var date = dateEl ? dateEl.value : '';
+
+  if (!airportLoaded){ statusEl.innerText = ''; return; }
+  if (!airportAllFlights.length){ statusEl.innerText = '此日期無航班記錄'; return; }
+  if (!airportFlights.length){ statusEl.innerText = '共 ' + airportAllFlights.length + ' 班（已全部隱藏）'; return; }
+
+  statusEl.innerText = '共 ' + airportFlights.length + ' 班 · ' + date +
+    (flightTabArrival ? '（抵港）' : '（離港）') +
+    (airportHiddenCount > 0 ? ' · 已隱藏 ' + airportHiddenCount + ' 班' : '');
+}
+
+function renderAirportList(){
+  var listEl = document.getElementById('flight-list');
+  if (!listEl) return;
+
+  if (!airportLoaded){ listEl.innerHTML = ''; return; }
+
+  if (!airportFlights.length){
+    if (airportAllFlights.length){
+      listEl.innerHTML =
+        '<div class="bg-white rounded-2xl p-8 text-center border border-slate-100 text-slate-400 space-y-2">' +
+          '<div class="ico w-10 h-10 mx-auto text-slate-300">' + ico('clock','w-10 h-10') + '</div>' +
+          '<p class="text-sm font-medium">' + airportAllFlights.length + ' 班航班全部符合隱藏條件</p>' +
+          '<p class="text-[11px] text-slate-400">可關閉上方開關查看全部</p>' +
+          '<button onclick="showAllFlights()" class="mt-2 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg text-xs transition">顯示全部</button>' +
+        '</div>';
+    } else {
+      listEl.innerHTML =
+        '<div class="bg-white rounded-2xl p-8 text-center border border-slate-100 text-slate-400 space-y-2">' +
+          '<div class="ico w-10 h-10 mx-auto text-slate-300">' + ico('plane-takeoff','w-10 h-10') + '</div>' +
+          '<p class="text-sm font-medium">沒有找到航班資料</p>' +
+        '</div>';
+    }
+    return;
+  }
+
+  listEl.innerHTML = airportFlights.map(function(f){
+    var flightArr = Array.isArray(f.flight) ? f.flight : [];
+    var flightNos = flightArr.map(function(x){ return x.no; }).filter(Boolean).join(' / ') || '--';
+    var airline = flightArr.length && flightArr[0].airline ? flightArr[0].airline : '';
+    var time = f.time || '--:--';
+    var status = f.status || '';
+    var origin = f.origin || '';
+    var dest = f.destination || '';
+    var terminal = f.terminal || '';
+    var carousel = f.carousel || '';
+
+    var isAbnormal = /delay|cancel|取消|延誤|改期/i.test(status);
+
+    var routeText = flightTabArrival ? ('來自 ' + escapeHtml(origin || '--')) : ('前往 ' + escapeHtml(dest || '--'));
+
+    var extraBadges = '';
+    if (terminal){
+      extraBadges += '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200 font-medium">' + escapeHtml(terminal) + '</span>';
+    }
+    if (flightTabArrival && carousel){
+      extraBadges += '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-medium">' + escapeHtml(carousel) + '</span>';
+    }
+
+    return '' +
+      '<div class="bg-white rounded-2xl border ' + (isAbnormal ? 'border-rose-200' : 'border-slate-100') + ' shadow-sm p-3">' +
+        '<div class="flex justify-between items-start gap-2">' +
+          '<div class="min-w-0 flex-1">' +
+            '<div class="flex items-center gap-1.5 flex-wrap">' +
+              '<span class="text-sm font-black text-slate-900 font-mono">' + escapeHtml(flightNos) + '</span>' +
+              (airline ? '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200 font-medium truncate max-w-[9rem]">' + escapeHtml(airline) + '</span>' : '') +
+            '</div>' +
+            '<div class="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">' + routeText + (extraBadges ? extraBadges : '') + '</div>' +
+          '</div>' +
+          '<div class="text-right shrink-0">' +
+            '<div class="font-mono font-bold text-sm ' + (isAbnormal ? 'text-rose-600' : 'text-slate-800') + '">' + escapeHtml(time) + '</div>' +
+            (status ? '<div class="text-[10px] mt-0.5 ' + (isAbnormal ? 'text-rose-500 font-bold' : 'text-slate-400') + '">' + escapeHtml(status) + '</div>' : '') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }).join('');
+}
+
+function renderAirportStats(){
+  var container = document.getElementById('airport-chart-container');
+  var barsEl    = document.getElementById('airport-hour-bars');
+  if (!container) return;
+
+  var dateEl = document.getElementById('airport-date');
+  var date = dateEl ? dateEl.value : '';
+
+  var now = new Date();
+  var todayStr = localDateStr(now);
+  var isToday = (date === todayStr);
+  var currentHour = isToday ? now.getHours() : -1;
+
+  var displayStartHour = 0;
+  var displayEndHour = 23;
+  if (isToday){
+    displayStartHour = Math.max(0, currentHour - 12);
+    displayEndHour = Math.min(23, currentHour + 12);
+  }
+  var n = displayEndHour - displayStartHour + 1;
+
+  var subtitleEl = document.getElementById('airport-stats-subtitle');
+  if (subtitleEl){
+    var subtitleText = date + (flightTabArrival ? ' · 抵港' : ' · 離港');
+    if (isToday){
+      subtitleText += ' · ' + pad2(displayStartHour) + ':00-' + pad2(displayEndHour) + ':59';
+    }
+    subtitleEl.innerText = subtitleText;
+  }
+
+  var buckets = new Array(24);
+  for (var i = 0; i < 24; i++) buckets[i] = 0;
+
+  (airportFlights || []).forEach(function(f){
+    var m = parseFlightMinutes(f.time);
+    if (m === null) return;
+    var h = Math.floor(m / 60);
+    if (h < 0 || h > 23) return;
+    buckets[h]++;
+  });
+
+  var windowFlights = 0;
+  var maxV = 0, peakHour = displayStartHour;
+  var nonZero = 0;
+  for (var hw = displayStartHour; hw <= displayEndHour; hw++){
+    windowFlights += buckets[hw];
+    if (buckets[hw] > maxV){ maxV = buckets[hw]; peakHour = hw; }
+    if (buckets[hw] > 0) nonZero++;
+  }
+  var avg = nonZero ? windowFlights / nonZero : 0;
+
+  setText('airport-stat-total', windowFlights + ' 班');
+  setText('airport-stat-peak', maxV > 0 ? (pad2(peakHour) + ':00 · ' + maxV + ' 班') : '--');
+  setText('airport-stat-avg', nonZero ? avg.toFixed(1) + ' 班' : '--');
+
+  var hintEl = document.getElementById('airport-stats-hint');
+  if (hintEl){
+    if (isToday && currentHour >= 0){
+      var curCnt = buckets[currentHour] || 0;
+      hintEl.innerHTML = '現在 <b class="text-rose-600">' + pad2(currentHour) + ':00</b> 有 <b class="text-rose-600">' + curCnt + '</b> 班航班 · 滑動／點擊曲線查看詳情';
+    } else {
+      hintEl.innerText = '每小時的航班數量分佈（滑動／點擊曲線查看）';
+    }
+  }
+
+  if (windowFlights === 0){
+    container.innerHTML =
+      '<div class="py-10 text-center text-slate-300 text-xs leading-relaxed">' +
+        (airportAllFlights.length
+          ? '目前顯示範圍內暫無航班<br><span class="text-[11px]">可關閉上方開關或切換日期</span>'
+          : '此日期暫無航班時段數據') +
+      '</div>';
+    if (barsEl) barsEl.innerHTML = '';
+    return;
+  }
+
+  var W = 340, H = 176;
+  var padL = 32, padR = 10, padT = 24, padB = 30;
+  var plotW = W - padL - padR;
+  var plotH = H - padT - padB;
+
+  var topV = Math.max(1, Math.ceil(maxV));
+  if (topV % 3 !== 0) topV = Math.ceil(topV / 3) * 3;
+
+  var botV = 0;
+  var span = topV - botV;
+  if (span <= 0) span = 1;
+
+  function px(i){
+    if (n <= 1) return padL + plotW / 2;
+    return padL + (plotW * i) / (n - 1);
+  }
+  function py(v){ return padT + plotH - ((v - botV) / span) * plotH; }
+
+  var pts = [];
+  for (var k = 0; k < n; k++){
+    var hh = displayStartHour + k;
+    pts.push({ x: px(k), y: py(buckets[hh]), v: buckets[hh], h: hh });
+  }
+
+  var pathD = buildSmoothPath(pts, padT - 6, padT + plotH + 6);
+
+  var zeroY = py(0);
+  var fillD = pathD +
+    ' L' + pts[n - 1].x.toFixed(2) + ',' + zeroY.toFixed(2) +
+    ' L' + pts[0].x.toFixed(2) + ',' + zeroY.toFixed(2) + ' Z';
+
+  var gridHtml = '';
+  var yAxisHtml = '';
+
+  for (var g = 0; g <= 3; g++){
+    var gy = padT + (plotH * g) / 3;
+
+    gridHtml += '<line x1="' + padL + '" y1="' + gy.toFixed(1) + '" x2="' + (W - padR) +
+                '" y2="' + gy.toFixed(1) + '" stroke="#e2e8f0" stroke-width="1"' +
+                (g === 3 ? '' : ' stroke-dasharray="3 4"') + '/>';
+
+    var yVal = Math.round(topV * (3 - g) / 3);
+    yAxisHtml += '<text x="' + (padL - 5) + '" y="' + (gy + 3).toFixed(1) + '" ' +
+                 'font-size="9" fill="#94a3b8" text-anchor="end" ' +
+                 'font-family="ui-monospace,Menlo,monospace">' + yVal + '</text>';
+  }
+
+  var labelHtml = '';
+  var candidates = [0, 3, 6, 9, 12, 15, 18, 21];
+  var labelHours = [];
+  candidates.forEach(function(h){
+    if (h >= displayStartHour && h <= displayEndHour) labelHours.push(h);
+  });
+  if (labelHours.length === 0){
+    labelHours = [displayStartHour, displayEndHour];
+  } else {
+    if (labelHours[0] - displayStartHour > 1) labelHours.unshift(displayStartHour);
+    if (displayEndHour - labelHours[labelHours.length - 1] > 1) labelHours.push(displayEndHour);
+  }
+
+  labelHours.forEach(function(h, idx){
+    var pos = h - displayStartHour;
+    var lx = px(pos);
+    var anchor = 'middle';
+    if (idx === 0 || lx < padL + 20) anchor = 'start';
+    if (idx === labelHours.length - 1 || lx > W - padR - 20) anchor = 'end';
+
+    var isNowLabel = (isToday && h === currentHour);
+    labelHtml += '<text x="' + lx.toFixed(1) + '" y="' + (H - 8) +
+                 '" font-size="9" fill="' + (isNowLabel ? '#ef4444' : '#94a3b8') +
+                 '" text-anchor="' + anchor +
+                 '" font-family="ui-monospace,Menlo,monospace"' +
+                 (isNowLabel ? ' font-weight="700"' : '') + '>' + pad2(h) + ':00</text>';
+  });
+
+  var dotsHtml = '';
+  for (var d = 0; d < n; d++){
+    var hh2 = displayStartHour + d;
+    if (buckets[hh2] <= 0) continue;
+    if (isToday && hh2 === currentHour) continue;
+    var isPeak = (hh2 === peakHour);
+    dotsHtml += '<circle cx="' + pts[d].x.toFixed(1) + '" cy="' + pts[d].y.toFixed(1) +
+                '" r="' + (isPeak ? 4.5 : 2.8) + '" fill="' + (isPeak ? '#f59e0b' : '#ffffff') +
+                '" stroke="#f59e0b" stroke-width="2"/>';
+  }
+
+  var nowMarkerHtml = '';
+  if (isToday && currentHour >= displayStartHour && currentHour <= displayEndHour){
+    var nowPos = currentHour - displayStartHour;
+    var cx = px(nowPos);
+    var currentY = py(buckets[currentHour]);
+    var currentFlights = buckets[currentHour];
+
+    nowMarkerHtml += '<line x1="' + cx.toFixed(1) + '" y1="' + (padT - 2) +
+                     '" x2="' + cx.toFixed(1) + '" y2="' + (padT + plotH) +
+                     '" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.55"/>';
+
+    var labelW = 34, labelH = 13;
+    var labelX = cx - labelW / 2;
+    if (labelX < padL) labelX = padL;
+    if (labelX + labelW > W - padR) labelX = W - padR - labelW;
+    var labelY = padT - labelH - 4;
+    nowMarkerHtml += '<rect x="' + labelX.toFixed(1) + '" y="' + labelY.toFixed(1) +
+                     '" width="' + labelW + '" height="' + labelH +
+                     '" rx="3" fill="#ef4444"/>';
+    nowMarkerHtml += '<text x="' + (labelX + labelW / 2).toFixed(1) + '" y="' + (labelY + 9.5).toFixed(1) +
+                     '" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="700"' +
+                     ' font-family="-apple-system,BlinkMacSystemFont,sans-serif">現在</text>';
+
+    if (currentFlights > 0){
+      nowMarkerHtml += '<circle cx="' + cx.toFixed(1) + '" cy="' + currentY.toFixed(1) +
+                       '" r="7.5" fill="none" stroke="#ef4444" stroke-width="2" opacity="0.25"/>';
+      nowMarkerHtml += '<circle cx="' + cx.toFixed(1) + '" cy="' + currentY.toFixed(1) +
+                       '" r="4" fill="#ef4444" stroke="#ffffff" stroke-width="1.5"/>';
+    } else {
+      nowMarkerHtml += '<circle cx="' + cx.toFixed(1) + '" cy="' + (padT + plotH + 3).toFixed(1) +
+                       '" r="2.5" fill="#ef4444" stroke="#ffffff" stroke-width="0.8"/>';
+    }
+  }
+
+  container.innerHTML =
+    '<svg id="airport-chart-svg" viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="auto" ' +
+      'preserveAspectRatio="xMidYMid meet" style="display:block;touch-action:none;overflow:visible">' +
+      '<defs>' +
+        '<linearGradient id="fltFill" x1="0" y1="0" x2="0" y2="1">' +
+          '<stop offset="0%" stop-color="#3b82f6" stop-opacity="0.35"/>' +
+          '<stop offset="100%" stop-color="#3b82f6" stop-opacity="0.02"/>' +
+        '</linearGradient>' +
+        '<linearGradient id="fltStroke" x1="0" y1="0" x2="1" y2="0">' +
+          '<stop offset="0%" stop-color="#60a5fa"/>' +
+          '<stop offset="100%" stop-color="#2563eb"/>' +
+        '</linearGradient>' +
+      '</defs>' +
+      gridHtml +
+      yAxisHtml +
+      '<path d="' + fillD + '" fill="url(#fltFill)" stroke="none"/>' +
+      '<path d="' + pathD + '" fill="none" stroke="url(#fltStroke)" stroke-width="2.5" ' +
+        'stroke-linecap="round" stroke-linejoin="round"/>' +
+      dotsHtml +
+      nowMarkerHtml +
+      labelHtml +
+      '<line id="flt-cursor-line" x1="0" y1="' + padT + '" x2="0" y2="' + (padT + plotH) +
+        '" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>' +
+      '<circle id="flt-cursor-dot" cx="0" cy="0" r="5" fill="#3b82f6" stroke="#ffffff" ' +
+        'stroke-width="2" opacity="0"/>' +
+      '<rect id="flt-hit" x="' + padL + '" y="' + padT + '" width="' + plotW + '" height="' + plotH +
+        '" fill="transparent" pointer-events="all" style="touch-action:none;cursor:crosshair"/>' +
+    '</svg>' +
+    '<div id="flt-tip" class="hidden absolute pointer-events-none bg-slate-900 text-white ' +
+      'text-[10px] rounded-lg px-2 py-1 shadow-lg leading-tight whitespace-nowrap z-10"></div>';
+
+  var svgEl      = document.getElementById('airport-chart-svg');
+  var tipEl      = document.getElementById('flt-tip');
+  var cursorLine = document.getElementById('flt-cursor-line');
+  var cursorDot  = document.getElementById('flt-cursor-dot');
+  var hit        = document.getElementById('flt-hit');
+
+  if (hit && svgEl){
+    function showAt(clientX){
+      var rect = svgEl.getBoundingClientRect();
+      if (!rect.width) return;
+      var vx = ((clientX - rect.left) / rect.width) * W;
+
+      var idx;
+      if (n <= 1){
+        idx = 0;
+      } else {
+        idx = Math.round(((vx - padL) / plotW) * (n - 1));
+        if (idx < 0) idx = 0;
+        if (idx > n - 1) idx = n - 1;
+      }
+
+      var p = pts[idx];
+      var hh3 = displayStartHour + idx;
+      var cnt = buckets[hh3];
+      var isCurrent = (isToday && hh3 === currentHour);
+
+      tipEl.innerHTML = pad2(hh3) + ':00 - ' + pad2(hh3) + ':59　<b>' + cnt + '</b> 班' +
+        (isCurrent ? '　<span style="color:#fca5a5;font-weight:700">現在</span>' : '');
+      tipEl.classList.remove('hidden');
+
+      var leftPct = (p.x / W) * 100;
+      if (leftPct < 16) leftPct = 16;
+      if (leftPct > 84) leftPct = 84;
+
+      tipEl.style.left = leftPct + '%';
+      tipEl.style.top  = ((p.y / H) * 100) + '%';
+      tipEl.style.transform = 'translate(-50%, calc(-100% - 10px))';
+
+      var lineColor = isCurrent ? '#ef4444' : '#3b82f6';
+      cursorLine.setAttribute('stroke', lineColor);
+      cursorDot.setAttribute('fill', lineColor);
+
+      cursorLine.setAttribute('x1', p.x.toFixed(2));
+      cursorLine.setAttribute('x2', p.x.toFixed(2));
+      cursorLine.setAttribute('opacity', '1');
+      cursorDot.setAttribute('cx', p.x.toFixed(2));
+      cursorDot.setAttribute('cy', p.y.toFixed(2));
+      cursorDot.setAttribute('opacity', '1');
+    }
+
+    function hideTip(){
+      tipEl.classList.add('hidden');
+      cursorLine.setAttribute('opacity', '0');
+      cursorDot.setAttribute('opacity', '0');
+    }
+
+    hit.addEventListener('pointerdown', function(e){ showAt(e.clientX); });
+    hit.addEventListener('pointermove', function(e){ showAt(e.clientX); });
+    hit.addEventListener('pointerleave', hideTip);
+    hit.addEventListener('pointercancel', hideTip);
+  }
+
+  if (barsEl){
+    barsEl.innerHTML = pts.map(function(p){
+      var hh4 = p.h;
+      var v = buckets[hh4];
+      var isPeak = (hh4 === peakHour && v > 0);
+      var isActive = v > 0;
+      var isNow = (isToday && hh4 === currentHour);
+      var bgCls;
+      if (isNow){
+        bgCls = 'bg-rose-50 border-rose-400 text-rose-700 ring-2 ring-rose-300';
+      } else if (isPeak){
+        bgCls = 'bg-amber-100 border-amber-300 text-amber-900';
+      } else if (isActive){
+        bgCls = 'bg-blue-50 border-blue-200 text-blue-700';
+      } else {
+        bgCls = 'bg-slate-50 border-slate-100 text-slate-300';
+      }
+      return '<div class="rounded-lg border py-1 text-center ' + bgCls + '">' +
+        '<div class="font-mono font-bold text-[10px] leading-none">' + pad2(hh4) + '</div>' +
+        '<div class="font-mono font-extrabold text-[11px] leading-none mt-0.5">' + v + '</div>' +
+      '</div>';
+    }).join('');
+  }
+}
+
+function initAirportTab(){
+  var dateEl = document.getElementById('airport-date');
+  if (dateEl){
+    var today = new Date();
+    var tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    dateEl.max = localDateStr(tomorrow);
+    if (!dateEl.value) dateEl.value = localDateStr(today);
+  }
+
+  var hideChk = document.getElementById('airport-hide-expired');
+  if (hideChk) hideChk.checked = hideExpiredFlights;
+  updateAirportHideLabel();
+
+  var on  = 'py-1.5 rounded-lg bg-white shadow-sm text-slate-800 font-bold transition flex items-center justify-center gap-1';
+  var off = 'py-1.5 rounded-lg text-slate-600 font-medium transition flex items-center justify-center gap-1';
+  var listBtn  = document.getElementById('airport-view-list');
+  var statsBtn = document.getElementById('airport-view-stats');
+  if (listBtn)  listBtn.className  = (airportView === 'list')  ? on : off;
+  if (statsBtn) statsBtn.className = (airportView === 'stats') ? on : off;
+
+  var listWrap  = document.getElementById('airport-list-view');
+  var statsWrap = document.getElementById('airport-stats-view');
+  if (listWrap)  listWrap.classList.toggle('hidden',  airportView !== 'list');
+  if (statsWrap) statsWrap.classList.toggle('hidden', airportView !== 'stats');
+
+  if (!airportInitialized){ airportInitialized = true; loadFlightList(); }
+  else if (airportView === 'stats'){ renderAirportStats(); }
+}
+
+function setFlightTab(isArrival){
+  flightTabArrival = isArrival;
+  var arrBtn = document.getElementById('flt-tab-arr');
+  var depBtn = document.getElementById('flt-tab-dep');
+  var on  = 'py-1.5 rounded-lg bg-white shadow-sm text-slate-800 font-bold transition flex items-center justify-center gap-1';
+  var off = 'py-1.5 rounded-lg text-slate-600 font-medium transition flex items-center justify-center gap-1';
+  if (arrBtn) arrBtn.className = isArrival ? on : off;
+  if (depBtn) depBtn.className = isArrival ? off : on;
+  updateAirportHideLabel();
+  loadFlightList();
+}
+
+async function fetchFlights(date, isArrival){
+  var apiUrl = '?date=' + encodeURIComponent(date) +
+    '&arrival=' + (isArrival ? 'true' : 'false') +
+    '&span=1&cargo=false&lang=zh_HK';
+  var proxyUrl = '/api/hkflights?url=' + encodeURIComponent(apiUrl);
+  var res = await fetch(proxyUrl, { method: 'GET' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return await res.json();
+}
+
+function extractFlightsForDate(json, targetDate){
+  if (!json) return [];
+
+  if (Array.isArray(json)){
+    var exact = json.find(function(item){ return item && item.date === targetDate; });
+    if (exact && Array.isArray(exact.list)) return exact.list;
+
+    for (var i = json.length - 1; i >= 0; i--){
+      var it = json[i];
+      if (it && Array.isArray(it.list) && it.list.length) return it.list;
+    }
+    return [];
+  }
+
+  if (json.list && Array.isArray(json.list)){
+    if (json.date && json.date !== targetDate) return [];
+    return json.list;
+  }
+
+  return [];
+}
+
+async function loadFlightList(){
+  var dateEl   = document.getElementById('airport-date');
+  var listEl   = document.getElementById('flight-list');
+  var statusEl = document.getElementById('flight-status');
+  if (!dateEl || !listEl || !statusEl) return;
+
+  var date = dateEl.value;
+  if (!date){ statusEl.innerText = '請先選擇日期'; return; }
+
+  statusEl.innerHTML = '<span class="inline-flex items-center gap-1"><span class="ico w-3 h-3 animate-spin" data-icon="loader"></span>載入中...</span>';
+  hydrateIcons(statusEl);
+  listEl.innerHTML = '';
+  airportLoaded = false;
+
+  try {
+    var json = await fetchFlights(date, flightTabArrival);
+
+    var allFlights = extractFlightsForDate(json, date);
+    airportAllFlights = allFlights;
+    airportLoaded = true;
+
+    var returnedDates = [];
+    if (Array.isArray(json)) returnedDates = json.map(function(x){ return x && x.date; }).filter(Boolean);
+    else if (json && json.date) returnedDates = [json.date];
+
+    airportFlights = filterExpiredFlights(allFlights, date, flightTabArrival);
+    airportHiddenCount = allFlights.length - airportFlights.length;
+
+    renderAirportList();
+    if (airportView === 'stats') renderAirportStats();
+    updateAirportStatus();
+
+    if (!allFlights.length){
+      var hint = '';
+      if (returnedDates.length > 1){
+        hint = '<p class="text-[11px] text-slate-400 mt-1">API 回傳了 ' + returnedDates.length + ' 個日期：' + returnedDates.join('、') + '<br>其中不包含 ' + date + '</p>';
+      } else if (returnedDates.length === 1 && returnedDates[0] !== date){
+        hint = '<p class="text-[11px] text-slate-400 mt-1">API 回傳日期：' + returnedDates[0] + '（非所選日期）</p>';
+      }
+      if (hint){
+        listEl.innerHTML =
+          '<div class="bg-white rounded-2xl p-8 text-center border border-slate-100 text-slate-400 space-y-2">' +
+            '<div class="ico w-10 h-10 mx-auto text-slate-300">' + ico('plane-takeoff','w-10 h-10') + '</div>' +
+            '<p class="text-sm font-medium">沒有找到航班資料</p>' + hint +
+          '</div>';
+      }
+    }
+
+  } catch (err) {
+    airportLoaded = true;
+    airportAllFlights = [];
+    airportFlights = [];
+    airportHiddenCount = 0;
+
+    statusEl.innerText = '載入失敗';
+    listEl.innerHTML =
+      '<div class="bg-white rounded-2xl p-6 text-center border border-rose-200 text-rose-500 space-y-2">' +
+        '<div class="ico w-10 h-10 mx-auto text-rose-300">' + ico('alert-triangle','w-10 h-10') + '</div>' +
+        '<p class="text-xs font-medium">' + escapeHtml(err.message || '網絡錯誤') + '</p>' +
+        '<p class="text-[10px] text-slate-400">可能原因：CORS 代理繁忙、網絡問題或日期範圍錯誤</p>' +
+        '<button onclick="loadFlightList()" class="mt-2 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg text-xs transition">重試</button>' +
+      '</div>';
+
+    if (airportView === 'stats') renderAirportStats();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   初始化（独立打开 & 被 loader 注入均支持）
+   ═══════════════════════════════════════════════════════════ */
+function initPage(){
+  hydrateIcons();
+  initAirportTab();
+}
+
+if (document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', initPage);
+} else {
+  initPage();
+}
+</script>
+</body>
+</html>
