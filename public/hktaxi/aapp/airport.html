@@ -475,9 +475,28 @@ function renderAirportStats(){
 
   var displayStartHour = 0;
   var displayEndHour = 23;
+
+  /* ─────────────────────────────────────────────────────────
+     以「當前時間」為中心：左右用同一個 half 收縮，
+     保證 currentHour 永遠落在窗口正中間。
+     ───────────────────────────────────────────────────────── */
   if (isToday){
-    displayStartHour = Math.max(0, currentHour - 12);
-    displayEndHour = Math.min(23, currentHour + 12);
+    var HALF = 12;                                            // 期望前後各 12 小時
+    var half = Math.min(HALF, currentHour, 23 - currentHour); // 對稱收縮到 [0,23]
+
+    if (half < 3){
+      // 邊界極端情況（0~2 點 / 22~23 點）：視野太窄，退化為整體平移
+      if (currentHour < HALF){
+        displayStartHour = 0;
+        displayEndHour   = Math.min(23, HALF * 2);
+      } else {
+        displayEndHour   = 23;
+        displayStartHour = Math.max(0, 23 - HALF * 2);
+      }
+    } else {
+      displayStartHour = currentHour - half;
+      displayEndHour   = currentHour + half;
+    }
   }
   var n = displayEndHour - displayStartHour + 1;
 
