@@ -1,10 +1,11 @@
 /* ═══════════════════════════════════════════════════════════
-   loader.js — Shadow DOM 子页面加载器（完整修复版）
+   loader.js — Shadow DOM 子页面加载器（防止重复 host）
    ═══════════════════════════════════════════════════════════ */
 (function(){
 'use strict';
 
-var loadedSubPages = {};
+var loadedSubPages = {};   /* href -> { host, shadow, ns } */
+var pendingLoads = {};     /* href -> { loadingEl, controller } */
 var currentSubPageHref = null;
 
 function isSubPageHref(href){
@@ -19,9 +20,15 @@ function isSubPageHref(href){
 }
 
 function loadSubPage(href){
+  /* ── 场景 A：已经在显示当前页面，直接 return ── */
+  if (currentSubPageHref === href && loadedSubPages[href]){
+    return;
+  }
+
   currentSubPageHref = href;
   window.__CURRENT_SUB_PAGE__ = href;
 
+  /* ── 隐藏所有 tab ── */
   var TAB_NAMES = ['trip','list','places','stats','airport'];
   TAB_NAMES.forEach(function(t){
     var tabEl = document.getElementById('tab-' + t);
@@ -45,29 +52,72 @@ function loadSubPage(href){
     window.scrollTo(0, 0);
   };
 
+  /* ── 隐藏所有已加载的 host ── */
+  Object.keys(loadedSubPages).forEach(function(k){
+    loadedSubPages[k].host.style.display = 'none';
+  });
+
+  /* ── 隐藏所有 pending 的 loading ── */
+  Object.keys(pendingLoads).forEach(function(k){
+    if (pendingLoads[k].loadingEl && pendingLoads[k].loadingEl.parentNode){
+      pendingLoads[k].loadingEl.style.display = 'none';
+    }
+  });
+
+  /* ── 场景 B：已经加载完成 → 直接显示，不再 fetch ── */
   if (loadedSubPages[href]){
-    Object.keys(loadedSubPages).forEach(function(k){
-      loadedSubPages[k].host.style.display = 'none';
-    });
     loadedSubPages[href].host.style.display = 'block';
     window.scrollTo(0, 0);
     return;
   }
 
+  /* ── 场景 C：正在加载中 → 只显示它的 loading，不再 fetch ── */
+  if (pendingLoads[href]){
+    if (pendingLoads[href].loadingEl){
+      pendingLoads[href].loadingEl.style.display = 'block';
+    }
+    window.scrollTo(0, 0);
+    return;
+  }
+
+  /* ── 场景 D：全新加载 ── */
   var loadingEl = document.createElement('div');
-  loadingEl.className = 'py-20 text-center';
+  loadingEl.className = 'py-20 text-center subpage-loading';
   loadingEl.innerHTML = '<div class="ico w-8 h-8 mx-auto text-amber-500 animate-spin" data-icon="loader"></div><p class="text-xs text-slate-500 mt-2">載入中...</p>';
   container.appendChild(loadingEl);
   if (typeof window.hydrateIcons === 'function') window.hydrateIcons();
   window.scrollTo(0, 0);
 
-  fetch(href)
-    .then(function(res){ if (!res.ok) throw new Error('HTTP ' + res.status); return res.text(); })
-    .then(function(html){ if (loadingEl.parentNode) loadingEl.remove(); mountSubPage(href, html, container); })
-    .catch(function(err){
+  var controller = new AbortController();
+  pendingLoads[href] = { loadingEl: loadingEl, controller: controller };
+
+  fetch(href, { signal: controller.signal })
+    .then(function(res){
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.text();
+    })
+    .then(function(html){
+      delete pendingLoads[href];
       if (loadingEl.parentNode) loadingEl.remove();
+
+      /* 防御性检查：如果已经有 host 就移除旧的，避免双 host */
+      if (loadedSubPages[href] && loadedSubPages[href].host){
+        loadedSubPages[href].host.remove();
+        delete loadedSubPages[href];
+      }
+
+      var shouldShow = (currentSubPageHref === href);
+      mountSubPage(href, html, container, shouldShow);
+    })
+    .catch(function(err){
+      delete pendingLoads[href];
+      if (err && err.name === 'AbortError') return;
+      if (loadingEl.parentNode) loadingEl.remove();
+
+      if (currentSubPageHref !== href) return;
+
       var errEl = document.createElement('div');
-      errEl.className = 'max-w-md mx-auto p-4';
+      errEl.className = 'max-w-md mx-auto p-4 subpage-error';
       var msg = (err && err.message) ? err.message : '未知錯誤';
       errEl.innerHTML = '<div class="bg-white rounded-2xl p-8 text-center border border-rose-200 text-rose-500 space-y-2"><div class="ico w-10 h-10 mx-auto text-rose-300" data-icon="alert-triangle"></div><p class="text-sm font-medium">載入失敗</p><p class="text-xs">' + msg + '</p><button onclick="window.__SUB_PAGE_BACK__ && window.__SUB_PAGE_BACK__()" class="mt-2 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg text-xs">返回首頁</button></div>';
       container.appendChild(errEl);
@@ -89,7 +139,7 @@ function loadExternalScript(src){
   });
 }
 
-function mountSubPage(href, html, container){
+function mountSubPage(href, html, container, shouldShow){
   var doc = new DOMParser().parseFromString(html, 'text/html');
 
   doc.querySelectorAll('header').forEach(function(el){ el.remove(); });
@@ -100,7 +150,7 @@ function mountSubPage(href, html, container){
 
   var host = document.createElement('div');
   host.className = 'subpage-host';
-  host.style.cssText = 'width:100%;display:block;';
+  host.style.cssText = 'width:100%;display:' + (shouldShow ? 'block' : 'none') + ';';
   var shadow = host.attachShadow({ mode: 'open' });
   container.appendChild(host);
 
@@ -193,7 +243,7 @@ function mountSubPage(href, html, container){
       '  function confirm(msg){ return __realWin__.confirm(msg); }\n' +
       '  function alert(msg){ return __realWin__.alert(msg); }\n' +
       '\n' +
-      /* ★★★ 关键修复 1：拦截子页面的 DOMContentLoaded / load 监听器 ★★★ */
+      /* 拦截 DOMContentLoaded / load 监听器（子页面初始化用） */
       '  var __origAdd__ = __realWin__.addEventListener;\n' +
       '  var __captured__ = [];\n' +
       '  __realWin__.addEventListener = function(type, handler, opts){\n' +
@@ -208,7 +258,6 @@ function mountSubPage(href, html, container){
       '  try {\n' +
       inlineScripts + '\n' +
       '\n' +
-      /* ★ 子页面脚本执行完毕后，立即绑定 click 事件（闭包作用域覆盖 try 块内所有函数） */
       '    (function __bindClick__(){\n' +
       '      function __bind__(el){\n' +
       '        if (!el || !el.dataset || !el.dataset.onclick || el.__subBound__) return;\n' +
@@ -238,8 +287,7 @@ function mountSubPage(href, html, container){
       '    __realWin__.addEventListener = __origAdd__;\n' +
       '  }\n' +
       '\n' +
-      /* ★★★ 关键修复 2：异步执行子页面的 DOMContentLoaded / load handler ★★★ */
-      /* 使用一次性 monkey-patch，让 handler 内注册的 DOMContentLoaded / load 也能立即执行 */
+      /* 异步执行捕获的 DOMContentLoaded / load handler */
       '  setTimeout(function(){\n' +
       '    if (!__captured__.length) return;\n' +
       '    var __origAdd2__ = __realWin__.addEventListener;\n' +
@@ -263,7 +311,6 @@ function mountSubPage(href, html, container){
       '    }\n' +
       '  }, 0);\n' +
       '\n' +
-      /* fallback binding（try 块抛错时使用） */
       '  if (!__bindDone__){\n' +
       '    console.warn("[' + ns + '] using fallback binding");\n' +
       '    (function __bindFallback__(){\n' +
@@ -319,11 +366,34 @@ function mountSubPage(href, html, container){
 function hideAllSubPages(){
   currentSubPageHref = null;
   window.__CURRENT_SUB_PAGE__ = null;
+
+  /* 隐藏所有 host（保留 DOM 状态） */
   Object.keys(loadedSubPages).forEach(function(k){
     loadedSubPages[k].host.style.display = 'none';
   });
+
+  /* abort 所有 pending fetch + 清理 loading */
+  Object.keys(pendingLoads).forEach(function(k){
+    if (pendingLoads[k].controller){
+      try { pendingLoads[k].controller.abort(); } catch(e){}
+    }
+    if (pendingLoads[k].loadingEl && pendingLoads[k].loadingEl.parentNode){
+      pendingLoads[k].loadingEl.remove();
+    }
+  });
+  pendingLoads = {};
+
   var container = document.getElementById('sub-page-container');
-  if (container) container.classList.add('hidden');
+  if (container){
+    /* 清理所有非 host 的元素（loading / error 占位） */
+    Array.prototype.slice.call(container.children).forEach(function(child){
+      if (!child.classList.contains('subpage-host')){
+        child.remove();
+      }
+    });
+    container.classList.add('hidden');
+  }
+
   var main = document.getElementById('main-tab-content');
   if (main) main.classList.remove('hidden');
 }
