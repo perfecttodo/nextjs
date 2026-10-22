@@ -303,17 +303,14 @@ var airportAllFlights  = [];
 var airportFlights     = [];
 var airportHiddenCount = 0;
 var airportLoaded      = false;
-var airportTomorrowFlights = [];   // 次日航班（僅當窗口右端越界時加載）
+var airportTomorrowFlights = [];
 
 var HIDE_EXPIRED_KEY = 'taxi_airport_hide_expired';
 var hideExpiredFlights = localStorage.getItem(HIDE_EXPIRED_KEY) !== '0';
 var FLIGHT_EXPIRE_MINUTES = 60;
 
-/* 圖表窗口半徑（前後各 HALF 小時） */
 var STATS_HALF = 12;
 
-/* 回傳顯示窗口：today 時以 currentHour 為中心對稱展開；
-   其餘日期固定 0~23 */
 function getDisplayWindow(date){
   var now = new Date();
   var todayStr = localDateStr(now);
@@ -508,7 +505,7 @@ function renderAirportStats(){
   var displayEndHour   = win.end;
   var n = displayEndHour - displayStartHour + 1;
 
-  /* 當天 24 小時 buckets（用過濾後的當天航班） */
+  /* 當天 24 小時 buckets */
   var buckets = new Array(24);
   for (var i = 0; i < 24; i++) buckets[i] = 0;
 
@@ -520,7 +517,7 @@ function renderAirportStats(){
     buckets[h]++;
   });
 
-  /* 次日 24 小時 buckets（僅在窗口右端越界時使用） */
+  /* 次日 buckets（僅當窗口右端越界時使用） */
   var tomorrowBuckets = new Array(24);
   for (var ti = 0; ti < 24; ti++) tomorrowBuckets[ti] = 0;
   if (isToday && displayEndHour > 23){
@@ -533,7 +530,6 @@ function renderAirportStats(){
     });
   }
 
-  /* 窗口小時 → 航班數；h > 23 映射到次日，h < 0 視為 0（昨日已過） */
   function getBucket(h){
     if (h >= 0 && h <= 23) return buckets[h] || 0;
     if (h > 23){
@@ -555,7 +551,6 @@ function renderAirportStats(){
     return pad2(h) + ':00 - ' + pad2(h) + ':59';
   }
 
-  /* 副標題 */
   var subtitleEl = document.getElementById('airport-stats-subtitle');
   if (subtitleEl){
     var subtitleText = date + (flightTabArrival ? ' · 抵港' : ' · 離港');
@@ -565,7 +560,6 @@ function renderAirportStats(){
     subtitleEl.innerText = subtitleText;
   }
 
-  /* 統計窗口內數據 */
   var windowFlights = 0;
   var maxV = 0, peakHour = displayStartHour;
   var nonZero = 0;
@@ -650,7 +644,7 @@ function renderAirportStats(){
                  'font-family="ui-monospace,Menlo,monospace">' + yVal + '</text>';
   }
 
-  /* 橫軸標籤 */
+  /* ─────────── 橫軸標籤（防重疊） ─────────── */
   var labelHtml = '';
   var candidates = [0, 3, 6, 9, 12, 15, 18, 21];
   var labelHours = [];
@@ -673,12 +667,39 @@ function renderAirportStats(){
     if (displayEndHour   > 23) labelHours.push(displayEndHour);
   }
 
-  labelHours.forEach(function(h, idx){
-    var pos = h - displayStartHour;
-    var lx = px(pos);
+  /* 用像素間距過濾重疊標籤 */
+  var MIN_LABEL_GAP_PX = 48;
+  var labelObjs = labelHours.map(function(h){
+    return { h: h, x: px(h - displayStartHour) };
+  });
+
+  var filteredLabels = [];
+  if (labelObjs.length > 0){
+    filteredLabels.push(labelObjs[0]);
+    for (var li = 1; li < labelObjs.length; li++){
+      if (labelObjs[li].x - filteredLabels[filteredLabels.length - 1].x >= MIN_LABEL_GAP_PX){
+        filteredLabels.push(labelObjs[li]);
+      }
+    }
+    var lastLabelObj = labelObjs[labelObjs.length - 1];
+    if (filteredLabels[filteredLabels.length - 1] !== lastLabelObj){
+      filteredLabels.push(lastLabelObj);
+      while (
+        filteredLabels.length > 2 &&
+        filteredLabels[filteredLabels.length - 1].x
+          - filteredLabels[filteredLabels.length - 2].x < MIN_LABEL_GAP_PX
+      ){
+        filteredLabels.splice(filteredLabels.length - 2, 1);
+      }
+    }
+  }
+
+  filteredLabels.forEach(function(obj){
+    var h = obj.h;
+    var lx = obj.x;
     var anchor = 'middle';
-    if (idx === 0 || lx < padL + 20) anchor = 'start';
-    if (idx === labelHours.length - 1 || lx > W - padR - 20) anchor = 'end';
+    if (lx < padL + 20) anchor = 'start';
+    else if (lx > W - padR - 20) anchor = 'end';
 
     var isNowLabel = (isToday && h === currentHour);
     labelHtml += '<text x="' + lx.toFixed(1) + '" y="' + (H - 8) +
@@ -941,8 +962,6 @@ async function loadFlightList(){
   airportLoaded = false;
 
   try {
-    /* 計算窗口：today 且右端越界時，需要同時取次日數據，
-       讓 24:00 之後的航班也能出現在曲線右側 */
     var win = getDisplayWindow(date);
     var needTomorrow = win.isToday && win.end > 23;
     var tomorrowDate = needTomorrow ? offsetDate(date, 1) : '';
