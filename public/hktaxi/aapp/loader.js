@@ -74,7 +74,22 @@ function loadSubPage(href){
       if (typeof window.hydrateIcons === 'function') window.hydrateIcons();
     });
 }
-
+// 動態加載外部腳本的輔助函數
+function loadExternalScript(src) {
+  return new Promise((resolve, reject) => {
+    // 避免重複加載同一個腳本
+    if (document.querySelector(`script[src="${src}"]`)) {
+      resolve();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = false; // 確保按順序執行
+    script.onload = () => resolve();
+    script.onerror = (err) => reject(new Error(`Failed to load script: ${src}`));
+    document.head.appendChild(script);
+  });
+}
 function mountSubPage(href, html, container){
   var doc = new DOMParser().parseFromString(html, 'text/html');
 
@@ -105,90 +120,110 @@ function mountSubPage(href, html, container){
     el.removeAttribute('onclick');
   });
 
-  var scriptContent = Array.prototype.map.call(bodyDiv.querySelectorAll('script:not([src])'), function(s){ return s.textContent; }).join('\n');
-  bodyDiv.querySelectorAll('script').forEach(function(s){ s.remove(); });
+  // ★★★ 關鍵修改：分離內聯腳本和外部腳本 ★★★
+  var inlineScripts = '';
+  var externalScripts = [];
+
+  bodyDiv.querySelectorAll('script').forEach(function(s){
+    if (s.src) {
+      // 收集外部腳本
+      externalScripts.push({ src: s.src, async: s.async, defer: s.defer });
+    } else {
+      // 收集內聯腳本
+      inlineScripts += '\n' + s.textContent;
+    }
+    s.remove();
+  });
 
   var ns = 'page_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
   window.__SHADOW_POOL__ = window.__SHADOW_POOL__ || {};
   window.__PAGE_INVOKERS__ = window.__PAGE_INVOKERS__ || {};
   window.__SHADOW_POOL__[ns] = shadow;
 
-  /* ★★★ 关键修复：用参数传递 __realWin__ / __realDoc__ ★★★
-     避免 IIFE 内的 `var window` / `var document` 因 hoisting 导致前面的
-     window 是 undefined。参数在函数作用域内独立，不受 var hoisting 影响。 */
-  var wrapped =
-    '(function(__realWin__, __realDoc__){\n' +
-    '  var __shadow__ = __realWin__.__SHADOW_POOL__["' + ns + '"];\n' +
-    '  var __bodyDiv__ = __shadow__.querySelector(".subpage-body");\n' +
-    '  var window = __realWin__;\n' +
-    '  var document = {\n' +
-    '    getElementById: function(id){ return __shadow__.getElementById(id); },\n' +
-    '    querySelector: function(sel){ return __shadow__.querySelector(sel); },\n' +
-    '    querySelectorAll: function(sel){ return __shadow__.querySelectorAll(sel); },\n' +
-    '    addEventListener: function(type, handler, opts){\n' +
-    '      if (type === "DOMContentLoaded"){\n' +
-    '        setTimeout(function(){ try { handler.call(window, {type:"DOMContentLoaded"}); } catch(e){ console.error("[' + ns + '] DOMContentLoaded", e); } }, 0);\n' +
-    '        return;\n' +
-    '      }\n' +
-    '      __shadow__.addEventListener(type, handler, opts);\n' +
-    '    },\n' +
-    '    removeEventListener: function(type, handler, opts){ __shadow__.removeEventListener(type, handler, opts); },\n' +
-    '    createElement: function(tag){ return __realDoc__.createElement(tag); },\n' +
-    '    createTextNode: function(t){ return __realDoc__.createTextNode(t); },\n' +
-    '    body: __bodyDiv__,\n' +
-    '    head: __shadow__,\n' +
-    '    documentElement: __realDoc__.documentElement,\n' +
-    '    readyState: "complete",\n' +
-    '    hidden: __realDoc__.hidden,\n' +
-    '    activeElement: __realDoc__.activeElement\n' +
-    '  };\n' +
-    '  var localStorage = __realWin__.localStorage;\n' +
-    '  var navigator = __realWin__.navigator;\n' +
-    '  var location = __realWin__.location;\n' +
-    '  var fetch = __realWin__.fetch.bind(__realWin__);\n' +
-    '  var setTimeout = __realWin__.setTimeout.bind(__realWin__);\n' +
-    '  var clearTimeout = __realWin__.clearTimeout.bind(__realWin__);\n' +
-    '  var setInterval = __realWin__.setInterval.bind(__realWin__);\n' +
-    '  var clearInterval = __realWin__.clearInterval.bind(__realWin__);\n' +
-    '  var console = __realWin__.console;\n' +
-    '  var URL = __realWin__.URL;\n' +
-    '  var URLSearchParams = __realWin__.URLSearchParams;\n' +
-    '  var encodeURIComponent = __realWin__.encodeURIComponent;\n' +
-    '  var decodeURIComponent = __realWin__.decodeURIComponent;\n' +
-    '  var Date = __realWin__.Date;\n' +
-    '  var Math = __realWin__.Math;\n' +
-    '  var JSON = __realWin__.JSON;\n' +
-    '  var Object = __realWin__.Object;\n' +
-    '  var Array = __realWin__.Array;\n' +
-    '  var String = __realWin__.String;\n' +
-    '  var Number = __realWin__.Number;\n' +
-    '  var isNaN = __realWin__.isNaN;\n' +
-    '  var parseInt = __realWin__.parseInt;\n' +
-    '  var parseFloat = __realWin__.parseFloat;\n' +
-    '  var RegExp = __realWin__.RegExp;\n' +
-    '  var Promise = __realWin__.Promise;\n' +
-    '  var Error = __realWin__.Error;\n' +
-    '  var Blob = __realWin__.Blob;\n' +
-    '  var File = __realWin__.File;\n' +
-    '  var FormData = __realWin__.FormData;\n' +
-    '  var TextEncoder = __realWin__.TextEncoder;\n' +
-    '  var crypto = __realWin__.crypto;\n' +
-    '  var btoa = __realWin__.btoa;\n' +
-    '  var atob = __realWin__.atob;\n' +
-    '  var Uint8Array = __realWin__.Uint8Array;\n' +
-    '  function confirm(msg){ return __realWin__.confirm(msg); }\n' +
-    '  function alert(msg){ return __realWin__.alert(msg); }\n' +
-    '  try {\n' +
-    scriptContent + '\n' +
-    '  } catch(e){ console.error("[' + ns + '] script error", e); }\n' +
-    '  try { window.goBack = function(){ if (__realWin__.__SUB_PAGE_BACK__) __realWin__.__SUB_PAGE_BACK__(); }; } catch(e){}\n' +
-    '  try { window.goHome = function(){ if (__realWin__.__SUB_PAGE_BACK__) __realWin__.__SUB_PAGE_BACK__(); }; } catch(e){}\n' +
-    '  __realWin__.__PAGE_INVOKERS__["' + ns + '"] = function(code){ try { return eval(code); } catch(e){ console.error("[' + ns + '] onclick error:", e, code); } };\n' +
-    '})(window, document);\n';
+  // ★★★ 定義腳本加載順序：先加載外部腳本，再執行內聯腳本 ★★★
+  var loadScriptsSequentially = async function() {
+    for (const scriptInfo of externalScripts) {
+      await loadExternalScript(scriptInfo.src);
+    }
+    
+    // 外部腳本加載完畢後，再執行內聯腳本
+    var wrapped =
+      '(function(__realWin__, __realDoc__){\n' +
+      '  var __shadow__ = __realWin__.__SHADOW_POOL__["' + ns + '"];\n' +
+      '  var __bodyDiv__ = __shadow__.querySelector(".subpage-body");\n' +
+      '  var window = __realWin__;\n' +
+      '  var document = {\n' +
+      '    getElementById: function(id){ return __shadow__.getElementById(id); },\n' +
+      '    querySelector: function(sel){ return __shadow__.querySelector(sel); },\n' +
+      '    querySelectorAll: function(sel){ return __shadow__.querySelectorAll(sel); },\n' +
+      '    addEventListener: function(type, handler, opts){\n' +
+      '      if (type === "DOMContentLoaded"){\n' +
+      '        setTimeout(function(){ try { handler.call(window, {type:"DOMContentLoaded"}); } catch(e){ console.error("[' + ns + '] DOMContentLoaded", e); } }, 0);\n' +
+      '        return;\n' +
+      '      }\n' +
+      '      __shadow__.addEventListener(type, handler, opts);\n' +
+      '    },\n' +
+      '    removeEventListener: function(type, handler, opts){ __shadow__.removeEventListener(type, handler, opts); },\n' +
+      '    createElement: function(tag){ return __realDoc__.createElement(tag); },\n' +
+      '    createTextNode: function(t){ return __realDoc__.createTextNode(t); },\n' +
+      '    body: __bodyDiv__,\n' +
+      '    head: __shadow__,\n' +
+      '    documentElement: __realDoc__.documentElement,\n' +
+      '    readyState: "complete",\n' +
+      '    hidden: __realDoc__.hidden,\n' +
+      '    activeElement: __realDoc__.activeElement\n' +
+      '  };\n' +
+      '  var localStorage = __realWin__.localStorage;\n' +
+      '  var navigator = __realWin__.navigator;\n' +
+      '  var location = __realWin__.location;\n' +
+      '  var fetch = __realWin__.fetch.bind(__realWin__);\n' +
+      '  var setTimeout = __realWin__.setTimeout.bind(__realWin__);\n' +
+      '  var clearTimeout = __realWin__.clearTimeout.bind(__realWin__);\n' +
+      '  var setInterval = __realWin__.setInterval.bind(__realWin__);\n' +
+      '  var clearInterval = __realWin__.clearInterval.bind(__realWin__);\n' +
+      '  var console = __realWin__.console;\n' +
+      '  var URL = __realWin__.URL;\n' +
+      '  var URLSearchParams = __realWin__.URLSearchParams;\n' +
+      '  var encodeURIComponent = __realWin__.encodeURIComponent;\n' +
+      '  var decodeURIComponent = __realWin__.decodeURIComponent;\n' +
+      '  var Date = __realWin__.Date;\n' +
+      '  var Math = __realWin__.Math;\n' +
+      '  var JSON = __realWin__.JSON;\n' +
+      '  var Object = __realWin__.Object;\n' +
+      '  var Array = __realWin__.Array;\n' +
+      '  var String = __realWin__.String;\n' +
+      '  var Number = __realWin__.Number;\n' +
+      '  var isNaN = __realWin__.isNaN;\n' +
+      '  var parseInt = __realWin__.parseInt;\n' +
+      '  var parseFloat = __realWin__.parseFloat;\n' +
+      '  var RegExp = __realWin__.RegExp;\n' +
+      '  var Promise = __realWin__.Promise;\n' +
+      '  var Error = __realWin__.Error;\n' +
+      '  var Blob = __realWin__.Blob;\n' +
+      '  var File = __realWin__.File;\n' +
+      '  var FormData = __realWin__.FormData;\n' +
+      '  var TextEncoder = __realWin__.TextEncoder;\n' +
+      '  var crypto = __realWin__.crypto;\n' +
+      '  var btoa = __realWin__.btoa;\n' +
+      '  var atob = __realWin__.atob;\n' +
+      '  var Uint8Array = __realWin__.Uint8Array;\n' +
+      '  function confirm(msg){ return __realWin__.confirm(msg); }\n' +
+      '  function alert(msg){ return __realWin__.alert(msg); }\n' +
+      '  try {\n' +
+      inlineScripts + '\n' +
+      '  } catch(e){ console.error("[' + ns + '] script error", e); }\n' +
+      '  try { window.goBack = function(){ if (__realWin__.__SUB_PAGE_BACK__) __realWin__.__SUB_PAGE_BACK__(); }; } catch(e){}\n' +
+      '  try { window.goHome = function(){ if (__realWin__.__SUB_PAGE_BACK__) __realWin__.__SUB_PAGE_BACK__(); }; } catch(e){}\n' +
+      '  __realWin__.__PAGE_INVOKERS__["' + ns + '"] = function(code){ try { return eval(code); } catch(e){ console.error("[' + ns + '] onclick error:", e, code); } };\n' +
+      '})(window, document);\n';
 
-  var scriptEl = document.createElement('script');
-  scriptEl.textContent = wrapped;
-  document.head.appendChild(scriptEl);
+    var scriptEl = document.createElement('script');
+    scriptEl.textContent = wrapped;
+    document.head.appendChild(scriptEl);
+  };
+
+  // 開始按順序加載
+  loadScriptsSequentially();
 
   shadow.addEventListener('click', function(e){
     var el = e.target;
@@ -220,7 +255,6 @@ function mountSubPage(href, html, container){
 
   loadedSubPages[href] = { host: host, shadow: shadow, ns: ns, observer: observer };
 }
-
 function hideAllSubPages(){
   currentSubPageHref = null;
   window.__CURRENT_SUB_PAGE__ = null;
