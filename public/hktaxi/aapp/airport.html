@@ -232,6 +232,16 @@ function escapeHtml(s){
 function pad2(n){ return String(n).padStart(2, '0'); }
 function localDateStr(d){ return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
 
+function offsetDate(dateStr, days){
+  var parts = String(dateStr).split('-');
+  var y = parseInt(parts[0], 10);
+  var m = parseInt(parts[1], 10) - 1;
+  var d = parseInt(parts[2], 10);
+  var dt = new Date(y, m, d);
+  dt.setDate(dt.getDate() + days);
+  return localDateStr(dt);
+}
+
 function setText(id, text){
   var el = document.getElementById(id);
   if (el) el.innerText = text;
@@ -293,10 +303,33 @@ var airportAllFlights  = [];
 var airportFlights     = [];
 var airportHiddenCount = 0;
 var airportLoaded      = false;
+var airportTomorrowFlights = [];   // 次日航班（僅當窗口右端越界時加載）
 
 var HIDE_EXPIRED_KEY = 'taxi_airport_hide_expired';
 var hideExpiredFlights = localStorage.getItem(HIDE_EXPIRED_KEY) !== '0';
 var FLIGHT_EXPIRE_MINUTES = 60;
+
+/* 圖表窗口半徑（前後各 HALF 小時） */
+var STATS_HALF = 12;
+
+/* 回傳顯示窗口：today 時以 currentHour 為中心對稱展開；
+   其餘日期固定 0~23 */
+function getDisplayWindow(date){
+  var now = new Date();
+  var todayStr = localDateStr(now);
+  var isToday = (date === todayStr);
+  var currentHour = isToday ? now.getHours() : -1;
+
+  var start, end;
+  if (isToday){
+    start = currentHour - STATS_HALF;
+    end   = currentHour + STATS_HALF;
+  } else {
+    start = 0;
+    end   = 23;
+  }
+  return { start: start, end: end, isToday: isToday, currentHour: currentHour };
+}
 
 /* ═══════════════════════════════════════════════════════════
    核心函数
@@ -468,47 +501,14 @@ function renderAirportStats(){
   var dateEl = document.getElementById('airport-date');
   var date = dateEl ? dateEl.value : '';
 
-  var now = new Date();
-  var todayStr = localDateStr(now);
-  var isToday = (date === todayStr);
-  var currentHour = isToday ? now.getHours() : -1;
-
-  var displayStartHour = 0;
-  var displayEndHour = 23;
-
-  /* ─────────────────────────────────────────────────────────
-     以「當前時間」為中心：左右用同一個 half 收縮，
-     保證 currentHour 永遠落在窗口正中間。
-     ───────────────────────────────────────────────────────── */
-  if (isToday){
-    var HALF = 12;                                            // 期望前後各 12 小時
-    var half = Math.min(HALF, currentHour, 23 - currentHour); // 對稱收縮到 [0,23]
-
-    if (half < 3){
-      // 邊界極端情況（0~2 點 / 22~23 點）：視野太窄，退化為整體平移
-      if (currentHour < HALF){
-        displayStartHour = 0;
-        displayEndHour   = Math.min(23, HALF * 2);
-      } else {
-        displayEndHour   = 23;
-        displayStartHour = Math.max(0, 23 - HALF * 2);
-      }
-    } else {
-      displayStartHour = currentHour - half;
-      displayEndHour   = currentHour + half;
-    }
-  }
+  var win = getDisplayWindow(date);
+  var isToday = win.isToday;
+  var currentHour = win.currentHour;
+  var displayStartHour = win.start;
+  var displayEndHour   = win.end;
   var n = displayEndHour - displayStartHour + 1;
 
-  var subtitleEl = document.getElementById('airport-stats-subtitle');
-  if (subtitleEl){
-    var subtitleText = date + (flightTabArrival ? ' · 抵港' : ' · 離港');
-    if (isToday){
-      subtitleText += ' · ' + pad2(displayStartHour) + ':00-' + pad2(displayEndHour) + ':59';
-    }
-    subtitleEl.innerText = subtitleText;
-  }
-
+  /* 當天 24 小時 buckets（用過濾後的當天航班） */
   var buckets = new Array(24);
   for (var i = 0; i < 24; i++) buckets[i] = 0;
 
@@ -520,24 +520,71 @@ function renderAirportStats(){
     buckets[h]++;
   });
 
+  /* 次日 24 小時 buckets（僅在窗口右端越界時使用） */
+  var tomorrowBuckets = new Array(24);
+  for (var ti = 0; ti < 24; ti++) tomorrowBuckets[ti] = 0;
+  if (isToday && displayEndHour > 23){
+    (airportTomorrowFlights || []).forEach(function(f){
+      var m = parseFlightMinutes(f.time);
+      if (m === null) return;
+      var h = Math.floor(m / 60);
+      if (h < 0 || h > 23) return;
+      tomorrowBuckets[h]++;
+    });
+  }
+
+  /* 窗口小時 → 航班數；h > 23 映射到次日，h < 0 視為 0（昨日已過） */
+  function getBucket(h){
+    if (h >= 0 && h <= 23) return buckets[h] || 0;
+    if (h > 23){
+      var idx = h - 24;
+      if (idx < 0 || idx > 23) return 0;
+      return tomorrowBuckets[idx] || 0;
+    }
+    return 0;
+  }
+
+  function hourLabel(h){
+    if (h < 0) return '昨' + pad2(h + 24) + ':00';
+    if (h > 23) return '明' + pad2(h - 24) + ':00';
+    return pad2(h) + ':00';
+  }
+  function hourRangeLabel(h){
+    if (h < 0)  return '昨' + pad2(h + 24) + ':00 - ' + pad2(h + 24) + ':59';
+    if (h > 23) return '明' + pad2(h - 24) + ':00 - ' + pad2(h - 24) + ':59';
+    return pad2(h) + ':00 - ' + pad2(h) + ':59';
+  }
+
+  /* 副標題 */
+  var subtitleEl = document.getElementById('airport-stats-subtitle');
+  if (subtitleEl){
+    var subtitleText = date + (flightTabArrival ? ' · 抵港' : ' · 離港');
+    if (isToday){
+      subtitleText += ' · ' + hourLabel(displayStartHour) + '–' + hourLabel(displayEndHour);
+    }
+    subtitleEl.innerText = subtitleText;
+  }
+
+  /* 統計窗口內數據 */
   var windowFlights = 0;
   var maxV = 0, peakHour = displayStartHour;
   var nonZero = 0;
   for (var hw = displayStartHour; hw <= displayEndHour; hw++){
-    windowFlights += buckets[hw];
-    if (buckets[hw] > maxV){ maxV = buckets[hw]; peakHour = hw; }
-    if (buckets[hw] > 0) nonZero++;
+    var vw = getBucket(hw);
+    windowFlights += vw;
+    if (vw > maxV){ maxV = vw; peakHour = hw; }
+    if (vw > 0) nonZero++;
   }
   var avg = nonZero ? windowFlights / nonZero : 0;
 
   setText('airport-stat-total', windowFlights + ' 班');
-  setText('airport-stat-peak', maxV > 0 ? (pad2(peakHour) + ':00 · ' + maxV + ' 班') : '--');
+  setText('airport-stat-peak', maxV > 0 ? (hourLabel(peakHour) + ' · ' + maxV + ' 班') : '--');
   setText('airport-stat-avg', nonZero ? avg.toFixed(1) + ' 班' : '--');
 
   var hintEl = document.getElementById('airport-stats-hint');
   if (hintEl){
     if (isToday && currentHour >= 0){
-      var curCnt = buckets[currentHour] || 0;
+      var curCnt = getBucket(currentHour);
       hintEl.innerHTML = '現在 <b class="text-rose-600">' + pad2(currentHour) + ':00</b> 有 <b class="text-rose-600">' + curCnt + '</b> 班航班 · 滑動／點擊曲線查看詳情';
     } else {
       hintEl.innerText = '每小時的航班數量分佈（滑動／點擊曲線查看）';
@@ -547,7 +594,7 @@ function renderAirportStats(){
   if (windowFlights === 0){
     container.innerHTML =
       '<div class="py-10 text-center text-slate-300 text-xs leading-relaxed">' +
-        (airportAllFlights.length
+        (airportAllFlights.length || airportTomorrowFlights.length
           ? '目前顯示範圍內暫無航班<br><span class="text-[11px]">可關閉上方開關或切換日期</span>'
           : '此日期暫無航班時段數據') +
       '</div>';
@@ -576,7 +623,8 @@ function renderAirportStats(){
   var pts = [];
   for (var k = 0; k < n; k++){
     var hh = displayStartHour + k;
-    pts.push({ x: px(k), y: py(buckets[hh]), v: buckets[hh], h: hh });
+    var vk = getBucket(hh);
+    pts.push({ x: px(k), y: py(vk), v: vk, h: hh });
   }
 
   var pathD = buildSmoothPath(pts, padT - 6, padT + plotH + 6);
@@ -602,17 +650,27 @@ function renderAirportStats(){
                  'font-family="ui-monospace,Menlo,monospace">' + yVal + '</text>';
   }
 
+  /* 橫軸標籤 */
   var labelHtml = '';
   var candidates = [0, 3, 6, 9, 12, 15, 18, 21];
   var labelHours = [];
+  var loH = Math.max(0, displayStartHour);
+  var hiH = Math.min(23, displayEndHour);
+
   candidates.forEach(function(h){
-    if (h >= displayStartHour && h <= displayEndHour) labelHours.push(h);
+    if (h >= loH && h <= hiH) labelHours.push(h);
   });
+
   if (labelHours.length === 0){
-    labelHours = [displayStartHour, displayEndHour];
+    if (loH <= hiH) labelHours = [loH, hiH];
   } else {
-    if (labelHours[0] - displayStartHour > 1) labelHours.unshift(displayStartHour);
-    if (displayEndHour - labelHours[labelHours.length - 1] > 1) labelHours.push(displayEndHour);
+    if (labelHours[0] > loH) labelHours.unshift(loH);
+    if (labelHours[labelHours.length - 1] < hiH) labelHours.push(hiH);
+  }
+
+  if (isToday && labelHours.length){
+    if (displayStartHour < 0)  labelHours.unshift(displayStartHour);
+    if (displayEndHour   > 23) labelHours.push(displayEndHour);
   }
 
   labelHours.forEach(function(h, idx){
@@ -627,13 +685,14 @@ function renderAirportStats(){
                  '" font-size="9" fill="' + (isNowLabel ? '#ef4444' : '#94a3b8') +
                  '" text-anchor="' + anchor +
                  '" font-family="ui-monospace,Menlo,monospace"' +
-                 (isNowLabel ? ' font-weight="700"' : '') + '>' + pad2(h) + ':00</text>';
+                 (isNowLabel ? ' font-weight="700"' : '') + '>' + hourLabel(h) + '</text>';
   });
 
   var dotsHtml = '';
   for (var d = 0; d < n; d++){
     var hh2 = displayStartHour + d;
-    if (buckets[hh2] <= 0) continue;
+    var vd = getBucket(hh2);
+    if (vd <= 0) continue;
     if (isToday && hh2 === currentHour) continue;
     var isPeak = (hh2 === peakHour);
     dotsHtml += '<circle cx="' + pts[d].x.toFixed(1) + '" cy="' + pts[d].y.toFixed(1) +
@@ -645,8 +704,8 @@ function renderAirportStats(){
   if (isToday && currentHour >= displayStartHour && currentHour <= displayEndHour){
     var nowPos = currentHour - displayStartHour;
     var cx = px(nowPos);
-    var currentY = py(buckets[currentHour]);
-    var currentFlights = buckets[currentHour];
+    var currentFlights = getBucket(currentHour);
+    var currentY = py(currentFlights);
 
     nowMarkerHtml += '<line x1="' + cx.toFixed(1) + '" y1="' + (padT - 2) +
                      '" x2="' + cx.toFixed(1) + '" y2="' + (padT + plotH) +
@@ -729,10 +788,10 @@ function renderAirportStats(){
 
       var p = pts[idx];
       var hh3 = displayStartHour + idx;
-      var cnt = buckets[hh3];
+      var cnt = getBucket(hh3);
       var isCurrent = (isToday && hh3 === currentHour);
 
-      tipEl.innerHTML = pad2(hh3) + ':00 - ' + pad2(hh3) + ':59　<b>' + cnt + '</b> 班' +
+      tipEl.innerHTML = hourRangeLabel(hh3) + '　<b>' + cnt + '</b> 班' +
         (isCurrent ? '　<span style="color:#fca5a5;font-weight:700">現在</span>' : '');
       tipEl.classList.remove('hidden');
 
@@ -771,7 +830,7 @@ function renderAirportStats(){
   if (barsEl){
     barsEl.innerHTML = pts.map(function(p){
       var hh4 = p.h;
-      var v = buckets[hh4];
+      var v = getBucket(hh4);
       var isPeak = (hh4 === peakHour && v > 0);
       var isActive = v > 0;
       var isNow = (isToday && hh4 === currentHour);
@@ -786,7 +845,7 @@ function renderAirportStats(){
         bgCls = 'bg-slate-50 border-slate-100 text-slate-300';
       }
       return '<div class="rounded-lg border py-1 text-center ' + bgCls + '">' +
-        '<div class="font-mono font-bold text-[10px] leading-none">' + pad2(hh4) + '</div>' +
+        '<div class="font-mono font-bold text-[10px] leading-none">' + hourLabel(hh4) + '</div>' +
         '<div class="font-mono font-extrabold text-[11px] leading-none mt-0.5">' + v + '</div>' +
       '</div>';
     }).join('');
@@ -882,11 +941,26 @@ async function loadFlightList(){
   airportLoaded = false;
 
   try {
+    /* 計算窗口：today 且右端越界時，需要同時取次日數據，
+       讓 24:00 之後的航班也能出現在曲線右側 */
+    var win = getDisplayWindow(date);
+    var needTomorrow = win.isToday && win.end > 23;
+    var tomorrowDate = needTomorrow ? offsetDate(date, 1) : '';
+
+    var tomorrowPromise = needTomorrow
+      ? fetchFlights(tomorrowDate, flightTabArrival).catch(function(){ return null; })
+      : Promise.resolve(null);
+
     var json = await fetchFlights(date, flightTabArrival);
+    var json2 = await tomorrowPromise;
 
     var allFlights = extractFlightsForDate(json, date);
     airportAllFlights = allFlights;
     airportLoaded = true;
+
+    airportTomorrowFlights = (json2 && tomorrowDate)
+      ? extractFlightsForDate(json2, tomorrowDate)
+      : [];
 
     var returnedDates = [];
     if (Array.isArray(json)) returnedDates = json.map(function(x){ return x && x.date; }).filter(Boolean);
@@ -920,6 +994,7 @@ async function loadFlightList(){
     airportAllFlights = [];
     airportFlights = [];
     airportHiddenCount = 0;
+    airportTomorrowFlights = [];
 
     statusEl.innerText = '載入失敗';
     listEl.innerHTML =
@@ -935,7 +1010,7 @@ async function loadFlightList(){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   初始化（独立打开 & 被 loader 注入均支持）
+   初始化
    ═══════════════════════════════════════════════════════════ */
 function initPage(){
   hydrateIcons();
