@@ -267,24 +267,36 @@ function mountSubPage(href, html, container, shouldShow){
       '\n' +
       /* ★★★ 通用事件绑定：处理所有 data-on-* 属性 ★★★ */
       '  var __EVENT_ATTRS__ = ' + JSON.stringify(EVENT_ATTRS) + ';\n' +
-      '  function __bindAll__(el){\n' +
-      '    if (!el || !el.dataset) return;\n' +
-      '    __EVENT_ATTRS__.forEach(function(evt){\n' +
-      '      var dataKey = "on" + evt.charAt(0).toUpperCase() + evt.slice(1);\n' +
-      '      var code = el.dataset[dataKey];\n' +
-      '      if (!code) return;\n' +
-      '      var flag = "__bound_" + evt;\n' +
-      '      if (el[flag]) return;\n' +
-      '      el[flag] = true;\n' +
-      '      el.addEventListener(evt, function(e){\n' +
-      '        try { eval(code); }\n' +
-      '        catch(err){ console.error("[' + ns + '] on" + evt + " error:", err, code); }\n' +
-      '      });\n' +
-      '    });\n' +
-      '  }\n' +
       '\n' +
       '  var __bindDone__ = false;\n' +
       '  try {\n' +
+      /* ★ 关键修复：__bindAll__ 定义在 try 块内部（函数表达式），
+         它在创建时捕获的是 try 块的作用域，所以 eval(code) 的作用域链为：
+         事件回调 → __bindAll__ → try 块 → IIFE → 全局。
+         这样 inlineScripts 里用 const / let 声明的 download 等函数，
+         事件触发时才能被找到，不再报 ReferenceError。 */
+      '    var __bindAll__ = function(el){\n' +
+      '      if (!el || !el.dataset) return;\n' +
+      '      __EVENT_ATTRS__.forEach(function(evt){\n' +
+      '        var dataKey = "on" + evt.charAt(0).toUpperCase() + evt.slice(1);\n' +
+      '        var code = el.dataset[dataKey];\n' +
+      '        if (!code) return;\n' +
+      '        var flag = "__bound_" + evt;\n' +
+      '        if (el[flag]) return;\n' +
+      '        el[flag] = true;\n' +
+      '        el.addEventListener(evt, function(e){\n' +
+      '          try { eval(code); }\n' +
+      '          catch(err){\n' +
+      /* 兜底：如果块作用域仍找不到（例如函数挂在 window 上），用全局 eval 再试一次 */
+      '            if (err && err.name === "ReferenceError"){\n' +
+      '              try { __realWin__.eval(code); return; } catch(_e){}\n' +
+      '            }\n' +
+      '            console.error("[' + ns + '] on" + evt + " error:", err, code);\n' +
+      '          }\n' +
+      '        });\n' +
+      '      });\n' +
+      '    };\n' +
+      '\n' +
       inlineScripts + '\n' +
       '\n' +
       /* 初始扫描全部元素并绑定 */
