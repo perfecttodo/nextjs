@@ -166,7 +166,7 @@ button:disabled{cursor:not-allowed}
 
   <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
     <p class="text-[11px] text-slate-400 leading-relaxed">
-      ※ 備份包含：行程、更次設定、收藏地點、加油記錄、偏好設定。<br>
+      ※ 備份包含：所有以 <code class="font-mono">taxi_</code> 開頭的本地數據（登入憑證等 <code class="font-mono">taxi_private_</code> 項目除外）。<br>
       ※ 檔案儲存在 Google Drive「apps」資料夾內。<br>
       ※ 上傳與下載前皆會自動進行版本比對，提供完整防護選項。
     </p>
@@ -233,6 +233,10 @@ var CLIENT_ID = '802199089900-5n676d4hansnab5c66igukb1mch5m7m1.apps.googleuserco
 var SCOPES = 'https://www.googleapis.com/auth/drive.file';
 var FILE_NAME = 'hk-taxi-helper-backup.json';
 var FOLDER_NAME = 'apps'; // 指定的目錄名稱
+
+// 備份前綴規則：包含 taxi_*，排除 taxi_private_*
+var BACKUP_KEY_PREFIX = 'taxi_';
+var BACKUP_KEY_EXCLUDE_PREFIX = 'taxi_private_';
 
 /* ═══════════════════════════════════════════════════════════
    圖示與提示
@@ -395,12 +399,24 @@ function updateUI(){
 }
 
 function updateLocalStats(){
-  var trips = JSON.parse(localStorage.getItem('taxi_trips')) || [];
-  var shifts = JSON.parse(localStorage.getItem('taxi_shift_settings')) || {};
-  var places = JSON.parse(localStorage.getItem('taxi_places')) || [];
-  document.getElementById('stat-trips').innerText = trips.length + ' 筆';
-  document.getElementById('stat-shifts').innerText = Object.keys(shifts).length + ' 個';
-  document.getElementById('stat-places').innerText = places.length + ' 個';
+  function safeParse(key, fallback){
+    try {
+      var raw = localStorage.getItem(key);
+      if (raw === null) return fallback;
+      var parsed = JSON.parse(raw);
+      return parsed === null ? fallback : parsed;
+    } catch(e){ return fallback; }
+  }
+  var trips  = safeParse('taxi_trips', []);
+  var shifts = safeParse('taxi_shift_settings', {});
+  var places = safeParse('taxi_places', []);
+
+  document.getElementById('stat-trips').innerText =
+    (Array.isArray(trips) ? trips.length : 0) + ' 筆';
+  document.getElementById('stat-shifts').innerText =
+    (shifts && typeof shifts === 'object' && !Array.isArray(shifts) ? Object.keys(shifts).length : 0) + ' 個';
+  document.getElementById('stat-places').innerText =
+    (Array.isArray(places) ? places.length : 0) + ' 個';
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -509,19 +525,41 @@ function resolveDownloadConflict(action) {
 /* ═══════════════════════════════════════════════════════════
    資料處理核心
    ═══════════════════════════════════════════════════════════ */
+
+// 判斷某個 localStorage key 是否應納入備份
+function isBackupableKey(key){
+  if (!key || typeof key !== 'string') return false;
+  if (key.indexOf(BACKUP_KEY_PREFIX) !== 0) return false;        // 必須以 taxi_ 開頭
+  if (key.indexOf(BACKUP_KEY_EXCLUDE_PREFIX) === 0) return false; // 排除 taxi_private_
+  return true;
+}
+
+// 收集所有符合規則的 taxi_* 本地數據
+function collectLocalTaxiData(){
+  var data = {};
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (!isBackupableKey(key)) continue;
+      var raw = localStorage.getItem(key);
+      if (raw === null) continue;
+      data[key] = raw;
+    }
+  } catch(e){
+    console.warn('[backup] collect local data failed:', e);
+  }
+  return data;
+}
+
 function buildBackupPayload(){
-  var trips = JSON.parse(localStorage.getItem('taxi_trips')) || [];
-  var shiftSettings = JSON.parse(localStorage.getItem('taxi_shift_settings')) || {};
-  var places = JSON.parse(localStorage.getItem('taxi_places')) || [];
-  var fuelPrefs; try { fuelPrefs = JSON.parse(localStorage.getItem('taxi_fuel_prefs')) || {}; } catch(e){ fuelPrefs = {}; }
-  var cardStates; try { cardStates = JSON.parse(localStorage.getItem('taxi_card_states')) || {}; } catch(e){ cardStates = {}; }
   return {
-    _meta: { app: 'hk-taxi-helper', version: 2, exportedAt: new Date().toISOString() },
-    trips: trips, shiftSettings: shiftSettings, places: places,
-    fuelPrefs: fuelPrefs,
-    lastType: localStorage.getItem('taxi_last_type') || '',
-    lastPayment: localStorage.getItem('taxi_last_payment') || '',
-    cardStates: cardStates
+    _meta: {
+      app: 'hk-taxi-helper',
+      version: 3,
+      exportedAt: new Date().toISOString(),
+      keyRule: 'taxi_* except taxi_private_*'
+    },
+    data: collectLocalTaxiData()
   };
 }
 
@@ -591,14 +629,27 @@ async function applyFileToLocal(file){
     return false;
   }
 
-  if (Array.isArray(data.trips)) localStorage.setItem('taxi_trips', JSON.stringify(data.trips));
-  if (data.shiftSettings) localStorage.setItem('taxi_shift_settings', JSON.stringify(data.shiftSettings));
-  if (Array.isArray(data.places)) localStorage.setItem('taxi_places', JSON.stringify(data.places));
-  if (data.fuelPrefs) localStorage.setItem('taxi_fuel_prefs', JSON.stringify(data.fuelPrefs));
-  if (data.lastType) localStorage.setItem('taxi_last_type', data.lastType);
-  if (data.lastPayment) localStorage.setItem('taxi_last_payment', data.lastPayment);
-  if (data.cardStates) localStorage.setItem('taxi_card_states', JSON.stringify(data.cardStates));
+  // 新格式：通用 data 物件內所有 taxi_* （排除 taxi_private_*）
+  if (data.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
+    Object.keys(data.data).forEach(function(key){
+      if (!isBackupableKey(key)) return;
+      var val = data.data[key];
+      if (typeof val === 'string') {
+        localStorage.setItem(key, val);
+      }
+    });
+  }
 
+  // 舊格式向後兼容（v1 / v2 備份檔）
+  if (Array.isArray(data.trips)) localStorage.setItem('taxi_trips', JSON.stringify(data.trips));
+  if (data.shiftSettings && typeof data.shiftSettings === 'object') localStorage.setItem('taxi_shift_settings', JSON.stringify(data.shiftSettings));
+  if (Array.isArray(data.places)) localStorage.setItem('taxi_places', JSON.stringify(data.places));
+  if (data.fuelPrefs && typeof data.fuelPrefs === 'object') localStorage.setItem('taxi_fuel_prefs', JSON.stringify(data.fuelPrefs));
+  if (typeof data.lastType === 'string' && data.lastType) localStorage.setItem('taxi_last_type', data.lastType);
+  if (typeof data.lastPayment === 'string' && data.lastPayment) localStorage.setItem('taxi_last_payment', data.lastPayment);
+  if (data.cardStates && typeof data.cardStates === 'object') localStorage.setItem('taxi_card_states', JSON.stringify(data.cardStates));
+
+  // 同步時間以雲端檔案修改時間為準
   if (file.modifiedTime) {
     localStorage.setItem('taxi_last_sync_time', new Date(file.modifiedTime).getTime().toString());
   }
