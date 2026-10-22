@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   loader.js — Shadow DOM 子页面动态加载器（修复版）
+   loader.js — Shadow DOM 子页面加载器（作用域修复版）
    ═══════════════════════════════════════════════════════════ */
 (function(){
 'use strict';
@@ -74,22 +74,21 @@ function loadSubPage(href){
       if (typeof window.hydrateIcons === 'function') window.hydrateIcons();
     });
 }
-// 動態加載外部腳本的輔助函數
-function loadExternalScript(src) {
-  return new Promise((resolve, reject) => {
-    // 避免重複加載同一個腳本
-    if (document.querySelector(`script[src="${src}"]`)) {
-      resolve();
-      return;
+
+function loadExternalScript(src){
+  return new Promise(function(resolve, reject){
+    if (document.querySelector('script[src="' + src + '"]')){
+      resolve(); return;
     }
-    const script = document.createElement('script');
-    script.src = src;
-    script.async = false; // 確保按順序執行
-    script.onload = () => resolve();
-    script.onerror = (err) => reject(new Error(`Failed to load script: ${src}`));
-    document.head.appendChild(script);
+    var s = document.createElement('script');
+    s.src = src;
+    s.async = false;
+    s.onload = function(){ resolve(); };
+    s.onerror = function(){ reject(new Error('Failed: ' + src)); };
+    document.head.appendChild(s);
   });
 }
+
 function mountSubPage(href, html, container){
   var doc = new DOMParser().parseFromString(html, 'text/html');
 
@@ -120,33 +119,21 @@ function mountSubPage(href, html, container){
     el.removeAttribute('onclick');
   });
 
-  // ★★★ 關鍵修改：分離內聯腳本和外部腳本 ★★★
   var inlineScripts = '';
   var externalScripts = [];
 
   bodyDiv.querySelectorAll('script').forEach(function(s){
-    if (s.src) {
-      // 收集外部腳本
-      externalScripts.push({ src: s.src, async: s.async, defer: s.defer });
-    } else {
-      // 收集內聯腳本
-      inlineScripts += '\n' + s.textContent;
-    }
+    if (s.src){ externalScripts.push(s.src); }
+    else { inlineScripts += '\n' + s.textContent; }
     s.remove();
   });
 
   var ns = 'page_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
   window.__SHADOW_POOL__ = window.__SHADOW_POOL__ || {};
-  window.__PAGE_INVOKERS__ = window.__PAGE_INVOKERS__ || {};
   window.__SHADOW_POOL__[ns] = shadow;
 
-  // ★★★ 定義腳本加載順序：先加載外部腳本，再執行內聯腳本 ★★★
-  var loadScriptsSequentially = async function() {
-    for (const scriptInfo of externalScripts) {
-      await loadExternalScript(scriptInfo.src);
-    }
-    
-    // 外部腳本加載完畢後，再執行內聯腳本
+  var run = function(){
+    /* ★★★ 关键：click 绑定定义在 inlineScripts 同一个 try 块内 ★★★ */
     var wrapped =
       '(function(__realWin__, __realDoc__){\n' +
       '  var __shadow__ = __realWin__.__SHADOW_POOL__["' + ns + '"];\n' +
@@ -163,15 +150,12 @@ function mountSubPage(href, html, container){
       '      }\n' +
       '      __shadow__.addEventListener(type, handler, opts);\n' +
       '    },\n' +
-      '    removeEventListener: function(type, handler, opts){ __shadow__.removeEventListener(type, handler, opts); },\n' +
+      '    removeEventListener: function(t,h,o){ __shadow__.removeEventListener(t,h,o); },\n' +
       '    createElement: function(tag){ return __realDoc__.createElement(tag); },\n' +
       '    createTextNode: function(t){ return __realDoc__.createTextNode(t); },\n' +
-      '    body: __bodyDiv__,\n' +
-      '    head: __shadow__,\n' +
+      '    body: __bodyDiv__, head: __shadow__,\n' +
       '    documentElement: __realDoc__.documentElement,\n' +
-      '    readyState: "complete",\n' +
-      '    hidden: __realDoc__.hidden,\n' +
-      '    activeElement: __realDoc__.activeElement\n' +
+      '    readyState: "complete", hidden: __realDoc__.hidden, activeElement: __realDoc__.activeElement\n' +
       '  };\n' +
       '  var localStorage = __realWin__.localStorage;\n' +
       '  var navigator = __realWin__.navigator;\n' +
@@ -209,12 +193,69 @@ function mountSubPage(href, html, container){
       '  var Uint8Array = __realWin__.Uint8Array;\n' +
       '  function confirm(msg){ return __realWin__.confirm(msg); }\n' +
       '  function alert(msg){ return __realWin__.alert(msg); }\n' +
+      '\n' +
+      /* ── try 块：inlineScripts 与 click 绑定同在此作用域内 ── */
+      '  var __bindDone__ = false;\n' +
       '  try {\n' +
       inlineScripts + '\n' +
-      '  } catch(e){ console.error("[' + ns + '] script error", e); }\n' +
+      '\n' +
+      /* 关键：绑定函数定义在 try 块内，所以闭包能访问 try 块里 const/let 声明的所有函数 */
+      '    (function __bindClick__(){\n' +
+      '      function __bind__(el){\n' +
+      '        if (!el || !el.dataset || !el.dataset.onclick || el.__subBound__) return;\n' +
+      '        el.__subBound__ = true;\n' +
+      '        var __code__ = el.dataset.onclick;\n' +
+      '        el.addEventListener("click", function(e){\n' +
+      '          e.stopPropagation();\n' +
+      '          try { eval(__code__); }\n' +
+      '          catch(err){ console.error("[' + ns + '] onclick error:", err, __code__); }\n' +
+      '        });\n' +
+      '      }\n' +
+      '      __shadow__.querySelectorAll("[data-onclick]").forEach(__bind__);\n' +
+      '      var mo = new MutationObserver(function(muts){\n' +
+      '        muts.forEach(function(m){\n' +
+      '          m.addedNodes.forEach(function(node){\n' +
+      '            if (!node || node.nodeType !== 1) return;\n' +
+      '            if (node.matches && node.matches("[data-onclick]")) __bind__(node);\n' +
+      '            if (node.querySelectorAll) node.querySelectorAll("[data-onclick]").forEach(__bind__);\n' +
+      '          });\n' +
+      '        });\n' +
+      '      });\n' +
+      '      mo.observe(__shadow__, { childList:true, subtree:true });\n' +
+      '    })();\n' +
+      '    __bindDone__ = true;\n' +
+      '  } catch(e){ console.error("[' + ns + '] script error:", e); }\n' +
+      '\n' +
+      /* ── fallback：如果 try 块抛错（bindDone=false），用 IIFE 顶层绑定 ── */
+      '  if (!__bindDone__){\n' +
+      '    console.warn("[' + ns + '] using fallback binding (only function-declared handlers will work)");\n' +
+      '    (function __bindFallback__(){\n' +
+      '      function __bind__(el){\n' +
+      '        if (!el || !el.dataset || !el.dataset.onclick || el.__subBound__) return;\n' +
+      '        el.__subBound__ = true;\n' +
+      '        var __code__ = el.dataset.onclick;\n' +
+      '        el.addEventListener("click", function(e){\n' +
+      '          e.stopPropagation();\n' +
+      '          try { eval(__code__); }\n' +
+      '          catch(err){ console.error("[' + ns + '] onclick fallback error:", err, __code__); }\n' +
+      '        });\n' +
+      '      }\n' +
+      '      __shadow__.querySelectorAll("[data-onclick]").forEach(__bind__);\n' +
+      '      var mo2 = new MutationObserver(function(muts){\n' +
+      '        muts.forEach(function(m){\n' +
+      '          m.addedNodes.forEach(function(node){\n' +
+      '            if (!node || node.nodeType !== 1) return;\n' +
+      '            if (node.matches && node.matches("[data-onclick]")) __bind__(node);\n' +
+      '            if (node.querySelectorAll) node.querySelectorAll("[data-onclick]").forEach(__bind__);\n' +
+      '          });\n' +
+      '        });\n' +
+      '      });\n' +
+      '      mo2.observe(__shadow__, { childList:true, subtree:true });\n' +
+      '    })();\n' +
+      '  }\n' +
+      '\n' +
       '  try { window.goBack = function(){ if (__realWin__.__SUB_PAGE_BACK__) __realWin__.__SUB_PAGE_BACK__(); }; } catch(e){}\n' +
       '  try { window.goHome = function(){ if (__realWin__.__SUB_PAGE_BACK__) __realWin__.__SUB_PAGE_BACK__(); }; } catch(e){}\n' +
-      '  __realWin__.__PAGE_INVOKERS__["' + ns + '"] = function(code){ try { return eval(code); } catch(e){ console.error("[' + ns + '] onclick error:", e, code); } };\n' +
       '})(window, document);\n';
 
     var scriptEl = document.createElement('script');
@@ -222,39 +263,22 @@ function mountSubPage(href, html, container){
     document.head.appendChild(scriptEl);
   };
 
-  // 開始按順序加載
-  loadScriptsSequentially();
-
-  shadow.addEventListener('click', function(e){
-    var el = e.target;
-    while (el && el !== shadow){
-      if (el.dataset && el.dataset.onclick){
-        window.__PAGE_INVOKERS__[ns](el.dataset.onclick);
-        return;
-      }
-      el = el.parentNode;
-    }
-  });
-
-  var observer = new MutationObserver(function(muts){
-    muts.forEach(function(m){
-      m.addedNodes.forEach(function(node){
-        if (!node || node.nodeType !== 1) return;
-        var process = function(el){
-          if (el.hasAttribute && el.hasAttribute('onclick')){
-            el.dataset.onclick = el.getAttribute('onclick');
-            el.removeAttribute('onclick');
-          }
-        };
-        process(node);
-        if (node.querySelectorAll) node.querySelectorAll('[onclick]').forEach(process);
-      });
+  if (externalScripts.length){
+    var chain = Promise.resolve();
+    externalScripts.forEach(function(src){
+      chain = chain.then(function(){ return loadExternalScript(src); });
     });
-  });
-  observer.observe(shadow, { childList:true, subtree:true });
+    chain.then(run).catch(function(err){
+      console.error('[loader] external script error:', err);
+      run();
+    });
+  } else {
+    run();
+  }
 
-  loadedSubPages[href] = { host: host, shadow: shadow, ns: ns, observer: observer };
+  loadedSubPages[href] = { host: host, shadow: shadow, ns: ns };
 }
+
 function hideAllSubPages(){
   currentSubPageHref = null;
   window.__CURRENT_SUB_PAGE__ = null;
@@ -269,13 +293,13 @@ function hideAllSubPages(){
 
 function reloadMainData(){
   try {
-    if (typeof window.trips !== 'undefined' && Array.isArray(window.trips)) {
+    if (typeof window.trips !== 'undefined' && Array.isArray(window.trips)){
       window.trips = JSON.parse(localStorage.getItem('taxi_trips')) || [];
     }
-    if (typeof window.shiftSettings !== 'undefined') {
+    if (typeof window.shiftSettings !== 'undefined'){
       window.shiftSettings = JSON.parse(localStorage.getItem('taxi_shift_settings')) || {};
     }
-    if (typeof window.places !== 'undefined') {
+    if (typeof window.places !== 'undefined'){
       window.places = JSON.parse(localStorage.getItem('taxi_places')) || [];
     }
     if (typeof window.renderTripList === 'function') window.renderTripList();
@@ -287,7 +311,6 @@ function reloadMainData(){
   } catch(e){ console.warn('[reloadMainData]', e); }
 }
 
-/* ─── 覆盖版 handleDrawerItem（拦截 href） ─── */
 window.handleDrawerItem = function(id){
   var items = window.DRAWER_ITEMS || [];
   var item = items.find(function(x){ return x.id === id; });
@@ -310,7 +333,6 @@ window.handleDrawerItem = function(id){
   }, 280);
 };
 
-/* ─── 保存原 switchTab，覆盖版先卸载子页面 ─── */
 if (typeof window.switchTab === 'function'){
   window.switchTabOriginal = window.switchTab;
 }
