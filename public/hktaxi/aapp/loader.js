@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   loader.js — Shadow DOM 子页面加载器（作用域修复版）
+   loader.js — Shadow DOM 子页面加载器（完整修复版）
    ═══════════════════════════════════════════════════════════ */
 (function(){
 'use strict';
@@ -133,7 +133,6 @@ function mountSubPage(href, html, container){
   window.__SHADOW_POOL__[ns] = shadow;
 
   var run = function(){
-    /* ★★★ 关键：click 绑定定义在 inlineScripts 同一个 try 块内 ★★★ */
     var wrapped =
       '(function(__realWin__, __realDoc__){\n' +
       '  var __shadow__ = __realWin__.__SHADOW_POOL__["' + ns + '"];\n' +
@@ -194,12 +193,22 @@ function mountSubPage(href, html, container){
       '  function confirm(msg){ return __realWin__.confirm(msg); }\n' +
       '  function alert(msg){ return __realWin__.alert(msg); }\n' +
       '\n' +
-      /* ── try 块：inlineScripts 与 click 绑定同在此作用域内 ── */
+      /* ★★★ 关键修复 1：拦截子页面的 DOMContentLoaded / load 监听器 ★★★ */
+      '  var __origAdd__ = __realWin__.addEventListener;\n' +
+      '  var __captured__ = [];\n' +
+      '  __realWin__.addEventListener = function(type, handler, opts){\n' +
+      '    if (type === "DOMContentLoaded" || type === "load"){\n' +
+      '      __captured__.push({ type: type, handler: handler });\n' +
+      '      return;\n' +
+      '    }\n' +
+      '    return __origAdd__.call(__realWin__, type, handler, opts);\n' +
+      '  };\n' +
+      '\n' +
       '  var __bindDone__ = false;\n' +
       '  try {\n' +
       inlineScripts + '\n' +
       '\n' +
-      /* 关键：绑定函数定义在 try 块内，所以闭包能访问 try 块里 const/let 声明的所有函数 */
+      /* ★ 子页面脚本执行完毕后，立即绑定 click 事件（闭包作用域覆盖 try 块内所有函数） */
       '    (function __bindClick__(){\n' +
       '      function __bind__(el){\n' +
       '        if (!el || !el.dataset || !el.dataset.onclick || el.__subBound__) return;\n' +
@@ -225,10 +234,38 @@ function mountSubPage(href, html, container){
       '    })();\n' +
       '    __bindDone__ = true;\n' +
       '  } catch(e){ console.error("[' + ns + '] script error:", e); }\n' +
+      '  finally {\n' +
+      '    __realWin__.addEventListener = __origAdd__;\n' +
+      '  }\n' +
       '\n' +
-      /* ── fallback：如果 try 块抛错（bindDone=false），用 IIFE 顶层绑定 ── */
+      /* ★★★ 关键修复 2：异步执行子页面的 DOMContentLoaded / load handler ★★★ */
+      /* 使用一次性 monkey-patch，让 handler 内注册的 DOMContentLoaded / load 也能立即执行 */
+      '  setTimeout(function(){\n' +
+      '    if (!__captured__.length) return;\n' +
+      '    var __origAdd2__ = __realWin__.addEventListener;\n' +
+      '    __realWin__.addEventListener = function(type, handler, opts){\n' +
+      '      if (type === "DOMContentLoaded" || type === "load"){\n' +
+      '        setTimeout(function(){\n' +
+      '          try { handler.call(__realWin__, { type: type }); }\n' +
+      '          catch(e){ console.error("[' + ns + '] " + type + " handler error:", e); }\n' +
+      '        }, 0);\n' +
+      '        return;\n' +
+      '      }\n' +
+      '      return __origAdd2__.call(__realWin__, type, handler, opts);\n' +
+      '    };\n' +
+      '    try {\n' +
+      '      __captured__.forEach(function(item){\n' +
+      '        try { item.handler.call(__realWin__, { type: item.type }); }\n' +
+      '        catch(e){ console.error("[' + ns + '] " + item.type + " handler error:", e); }\n' +
+      '      });\n' +
+      '    } finally {\n' +
+      '      __realWin__.addEventListener = __origAdd2__;\n' +
+      '    }\n' +
+      '  }, 0);\n' +
+      '\n' +
+      /* fallback binding（try 块抛错时使用） */
       '  if (!__bindDone__){\n' +
-      '    console.warn("[' + ns + '] using fallback binding (only function-declared handlers will work)");\n' +
+      '    console.warn("[' + ns + '] using fallback binding");\n' +
       '    (function __bindFallback__(){\n' +
       '      function __bind__(el){\n' +
       '        if (!el || !el.dataset || !el.dataset.onclick || el.__subBound__) return;\n' +
