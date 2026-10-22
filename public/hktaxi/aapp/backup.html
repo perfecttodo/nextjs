@@ -246,8 +246,34 @@ var ICONS = {
   'check-circle':'<circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.3 2.3 4.7-5"/>'
 };
 function hydrateIcons(root){
-  (root || document.querySelectorAll('[data-icon]')).forEach(function(el){
-    if (el.dataset.done) return;
+  var nodes;
+
+  if (!root){
+    // 无参：扫主 document
+    nodes = document.querySelectorAll('[data-icon]');
+  } else if (root.nodeType === 1){
+    // 单个 Element：自身 + 内部子孙都要处理
+    nodes = [];
+    if (root.hasAttribute && root.hasAttribute('data-icon')){
+      nodes.push(root);
+    }
+    if (root.querySelectorAll){
+      var inner = root.querySelectorAll('[data-icon]');
+      for (var i = 0; i < inner.length; i++) nodes.push(inner[i]);
+    }
+  } else if (typeof root.forEach === 'function'){
+    // NodeList / Array
+    nodes = root;
+  } else if (root.item){
+    // HTMLCollection
+    nodes = Array.prototype.slice.call(root);
+  } else {
+    // 其它意外类型：别崩，退化成无参扫描
+    nodes = document.querySelectorAll('[data-icon]');
+  }
+
+  Array.prototype.forEach.call(nodes, function(el){
+    if (el.dataset && el.dataset.done) return;
     el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
                    'stroke-linecap="round" stroke-linejoin="round" style="width:100%;height:100%">' +
                    (ICONS[el.dataset.icon] || '') + '</svg>';
