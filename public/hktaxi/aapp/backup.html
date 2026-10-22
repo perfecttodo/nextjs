@@ -17,8 +17,10 @@ input{font:inherit;color:inherit;margin:0}input::placeholder{color:#94a3b8}svg{d
 .ico{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
 .hidden{display:none !important}
 .max-w-md{max-width:28rem}.mx-auto{margin-left:auto;margin-right:auto}
+.max-w-sm{max-width:24rem}
 .w-full{width:100%}.relative{position:relative}.absolute{position:absolute}.fixed{position:fixed}
-.flex{display:flex}.grid{display:grid}.items-center{align-items:center}
+.inset-0{top:0;right:0;bottom:0;left:0}
+.flex{display:flex}.grid{display:grid}.items-center{align-items:center}.items-start{align-items:flex-start}
 .justify-between{justify-content:space-between}.justify-center{justify-content:center}
 .text-center{text-align:center}.text-right{text-align:right}
 .text-xs{font-size:.75rem;line-height:1.45}.text-sm{font-size:.875rem;line-height:1.45}
@@ -46,8 +48,8 @@ input{font:inherit;color:inherit;margin:0}input::placeholder{color:#94a3b8}svg{d
 .bg-rose-50{background-color:#fff1f2}.bg-blue-50{background-color:#eff6ff}
 .bg-blue-500{background-color:#3b82f6}.bg-blue-600{background-color:#2563eb}
 .border{border-width:1px}.border-b{border-bottom-width:1px}
-.border-slate-100{border-color:#f1f5f9}.border-slate-200{border-color:#e2e8f0}
-.border-amber-200{border-color:#fde68a}.border-amber-300{border-color:#fcd34d}
+.border-slate-100{border-color:#f1f5f9}.border-slate-200{border-color:#e2e8f0}.border-slate-300{border-color:#cbd5e1}
+.border-amber-200{border-color:#fde68a}.border-amber-300{border-color:#fcd34d}.border-emerald-200{border-color:#a7f3d0}
 .border-rose-200{border-color:#fecdd3}
 .rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.rounded-2xl{border-radius:1rem}
 .shadow-sm{box-shadow:0 1px 3px rgba(15,23,42,.08),0 1px 2px rgba(15,23,42,.04)}
@@ -62,16 +64,18 @@ input{font:inherit;color:inherit;margin:0}input::placeholder{color:#94a3b8}svg{d
 .py-3\.5{padding-top:.875rem;padding-bottom:.875rem}.py-4{padding-top:1rem;padding-bottom:1rem}
 .py-8{padding-top:2rem;padding-bottom:2rem}.pt-1{padding-top:.25rem}.pt-2{padding-top:.5rem}.pb-3{padding-bottom:.75rem}
 .mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}
-.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}
+.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.my-auto{margin-top:auto;margin-bottom:auto}
 .gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}
 .space-y-1\.5 > * + *{margin-top:.375rem}.space-y-2 > * + *{margin-top:.5rem}.space-y-3 > * + *{margin-top:.75rem}.space-y-4 > * + *{margin-top:1rem}
 .w-3{width:.75rem}.h-3{height:.75rem}.w-3\.5{width:.875rem}.h-3\.5{height:.875rem}
 .w-4{width:1rem}.h-4{height:1rem}.w-5{width:1.25rem}.h-5{height:1.25rem}
 .w-6{width:1.5rem}.h-6{height:1.5rem}.w-8{width:2rem}.h-8{height:2rem}.w-10{width:2.5rem}.h-10{height:2.5rem}
+.overflow-y-auto{overflow-y:auto;-webkit-overflow-scrolling:touch}
 .transition{transition:all .2s ease}.animate-spin{animation:spin 1s linear infinite}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 button:disabled{cursor:not-allowed}
-.hover\:bg-amber-600:hover{background-color:#d97706}.hover\:bg-emerald-700:hover{background-color:#047857}
+.hover\:bg-amber-600:hover{background-color:#d97706}.hover\:bg-amber-700:hover{background-color:#b45309}
+.hover\:bg-emerald-700:hover{background-color:#047857}.hover\:bg-slate-50:hover{background-color:#f8fafc}
 .hover\:bg-slate-200:hover{background-color:#e2e8f0}.hover\:text-rose-500:hover{color:#f43f5e}
 .active\:scale-\[0\.98\]:active{transform:scale(.98)}.active\:scale-\[0\.95\]:active{transform:scale(.95)}
 .active\:scale-\[0\.99\]:active{transform:scale(.99)}
@@ -174,9 +178,15 @@ button:disabled{cursor:not-allowed}
 
 </main>
 
-<!-- 下載還原衝突選擇 Modal -->
-<div id="download-conflict-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-4" style="z-index:100;backdrop-filter:blur(2px)">
-  <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 space-y-4">
+<!-- 下載還原衝突選擇 Modal（已修復定位） -->
+<div id="download-conflict-modal"
+     class="fixed inset-0 hidden items-start justify-center p-4 overflow-y-auto"
+     onclick="if(event.target===this) resolveDownloadConflict('cancel')"
+     style="z-index:100;background:rgba(15,23,42,.6);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+            padding-top:max(1rem,env(safe-area-inset-top));
+            padding-bottom:max(1rem,env(safe-area-inset-bottom))">
+
+  <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 space-y-4 my-auto">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
         <span class="ico w-5 h-5" data-icon="info"></span>
@@ -249,10 +259,8 @@ function hydrateIcons(root){
   var nodes;
 
   if (!root){
-    // 无参：扫主 document
     nodes = document.querySelectorAll('[data-icon]');
   } else if (root.nodeType === 1){
-    // 单个 Element：自身 + 内部子孙都要处理
     nodes = [];
     if (root.hasAttribute && root.hasAttribute('data-icon')){
       nodes.push(root);
@@ -262,13 +270,10 @@ function hydrateIcons(root){
       for (var i = 0; i < inner.length; i++) nodes.push(inner[i]);
     }
   } else if (typeof root.forEach === 'function'){
-    // NodeList / Array
     nodes = root;
   } else if (root.item){
-    // HTMLCollection
     nodes = Array.prototype.slice.call(root);
   } else {
-    // 其它意外类型：别崩，退化成无参扫描
     nodes = document.querySelectorAll('[data-icon]');
   }
 
@@ -314,7 +319,7 @@ function goBack(){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   Token 管理 (Token Model)
+   Token 管理
    ═══════════════════════════════════════════════════════════ */
 var TOKEN_KEY = 'taxi_google_token';
 
@@ -340,7 +345,7 @@ function clearTokens(){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   彈窗授權 (Google Identity Services Token Client)
+   彈窗授權
    ═══════════════════════════════════════════════════════════ */
 var tokenClient = null;
 
@@ -430,7 +435,7 @@ function updateLocalStats(){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   Drive API 與資料夾管理
+   Drive API
    ═══════════════════════════════════════════════════════════ */
 async function api(url, options){
   var token = getStoredAccessToken();
@@ -450,7 +455,6 @@ async function api(url, options){
   return resp;
 }
 
-// 取得或自動建立指定名稱的資料夾 (apps)
 async function getOrCreateFolderId(){
   var q = encodeURIComponent("name = '" + FOLDER_NAME + "' and mimeType = 'application/vnd.google-apps.folder' and trashed = false");
   var url = 'https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)&pageSize=1';
@@ -461,7 +465,6 @@ async function getOrCreateFolderId(){
     return data.files[0].id;
   }
 
-  // 如果資料夾不存在，自動建立一個
   var createUrl = 'https://www.googleapis.com/drive/v3/files';
   var folderMeta = {
     name: FOLDER_NAME,
@@ -551,7 +554,6 @@ function buildBackupPayload(){
   };
 }
 
-// 實際執行上傳（自動放入 apps 目錄）
 async function executeUpload(){
   var folderId = await getOrCreateFolderId();
   var payload = buildBackupPayload();
@@ -559,22 +561,20 @@ async function executeUpload(){
   var file = new File([blob], FILE_NAME, { type: 'application/json' });
 
   var existing = await findBackupFile();
-  
+
   var uploadUrl, method;
   var form = new FormData();
 
   if (existing) {
-    // 更新現有檔案
     uploadUrl = 'https://www.googleapis.com/upload/drive/v3/files/' + encodeURIComponent(existing.id) + '?uploadType=multipart';
     method = 'PATCH';
     form.append('metadata', new Blob([JSON.stringify({ name: FILE_NAME })], { type: 'application/json' }));
   } else {
-    // 建立新檔案並指定 parents 為 apps 資料夾 ID
     uploadUrl = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
     method = 'POST';
     form.append('metadata', new Blob([JSON.stringify({ name: FILE_NAME, parents: [folderId], mimeType: 'application/json' })], { type: 'application/json' }));
   }
-  
+
   form.append('file', file);
 
   var resp = await api(uploadUrl, { method: method, body: form });
@@ -654,7 +654,7 @@ async function download(){
 
     var cloudModifiedTime = new Date(file.modifiedTime).getTime();
     var lastSyncTime = parseInt(localStorage.getItem('taxi_last_sync_time') || '0', 10);
-    
+
     loading.classList.add('hidden');
 
     var confirmMsg = '找到備份：\n\n' +
@@ -706,7 +706,7 @@ async function download(){
    ═══════════════════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', function(){
   hydrateIcons();
-  
+
   if (window.google && window.google.accounts) {
     initGoogleClient();
   } else {
