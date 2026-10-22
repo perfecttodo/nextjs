@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>現金盤點 · 的士助手</title>
+<meta name="theme-color" content="#f59e0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+*,*::before,*::after{box-sizing:border-box;border:0 solid #e2e8f0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang HK","Hiragino Sans CNS","Microsoft JhengHei","Noto Sans TC",sans-serif;
+  background:#f8fafc;color:#1e293b;min-height:100vh;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  -webkit-tap-highlight-color:transparent}
+h1,h2,h3,p{margin:0;font-size:inherit;font-weight:inherit}
+button{background:none;cursor:pointer;border:0;padding:0;font:inherit;color:inherit}
+input,select{font:inherit;color:inherit;margin:0;background:none}
+input::placeholder{color:#94a3b8}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+svg{display:block}
+.ico{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.hidden{display:none !important}
+.max-w-md{max-width:28rem}.mx-auto{margin-left:auto;margin-right:auto}
+.w-full{width:100%}.relative{position:relative}.absolute{position:absolute}.fixed{position:fixed}
+.flex{display:flex}.grid{display:grid}.items-center{align-items:center}
+.justify-between{justify-content:space-between}.justify-center{justify-content:center}
+.justify-end{justify-content:flex-end}
+.text-center{text-align:center}
+.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.grid-cols-7{grid-template-columns:repeat(7,minmax(0,1fr))}
+.aspect-square{aspect-ratio:1/1}
+.gap-0\.5{gap:.125rem}
+.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}
+.space-y-1\.5 > * + *{margin-top:.375rem}
+.space-y-2 > * + *{margin-top:.5rem}
+.space-y-3 > * + *{margin-top:.75rem}
+.p-1\.5{padding:.375rem}.p-2{padding:.5rem}.p-2\.5{padding:.625rem}.p-3{padding:.75rem}.p-4{padding:1rem}
+.px-3{padding-left:.75rem;padding-right:.75rem}
+.px-4{padding-left:1rem;padding-right:1rem}
+.py-1{padding-top:.25rem;padding-bottom:.25rem}
+.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}
+.py-2{padding-top:.5rem;padding-bottom:.5rem}
+.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}
+.py-3{padding-top:.75rem;padding-bottom:.75rem}
+.py-3\.5{padding-top:.875rem;padding-bottom:.875rem}
+.py-6{padding-top:1.5rem;padding-bottom:1.5rem}
+.pl-3{padding-left:.75rem}.pl-8{padding-left:2rem}.pr-3{padding-right:.75rem}
+.pt-1{padding-top:.25rem}.pt-2{padding-top:.5rem}.pb-3{padding-bottom:.75rem}
+.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}
+.mb-1{margin-bottom:.25rem}.mb-1\.5{margin-bottom:.375rem}.mb-2{margin-bottom:.5rem}
+.w-3{width:.75rem}.h-3{height:.75rem}.w-3\.5{width:.875rem}.h-3\.5{height:.875rem}
+.w-4{width:1rem}.h-4{height:1rem}.w-5{width:1.25rem}.h-5{height:1.25rem}
+.text-\[9px\]{font-size:9px;line-height:1.2}
+.text-\[10px\]{font-size:10px;line-height:1.45}
+.text-\[11px\]{font-size:11px;line-height:1.45}
+.text-xs{font-size:.75rem;line-height:1.45}
+.text-sm{font-size:.875rem;line-height:1.45}
+.text-base{font-size:1rem;line-height:1.5}
+.text-lg{font-size:1.125rem;line-height:1.5}
+.text-xl{font-size:1.25rem;line-height:1.35}
+.text-3xl{font-size:1.875rem;line-height:1.15}
+.font-medium{font-weight:500}.font-semibold{font-weight:600}.font-bold{font-weight:700}
+.font-extrabold{font-weight:800}.font-black{font-weight:900}
+.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.leading-relaxed{line-height:1.625}.leading-none{line-height:1}
+.underline{text-decoration:underline}
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.min-w-0{min-width:0}.shrink-0{flex-shrink:0}
+.select-none{user-select:none;-webkit-user-select:none}
+.overflow-y-auto{overflow-y:auto}
+.max-h-64{max-height:16rem}
+.text-slate-300{color:#cbd5e1}.text-slate-400{color:#94a3b8}
+.text-slate-500{color:#64748b}.text-slate-600{color:#475569}
+.text-slate-700{color:#334155}.text-slate-800{color:#1e293b}.text-slate-900{color:#0f172a}
+.text-white{color:#fff}
+.text-amber-500{color:#f59e0b}.text-amber-600{color:#d97706}.text-amber-700{color:#b45309}
+.text-amber-800{color:#92400e}.text-amber-900{color:#78350f}
+.text-emerald-500{color:#10b981}.text-emerald-600{color:#059669}.text-emerald-700{color:#047857}
+.text-rose-500{color:#f43f5e}.text-rose-600{color:#e11d48}.text-rose-700{color:#be123c}
+.text-blue-600{color:#2563eb}.text-blue-700{color:#1d4ed8}
+.text-purple-700{color:#7e22ce}
+.text-orange-600{color:#ea580c}.text-orange-700{color:#c2410c}
+.bg-white{background-color:#fff}
+.bg-slate-50{background-color:#f8fafc}
+.bg-slate-100{background-color:#f1f5f9}
+.bg-slate-900{background-color:#0f172a}
+.bg-amber-50{background-color:#fffbeb}
+.bg-amber-100{background-color:#fef3c7}
+.bg-amber-200{background-color:#fde68a}
+.bg-amber-500{background-color:#f59e0b}
+.bg-amber-600{background-color:#d97706}
+.bg-emerald-50{background-color:#ecfdf5}
+.bg-emerald-100{background-color:#d1fae5}
+.bg-emerald-500{background-color:#10b981}
+.bg-rose-50{background-color:#fff1f2}
+.bg-rose-100{background-color:#ffe4e6}
+.bg-blue-50{background-color:#eff6ff}
+.bg-orange-50{background-color:#fff7ed}
+.bg-orange-100{background-color:#ffedd5}
+.border{border-width:1px}.border-2{border-width:2px}
+.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}
+.border-slate-100{border-color:#f1f5f9}
+.border-slate-200{border-color:#e2e8f0}
+.border-slate-300{border-color:#cbd5e1}
+.border-slate-400{border-color:#94a3b8}
+.border-amber-200{border-color:#fde68a}
+.border-amber-300{border-color:#fcd34d}
+.border-amber-500{border-color:#f59e0b}
+.border-amber-600{border-color:#d97706}
+.border-emerald-200{border-color:#a7f3d0}
+.border-emerald-400{border-color:#34d399}
+.border-rose-200{border-color:#fecdd3}
+.border-rose-400{border-color:#fb7185}
+.border-blue-200{border-color:#bfdbfe}
+.border-blue-400{border-color:#60a5fa}
+.border-orange-200{border-color:#fed7aa}
+.rounded{border-radius:.25rem}
+.rounded-lg{border-radius:.5rem}
+.rounded-xl{border-radius:.75rem}
+.rounded-2xl{border-radius:1rem}
+.rounded-full{border-radius:9999px}
+.shadow-sm{box-shadow:0 1px 3px rgba(15,23,42,.08),0 1px 2px rgba(15,23,42,.04)}
+.shadow-md{box-shadow:0 4px 10px rgba(15,23,42,.10),0 2px 4px rgba(15,23,42,.05)}
+.shadow-lg{box-shadow:0 8px 24px rgba(15,23,42,.12)}
+.transition{transition:all .2s ease}
+.animate-pulse{animation:pulse 2s cubic-bezier(0.4,0,0.6,1) infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.hover\:bg-amber-600:hover{background-color:#d97706}
+.hover\:bg-amber-700:hover{background-color:#b45309}
+.hover\:bg-slate-100:hover{background-color:#f1f5f9}
+.hover\:bg-slate-200:hover{background-color:#e2e8f0}
+.hover\:bg-amber-100:hover{background-color:#fef3c7}
+.hover\:text-amber-600:hover{color:#d97706}
+.hover\:text-rose-500:hover{color:#f43f5e}
+.active\:scale-95:active{transform:scale(.95)}
+.active\:scale-\[0\.98\]:active{transform:scale(.98)}
+.active\:scale-\[0\.99\]:active{transform:scale(.99)}
+input[type=number],input[type=text],select{
+  border-width:1px;border-style:solid;border-color:#e2e8f0;
+}
+
+/* ★ 日曆翻月按鈕禁用樣式 */
+.cal-nav-btn:disabled{opacity:0.3;cursor:not-allowed}
+
+/* ★ 横向更期卡片条滚动条样式 */
+#shift-strip{
+  scrollbar-width:thin;
+  scrollbar-color:#cbd5e1 transparent;
+  -webkit-overflow-scrolling:touch;
+}
+#shift-strip::-webkit-scrollbar{height:4px}
+#shift-strip::-webkit-scrollbar-track{background:transparent}
+#shift-strip::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
+</style>
+</head>
+
+<body>
+
+<header class="bg-amber-500 text-slate-900 shadow-md" style="position:sticky;top:0;z-index:50">
+  <div class="max-w-md mx-auto px-4 py-2.5 flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <button type="button" onclick="goBack()" id="back-btn"
+        class="p-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 active:scale-95 transition text-white">
+        <span class="ico w-4 h-4" data-icon="arrow-left"></span>
+      </button>
+      <h1 class="text-lg font-bold">現金盤點</h1>
+    </div>
+    <span class="ico w-5 h-5" data-icon="coins"></span>
+  </div>
+</header>
+
+<main class="max-w-md w-full mx-auto p-4 space-y-3">
+
+  <!-- 更期选择 -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+    <div class="flex justify-between items-center border-b pb-3">
+      <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+        <span class="ico w-4 h-4 text-amber-500" data-icon="history"></span>
+        選擇更期
+      </h2>
+      <span id="latest-audit-hint" class="text-[11px] text-slate-400"></span>
+    </div>
+
+    <div id="no-shift-panel" class="hidden bg-rose-50 border border-rose-200 rounded-xl p-3.5 text-center">
+      <p class="text-xs font-bold text-rose-700 flex items-center justify-center gap-1">
+        <span class="ico w-3.5 h-3.5" data-icon="alert-triangle"></span>
+        尚無更期記錄
+      </p>
+      <p class="text-[11px] text-rose-600 mt-1 leading-relaxed">請先在主頁「開工」建立更期，再回到此頁盤點。</p>
+      <button type="button" onclick="goBack()"
+        class="mt-2 px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-lg transition">
+        返回主頁
+      </button>
+    </div>
+
+    <div id="current-shift-card" class="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-1.5">
+      <div class="flex justify-between items-center gap-2">
+        <span class="font-bold text-amber-900 font-mono text-sm truncate" id="current-shift-key">--</span>
+        <span class="text-[11px] text-amber-700 shrink-0" id="current-shift-weekday">--</span>
+      </div>
+      <div class="flex justify-between items-center text-[11px] text-amber-700 gap-2">
+        <span id="current-shift-timerange" class="font-mono">--</span>
+        <span id="current-shift-tripcount" class="shrink-0">-- 筆</span>
+      </div>
+      <div id="current-shift-audited" class="hidden mt-1 pt-1 border-t border-amber-200 text-[11px] text-amber-700">
+        <span class="font-bold">✓ 此更期已盤點</span>
+      </div>
+    </div>
+
+    <!-- 三个快捷按钮 -->
+    <div class="grid grid-cols-3 gap-1.5">
+      <button type="button" onclick="setShiftQuick('latest')"
+        class="py-1.5 text-[11px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-semibold transition flex items-center justify-center gap-1">
+        <svg style="width:10px;height:10px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/><path d="M18 19H6"/></svg>
+        最新
+      </button>
+      <button type="button" onclick="setShiftQuick('prev')"
+        class="py-1.5 text-[11px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-semibold transition flex items-center justify-center gap-1">
+        <svg style="width:10px;height:10px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        上一個
+      </button>
+      <button type="button" onclick="setShiftQuick('next')"
+        class="py-1.5 text-[11px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-semibold transition flex items-center justify-center gap-1">
+        下一個
+        <svg style="width:10px;height:10px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+
+    <!-- 横向更期卡片条 -->
+    <div>
+      <div class="flex justify-between items-center mb-1.5">
+        <label class="block text-[11px] font-semibold text-slate-500">快速切換更期</label>
+        <span id="shift-strip-hint" class="text-[10px] text-slate-400"></span>
+      </div>
+      <div id="shift-strip" class="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+      </div>
+    </div>
+
+    <!-- ★ 自定义日历（无更期日期变灰） -->
+    <div>
+      <button type="button" onclick="toggleCalendar()"
+        class="w-full flex justify-between items-center px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 active:scale-[0.99] transition">
+        <span class="text-slate-600 flex items-center gap-1.5">
+          <span class="ico w-3.5 h-3.5 text-slate-400" data-icon="calendar-clock"></span>
+          <span>跳到指定日期</span>
+        </span>
+        <svg id="calendar-toggle-chevron" style="width:12px;height:12px;transition:transform .2s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+
+      <div id="calendar-panel" class="hidden mt-2 bg-white border border-slate-200 rounded-xl p-2.5">
+        <div class="flex justify-between items-center mb-2">
+          <button type="button" id="calendar-prev-btn" onclick="calendarPrevMonth()"
+            class="cal-nav-btn p-1.5 rounded-lg hover:bg-slate-100 active:scale-95 transition text-slate-600">
+            <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div id="calendar-month-title" class="text-sm font-bold text-slate-800 font-mono"></div>
+          <button type="button" id="calendar-next-btn" onclick="calendarNextMonth()"
+            class="cal-nav-btn p-1.5 rounded-lg hover:bg-slate-100 active:scale-95 transition text-slate-600">
+            <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+
+        <div id="calendar-grid" class="grid grid-cols-7 gap-0.5"></div>
+
+        <div class="flex items-center justify-center gap-3 mt-2 pt-2 border-t border-slate-100 text-[10px]">
+          <span class="flex items-center gap-1">
+            <span class="w-2.5 h-2.5 rounded bg-amber-50 border border-amber-300"></span>
+            <span class="text-slate-500">有更期</span>
+          </span>
+          <span class="flex items-center gap-1">
+            <span class="w-2.5 h-2.5 rounded bg-slate-100"></span>
+            <span class="text-slate-500">無更期</span>
+          </span>
+          <span class="flex items-center gap-1">
+            <span class="w-2.5 h-2.5 rounded bg-amber-500"></span>
+            <span class="text-slate-500">已選中</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-[11px] text-slate-400 leading-relaxed">盤點以「更期」為單位，現金收入、現金油費、現金飯錢會自動統計該更期相關記錄。</p>
+  </div>
+
+  <!-- 现金收支 -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+    <div class="flex justify-between items-center">
+      <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+        <span class="ico w-4 h-4 text-amber-500" data-icon="coins"></span>
+        現金收支統計
+      </h2>
+      <button type="button" id="cash-detail-toggle" onclick="toggleCashDetail()"
+        class="text-[11px] text-amber-700 hover:text-amber-800 font-semibold transition flex items-center gap-1">
+        <span id="cash-detail-toggle-text">查看明細</span>
+        <svg id="cash-detail-chevron" style="width:10px;height:10px;transition:transform .2s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+    </div>
+
+    <div class="grid grid-cols-2 gap-2">
+      <div class="bg-emerald-50 rounded-xl p-2.5 border border-emerald-200">
+        <div class="text-[10px] text-emerald-700 font-medium mb-1">現金收入</div>
+        <div id="cash-income-display" class="text-base font-extrabold text-emerald-700 font-mono">$0.00</div>
+        <div id="cash-trip-count" class="text-[9px] text-emerald-600 font-mono mt-0.5">0 筆</div>
+      </div>
+      <div class="bg-rose-50 rounded-xl p-2.5 border border-rose-200">
+        <div class="text-[10px] text-rose-700 font-medium mb-1">現金油費</div>
+        <div id="cash-fuel-display" class="text-base font-extrabold text-rose-700 font-mono">$0.00</div>
+        <div id="cash-fuel-count" class="text-[9px] text-rose-600 font-mono mt-0.5">0 筆</div>
+      </div>
+      <div class="bg-orange-50 rounded-xl p-2.5 border border-orange-200">
+        <div class="text-[10px] text-orange-700 font-medium mb-1">飯錢支出</div>
+        <div id="cash-meal-display" class="text-base font-extrabold text-orange-700 font-mono">$0.00</div>
+        <div id="cash-meal-count" class="text-[9px] text-orange-600 font-mono mt-0.5">0 筆</div>
+      </div>
+      <div class="bg-slate-50 rounded-xl p-2.5 border border-slate-200">
+        <div class="text-[10px] text-slate-600 font-medium mb-1">淨現金</div>
+        <div id="cash-net-display" class="text-base font-extrabold text-slate-800 font-mono">$0.00</div>
+        <div class="text-[9px] text-slate-400 mt-0.5">收入 − 油費 − 飯錢</div>
+      </div>
+    </div>
+
+    <div id="cash-detail-panel" class="hidden space-y-2 max-h-64 overflow-y-auto">
+      <div>
+        <div class="text-[10px] text-emerald-700 font-semibold mb-1 px-1 flex items-center gap-1">
+          <span class="ico w-3 h-3" data-icon="coins"></span>行程收入明細
+        </div>
+        <div id="cash-income-detail-list" class="space-y-1"></div>
+      </div>
+      <div>
+        <div class="text-[10px] text-rose-700 font-semibold mb-1 px-1 flex items-center gap-1">
+          <span class="ico w-3 h-3" data-icon="droplet"></span>現金加油明細
+        </div>
+        <div id="cash-fuel-detail-list" class="space-y-1"></div>
+      </div>
+      <div>
+        <div class="text-[10px] text-orange-700 font-semibold mb-1 px-1 flex items-center gap-1">
+          <span class="ico w-3 h-3" data-icon="utensils"></span>飯錢支出明細
+        </div>
+        <div id="cash-meal-detail-list" class="space-y-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 盘点输入 -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+    <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+      <span class="ico w-4 h-4 text-amber-500" data-icon="edit-3"></span>
+      盤點輸入
+    </h2>
+
+    <div>
+      <div class="flex justify-between items-center mb-1">
+        <label class="text-xs font-semibold text-slate-600">期初留存 (HKD)</label>
+        <button type="button" onclick="resetOpeningBalance()"
+          class="text-[11px] text-slate-400 hover:text-amber-600 underline transition">重置</button>
+      </div>
+      <div class="relative">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>
+        <input type="number" id="opening-balance" step="0.01" inputmode="decimal"
+          oninput="recalculate()" placeholder="0.00"
+          class="w-full pl-8 pr-3 py-2.5 text-base font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">
+      </div>
+      <p class="text-[11px] text-slate-400 mt-1">上次盤點後的留存現金，自動帶入</p>
+    </div>
+
+    <div>
+      <label class="block text-xs font-semibold text-slate-600 mb-1">提取現金 (HKD)</label>
+      <div class="relative">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>
+        <input type="number" id="withdrawn" step="0.01" inputmode="decimal"
+          oninput="recalculate()" placeholder="0.00"
+          class="w-full pl-8 pr-3 py-2.5 text-base font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">
+      </div>
+      <p class="text-[11px] text-slate-400 mt-1">從收入中拿走（存銀行、帶回家等）的金額</p>
+    </div>
+
+    <div>
+      <label class="block text-xs font-semibold text-slate-600 mb-1">
+        實際現金 (HKD) <span class="text-rose-500">*</span>
+      </label>
+      <div class="relative">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>
+        <input type="number" id="actual-cash" step="0.01" inputmode="decimal"
+          oninput="recalculate()" placeholder="清點後輸入"
+          class="w-full pl-8 pr-3 py-3 text-lg font-bold bg-amber-50 border-2 border-amber-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">
+      </div>
+      <p class="text-[11px] text-slate-400 mt-1">清點錢包 / 車上實際的現金總額</p>
+    </div>
+  </div>
+
+  <!-- 计算结果 -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+    <div class="grid grid-cols-2 gap-2">
+      <div class="bg-slate-50 rounded-xl p-3 border border-slate-200">
+        <div class="text-[10px] text-slate-600 font-medium mb-1">應有現金</div>
+        <div id="expected-cash" class="text-lg font-bold text-slate-800 font-mono">$0.00</div>
+        <div class="text-[9px] text-slate-400 mt-0.5">期初 + 收入 − 油費 − 飯錢 − 提取</div>
+      </div>
+      <div class="bg-slate-50 rounded-xl p-3 border border-slate-200">
+        <div class="text-[10px] text-slate-600 font-medium mb-1">實際現金</div>
+        <div id="actual-cash-display" class="text-lg font-bold text-slate-800 font-mono">--</div>
+        <div class="text-[9px] text-slate-400 mt-0.5">清點金額</div>
+      </div>
+    </div>
+
+    <div id="difference-box" class="rounded-xl p-4 border-2 border-slate-200 bg-slate-50 text-center transition">
+      <div id="difference-label" class="text-xs font-semibold text-slate-600 mb-1">差額</div>
+      <div id="difference-display" class="text-3xl font-black font-mono text-slate-700">$0.00</div>
+      <div id="difference-hint" class="text-[11px] text-slate-500 mt-1">輸入實際現金後自動計算</div>
+    </div>
+  </div>
+
+  <!-- 备注 -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+    <label class="block text-xs font-semibold text-slate-600 mb-1">備註 (選填)</label>
+    <input type="text" id="audit-note" placeholder="例如：差額原因、特殊情況說明..."
+      autocomplete="off"
+      class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
+  </div>
+
+  <!-- 保存 -->
+  <button type="button" id="save-btn" onclick="saveAudit()"
+    class="w-full py-3.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-slate-900 font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 text-base">
+    <span class="ico w-5 h-5" data-icon="check-circle"></span>
+    保存盤點記錄
+  </button>
+
+  <!-- 历史 -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+    <div class="flex justify-between items-center">
+      <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+        <span class="ico w-4 h-4 text-amber-500" data-icon="history"></span>
+        盤點歷史
+      </h2>
+      <span id="audit-history-count" class="text-[11px] text-slate-400">共 0 筆</span>
+    </div>
+    <div id="audit-history-list" class="space-y-2"></div>
+  </div>
+
+</main>
+
+<div id="toast" class="fixed bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-medium shadow-lg transition-all duration-300"
+  style="top:4rem;left:50%;transform:translateX(-50%);z-index:50;opacity:0;pointer-events:none;max-width:calc(100vw - 2rem);text-align:center">
+  提示訊息
+</div>
+
+<script>
+/* =========================================================
+   圖示
+   ========================================================= */
+var ICONS = {
+  'arrow-left':'<path d="M19 12H5M12 19l-7-7 7-7"/>',
+  'coins':'<circle cx="9" cy="9" r="6"/><path d="M15.6 4.4A6 6 0 0 1 15 16M7 19h10"/>',
+  'calendar-clock':'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v3l2 1.5"/>',
+  'edit-3':'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>',
+  'check-circle':'<circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.3 2.3 4.7-5"/>',
+  'history':'<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 4v4h4M12 8v5l3.5 2"/>',
+  'trash-2':'<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14"/>',
+  'info':'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  'alert-triangle':'<path d="m10.3 3.6-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.4l-8-14a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+  'flag':'<path d="M5 21V4M5 5h11l-2 4 2 4H5"/>',
+  'smartphone':'<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18h2"/>',
+  'layers':'<path d="M12 3 3 8l9 5 9-5-9-5z"/><path d="m3 13 9 5 9-5"/>',
+  'clock':'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  'droplet':'<path d="M12 2.7s6 6.3 6 11a6 6 0 0 1-12 0c0-4.7 6-11 6-11z"/>',
+  'utensils':'<path d="M4 2v7c0 1.1.9 2 2 2h3V2M7 11v11M17 2c-1.5 0-3 2.2-3 5s1.5 5 3 5v9"/>'
+};
+
+function ico(name, cls){
+  cls = cls || 'w-4 h-4';
+  return '<svg class="' + cls + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+       + 'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+       + (ICONS[name] || '') + '</svg>';
+}
+
+function hydrateIcons(root){
+  (root || document).querySelectorAll('[data-icon]').forEach(function(el){
+    if (el.dataset.done) return;
+    el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+                 + 'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" '
+                 + 'style="width:100%;height:100%">' + (ICONS[el.dataset.icon] || '') + '</svg>';
+    el.dataset.done = '1';
+  });
+}
+
+function escapeHtml(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function showToast(msg){
+  var toast = document.getElementById('toast');
+  toast.innerText = msg;
+  toast.style.opacity = '1';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(function(){ toast.style.opacity = '0'; }, 2800);
+}
+
+/* =========================================================
+   日期工具
+   ========================================================= */
+function pad2(n){ return String(n).padStart(2, '0'); }
+function localDateStr(d){
+  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+}
+
+/* =========================================================
+   返回来源
+   ========================================================= */
+function getReturnUrl(){
+  var from = new URLSearchParams(window.location.search).get('from');
+  if (!from) return './index.html';
+  try {
+    var url = new URL(from, window.location.href);
+    if (url.origin !== window.location.origin) return './index.html';
+    if (url.pathname === window.location.pathname) return './index.html';
+    return url.toString();
+  } catch(e){ return './index.html'; }
+}
+function goBack(){ window.location.href = getReturnUrl(); }
+
+/* =========================================================
+   数据读写
+   ========================================================= */
+var AUDITS_KEY = 'taxi_cash_audits';
+
+function getTrips(){
+  return JSON.parse(localStorage.getItem('taxi_trips')) || [];
+}
+function getShiftSettings(){
+  return JSON.parse(localStorage.getItem('taxi_shift_settings')) || {};
+}
+function getAudits(){
+  var audits = JSON.parse(localStorage.getItem(AUDITS_KEY)) || [];
+  audits.forEach(function(a){
+    if (!a.shiftKey && a.date) a.shiftKey = a.date;
+  });
+  return audits;
+}
+function saveAudits(audits){
+  localStorage.setItem(AUDITS_KEY, JSON.stringify(audits));
+}
+
+/* =========================================================
+   更期工具
+   ========================================================= */
+function getShiftKeys(){
+  var shifts = getShiftSettings();
+  var keys = Object.keys(shifts);
+  keys = keys.filter(function(k){
+    return shifts[k] && (shifts[k].startedAt || shifts[k].startTime);
+  });
+  keys.sort().reverse();
+  return keys;
+}
+
+function getShiftInfo(shiftKey){
+  var shifts = getShiftSettings();
+  var cfg = shifts[shiftKey];
+  if (!cfg){
+    return {
+      key: shiftKey, exists: false, timeRange: '更期已刪除',
+      weekday: getWeekday(shiftKey),
+      tripCount: getTrips().filter(function(t){ return t.shiftDate === shiftKey; }).length,
+      isWorking: false
+    };
+  }
+  var startTime = cfg.startTime || '--:--';
+  var endTime = cfg.endedAt ? (cfg.endTime || '--:--') : (cfg.startedAt ? '工作中' : '未設定');
+  var isWorking = !!(cfg.startedAt && !cfg.endedAt);
+  return {
+    key: shiftKey, exists: true,
+    timeRange: startTime + ' - ' + endTime,
+    weekday: getWeekday(shiftKey),
+    tripCount: getTrips().filter(function(t){ return t.shiftDate === shiftKey; }).length,
+    isWorking: isWorking, cfg: cfg
+  };
+}
+
+function getWeekday(dateStr){
+  try {
+    var d = new Date(dateStr + 'T12:00:00');
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('zh-HK', { weekday: 'short' });
+  } catch(e){ return ''; }
+}
+
+/* =========================================================
+   现金收入计算
+   ========================================================= */
+function getCashTrips(shiftKey){
+  if (!shiftKey) return [];
+  return getTrips().filter(function(t){
+    if (t.shiftDate !== shiftKey) return false;
+    var fare = parseFloat(t.fare) || 0;
+    if (fare <= 0) return false;
+    var pay = t.payment || '現金';
+    return pay === '現金';
+  });
+}
+function calcCashIncome(shiftKey){
+  return getCashTrips(shiftKey).reduce(function(s, t){
+    return s + (parseFloat(t.fare) || 0);
+  }, 0);
+}
+
+/* =========================================================
+   现金加油计算
+   ========================================================= */
+function getCashFuelEntries(shiftKey){
+  var shifts = getShiftSettings();
+  var cfg = shifts[shiftKey];
+  if (!cfg || !Array.isArray(cfg.fuelEntries)) return [];
+  return cfg.fuelEntries.filter(function(e){
+    var pay = e.payment || '現金';
+    return pay === '現金';
+  });
+}
+function calcCashFuelCost(shiftKey){
+  return getCashFuelEntries(shiftKey).reduce(function(s, e){
+    return s + (parseFloat(e.amount) || 0);
+  }, 0);
+}
+
+/* =========================================================
+   饭钱支出计算
+   ========================================================= */
+function getMealExpenseTrips(shiftKey){
+  if (!shiftKey) return [];
+  return getTrips().filter(function(t){
+    if (t.shiftDate !== shiftKey) return false;
+    var fare = parseFloat(t.fare) || 0;
+    if (fare >= 0) return false;
+    var note = (t.note || '');
+    if (!/吃饭|饭钱|吃飯|飯錢/.test(note)) return false;
+    var pay = t.payment || '現金';
+    return pay === '現金';
+  });
+}
+function calcMealExpense(shiftKey){
+  return getMealExpenseTrips(shiftKey).reduce(function(s, t){
+    return s + Math.abs(parseFloat(t.fare) || 0);
+  }, 0);
+}
+
+/* =========================================================
+   盘点记录工具
+   ========================================================= */
+function getAuditByShift(shiftKey){
+  var audits = getAudits();
+  return audits.find(function(a){ return a.shiftKey === shiftKey; }) || null;
+}
+
+function getLatestAudit(){
+  var audits = getAudits();
+  if (!audits.length) return null;
+  audits.sort(function(a, b){
+    if (a.shiftKey !== b.shiftKey) return a.shiftKey < b.shiftKey ? 1 : -1;
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  });
+  return audits[0];
+}
+
+function getExpectedOpeningBalance(currentShiftKey){
+  var audits = getAudits();
+  var priorAudits = audits.filter(function(a){
+    return a.shiftKey < currentShiftKey;
+  });
+  priorAudits.sort(function(a, b){
+    if (a.shiftKey !== b.shiftKey) return a.shiftKey < b.shiftKey ? 1 : -1;
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  });
+  return priorAudits.length ? (parseFloat(priorAudits[0].actualCash) || 0) : 0;
+}
+
+/* =========================================================
+   当前选中更期
+   ========================================================= */
+var currentShiftKey = null;
+
+/* =========================================================
+   横向更期卡片条
+   ========================================================= */
+function renderShiftStrip(){
+  var strip = document.getElementById('shift-strip');
+  if (!strip) return;
+  var keys = getShiftKeys();
+
+  if (!keys.length){
+    strip.innerHTML = '<div class="text-center text-slate-400 text-xs py-3 w-full">尚無更期</div>';
+    return;
+  }
+
+  strip.innerHTML = keys.map(function(k){
+    var info = getShiftInfo(k);
+    var audited = getAuditByShift(k);
+    var isSelected = (k === currentShiftKey);
+    var parts = k.split('-');
+    var md = parts.length >= 3 ? (parts[1] + '-' + parts[2]) : k;
+    var wk = info.weekday || '';
+
+    var markHtml = audited
+      ? '<span class="text-[9px] text-emerald-600 font-bold leading-none mt-0.5">✓</span>'
+      : '<span class="text-[9px] leading-none mt-0.5" style="color:transparent">·</span>';
+
+    var cardCls = isSelected
+      ? 'shrink-0 w-[68px] py-2 rounded-lg border-2 transition flex flex-col items-center gap-0.5 border-amber-500 bg-amber-50 text-amber-900'
+      : 'shrink-0 w-[68px] py-2 rounded-lg border-2 transition flex flex-col items-center gap-0.5 border-slate-200 bg-white text-slate-600 hover:bg-slate-50';
+
+    return '<button type="button" data-shift-card="' + escapeHtml(k) + '" ' +
+      'onclick="selectShiftByKey(\'' + k + '\')" class="' + cardCls + '">' +
+      '<span class="text-[11px] font-mono font-bold leading-none">' + escapeHtml(md) + '</span>' +
+      '<span class="text-[9px] leading-none mt-0.5">' + escapeHtml(wk) + '</span>' +
+      markHtml +
+    '</button>';
+  }).join('');
+
+  var hintEl = document.getElementById('shift-strip-hint');
+  if (hintEl){
+    hintEl.innerText = '共 ' + keys.length + ' 個';
+  }
+
+  setTimeout(scrollSelectedCardIntoView, 60);
+}
+
+function updateShiftSelectionUI(){
+  document.querySelectorAll('[data-shift-card]').forEach(function(el){
+    if (el.dataset.shiftCard === currentShiftKey){
+      el.className = 'shrink-0 w-[68px] py-2 rounded-lg border-2 transition flex flex-col items-center gap-0.5 border-amber-500 bg-amber-50 text-amber-900';
+    } else {
+      el.className = 'shrink-0 w-[68px] py-2 rounded-lg border-2 transition flex flex-col items-center gap-0.5 border-slate-200 bg-white text-slate-600 hover:bg-slate-50';
+    }
+  });
+  updateShiftCard();
+}
+
+function scrollSelectedCardIntoView(){
+  var el = document.querySelector('[data-shift-card="' + currentShiftKey + '"]');
+  if (!el) return;
+  try {
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  } catch(e){
+    try { el.scrollIntoView(false); } catch(e2){}
+  }
+}
+
+/* =========================================================
+   ★ 自定义日历（无更期日期变灰）
+   ========================================================= */
+var calendarYear = null;
+var calendarMonth = null;
+var calendarOpen = false;
+
+function toggleCalendar(){
+  calendarOpen = !calendarOpen;
+  var panel = document.getElementById('calendar-panel');
+  var chev = document.getElementById('calendar-toggle-chevron');
+  if (calendarOpen){
+    syncCalendarToSelected();
+    panel.classList.remove('hidden');
+    if (chev) chev.style.transform = 'rotate(180deg)';
+    renderCalendar();
+  } else {
+    panel.classList.add('hidden');
+    if (chev) chev.style.transform = '';
+  }
+}
+
+function syncCalendarToSelected(){
+  var base = currentShiftKey || localDateStr(new Date());
+  var d = new Date(base + 'T12:00:00');
+  if (isNaN(d.getTime())) d = new Date();
+  calendarYear = d.getFullYear();
+  calendarMonth = d.getMonth();
+}
+
+function calendarPrevMonth(){
+  if (calendarMonth === null) syncCalendarToSelected();
+  calendarMonth--;
+  if (calendarMonth < 0){ calendarMonth = 11; calendarYear--; }
+  renderCalendar();
+}
+
+function calendarNextMonth(){
+  if (calendarMonth === null) syncCalendarToSelected();
+  calendarMonth++;
+  if (calendarMonth > 11){ calendarMonth = 0; calendarYear++; }
+  renderCalendar();
+}
+
+function renderCalendar(){
+  var container = document.getElementById('calendar-grid');
+  var titleEl = document.getElementById('calendar-month-title');
+  if (!container) return;
+
+  if (calendarYear === null || calendarMonth === null) syncCalendarToSelected();
+
+  var year = calendarYear;
+  var month = calendarMonth;
+
+  if (titleEl){
+    titleEl.innerText = year + ' 年 ' + (month + 1) + ' 月';
+  }
+
+  // 有更期的日期集合
+  var keys = getShiftKeys();
+  var shiftDateSet = {};
+  keys.forEach(function(k){ shiftDateSet[k] = true; });
+
+  var todayStr = localDateStr(new Date());
+  var selectedKey = currentShiftKey;
+
+  var firstDay = new Date(year, month, 1);
+  var daysInMonth = new Date(year, month + 1, 0).getDate();
+  var startWeekday = firstDay.getDay(); // 0=周日
+
+  var weekdayLabels = ['日','一','二','三','四','五','六'];
+  var html = '';
+
+  // 星期表头
+  weekdayLabels.forEach(function(w){
+    html += '<div class="text-[10px] text-slate-400 font-semibold text-center py-1">' + w + '</div>';
+  });
+
+  // 月初空白格
+  for (var i = 0; i < startWeekday; i++){
+    html += '<div></div>';
+  }
+
+  // 日期格
+  for (var d = 1; d <= daysInMonth; d++){
+    var dateStr = year + '-' + pad2(month + 1) + '-' + pad2(d);
+    var hasShift = !!shiftDateSet[dateStr];
+    var isToday = (dateStr === todayStr);
+    var isSelected = (dateStr === selectedKey);
+
+    var cls = 'aspect-square flex items-center justify-center text-xs font-mono rounded-lg transition ';
+    var attrs = '';
+
+    if (isSelected){
+      cls += 'bg-amber-500 text-white font-bold shadow-sm border-2 border-amber-600';
+      attrs = ' onclick="onCalendarDayClick(\'' + dateStr + '\')"';
+    } else if (hasShift){
+      cls += 'bg-amber-50 text-amber-900 font-bold border border-amber-300 cursor-pointer hover:bg-amber-100 active:scale-95';
+      attrs = ' onclick="onCalendarDayClick(\'' + dateStr + '\')"';
+    } else {
+      cls += 'bg-slate-100 text-slate-300 cursor-not-allowed border border-transparent';
+    }
+
+    if (isToday && !isSelected && hasShift){
+      cls += ' border-slate-400 border-2';
+    }
+
+    var tag = hasShift ? 'button' : 'div';
+    html += '<' + tag + (hasShift ? ' type="button"' : '') + ' class="' + cls + '"' + attrs + '>' + d + '</' + tag + '>';
+  }
+
+  container.innerHTML = html;
+
+  updateCalendarNavButtons(keys);
+}
+
+function updateCalendarNavButtons(keys){
+  var prevBtn = document.getElementById('calendar-prev-btn');
+  var nextBtn = document.getElementById('calendar-next-btn');
+  if (!prevBtn || !nextBtn) return;
+
+  if (!keys || !keys.length){
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    return;
+  }
+
+  var earliest = keys[keys.length - 1];
+  var latest = keys[0];
+  var eD = new Date(earliest + 'T12:00:00');
+  var lD = new Date(latest + 'T12:00:00');
+
+  var currentYM = calendarYear * 12 + calendarMonth;
+  var minYM = eD.getFullYear() * 12 + eD.getMonth();
+  var maxYM = lD.getFullYear() * 12 + lD.getMonth();
+
+  prevBtn.disabled = (currentYM <= minYM);
+  nextBtn.disabled = (currentYM >= maxYM);
+}
+
+function onCalendarDayClick(dateStr){
+  selectShiftByKey(dateStr);
+  // 收起日历
+  if (calendarOpen) toggleCalendar();
+}
+
+/* =========================================================
+   选中指定更期（统一入口）
+   ========================================================= */
+function selectShiftByKey(key){
+  if (!key) return;
+  var keys = getShiftKeys();
+  if (keys.indexOf(key) === -1){
+    showToast('該更期不存在');
+    return;
+  }
+  currentShiftKey = key;
+  updateShiftSelectionUI();
+  autoFillOpeningBalance();
+  refreshAll();
+  scrollSelectedCardIntoView();
+
+  // 如果日历展开，同步到新更期所在月
+  if (calendarOpen){
+    syncCalendarToSelected();
+    renderCalendar();
+  }
+}
+
+/* =========================================================
+   快捷切换（最新 / 上一个 / 下一个）
+   ========================================================= */
+function setShiftQuick(type){
+  var keys = getShiftKeys();
+  if (!keys.length){ showToast('尚無更期'); return; }
+
+  var targetKey;
+
+  if (type === 'latest'){
+    targetKey = keys[0];
+  } else if (type === 'prev'){
+    var idx = keys.indexOf(currentShiftKey);
+    if (idx === -1) idx = 0;
+    if (idx >= keys.length - 1){
+      showToast('已是最早一個更期');
+      return;
+    }
+    targetKey = keys[idx + 1];
+  } else if (type === 'next'){
+    var idx2 = keys.indexOf(currentShiftKey);
+    if (idx2 === -1) idx2 = keys.length - 1;
+    if (idx2 <= 0){
+      showToast('已是最新一個更期');
+      return;
+    }
+    targetKey = keys[idx2 - 1];
+  }
+
+  if (!targetKey) return;
+  selectShiftByKey(targetKey);
+}
+
+/* =========================================================
+   顶部更期卡片信息
+   ========================================================= */
+function updateShiftCard(){
+  var key = currentShiftKey;
+  var keyEl = document.getElementById('current-shift-key');
+  var weekdayEl = document.getElementById('current-shift-weekday');
+  var timeEl = document.getElementById('current-shift-timerange');
+  var countEl = document.getElementById('current-shift-tripcount');
+  var auditedEl = document.getElementById('current-shift-audited');
+
+  if (!key){
+    keyEl.innerText = '--'; weekdayEl.innerText = '';
+    timeEl.innerText = '--'; countEl.innerText = '-- 筆';
+    auditedEl.classList.add('hidden');
+    return;
+  }
+
+  var info = getShiftInfo(key);
+  keyEl.innerText = key + (info.isWorking ? ' · 進行中' : '');
+  weekdayEl.innerText = info.weekday;
+  timeEl.innerText = info.timeRange;
+  countEl.innerText = info.tripCount + ' 筆';
+
+  var existingAudit = getAuditByShift(key);
+  if (existingAudit){
+    auditedEl.classList.remove('hidden');
+    auditedEl.innerHTML = '<span class="font-bold">✓ 此更期已盤點</span>' +
+      ' · 實際留存 $' + (parseFloat(existingAudit.actualCash) || 0).toFixed(2);
+  } else {
+    auditedEl.classList.add('hidden');
+  }
+}
+
+/* =========================================================
+   期初自动填充
+   ========================================================= */
+function autoFillOpeningBalance(){
+  var key = currentShiftKey;
+  if (!key) return;
+
+  var existing = getAuditByShift(key);
+  if (existing){
+    document.getElementById('opening-balance').value = (parseFloat(existing.openingBalance) || 0).toFixed(2);
+    document.getElementById('withdrawn').value = existing.withdrawn ? parseFloat(existing.withdrawn).toFixed(2) : '';
+    document.getElementById('actual-cash').value = existing.actualCash ? parseFloat(existing.actualCash).toFixed(2) : '';
+    document.getElementById('audit-note').value = existing.note || '';
+    return;
+  }
+
+  var opening = getExpectedOpeningBalance(key);
+  document.getElementById('opening-balance').value = opening.toFixed(2);
+  document.getElementById('withdrawn').value = '';
+  document.getElementById('actual-cash').value = '';
+  document.getElementById('audit-note').value = '';
+}
+
+function resetOpeningBalance(){
+  var opening = getExpectedOpeningBalance(currentShiftKey);
+  document.getElementById('opening-balance').value = opening.toFixed(2);
+  recalculate();
+  showToast('期初已重置為上次盤點留存');
+}
+
+/* =========================================================
+   实时计算
+   ========================================================= */
+function recalculate(){
+  var key = currentShiftKey;
+  var income = calcCashIncome(key);
+  var cashTrips = getCashTrips(key);
+  var cashFuel = calcCashFuelCost(key);
+  var cashFuelEntries = getCashFuelEntries(key);
+  var mealExpense = calcMealExpense(key);
+  var mealTrips = getMealExpenseTrips(key);
+
+  var netCash = income - cashFuel - mealExpense;
+
+  var opening = parseFloat(document.getElementById('opening-balance').value) || 0;
+  var withdrawn = parseFloat(document.getElementById('withdrawn').value) || 0;
+  var actualRaw = document.getElementById('actual-cash').value;
+  var actual = parseFloat(actualRaw);
+  var hasActual = actualRaw !== '' && !isNaN(actual);
+
+  var expected = opening + income - cashFuel - mealExpense - withdrawn;
+  var difference = hasActual ? (actual - expected) : 0;
+
+  document.getElementById('cash-income-display').innerText = '$' + income.toFixed(2);
+  document.getElementById('cash-trip-count').innerText = cashTrips.length + ' 筆';
+  document.getElementById('cash-fuel-display').innerText = '$' + cashFuel.toFixed(2);
+  document.getElementById('cash-fuel-count').innerText = cashFuelEntries.length + ' 筆';
+  document.getElementById('cash-meal-display').innerText = '$' + mealExpense.toFixed(2);
+  document.getElementById('cash-meal-count').innerText = mealTrips.length + ' 筆';
+  document.getElementById('cash-net-display').innerText = '$' + netCash.toFixed(2);
+  document.getElementById('expected-cash').innerText = '$' + expected.toFixed(2);
+  document.getElementById('actual-cash-display').innerText = hasActual ? '$' + actual.toFixed(2) : '--';
+
+  var box = document.getElementById('difference-box');
+  var label = document.getElementById('difference-label');
+  var display = document.getElementById('difference-display');
+  var hint = document.getElementById('difference-hint');
+
+  if (!hasActual){
+    box.className = 'rounded-xl p-4 border-2 border-slate-200 bg-slate-50 text-center transition';
+    label.innerText = '差額';
+    label.className = 'text-xs font-semibold text-slate-600 mb-1';
+    display.innerText = '$0.00';
+    display.className = 'text-3xl font-black font-mono text-slate-700';
+    hint.innerText = '輸入實際現金後自動計算';
+    return;
+  }
+
+  if (Math.abs(difference) < 0.005){
+    box.className = 'rounded-xl p-4 border-2 border-emerald-400 bg-emerald-50 text-center transition';
+    label.innerHTML = '<span class="flex items-center justify-center gap-1 text-emerald-700">'
+                    + ico('check-circle','w-3.5 h-3.5') + '核對正確</span>';
+    label.className = 'text-xs font-bold mb-1';
+    display.innerText = '$0.00';
+    display.className = 'text-3xl font-black font-mono text-emerald-700';
+    hint.innerText = '現金收支與實際清點完全一致';
+  } else if (difference > 0){
+    box.className = 'rounded-xl p-4 border-2 border-blue-400 bg-blue-50 text-center transition';
+    label.innerText = '多出';
+    label.className = 'text-xs font-bold text-blue-700 mb-1';
+    display.innerText = '+$' + difference.toFixed(2);
+    display.className = 'text-3xl font-black font-mono text-blue-700';
+    hint.innerText = '實際現金比應有金額多，請確認是否漏記支出';
+  } else {
+    box.className = 'rounded-xl p-4 border-2 border-rose-400 bg-rose-50 text-center transition';
+    label.innerHTML = '<span class="flex items-center justify-center gap-1 text-rose-700">'
+                    + ico('alert-triangle','w-3.5 h-3.5') + '缺少</span>';
+    label.className = 'text-xs font-bold mb-1';
+    display.innerText = '-$' + Math.abs(difference).toFixed(2);
+    display.className = 'text-3xl font-black font-mono text-rose-700';
+    hint.innerText = '實際現金比應有金額少，請檢查是否有漏記或誤差';
+  }
+}
+
+/* =========================================================
+   明细面板
+   ========================================================= */
+var cashDetailOpen = false;
+
+function toggleCashDetail(){
+  cashDetailOpen = !cashDetailOpen;
+  var panel = document.getElementById('cash-detail-panel');
+  var text = document.getElementById('cash-detail-toggle-text');
+  var chev = document.getElementById('cash-detail-chevron');
+
+  if (cashDetailOpen){
+    panel.classList.remove('hidden');
+    text.innerText = '收起明細';
+    if (chev) chev.style.transform = 'rotate(180deg)';
+  } else {
+    panel.classList.add('hidden');
+    text.innerText = '查看明細';
+    if (chev) chev.style.transform = '';
+  }
+}
+
+function renderCashDetail(){
+  var key = currentShiftKey;
+  var incomeList = getCashTrips(key);
+  var fuelList = getCashFuelEntries(key);
+  var mealList = getMealExpenseTrips(key);
+
+  var incomeContainer = document.getElementById('cash-income-detail-list');
+  var fuelContainer = document.getElementById('cash-fuel-detail-list');
+  var mealContainer = document.getElementById('cash-meal-detail-list');
+  if (!incomeContainer || !fuelContainer || !mealContainer) return;
+
+  if (!incomeList.length){
+    incomeContainer.innerHTML = '<div class="text-center text-slate-400 text-xs py-2">此更期無現金收入</div>';
+  } else {
+    incomeList.sort(function(a, b){ return (a.timestamp || 0) - (b.timestamp || 0); });
+    incomeContainer.innerHTML = incomeList.map(function(t){
+      var d = new Date(t.timestamp);
+      var timeStr = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      var fare = parseFloat(t.fare) || 0;
+      var typeStyle = getTripTypeStyle(t.type);
+      return '<div class="flex justify-between items-center bg-emerald-50 border border-emerald-200 rounded-lg px-2.5 py-1.5 gap-2 text-xs">' +
+        '<div class="flex items-center gap-1.5 min-w-0">' +
+          '<span class="font-mono font-bold text-slate-600 text-[11px]">' + timeStr + '</span>' +
+          '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-semibold ' + typeStyle.cls + '">' + escapeHtml(t.type || '其他') + '</span>' +
+          (t.note ? '<span class="text-[11px] text-slate-500 truncate">' + escapeHtml(t.note) + '</span>' : '') +
+        '</div>' +
+        '<span class="font-bold font-mono text-emerald-700 shrink-0">+$' + fare.toFixed(1) + '</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  if (!fuelList.length){
+    fuelContainer.innerHTML = '<div class="text-center text-slate-400 text-xs py-2">此更期無現金加油</div>';
+  } else {
+    fuelList.sort(function(a, b){ return (a.timestamp || 0) - (b.timestamp || 0); });
+    fuelContainer.innerHTML = fuelList.map(function(e){
+      var d = new Date(e.timestamp);
+      var timeStr = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      var amount = parseFloat(e.amount) || 0;
+      var station = e.station || '';
+      return '<div class="flex justify-between items-center bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-1.5 gap-2 text-xs">' +
+        '<div class="flex items-center gap-1.5 min-w-0">' +
+          '<span class="font-mono font-bold text-slate-600 text-[11px]">' + timeStr + '</span>' +
+          '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-medium bg-rose-100 text-rose-700 border-rose-200">加油</span>' +
+          (station ? '<span class="text-[11px] text-slate-500 truncate">' + escapeHtml(station) + '</span>' : '') +
+        '</div>' +
+        '<span class="font-bold font-mono text-rose-700 shrink-0">-$' + amount.toFixed(1) + '</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  if (!mealList.length){
+    mealContainer.innerHTML = '<div class="text-center text-slate-400 text-xs py-2">此更期無飯錢支出</div>';
+  } else {
+    mealList.sort(function(a, b){ return (a.timestamp || 0) - (b.timestamp || 0); });
+    mealContainer.innerHTML = mealList.map(function(t){
+      var d = new Date(t.timestamp);
+      var timeStr = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      var fare = Math.abs(parseFloat(t.fare) || 0);
+      var note = t.note || '';
+      return '<div class="flex justify-between items-center bg-orange-50 border border-orange-200 rounded-lg px-2.5 py-1.5 gap-2 text-xs">' +
+        '<div class="flex items-center gap-1.5 min-w-0">' +
+          '<span class="font-mono font-bold text-slate-600 text-[11px]">' + timeStr + '</span>' +
+          '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-medium bg-orange-100 text-orange-700 border-orange-200">飯錢</span>' +
+          (note ? '<span class="text-[11px] text-slate-500 truncate">' + escapeHtml(note) + '</span>' : '') +
+        '</div>' +
+        '<span class="font-bold font-mono text-orange-700 shrink-0">-$' + fare.toFixed(1) + '</span>' +
+      '</div>';
+    }).join('');
+  }
+}
+
+var TYPE_ICON_MAP = {
+  '街客': { icon: 'flag',       cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  'Uber': { icon: 'smartphone', cls: 'bg-blue-50 text-blue-700 border-blue-200' }
+};
+function getTripTypeStyle(type){
+  return TYPE_ICON_MAP[type] || { icon: 'layers', cls: 'bg-purple-50 text-purple-700 border-purple-200' };
+}
+
+/* =========================================================
+   保存
+   ========================================================= */
+function saveAudit(){
+  var key = currentShiftKey;
+  if (!key){ showToast('請先選擇更期'); return; }
+
+  var opening = parseFloat(document.getElementById('opening-balance').value) || 0;
+  var withdrawn = parseFloat(document.getElementById('withdrawn').value) || 0;
+  var actualRaw = document.getElementById('actual-cash').value;
+  var actual = parseFloat(actualRaw);
+  var note = document.getElementById('audit-note').value.trim();
+
+  if (actualRaw === '' || isNaN(actual)){
+    showToast('請輸入實際現金金額');
+    document.getElementById('actual-cash').focus();
+    return;
+  }
+  if (actual < 0){ showToast('實際現金不能為負數'); return; }
+  if (withdrawn < 0){ showToast('提取現金不能為負數'); return; }
+
+  var income = calcCashIncome(key);
+  var cashTrips = getCashTrips(key);
+  var cashFuel = calcCashFuelCost(key);
+  var cashFuelEntries = getCashFuelEntries(key);
+  var mealExpense = calcMealExpense(key);
+  var mealTrips = getMealExpenseTrips(key);
+  var expected = opening + income - cashFuel - mealExpense - withdrawn;
+  var difference = actual - expected;
+
+  var info = getShiftInfo(key);
+  var audits = getAudits();
+  var existingIndex = audits.findIndex(function(a){ return a.shiftKey === key; });
+
+  var record = {
+    id: 'audit_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+    shiftKey: key,
+    shiftTimeRange: info.timeRange,
+    shiftWeekday: info.weekday,
+    cashIncome: income,
+    cashTripCount: cashTrips.length,
+    cashFuelCost: cashFuel,
+    cashFuelCount: cashFuelEntries.length,
+    mealExpense: mealExpense,
+    mealTripCount: mealTrips.length,
+    openingBalance: opening,
+    withdrawn: withdrawn,
+    actualCash: actual,
+    expectedCash: expected,
+    difference: difference,
+    note: note,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+
+  if (existingIndex >= 0){
+    var oldDiff = audits[existingIndex].difference || 0;
+    var msg = '此更期已有盤點記錄：\n\n' +
+              '原差額：' + (Math.abs(oldDiff) < 0.005 ? '正確' : (oldDiff > 0 ? '+$' + oldDiff.toFixed(2) : '-$' + Math.abs(oldDiff).toFixed(2))) +
+              '\n\n是否覆蓋為新的盤點結果？';
+    if (!confirm(msg)) return;
+    record.id = audits[existingIndex].id;
+    record.createdAt = audits[existingIndex].createdAt;
+    audits[existingIndex] = record;
+    showToast('盤點記錄已更新');
+  } else {
+    audits.push(record);
+    showToast('盤點記錄已保存');
+  }
+
+  saveAudits(audits);
+
+  document.getElementById('withdrawn').value = '';
+  document.getElementById('actual-cash').value = '';
+  document.getElementById('audit-note').value = '';
+
+  refreshAll();
+  renderShiftStrip();
+}
+
+/* =========================================================
+   历史列表
+   ========================================================= */
+function deleteAudit(id){
+  if (!confirm('確定要刪除此盤點記錄嗎？')) return;
+  var audits = getAudits().filter(function(a){ return a.id !== id; });
+  saveAudits(audits);
+  refreshAll();
+  renderShiftStrip();
+  showToast('記錄已刪除');
+}
+
+function renderAuditHistory(){
+  var audits = getAudits();
+  audits.sort(function(a, b){
+    if (a.shiftKey !== b.shiftKey) return a.shiftKey < b.shiftKey ? 1 : -1;
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  });
+
+  var container = document.getElementById('audit-history-list');
+  var countEl = document.getElementById('audit-history-count');
+  if (countEl) countEl.innerText = '共 ' + audits.length + ' 筆';
+
+  if (!audits.length){
+    container.innerHTML = '<div class="text-center text-slate-400 text-xs py-6">尚無盤點記錄</div>';
+    return;
+  }
+
+  container.innerHTML = audits.map(function(a){
+    var diff = a.difference || 0;
+    var isOk = Math.abs(diff) < 0.005;
+    var isOver = diff > 0;
+    var statusCls, statusText;
+    if (isOk){
+      statusCls = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      statusText = '✓ 正確';
+    } else if (isOver){
+      statusCls = 'bg-blue-50 text-blue-700 border-blue-200';
+      statusText = '多出 +$' + diff.toFixed(2);
+    } else {
+      statusCls = 'bg-rose-50 text-rose-700 border-rose-200';
+      statusText = '缺少 -$' + Math.abs(diff).toFixed(2);
+    }
+
+    var timeRange = a.shiftTimeRange;
+    if (!timeRange){
+      var info = getShiftInfo(a.shiftKey);
+      timeRange = info.timeRange;
+    }
+    var weekday = a.shiftWeekday || getWeekday(a.shiftKey);
+
+    var cashFuelCost = a.cashFuelCost || 0;
+    var fuelHtml = cashFuelCost > 0
+      ? '<span class="text-rose-600 font-bold font-mono">$' + cashFuelCost.toFixed(2) + '</span>'
+      : '<span class="text-slate-400 font-mono">$0.00</span>';
+
+    var mealExpense = a.mealExpense || 0;
+    var mealHtml = mealExpense > 0
+      ? '<span class="text-orange-700 font-bold font-mono">$' + mealExpense.toFixed(2) + '</span>'
+      : '<span class="text-slate-400 font-mono">$0.00</span>';
+
+    var noteHtml = a.note
+      ? '<div class="text-[11px] text-slate-500 mt-1 truncate flex items-center gap-1">'
+        + ico('info','w-3 h-3 text-slate-400') + escapeHtml(a.note) + '</div>'
+      : '';
+
+    return '<div class="border border-slate-200 rounded-xl p-3 space-y-1.5">' +
+      '<div class="flex justify-between items-center gap-2">' +
+        '<div class="min-w-0">' +
+          '<div class="text-sm font-bold text-slate-800 font-mono">' + escapeHtml(a.shiftKey) +
+            ' <span class="text-[10px] text-slate-400 font-normal">' + escapeHtml(weekday) + '</span>' +
+          '</div>' +
+          '<div class="text-[10px] text-slate-400 flex items-center gap-1">' +
+            ico('clock','w-3 h-3') + '<span class="font-mono">' + escapeHtml(timeRange) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<span class="text-[10px] px-2 py-0.5 rounded-full border font-bold shrink-0 ' + statusCls + '">' + statusText + '</span>' +
+      '</div>' +
+      '<div class="grid grid-cols-5 gap-1 text-[10px] pt-1 border-t border-slate-100">' +
+        '<div><div class="text-slate-500">收入</div><div class="font-bold font-mono text-emerald-700">$' + (a.cashIncome || 0).toFixed(2) + '</div></div>' +
+        '<div><div class="text-slate-500">油費</div><div>' + fuelHtml + '</div></div>' +
+        '<div><div class="text-slate-500">飯錢</div><div>' + mealHtml + '</div></div>' +
+        '<div><div class="text-slate-500">提取</div><div class="font-bold font-mono text-rose-600">$' + (a.withdrawn || 0).toFixed(2) + '</div></div>' +
+        '<div><div class="text-slate-500">留存</div><div class="font-bold font-mono text-slate-800">$' + (a.actualCash || 0).toFixed(2) + '</div></div>' +
+      '</div>' +
+      noteHtml +
+      '<div class="flex justify-end pt-1">' +
+        '<button onclick="deleteAudit(\'' + a.id + '\')" ' +
+          'class="text-[11px] text-slate-400 hover:text-rose-500 underline transition flex items-center gap-1">' +
+          ico('trash-2','w-3 h-3') + '刪除' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* =========================================================
+   刷新
+   ========================================================= */
+function refreshAll(){
+  recalculate();
+  renderCashDetail();
+  renderAuditHistory();
+  updateLatestHint();
+  updateShiftCard();
+}
+
+function updateLatestHint(){
+  var latest = getLatestAudit();
+  var hintEl = document.getElementById('latest-audit-hint');
+  if (!hintEl) return;
+  if (latest){
+    hintEl.innerText = '上次盤點：' + latest.shiftKey;
+    hintEl.title = new Date(latest.createdAt).toLocaleString('zh-HK');
+  } else {
+    hintEl.innerText = '尚未盤點';
+  }
+}
+
+/* =========================================================
+   初始化
+   ========================================================= */
+document.addEventListener('DOMContentLoaded', function(){
+  hydrateIcons();
+
+  var keys = getShiftKeys();
+
+  var noShiftPanel = document.getElementById('no-shift-panel');
+  var currentShiftCard = document.getElementById('current-shift-card');
+  var saveBtn = document.getElementById('save-btn');
+
+  if (!keys.length){
+    noShiftPanel.classList.remove('hidden');
+    currentShiftCard.classList.add('hidden');
+    saveBtn.disabled = true;
+    saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    renderShiftStrip();
+    refreshAll();
+    return;
+  }
+
+  noShiftPanel.classList.add('hidden');
+  currentShiftCard.classList.remove('hidden');
+  saveBtn.disabled = false;
+  saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+  currentShiftKey = keys[0];
+  renderShiftStrip();
+  autoFillOpeningBalance();
+  refreshAll();
+});
+</script>
+</body>
+</html>

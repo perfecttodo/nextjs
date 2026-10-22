@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Google Drive 備份 · 的士助手</title>
+<meta name="theme-color" content="#f59e0b">
+<style>
+*,*::before,*::after{box-sizing:border-box;border:0 solid #e2e8f0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang HK","Hiragino Sans CNS","Microsoft JhengHei","Noto Sans TC",sans-serif;
+  background:#f8fafc;color:#1e293b;min-height:100vh;padding-bottom:env(safe-area-inset-bottom,0px);-webkit-tap-highlight-color:transparent}
+h1,h2,h3,p{margin:0;font-size:inherit;font-weight:inherit}
+button{background:none;cursor:pointer;border:0;padding:0;font:inherit;color:inherit}
+input{font:inherit;color:inherit;margin:0}input::placeholder{color:#94a3b8}svg{display:block}
+.ico{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.hidden{display:none !important}
+.max-w-md{max-width:28rem}.mx-auto{margin-left:auto;margin-right:auto}
+.w-full{width:100%}.relative{position:relative}.absolute{position:absolute}.fixed{position:fixed}
+.flex{display:flex}.grid{display:grid}.items-center{align-items:center}
+.justify-between{justify-content:space-between}.justify-center{justify-content:center}
+.text-center{text-align:center}.text-right{text-align:right}
+.text-xs{font-size:.75rem;line-height:1.45}.text-sm{font-size:.875rem;line-height:1.45}
+.text-base{font-size:1rem;line-height:1.5}.text-lg{font-size:1.125rem;line-height:1.5}
+.font-medium{font-weight:500}.font-semibold{font-weight:600}.font-bold{font-weight:700}
+.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.min-w-0{min-width:0}.shrink-0{flex-shrink:0}
+.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}
+.underline{text-decoration:underline}.whitespace-nowrap{white-space:nowrap}
+.cursor-pointer{cursor:pointer}.select-none{user-select:none;-webkit-user-select:none}
+.text-slate-300{color:#cbd5e1}.text-slate-400{color:#94a3b8}.text-slate-500{color:#64748b}
+.text-slate-600{color:#475569}.text-slate-700{color:#334155}.text-slate-800{color:#1e293b}
+.text-slate-900{color:#0f172a}.text-white{color:#fff}
+.text-amber-500{color:#f59e0b}.text-amber-600{color:#d97706}.text-amber-700{color:#b45309}
+.text-amber-800{color:#92400e}.text-amber-900{color:#78350f}
+.text-emerald-500{color:#10b981}.text-emerald-700{color:#047857}
+.text-rose-500{color:#f43f5e}.text-rose-600{color:#e11d48}
+.text-blue-500{color:#3b82f6}.text-blue-600{color:#2563eb}.text-blue-700{color:#1d4ed8}
+.bg-white{background-color:#fff}.bg-slate-50{background-color:#f8fafc}.bg-slate-100{background-color:#f1f5f9}
+.bg-slate-200{background-color:#e2e8f0}.bg-slate-900{background-color:#0f172a}
+.bg-amber-50{background-color:#fffbeb}.bg-amber-100{background-color:#fef3c7}.bg-amber-200{background-color:#fde68a}
+.bg-amber-500{background-color:#f59e0b}.bg-amber-600{background-color:#d97706}
+.bg-emerald-50{background-color:#ecfdf5}.bg-emerald-100{background-color:#d1fae5}
+.bg-emerald-500{background-color:#10b981}.bg-emerald-700{background-color:#047857}
+.bg-rose-50{background-color:#fff1f2}.bg-blue-50{background-color:#eff6ff}
+.bg-blue-500{background-color:#3b82f6}.bg-blue-600{background-color:#2563eb}
+.border{border-width:1px}.border-b{border-bottom-width:1px}
+.border-slate-100{border-color:#f1f5f9}.border-slate-200{border-color:#e2e8f0}
+.border-amber-200{border-color:#fde68a}.border-amber-300{border-color:#fcd34d}
+.border-rose-200{border-color:#fecdd3}
+.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.rounded-2xl{border-radius:1rem}
+.shadow-sm{box-shadow:0 1px 3px rgba(15,23,42,.08),0 1px 2px rgba(15,23,42,.04)}
+.shadow-md{box-shadow:0 4px 10px rgba(15,23,42,.10),0 2px 4px rgba(15,23,42,.05)}
+.shadow-xl{box-shadow:0 20px 25px -5px rgba(15,23,42,.1),0 10px 10px -5px rgba(15,23,42,.04)}
+.p-1\.5{padding:.375rem}.p-2{padding:.5rem}.p-2\.5{padding:.625rem}.p-3{padding:.75rem}
+.p-3\.5{padding:.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-8{padding:2rem}
+.px-2{padding-left:.5rem;padding-right:.5rem}.px-3{padding-left:.75rem;padding-right:.75rem}
+.px-3\.5{padding-left:.875rem;padding-right:.875rem}.px-4{padding-left:1rem;padding-right:1rem}
+.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}
+.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}
+.py-3\.5{padding-top:.875rem;padding-bottom:.875rem}.py-4{padding-top:1rem;padding-bottom:1rem}
+.py-8{padding-top:2rem;padding-bottom:2rem}.pt-1{padding-top:.25rem}.pt-2{padding-top:.5rem}.pb-3{padding-bottom:.75rem}
+.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}
+.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}
+.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}
+.space-y-1\.5 > * + *{margin-top:.375rem}.space-y-2 > * + *{margin-top:.5rem}.space-y-3 > * + *{margin-top:.75rem}.space-y-4 > * + *{margin-top:1rem}
+.w-3{width:.75rem}.h-3{height:.75rem}.w-3\.5{width:.875rem}.h-3\.5{height:.875rem}
+.w-4{width:1rem}.h-4{height:1rem}.w-5{width:1.25rem}.h-5{height:1.25rem}
+.w-6{width:1.5rem}.h-6{height:1.5rem}.w-8{width:2rem}.h-8{height:2rem}.w-10{width:2.5rem}.h-10{height:2.5rem}
+.transition{transition:all .2s ease}.animate-spin{animation:spin 1s linear infinite}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+button:disabled{cursor:not-allowed}
+.hover\:bg-amber-600:hover{background-color:#d97706}.hover\:bg-emerald-700:hover{background-color:#047857}
+.hover\:bg-slate-200:hover{background-color:#e2e8f0}.hover\:text-rose-500:hover{color:#f43f5e}
+.active\:scale-\[0\.98\]:active{transform:scale(.98)}.active\:scale-\[0\.95\]:active{transform:scale(.95)}
+.active\:scale-\[0\.99\]:active{transform:scale(.99)}
+</style>
+</head>
+
+<body>
+
+<header class="bg-amber-500 text-slate-900 shadow-md" style="position:sticky;top:0;z-index:50">
+  <div class="max-w-md mx-auto px-4 py-2.5 flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <button type="button" onclick="goBack()" id="back-btn"
+        class="p-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 active:scale-[0.95] transition text-white">
+        <span class="ico w-4 h-4" data-icon="arrow-left"></span>
+      </button>
+      <h1 class="text-lg font-bold">Google Drive 備份</h1>
+    </div>
+    <span class="ico w-5 h-5" data-icon="database"></span>
+  </div>
+</header>
+
+<main class="max-w-md w-full mx-auto p-4 space-y-3">
+
+  <div id="main-panel" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+
+    <div id="status-box" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-center">
+      <span id="status-text" class="text-xs text-slate-500">檢查登入狀態中...</span>
+    </div>
+
+    <button type="button" id="auth-btn" onclick="startPopupAuth()"
+      class="w-full py-3 bg-white border border-slate-300 hover:bg-slate-50 active:scale-[0.98] text-slate-700 font-bold rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-sm">
+      <svg class="w-5 h-5" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#4285F4" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#34A853" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#EA4335" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      <span>使用 Google 帳戶登入</span>
+    </button>
+
+    <button type="button" id="upload-btn" onclick="upload()" disabled
+      class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 active:scale-[0.99] text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 text-sm">
+      <span class="ico w-5 h-5" data-icon="database"></span>
+      <span id="upload-text">一鍵上傳到 Google Drive</span>
+    </button>
+
+    <button type="button" id="download-btn" onclick="download()" disabled
+      class="w-full py-3.5 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-200 disabled:text-slate-400 active:scale-[0.99] text-slate-900 font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 text-sm">
+      <span class="ico w-5 h-5" data-icon="rotate-cw"></span>
+      <span id="download-text">從 Google Drive 下載還原</span>
+    </button>
+
+    <div id="file-info" class="hidden bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 space-y-1.5 text-xs">
+      <div class="flex justify-between">
+        <span class="text-slate-500">最後備份時間</span>
+        <span id="file-time" class="font-bold font-mono text-slate-800">--</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-slate-500">備份檔案大小</span>
+        <span id="file-size" class="font-bold font-mono text-slate-800">--</span>
+      </div>
+    </div>
+
+    <div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 space-y-1.5 text-xs">
+      <div class="text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
+        <span class="ico w-3 h-3" data-icon="info"></span>本地目前數據
+      </div>
+      <div class="flex justify-between">
+        <span class="text-slate-500">行程紀錄</span>
+        <span id="stat-trips" class="font-bold font-mono text-slate-800">0 筆</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-slate-500">更次設定</span>
+        <span id="stat-shifts" class="font-bold font-mono text-slate-800">0 個</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-slate-500">收藏地點</span>
+        <span id="stat-places" class="font-bold font-mono text-slate-800">0 個</span>
+      </div>
+    </div>
+
+    <button type="button" id="logout-btn" onclick="logout()"
+      class="w-full text-[11px] text-slate-400 hover:text-rose-500 underline transition py-1 hidden">
+      登出 Google 帳戶
+    </button>
+  </div>
+
+  <div id="loading" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 py-8 text-center">
+    <span class="ico w-8 h-8 mx-auto text-amber-500 animate-spin" data-icon="loader"></span>
+    <p id="loading-text" class="text-xs text-slate-500 mt-2">處理中...</p>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+    <p class="text-[11px] text-slate-400 leading-relaxed">
+      ※ 備份包含：行程、更次設定、收藏地點、加油記錄、偏好設定。<br>
+      ※ 檔案儲存在 Google Drive「apps」資料夾內。<br>
+      ※ 上傳與下載前皆會自動進行版本比對，提供完整防護選項。
+    </p>
+  </div>
+
+</main>
+
+<!-- 下載還原衝突選擇 Modal -->
+<div id="download-conflict-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-4" style="z-index:100;backdrop-filter:blur(2px)">
+  <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 space-y-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+        <span class="ico w-5 h-5" data-icon="info"></span>
+      </div>
+      <div>
+        <h3 class="font-bold text-slate-800 text-sm">偵測到本地有未同步的新資料</h3>
+        <p class="text-xs text-slate-500">本地修改時間比雲端備份更新</p>
+      </div>
+    </div>
+
+    <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1 text-xs">
+      <div class="flex justify-between">
+        <span class="text-slate-500">雲端備份時間：</span>
+        <span id="dl-conflict-cloud-time" class="font-bold font-mono text-slate-800">--</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-slate-500">本地最後同步：</span>
+        <span id="dl-conflict-local-time" class="font-bold font-mono text-slate-800">--</span>
+      </div>
+    </div>
+
+    <p class="text-xs text-slate-600 leading-relaxed">
+      您在本地有較新的修改紀錄。若直接下載雲端版本，將會覆蓋並遺失這些本地修改。請選擇操作：
+    </p>
+
+    <div class="space-y-2 pt-1">
+      <button type="button" onclick="resolveDownloadConflict('upload_first')"
+        class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-sm">
+        先將本地資料上傳備份，再下載
+      </button>
+      <button type="button" onclick="resolveDownloadConflict('force_download')"
+        class="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl text-xs transition shadow-sm">
+        強制下載覆蓋 (放棄本地修改)
+      </button>
+      <button type="button" onclick="resolveDownloadConflict('cancel')"
+        class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium rounded-xl text-xs transition">
+        取消還原
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="fixed bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-medium shadow-lg transition-all duration-300"
+  style="top:4rem;left:50%;transform:translateX(-50%);z-index:50;opacity:0;pointer-events:none;max-width:calc(100vw - 2rem);text-align:center">
+  提示訊息
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   設定
+   ═══════════════════════════════════════════════════════════ */
+var CLIENT_ID = '802199089900-5n676d4hansnab5c66igukb1mch5m7m1.apps.googleusercontent.com';
+var SCOPES = 'https://www.googleapis.com/auth/drive.file';
+var FILE_NAME = 'hk-taxi-helper-backup.json';
+var FOLDER_NAME = 'apps'; // 指定的目錄名稱
+
+/* ═══════════════════════════════════════════════════════════
+   圖示與提示
+   ═══════════════════════════════════════════════════════════ */
+var ICONS = {
+  'arrow-left':'<path d="M19 12H5M12 19l-7-7 7-7"/>',
+  'database':'<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+  'rotate-cw':'<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+  'info':'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  'loader':'<path d="M21 12a9 9 0 1 1-6.219-8.56"/>',
+  'check-circle':'<circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.3 2.3 4.7-5"/>'
+};
+function hydrateIcons(root){
+  (root || document.querySelectorAll('[data-icon]')).forEach(function(el){
+    if (el.dataset.done) return;
+    el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+                   'stroke-linecap="round" stroke-linejoin="round" style="width:100%;height:100%">' +
+                   (ICONS[el.dataset.icon] || '') + '</svg>';
+    el.dataset.done = '1';
+  });
+}
+function ico(name, cls){
+  cls = cls || 'w-4 h-4';
+  return '<svg class="' + cls + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+         'stroke-linecap="round" stroke-linejoin="round">' + (ICONS[name] || '') + '</svg>';
+}
+function showToast(msg){
+  var toast = document.getElementById('toast');
+  toast.innerText = msg;
+  toast.style.opacity = '1';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(function(){ toast.style.opacity = '0'; }, 2800);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   返回來源
+   ═══════════════════════════════════════════════════════════ */
+var FROM_STORAGE_KEY = 'backup_from';
+function getReturnUrl(){
+  var from = new URLSearchParams(window.location.search).get('from')
+          || sessionStorage.getItem(FROM_STORAGE_KEY);
+  if (!from) return './index.html';
+  try {
+    var url = new URL(from, window.location.href);
+    if (url.origin !== window.location.origin) return './index.html';
+    if (url.pathname === window.location.pathname) return './index.html';
+    return url.toString();
+  } catch(e){ return './index.html'; }
+}
+function goBack(){
+  sessionStorage.removeItem(FROM_STORAGE_KEY);
+  window.location.href = getReturnUrl();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Token 管理 (Token Model)
+   ═══════════════════════════════════════════════════════════ */
+var TOKEN_KEY = 'taxi_google_token';
+
+function getStoredAccessToken(){
+  try {
+    var raw = localStorage.getItem(TOKEN_KEY);
+    if (!raw) return null;
+    var obj = JSON.parse(raw);
+    if (Date.now() > (obj.expiresAt - 60000)) return null;
+    return obj.token;
+  } catch(e){ return null; }
+}
+
+function storeAccessToken(token, expiresIn){
+  localStorage.setItem(TOKEN_KEY, JSON.stringify({
+    token: token,
+    expiresAt: Date.now() + (expiresIn * 1000)
+  }));
+}
+
+function clearTokens(){
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   彈窗授權 (Google Identity Services Token Client)
+   ═══════════════════════════════════════════════════════════ */
+var tokenClient = null;
+
+function initGoogleClient(){
+  if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) return;
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: function(response){
+      if (response.error){
+        console.warn('[auth] error:', response);
+        if (response.error === 'popup_closed_by_user'){
+          showToast('已取消登入');
+        } else {
+          showToast('登入失敗：' + response.error);
+        }
+        return;
+      }
+      if (response.access_token){
+        storeAccessToken(response.access_token, response.expires_in || 3600);
+        showToast('登入成功！');
+        updateUI();
+      }
+    }
+  });
+}
+
+function startPopupAuth(){
+  if (!tokenClient){
+    initGoogleClient();
+  }
+  if (tokenClient){
+    tokenClient.requestAccessToken({ prompt: 'consent' });
+  } else {
+    showToast('Google 登入服務載入中，請稍後再試');
+  }
+}
+
+function logout(){
+  clearTokens();
+  updateUI();
+  showToast('已登出 Google 帳戶');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   UI 狀態更新
+   ═══════════════════════════════════════════════════════════ */
+function updateUI(){
+  var token = getStoredAccessToken();
+  var statusBox = document.getElementById('status-box');
+  var statusText = document.getElementById('status-text');
+  var authBtn = document.getElementById('auth-btn');
+  var uploadBtn = document.getElementById('upload-btn');
+  var downloadBtn = document.getElementById('download-btn');
+  var fileInfo = document.getElementById('file-info');
+  var logoutBtn = document.getElementById('logout-btn');
+
+  if (token){
+    statusBox.className = 'bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2.5 text-center';
+    statusText.innerHTML = '<span class="text-xs text-emerald-700 font-bold flex items-center justify-center gap-1">' +
+                           ico('check-circle','w-3.5 h-3.5') + '已登入 Google 帳戶</span>';
+    authBtn.classList.add('hidden');
+    uploadBtn.disabled = false;
+    downloadBtn.disabled = false;
+    fileInfo.classList.remove('hidden');
+    logoutBtn.classList.remove('hidden');
+    refreshFileInfo();
+  } else {
+    statusBox.className = 'bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-center';
+    statusText.innerHTML = '<span class="text-xs text-slate-500">請使用 Google 帳戶登入以啟用備份</span>';
+    authBtn.classList.remove('hidden');
+    uploadBtn.disabled = true;
+    downloadBtn.disabled = true;
+    fileInfo.classList.add('hidden');
+    logoutBtn.classList.add('hidden');
+  }
+  updateLocalStats();
+}
+
+function updateLocalStats(){
+  var trips = JSON.parse(localStorage.getItem('taxi_trips')) || [];
+  var shifts = JSON.parse(localStorage.getItem('taxi_shift_settings')) || {};
+  var places = JSON.parse(localStorage.getItem('taxi_places')) || [];
+  document.getElementById('stat-trips').innerText = trips.length + ' 筆';
+  document.getElementById('stat-shifts').innerText = Object.keys(shifts).length + ' 個';
+  document.getElementById('stat-places').innerText = places.length + ' 個';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Drive API 與資料夾管理
+   ═══════════════════════════════════════════════════════════ */
+async function api(url, options){
+  var token = getStoredAccessToken();
+  if (!token) throw new Error('未登入或登入已過期');
+  options = options || {};
+  options.headers = Object.assign({}, options.headers, { 'Authorization': 'Bearer ' + token });
+  var resp = await fetch(url, options);
+  if (resp.status === 401){
+    clearTokens(); updateUI();
+    throw new Error('登入已過期，請重新登入');
+  }
+  if (!resp.ok){
+    var errText = '';
+    try { errText = await resp.text(); } catch(e){}
+    throw new Error('Drive API ' + resp.status + '：' + (errText || resp.statusText));
+  }
+  return resp;
+}
+
+// 取得或自動建立指定名稱的資料夾 (apps)
+async function getOrCreateFolderId(){
+  var q = encodeURIComponent("name = '" + FOLDER_NAME + "' and mimeType = 'application/vnd.google-apps.folder' and trashed = false");
+  var url = 'https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)&pageSize=1';
+  var resp = await api(url);
+  var data = await resp.json();
+
+  if (data.files && data.files.length > 0) {
+    return data.files[0].id;
+  }
+
+  // 如果資料夾不存在，自動建立一個
+  var createUrl = 'https://www.googleapis.com/drive/v3/files';
+  var folderMeta = {
+    name: FOLDER_NAME,
+    mimeType: 'application/vnd.google-apps.folder'
+  };
+  var createResp = await api(createUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(folderMeta)
+  });
+  var folderData = await createResp.json();
+  return folderData.id;
+}
+
+async function findBackupFile(){
+  var folderId = await getOrCreateFolderId();
+  var q = encodeURIComponent("name = '" + FILE_NAME + "' and '" + folderId + "' in parents and trashed = false");
+  var url = 'https://www.googleapis.com/drive/v3/files?q=' + q +
+    '&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime desc&pageSize=1';
+  var resp = await api(url);
+  var data = await resp.json();
+  return (data.files && data.files.length) ? data.files[0] : null;
+}
+
+async function refreshFileInfo(){
+  var timeEl = document.getElementById('file-time');
+  var sizeEl = document.getElementById('file-size');
+  if (!timeEl || !sizeEl) return;
+  try {
+    var file = await findBackupFile();
+    if (file){
+      timeEl.innerText = new Date(file.modifiedTime).toLocaleString('zh-HK');
+      var bytes = parseInt(file.size || '0', 10);
+      sizeEl.innerText = bytes > (1024 * 1024)
+        ? (bytes / 1024 / 1024).toFixed(2) + ' MB'
+        : (bytes / 1024).toFixed(1) + ' KB';
+    } else {
+      timeEl.innerText = '尚無備份';
+      sizeEl.innerText = '--';
+    }
+  } catch(e){ console.warn('[gdrive] refresh info failed:', e); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   下載衝突 Modal 邏輯
+   ═══════════════════════════════════════════════════════════ */
+var downloadConflictResolver = null;
+
+function promptDownloadConflictModal(cloudTimeStr, localTimeStr) {
+  return new Promise(function(resolve) {
+    document.getElementById('dl-conflict-cloud-time').innerText = cloudTimeStr;
+    document.getElementById('dl-conflict-local-time').innerText = localTimeStr;
+    var modal = document.getElementById('download-conflict-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    hydrateIcons(modal);
+    downloadConflictResolver = resolve;
+  });
+}
+
+function resolveDownloadConflict(action) {
+  var modal = document.getElementById('download-conflict-modal');
+  modal.classList.remove('flex');
+  modal.classList.add('hidden');
+  if (downloadConflictResolver) {
+    downloadConflictResolver(action);
+    downloadConflictResolver = null;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   資料處理核心
+   ═══════════════════════════════════════════════════════════ */
+function buildBackupPayload(){
+  var trips = JSON.parse(localStorage.getItem('taxi_trips')) || [];
+  var shiftSettings = JSON.parse(localStorage.getItem('taxi_shift_settings')) || {};
+  var places = JSON.parse(localStorage.getItem('taxi_places')) || [];
+  var fuelPrefs; try { fuelPrefs = JSON.parse(localStorage.getItem('taxi_fuel_prefs')) || {}; } catch(e){ fuelPrefs = {}; }
+  var cardStates; try { cardStates = JSON.parse(localStorage.getItem('taxi_card_states')) || {}; } catch(e){ cardStates = {}; }
+  return {
+    _meta: { app: 'hk-taxi-helper', version: 2, exportedAt: new Date().toISOString() },
+    trips: trips, shiftSettings: shiftSettings, places: places,
+    fuelPrefs: fuelPrefs,
+    lastType: localStorage.getItem('taxi_last_type') || '',
+    lastPayment: localStorage.getItem('taxi_last_payment') || '',
+    cardStates: cardStates
+  };
+}
+
+// 實際執行上傳（自動放入 apps 目錄）
+async function executeUpload(){
+  var folderId = await getOrCreateFolderId();
+  var payload = buildBackupPayload();
+  var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  var file = new File([blob], FILE_NAME, { type: 'application/json' });
+
+  var existing = await findBackupFile();
+  
+  var uploadUrl, method;
+  var form = new FormData();
+
+  if (existing) {
+    // 更新現有檔案
+    uploadUrl = 'https://www.googleapis.com/upload/drive/v3/files/' + encodeURIComponent(existing.id) + '?uploadType=multipart';
+    method = 'PATCH';
+    form.append('metadata', new Blob([JSON.stringify({ name: FILE_NAME })], { type: 'application/json' }));
+  } else {
+    // 建立新檔案並指定 parents 為 apps 資料夾 ID
+    uploadUrl = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+    method = 'POST';
+    form.append('metadata', new Blob([JSON.stringify({ name: FILE_NAME, parents: [folderId], mimeType: 'application/json' })], { type: 'application/json' }));
+  }
+  
+  form.append('file', file);
+
+  var resp = await api(uploadUrl, { method: method, body: form });
+  var resultData = await resp.json();
+
+  var newSyncTime = resultData.modifiedTime ? new Date(resultData.modifiedTime).getTime() : Date.now();
+  localStorage.setItem('taxi_last_sync_time', newSyncTime.toString());
+  refreshFileInfo();
+}
+
+async function upload(){
+  var uploadBtn = document.getElementById('upload-btn');
+  var uploadText = document.getElementById('upload-text');
+  var loading = document.getElementById('loading');
+  var loadingText = document.getElementById('loading-text');
+  try {
+    uploadBtn.disabled = true;
+    uploadText.innerText = '上傳中...';
+    loading.classList.remove('hidden');
+    loadingText.innerText = '正在將備份上傳到 apps 資料夾...';
+
+    await executeUpload();
+    showToast('備份已成功上傳到 apps 資料夾');
+  } catch(e){
+    console.error('[gdrive] upload failed:', e);
+    showToast('上傳失敗：' + e.message);
+  } finally {
+    uploadBtn.disabled = false;
+    uploadText.innerText = '一鍵上傳到 Google Drive';
+    loading.classList.add('hidden');
+  }
+}
+
+async function applyFileToLocal(file){
+  var resp = await api('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(file.id) + '?alt=media');
+  var data = JSON.parse(await resp.text());
+
+  if (!data || !data._meta || data._meta.app !== 'hk-taxi-helper'){
+    showToast('備份格式不正確，已取消還原');
+    return false;
+  }
+
+  if (Array.isArray(data.trips)) localStorage.setItem('taxi_trips', JSON.stringify(data.trips));
+  if (data.shiftSettings) localStorage.setItem('taxi_shift_settings', JSON.stringify(data.shiftSettings));
+  if (Array.isArray(data.places)) localStorage.setItem('taxi_places', JSON.stringify(data.places));
+  if (data.fuelPrefs) localStorage.setItem('taxi_fuel_prefs', JSON.stringify(data.fuelPrefs));
+  if (data.lastType) localStorage.setItem('taxi_last_type', data.lastType);
+  if (data.lastPayment) localStorage.setItem('taxi_last_payment', data.lastPayment);
+  if (data.cardStates) localStorage.setItem('taxi_card_states', JSON.stringify(data.cardStates));
+
+  if (file.modifiedTime) {
+    localStorage.setItem('taxi_last_sync_time', new Date(file.modifiedTime).getTime().toString());
+  }
+
+  showToast('還原成功！數據已更新');
+  updateUI();
+  return true;
+}
+
+async function download(){
+  var downloadBtn = document.getElementById('download-btn');
+  var downloadText = document.getElementById('download-text');
+  var loading = document.getElementById('loading');
+  var loadingText = document.getElementById('loading-text');
+  try {
+    downloadBtn.disabled = true;
+    downloadText.innerText = '檢查中...';
+    loading.classList.remove('hidden');
+    loadingText.innerText = '正在檢查 apps 目錄中的備份...';
+
+    var file = await findBackupFile();
+    if (!file){
+      loading.classList.add('hidden');
+      showToast('apps 目錄中沒有找到備份檔案');
+      return;
+    }
+
+    var cloudModifiedTime = new Date(file.modifiedTime).getTime();
+    var lastSyncTime = parseInt(localStorage.getItem('taxi_last_sync_time') || '0', 10);
+    
+    loading.classList.add('hidden');
+
+    var confirmMsg = '找到備份：\n\n' +
+      '• 時間：' + new Date(file.modifiedTime).toLocaleString('zh-HK') + '\n' +
+      '• 大小：' + (parseInt(file.size || '0', 10) / 1024).toFixed(1) + ' KB\n\n' +
+      '下載還原會【覆蓋】目前所有本地數據，確定繼續嗎？';
+
+    if (lastSyncTime && lastSyncTime > cloudModifiedTime) {
+      var cloudTimeStr = new Date(file.modifiedTime).toLocaleString('zh-HK');
+      var localTimeStr = new Date(lastSyncTime).toLocaleString('zh-HK');
+
+      var choice = await promptDownloadConflictModal(cloudTimeStr, localTimeStr);
+
+      if (choice === 'upload_first') {
+        loading.classList.remove('hidden');
+        loadingText.innerText = '正在先備份本地資料到 apps 目錄...';
+        await executeUpload();
+        showToast('本地資料已安全備份！');
+        loading.classList.add('hidden');
+        return;
+      } else if (choice === 'force_download') {
+        loading.classList.remove('hidden');
+        loadingText.innerText = '正在強制下載覆蓋...';
+        await applyFileToLocal(file);
+      } else {
+        showToast('已取消還原操作');
+        return;
+      }
+    } else {
+      if (!confirm(confirmMsg)) return;
+
+      loading.classList.remove('hidden');
+      loadingText.innerText = '正在從 Google Drive 下載還原...';
+      await applyFileToLocal(file);
+    }
+
+  } catch(e){
+    console.error('[gdrive] download failed:', e);
+    showToast('還原失敗：' + e.message);
+  } finally {
+    downloadBtn.disabled = false;
+    downloadText.innerText = '從 Google Drive 下載還原';
+    loading.classList.add('hidden');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   初始化
+   ═══════════════════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', function(){
+  hydrateIcons();
+  
+  if (window.google && window.google.accounts) {
+    initGoogleClient();
+  } else {
+    window.addEventListener('load', function(){
+      setTimeout(initGoogleClient, 500);
+    });
+  }
+
+  updateUI();
+});
+</script>
+</body>
+</html>
