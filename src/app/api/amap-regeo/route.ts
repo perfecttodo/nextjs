@@ -11,6 +11,7 @@ interface AmapRegeoResponse {
         street?: string;
         number?: string;
       };
+      district?:string;
     };
     aois?: { name: string }[];
     pois?: { name: string }[];
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
   if (!amapKey) {
     return NextResponse.json({ error: '伺服器未配置 AMAP_KEY' }, { status: 500 });
   }
-
+  //https://ditu.amap.com/service/regeo?longitude=114.12453809929933&latitude=22.5083746284787
   // 高德位置格式要求：經度(lng),緯度(lat)
   const amapUrl = `https://restapi.amap.com/v3/geocode/regeo?key=${amapKey}&location=${lng},${lat}&extensions=all&output=json`;
 
@@ -49,6 +50,7 @@ export async function GET(request: NextRequest) {
     const regeo = data.regeocode;
     const addrComp = regeo.addressComponent || {};
     const streetNumber = addrComp.streetNumber || {};
+    const district = addrComp.district || '';
 
     // 解析街道名稱
     const road = streetNumber.street || addrComp.township || '';
@@ -70,6 +72,7 @@ export async function GET(request: NextRequest) {
       success: true,
       provider: 'amap',
       formatted_address: regeo.formatted_address || '',
+      district:district,
       building,
       road: roadFormatted,
       raw: data,

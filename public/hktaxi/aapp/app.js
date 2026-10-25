@@ -129,6 +129,7 @@ var DEFAULT_SHIFT = {
   note: ''
 };
 
+/* ========== 修改：保留 REGIONS / DISTRICT_KEYWORDS 以兼容舊資料（不再用於 UI） ========== */
 var REGIONS = {
   '港島': ['中西區', '灣仔區', '東區', '南區'],
   '九龍': ['油尖旺區', '深水埗區', '九龍城區', '黃大仙區', '觀塘區'],
@@ -151,6 +152,7 @@ var placeTypeExpanded = localStorage.getItem('taxi_place_type_expanded') === '1'
 
 function getPlaceTypeStyle(type){ return PLACE_TYPE_CONFIG[type] || PLACE_TYPE_FALLBACK; }
 
+/* 保留：用於舊資料兼容 / 反向地理編碼內部參考 */
 var DISTRICT_KEYWORDS = {
   '中西區': ['central and western', 'central & western', '中西區', '中環', '上環', '西環', '西營盤', '半山', '山頂', '金鐘', '石塘咀', '堅尼地城'],
   '灣仔區': ['wan chai', '灣仔', '銅鑼灣', '跑馬地', '大坑', '掃桿埔', '天后'],
@@ -520,14 +522,9 @@ function updateLocationChip(){
 }
 
 /* =========================================================
-   ========== 修改：新增阻塞式定位工具 ==========
+   阻塞式定位工具
    ========================================================= */
 
-/**
- * 取得當下位置。永不使用 maximumAge 快取，確保是「此刻」的位置。
- * 成功 → resolve({lat,lng,accuracy,timestamp})
- * 失敗 → reject(Error)，error.message ∈ {NO_GEOLOCATION, INSECURE_CONTEXT, TIMEOUT, PERMISSION_DENIED, POSITION_UNAVAILABLE}
- */
 function getFreshLocation(opts){
   opts = opts || {};
   var timeoutMs    = opts.timeoutMs    || 6000;
@@ -567,7 +564,6 @@ function getFreshLocation(opts){
   });
 }
 
-/** 高精度優先，失敗自動降級為網絡定位 */
 async function getLocationBestEffort(){
   try {
     return await getFreshLocation({ timeoutMs: 3500, highAccuracy: true });
@@ -585,7 +581,6 @@ function locationErrorText(e){
   return '定位失敗';
 }
 
-/** 保存按鈕 loading 狀態切換（無按鈕時靜默略過） */
 function setSaveBtnLoading(btn, loading){
   if (!btn) return;
   if (loading){
@@ -612,7 +607,6 @@ function setSaveBtnLoading(btn, loading){
   }
 }
 
-/* ========== 修改：buildTripLocation 增加 timestamp ========== */
 function buildTripLocation(){
   if (!cachedLocation) return null;
   return {
@@ -1969,7 +1963,6 @@ function saveTripTime(){
   showToast(manualTripTime ? '行程時間已設為 ' + manualTripTime : '行程時間已重置為現在');
 }
 
-/* ========== 修改：saveTrip 改為 async，保存前阻塞取得當下位置 ========== */
 var tripSaving = false;
 
 async function saveTrip(){
@@ -2258,6 +2251,7 @@ function buildPlaceFilterBtn(label, isActive, onClick){
   return '<button type="button" onclick="' + onClick + '" class="' + cls + '">' + escapeHtml(label) + '</button>';
 }
 
+/* ========== 修改：移除區域 / 分區篩選 UI，只保留類型篩選 ========== */
 function renderPlaceFilters(){
   var regionWrap   = document.getElementById('place-region-tabs');
   var districtWrap = document.getElementById('place-district-wrap');
@@ -2266,24 +2260,15 @@ function renderPlaceFilters(){
   var typeToggleText = document.getElementById('place-type-toggle-text');
   var typeChev     = document.getElementById('place-type-toggle-chevron');
 
-  if (!regionWrap || !typeWrap) return;
+  // 清空並隱藏區域 / 分區的容器（保留 DOM 結構，避免 HTML 需同步改動）
+  if (regionWrap){ regionWrap.innerHTML = ''; regionWrap.classList.add('hidden'); }
+  if (districtWrap){ districtWrap.classList.add('hidden'); }
 
-  var regionKeys = [''].concat(Object.keys(REGIONS));
-  regionWrap.innerHTML = regionKeys.map(function(r){
-    var label = r === '' ? '全部' : r;
-    return buildPlaceFilterBtn(label, placeFilterRegion === r, "setPlaceFilterRegion('" + r + "')");
-  }).join('');
+  // 清除區域 / 分區篩選狀態
+  placeFilterRegion = '';
+  placeFilterDistrict = '';
 
-  if (placeFilterRegion && REGIONS[placeFilterRegion]){
-    districtWrap.classList.remove('hidden');
-    var districts = [''].concat(REGIONS[placeFilterRegion]);
-    document.getElementById('place-district-tabs').innerHTML = districts.map(function(d){
-      var label = d === '' ? '全部' : d;
-      return buildPlaceFilterBtn(label, placeFilterDistrict === d, "setPlaceFilterDistrict('" + d + "')");
-    }).join('');
-  } else {
-    districtWrap.classList.add('hidden');
-  }
+  if (!typeWrap) return;
 
   var allTypes = [''].concat(PLACE_TYPES);
   var totalCount = allTypes.length;
@@ -2311,6 +2296,7 @@ function renderPlaceFilters(){
   }
 }
 
+/* 保留：向後兼容，不再由 UI 觸發 */
 function setPlaceFilterRegion(r){
   placeFilterRegion = r;
   placeFilterDistrict = '';
@@ -2330,6 +2316,7 @@ function setPlaceFilterType(t){
   renderPlacesList();
 }
 
+/* ========== 修改：列表卡片移除區域 · 分區徽章，關鍵字搜尋不再引用 region/district ========== */
 function renderPlacesList(){
   var container = document.getElementById('places-list-container');
   if (!container) return;
@@ -2339,11 +2326,9 @@ function renderPlacesList(){
 
   var filtered = places.filter(function(p){
     if (keyword){
-      var hay = (p.name + ' ' + (p.address||'') + ' ' + (p.note||'') + ' ' + p.district + ' ' + p.region + ' ' + p.type).toLowerCase();
+      var hay = (p.name + ' ' + (p.address||'') + ' ' + (p.note||'') + ' ' + p.type).toLowerCase();
       if (hay.indexOf(keyword) === -1) return false;
     }
-    if (placeFilterRegion && p.region !== placeFilterRegion) return false;
-    if (placeFilterDistrict && p.district !== placeFilterDistrict) return false;
     if (placeFilterType && p.type !== placeFilterType) return false;
     return true;
   });
@@ -2408,7 +2393,6 @@ function renderPlacesList(){
               '</div>' +
               '<div class="flex items-center gap-1.5 flex-wrap mt-1">' +
                 '<span class="text-[10px] px-2 py-0.5 rounded-full border font-semibold ' + style.cls + '">' + escapeHtml(p.type) + '</span>' +
-                '<span class="text-[10px] px-2 py-0.5 rounded-full border font-medium bg-slate-50 text-slate-600 border-slate-200">' + escapeHtml(p.region) + ' · ' + escapeHtml(p.district) + '</span>' +
               '</div>' +
               (p.address ? '<p class="text-xs text-slate-500 mt-1 truncate flex items-center gap-1"><span class="ico w-3 h-3 text-slate-400 shrink-0">' + ico('map-pin','w-3 h-3') + '</span>' + escapeHtml(p.address) + '</p>' : '') +
               (p.note ? '<p class="text-xs text-slate-400 mt-0.5 truncate">' + escapeHtml(p.note) + '</p>' : '') +
@@ -2655,8 +2639,8 @@ async function applyAmapPaste(rawText){
     if (addrFilled) parts.push('地址');
     showToast('已透過' + sourceText + '填入：' + parts.join('、'));
 
-    var regionEl = document.getElementById('place-region');
-    if (regionEl && !regionEl.value){
+    /* ========== 修改：改用 addrEl 判斷是否需反向地理編碼補地址 ========== */
+    if (addrEl && !addrEl.value.trim()){
       reverseGeocode(result.lat, result.lng, function(err, data){
         if (err) return;
         applyGeocodeResult(data);
@@ -2667,12 +2651,9 @@ async function applyAmapPaste(rawText){
   }
 }
 
+/* ========== 修改：表單移除區域 / 分區 ========== */
 function openAddPlaceModal(){
   currentEditingPlaceId = null;
-
-  var regionOptions = Object.keys(REGIONS).map(function(r){
-    return '<option value="' + r + '">' + r + '</option>';
-  }).join('');
 
   var typeOptions = PLACE_TYPES.map(function(t){
     return '<option value="' + t + '">' + t + '</option>';
@@ -2684,7 +2665,6 @@ function openAddPlaceModal(){
     '<div id="manual-input-wrap" class="hidden space-y-2"><div class="flex gap-1.5"><input type="text" id="amap-paste-input" autocomplete="off" onfocus="this.value=\'\'" placeholder="貼上連結、座標，或輸入地名（如：香港国际机场）" class="flex-1 min-w-0 px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"><button type="button" onclick="applyAmapPaste()" class="px-3 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-900 font-bold rounded-xl text-xs transition shrink-0">解析</button></div><div id="paste-fallback-wrap" class="hidden"><textarea id="paste-fallback" rows="2" autocomplete="off" placeholder="長按此處粘貼（系統菜單 → 粘貼）" class="w-full px-3 py-2 text-sm bg-white border border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea><p class="text-[11px] text-blue-600 mt-1">粘貼後會自動解析；若無反應，請手動點上方「解析」。</p></div></div>' +
     '<button type="button" id="place-autofill-btn" onclick="autoFillPlaceByLocation()" class="w-full py-2.5 bg-blue-50 hover:bg-blue-100 active:scale-[0.98] text-blue-700 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 border border-blue-200"><span class="ico w-3.5 h-3.5" data-icon="navigation"></span> 使用當前位置自動填寫</button>' +
     '<div><label class="block text-xs font-semibold text-slate-600 mb-1">地點名稱 *</label><input type="text" id="place-name" autocomplete="off" placeholder="例如：翠華餐廳（中環）" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"></div>' +
-    '<div class="grid grid-cols-2 gap-2"><div><label class="block text-xs font-semibold text-slate-600 mb-1">區域 *</label><select id="place-region" onchange="onPlaceRegionChange()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2"><option value="">請選擇</option>' + regionOptions + '</select></div><div><label class="block text-xs font-semibold text-slate-600 mb-1">分區 *</label><select id="place-district" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2"><option value="">請先選區域</option></select></div></div>' +
     '<div><label class="block text-xs font-semibold text-slate-600 mb-1">類型 *</label><select id="place-type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2">' + typeOptions + '</select></div>' +
     '<div><label class="block text-xs font-semibold text-slate-600 mb-1">地址 (選填)</label><input type="text" id="place-address" autocomplete="off" placeholder="例如：中環威靈頓街15號" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2"></div>' +
     '<div><label class="block text-xs font-semibold text-slate-600 mb-1">備注 (選填)</label><input type="text" id="place-note" autocomplete="off" placeholder="例如：24小時、有停車位" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2"></div>' +
@@ -2703,11 +2683,13 @@ function openAddPlaceModal(){
   hydrateIcons();
 }
 
+/* 保留但加防禦：區域 / 分區 select 已不存在，不會再被呼叫 */
 function onPlaceRegionChange(){
-  var region = document.getElementById('place-region').value;
+  var regionEl   = document.getElementById('place-region');
   var districtEl = document.getElementById('place-district');
-  if (!districtEl) return;
+  if (!regionEl || !districtEl) return;
 
+  var region = regionEl.value;
   if (!region){
     districtEl.innerHTML = '<option value="">請先選區域</option>';
     return;
@@ -2733,6 +2715,7 @@ function useCurrentLocationForPlace(){
   );
 }
 
+/* ========== 修改：自動填寫後不再要求「請確認區域／分區」 ========== */
 function autoFillPlaceByLocation(){
   var btn = document.getElementById('place-autofill-btn');
   if (!navigator.geolocation){ showToast('此瀏覽器不支援定位功能'); return; }
@@ -2760,9 +2743,9 @@ function autoFillPlaceByLocation(){
       reverseGeocode(lat, lng, function(err, data){
         resetAutoFillButton();
         if (err){ showToast('已填入座標，但地址解析失敗：' + err); return; }
-        var matched = applyGeocodeResult(data);
-        if (matched) showToast('已自動填寫位置資訊（誤差約 ' + Math.round(accuracy) + ' m）');
-        else showToast('已填入座標與地址，請確認區域／分區（自動匹配失敗）');
+        var filled = applyGeocodeResult(data);
+        if (filled) showToast('已自動填寫位置資訊（誤差約 ' + Math.round(accuracy) + ' m）');
+        else showToast('已填入座標（誤差約 ' + Math.round(accuracy) + ' m）');
       });
     },
     function(err){ resetAutoFillButton(); showToast('定位失敗：' + (err.message || '請檢查定位權限')); },
@@ -2810,7 +2793,7 @@ function reverseGeocode(lat, lng, callback) {
         var road = addr.road || addr.pedestrian || addr.footway || '';
         data.provider = 'nominatim';
         data.extracted_building = building;
-        data.extracted_road = road;
+        data.display_name = data.display_name;
         callback(null, data);
       })
       .catch(function(err) {
@@ -2882,51 +2865,29 @@ function matchDistrictFromAddress(addr){
   return null;
 }
 
+/* ========== 修改：不再自動填區域 / 分區，只填名稱與地址 ========== */
 function applyGeocodeResult(data){
   var addr = data.address || {};
+  var filled = false;
 
   var addressEl = document.getElementById('place-address');
   if (addressEl && !addressEl.value.trim()){
-    var parts = [];
-    if (addr.road) parts.push(addr.road);
-    if (addr.house_number) parts.push(addr.house_number);
-    if (parts.length === 0 && addr.building) parts.push(addr.building);
-    if (parts.length === 0 && addr.suburb) parts.push(addr.suburb);
-    if (parts.length === 0 && data.display_name){
-      parts.push(String(data.display_name).split(',').slice(0, 3).join(',').trim());
-    }
-    if (parts.length) addressEl.value = parts.join(' ');
+
+    addressEl.value = data.display_name; filled = true;
   }
 
   var nameEl = document.getElementById('place-name');
   if (nameEl && !nameEl.value.trim()){
     var autoName = addr.amenity || addr.shop || addr.building || addr.tourism || addr.office || (addr.road ? addr.road : '');
-    if (autoName) nameEl.value = autoName;
+    if (autoName){ nameEl.value = autoName; filled = true; }
   }
 
-  var district = matchDistrictFromAddress(addr);
-  var region = getRegionByDistrict(district);
-  var matched = false;
-
-  var regionEl = document.getElementById('place-region');
-  if (region && regionEl && !regionEl.value){
-    regionEl.value = region;
-    onPlaceRegionChange();
-    setTimeout(function(){
-      if (district){
-        var districtEl = document.getElementById('place-district');
-        if (districtEl) districtEl.value = district;
-      }
-    }, 0);
-    matched = true;
-  }
-  return matched;
+  return filled;
 }
 
+/* ========== 修改：savePlace 不再驗證 / 讀寫 region 與 district ========== */
 function savePlace(){
   var nameEl     = document.getElementById('place-name');
-  var regionEl   = document.getElementById('place-region');
-  var districtEl = document.getElementById('place-district');
   var typeEl     = document.getElementById('place-type');
   var addressEl  = document.getElementById('place-address');
   var noteEl     = document.getElementById('place-note');
@@ -2934,8 +2895,6 @@ function savePlace(){
   var lngEl      = document.getElementById('place-lng');
 
   var name = nameEl ? nameEl.value.trim() : '';
-  var region = regionEl ? regionEl.value : '';
-  var district = districtEl ? districtEl.value : '';
   var type = typeEl ? typeEl.value : '';
   var address = addressEl ? addressEl.value.trim() : '';
   var note = noteEl ? noteEl.value.trim() : '';
@@ -2943,8 +2902,6 @@ function savePlace(){
   var lngVal = lngEl ? lngEl.value.trim() : '';
 
   if (!name){ showToast('請輸入地點名稱'); return; }
-  if (!region){ showToast('請選擇區域'); return; }
-  if (!district){ showToast('請選擇分區'); return; }
   if (!type){ showToast('請選擇類型'); return; }
 
   var lat = latVal === '' ? null : parseFloat(latVal);
@@ -2957,8 +2914,6 @@ function savePlace(){
 
   if (editId && editIndex !== -1){
     places[editIndex].name = name;
-    places[editIndex].region = region;
-    places[editIndex].district = district;
     places[editIndex].type = type;
     places[editIndex].address = address;
     places[editIndex].note = note;
@@ -2969,7 +2924,7 @@ function savePlace(){
   } else {
     places.unshift({
       id: 'place_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-      name: name, region: region, district: district, type: type,
+      name: name, type: type,
       address: address, note: note, lat: lat, lng: lng,
       timestamp: Date.now()
     });
@@ -2982,6 +2937,7 @@ function savePlace(){
   renderPlacesList();
 }
 
+/* ========== 修改：編輯表單不再讀寫 region / district ========== */
 function openEditPlaceModal(id){
   var p = places.find(function(x){ return x.id === id; });
   if (!p){ showToast('找不到此地點'); return; }
@@ -2991,9 +2947,6 @@ function openEditPlaceModal(id){
 
   document.getElementById('modal-title').innerText = '修改收藏地點';
   document.getElementById('place-name').value = p.name || '';
-  document.getElementById('place-region').value = p.region || '';
-  onPlaceRegionChange();
-  document.getElementById('place-district').value = p.district || '';
   document.getElementById('place-type').value = p.type || PLACE_TYPES[0];
   document.getElementById('place-address').value = p.address || '';
   document.getElementById('place-note').value = p.note || '';
