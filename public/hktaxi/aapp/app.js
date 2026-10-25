@@ -189,6 +189,7 @@ var placeNearbyMode     = false;
 var userLat = null;
 var userLng = null;
 var currentEditingPlaceId = null;
+var _pendingPlaceAddr = null;   // 依座標解析出的暫存地址（預覽用）
 
 var activeTripType   = localStorage.getItem('taxi_last_type') || '街客';
 var tripTypeExpanded = false;
@@ -2652,8 +2653,10 @@ async function applyAmapPaste(rawText){
 }
 
 /* ========== 修改：表單移除區域 / 分區 ========== */
+/* ========== 修改：表單移除區域 / 分區，座標區加入「依座標解析地址」 ========== */
 function openAddPlaceModal(){
   currentEditingPlaceId = null;
+  _pendingPlaceAddr = null;
 
   var typeOptions = PLACE_TYPES.map(function(t){
     return '<option value="' + t + '">' + t + '</option>';
@@ -2666,9 +2669,22 @@ function openAddPlaceModal(){
     '<button type="button" id="place-autofill-btn" onclick="autoFillPlaceByLocation()" class="w-full py-2.5 bg-blue-50 hover:bg-blue-100 active:scale-[0.98] text-blue-700 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 border border-blue-200"><span class="ico w-3.5 h-3.5" data-icon="navigation"></span> 使用當前位置自動填寫</button>' +
     '<div><label class="block text-xs font-semibold text-slate-600 mb-1">地點名稱 *</label><input type="text" id="place-name" autocomplete="off" placeholder="例如：翠華餐廳（中環）" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"></div>' +
     '<div><label class="block text-xs font-semibold text-slate-600 mb-1">類型 *</label><select id="place-type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2">' + typeOptions + '</select></div>' +
-    '<div><label class="block text-xs font-semibold text-slate-600 mb-1">地址 (選填)</label><input type="text" id="place-address" autocomplete="off" placeholder="例如：中環威靈頓街15號" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2"></div>' +
+    '<div><label class="block text-xs font-semibold text-slate-600 mb-1">地址 (選填)</label><input type="text" id="place-address" autocomplete="off" placeholder="例如：中環威靈頓街15號" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2"><div id="place-address-preview" class="mt-1.5"></div></div>' +
     '<div><label class="block text-xs font-semibold text-slate-600 mb-1">備注 (選填)</label><input type="text" id="place-note" autocomplete="off" placeholder="例如：24小時、有停車位" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2"></div>' +
-    '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2"><div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-700">座標（用於導航與附近排序）</span><button type="button" onclick="useCurrentLocationForPlace()" class="text-[11px] px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg transition flex items-center gap-1"><span class="ico w-3 h-3" data-icon="crosshair"></span> 只填座標</button></div><div class="grid grid-cols-2 gap-2"><div><label class="block text-[11px] font-semibold text-slate-500 mb-1">緯度 Lat</label><input type="number" id="place-lat" step="0.000001" inputmode="decimal" autocomplete="off" placeholder="22.xxxxxx" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"></div><div><label class="block text-[11px] font-semibold text-slate-500 mb-1">經度 Lng</label><input type="number" id="place-lng" step="0.000001" inputmode="decimal" autocomplete="off" placeholder="114.xxxxxx" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"></div></div><p class="text-[11px] text-slate-400 leading-relaxed">填入座標後，點列表的 <span class="ico w-3 h-3 align-middle" style="display:inline-flex;vertical-align:middle">' + ico('navigation','w-3 h-3') + '</span> 即用高德 App 導航（手機）。</p></div>' +
+    '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">' +
+      '<div class="flex justify-between items-center gap-2">' +
+        '<span class="text-xs font-bold text-slate-700">座標（用於導航與附近排序）</span>' +
+        '<div class="flex items-center gap-1.5 shrink-0">' +
+          '<button type="button" id="place-regeo-btn" onclick="reverseGeocodePlaceCoords()" class="text-[11px] px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded-lg transition flex items-center gap-1"><span class="ico w-3 h-3" data-icon="rotate-cw"></span> 依座標解析地址</button>' +
+          '<button type="button" onclick="useCurrentLocationForPlace()" class="text-[11px] px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg transition flex items-center gap-1"><span class="ico w-3 h-3" data-icon="crosshair"></span> 只填座標</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="grid grid-cols-2 gap-2">' +
+        '<div><label class="block text-[11px] font-semibold text-slate-500 mb-1">緯度 Lat</label><input type="number" id="place-lat" step="0.000001" inputmode="decimal" autocomplete="off" placeholder="22.xxxxxx" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"></div>' +
+        '<div><label class="block text-[11px] font-semibold text-slate-500 mb-1">經度 Lng</label><input type="number" id="place-lng" step="0.000001" inputmode="decimal" autocomplete="off" placeholder="114.xxxxxx" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"></div>' +
+      '</div>' +
+      '<p class="text-[11px] text-slate-400 leading-relaxed">填入座標後，點「依座標解析地址」可自動反查地址；點列表的 <span class="ico w-3 h-3 align-middle" style="display:inline-flex;vertical-align:middle">' + ico('navigation','w-3 h-3') + '</span> 即用高德 App 導航（手機）。</p>' +
+    '</div>' +
   '</div>';
 
   document.getElementById('modal-title').innerText = '新增收藏地點';
@@ -2847,7 +2863,166 @@ function reverseGeocode(lat, lng, callback) {
       fetchNominatimFallback(err && err.message ? err.message : '高德網絡錯誤');
     });
 }
+/* =========================================================
+   收藏地點：依座標反查地址（完整實作）
+   ========================================================= */
 
+/* 從 geocode 結果中取出最合適的地址文字（兼容高德 / Nominatim） */
+function pickAddressText(data){
+  if (!data) return '';
+  var addr = data.address || {};
+  return data.display_name
+      || addr.formatted_address
+      || [addr.road, addr.building, addr.district].filter(Boolean).join(' ')
+      || '';
+}
+
+/* 統一填寫：支援「只在空時填」與「強制覆蓋」 */
+function fillPlaceAddressFromGeocode(data, opts){
+  opts = opts || {};
+  var filled = false;
+  var addr = data.address || {};
+
+  var addrEl = document.getElementById('place-address');
+  var text = pickAddressText(data);
+  if (addrEl && text && (opts.overwrite || !addrEl.value.trim())){
+    addrEl.value = text;
+    filled = true;
+  }
+
+  var nameEl = document.getElementById('place-name');
+  if (nameEl && (opts.overwriteName || !nameEl.value.trim())){
+    var autoName = addr.amenity || addr.shop || addr.building || addr.tourism
+                || addr.office || addr.road || '';
+    if (autoName){ nameEl.value = autoName; filled = true; }
+  }
+  return filled;
+}
+
+/* 按鈕 loading 狀態 */
+function setPlaceRegeoBtnLoading(btn, loading){
+  if (!btn) return;
+  if (loading){
+    if (!btn.dataset.origHtml) btn.dataset.origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.classList.add('opacity-60','cursor-wait');
+    btn.innerHTML = '<span class="inline-flex items-center gap-1"><span class="ico w-3 h-3 animate-spin">' + ico('loader','w-3 h-3') + '</span>解析中…</span>';
+  } else {
+    if (btn.dataset.origHtml){
+      btn.innerHTML = btn.dataset.origHtml;
+      delete btn.dataset.origHtml;
+    }
+    btn.disabled = false;
+    btn.classList.remove('opacity-60','cursor-wait');
+    btn.querySelectorAll('[data-icon]').forEach(function(el){ delete el.dataset.done; });
+    hydrateIcons(btn);
+  }
+}
+
+/* 依當前表單座標重新反查地址
+   opts.silent     : 靜默模式（編輯自動補全用），只填空、不覆蓋、不彈 Toast、不顯示預覽
+   opts.overwrite  : 明確要求直接覆蓋（略過預覽）
+*/
+function reverseGeocodePlaceCoords(opts){
+  opts = opts || {};
+  var latEl  = document.getElementById('place-lat');
+  var lngEl  = document.getElementById('place-lng');
+  var addrEl = document.getElementById('place-address');
+  if (!latEl || !lngEl) return;
+
+  var lat = parseFloat(latEl.value);
+  var lng = parseFloat(lngEl.value);
+
+  if (isNaN(lat) || isNaN(lng)){
+    if (!opts.silent) showToast('請先填入有效的緯度與經度');
+    return;
+  }
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180){
+    if (!opts.silent) showToast('座標超出有效範圍');
+    return;
+  }
+
+  var reqLat = lat, reqLng = lng;
+  var btn = document.getElementById('place-regeo-btn');
+  setPlaceRegeoBtnLoading(btn, true);
+  if (!opts.silent) showToast('正在依座標解析地址...');
+
+  reverseGeocode(lat, lng, function(err, data){
+    setPlaceRegeoBtnLoading(btn, false);
+
+    if (err){
+      if (!opts.silent) showToast('地址解析失敗：' + err);
+      return;
+    }
+
+    // 若等待期間表單座標已被改動，放棄這次結果
+    var nowLat = parseFloat(latEl.value);
+    var nowLng = parseFloat(lngEl.value);
+    if (nowLat !== reqLat || nowLng !== reqLng){
+      if (!opts.silent) showToast('座標已變更，請重新解析');
+      return;
+    }
+
+    var text = pickAddressText(data);
+    if (!text){
+      if (!opts.silent) showToast('解析成功，但沒有可用的地址資訊');
+      return;
+    }
+
+    var isEmpty = !(addrEl && addrEl.value.trim());
+
+    // 空地址：直接填
+    if (isEmpty){
+      if (addrEl) addrEl.value = text;
+      if (!opts.silent) showToast('已填入地址');
+      return;
+    }
+
+    // silent 模式：不覆蓋已有地址
+    if (opts.silent) return;
+
+    // 明確要求直接覆蓋
+    if (opts.overwrite){
+      if (addrEl) addrEl.value = text;
+      showToast('已更新地址');
+      return;
+    }
+
+    // 地址非空：顯示預覽，讓使用者決定是否覆蓋
+    showPlaceAddressPreview(text);
+  });
+}
+
+/* 地址預覽條：套用 / 取消 */
+function showPlaceAddressPreview(text){
+  _pendingPlaceAddr = text;
+  var wrap = document.getElementById('place-address-preview');
+  if (!wrap) return;
+  wrap.innerHTML =
+    '<div class="bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-2">' +
+      '<div class="text-[11px] text-amber-800 font-semibold mb-1">解析到的新地址（可選擇是否套用）</div>' +
+      '<div class="text-[11px] text-slate-700 mb-1.5 break-all leading-relaxed">' + escapeHtml(text) + '</div>' +
+      '<div class="flex gap-1.5">' +
+        '<button type="button" onclick="applyPendingPlaceAddr()" class="flex-1 py-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-md text-[11px] transition">套用</button>' +
+        '<button type="button" onclick="cancelPendingPlaceAddr()" class="flex-1 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-md text-[11px] transition">取消</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function applyPendingPlaceAddr(){
+  if (_pendingPlaceAddr){
+    var addrEl = document.getElementById('place-address');
+    if (addrEl) addrEl.value = _pendingPlaceAddr;
+    showToast('已更新地址');
+  }
+  cancelPendingPlaceAddr();
+}
+
+function cancelPendingPlaceAddr(){
+  _pendingPlaceAddr = null;
+  var wrap = document.getElementById('place-address-preview');
+  if (wrap) wrap.innerHTML = '';
+}
 function matchDistrictFromAddress(addr){
   var hay = [
     addr.state || '', addr.state_district || '', addr.region || '',
@@ -2865,24 +3040,9 @@ function matchDistrictFromAddress(addr){
   return null;
 }
 
-/* ========== 修改：不再自動填區域 / 分區，只填名稱與地址 ========== */
+/* ========== 修改：不再自動填區域 / 分區，只填名稱與地址（只填空、不覆蓋） ========== */
 function applyGeocodeResult(data){
-  var addr = data.address || {};
-  var filled = false;
-
-  var addressEl = document.getElementById('place-address');
-  if (addressEl && !addressEl.value.trim()){
-
-    addressEl.value = data.display_name; filled = true;
-  }
-
-  var nameEl = document.getElementById('place-name');
-  if (nameEl && !nameEl.value.trim()){
-    var autoName = addr.amenity || addr.shop || addr.building || addr.tourism || addr.office || (addr.road ? addr.road : '');
-    if (autoName){ nameEl.value = autoName; filled = true; }
-  }
-
-  return filled;
+  return fillPlaceAddressFromGeocode(data, { overwrite: false, overwriteName: false });
 }
 
 /* ========== 修改：savePlace 不再驗證 / 讀寫 region 與 district ========== */
@@ -2937,7 +3097,7 @@ function savePlace(){
   renderPlacesList();
 }
 
-/* ========== 修改：編輯表單不再讀寫 region / district ========== */
+/* ========== 修改：編輯表單不再讀寫 region / district，並在缺地址時自動反查 ========== */
 function openEditPlaceModal(id){
   var p = places.find(function(x){ return x.id === id; });
   if (!p){ showToast('找不到此地點'); return; }
@@ -2952,6 +3112,11 @@ function openEditPlaceModal(id){
   document.getElementById('place-note').value = p.note || '';
   document.getElementById('place-lat').value = (typeof p.lat === 'number') ? p.lat : '';
   document.getElementById('place-lng').value = (typeof p.lng === 'number') ? p.lng : '';
+
+  // 已有座標但沒有地址 → 自動補一次（silent：只填空、不覆蓋）
+  if (typeof p.lat === 'number' && typeof p.lng === 'number' && !(p.address || '').trim()){
+    reverseGeocodePlaceCoords({ silent: true });
+  }
 }
 
 function deletePlace(id){
