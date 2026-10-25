@@ -1,6 +1,6 @@
 /* =========================================================
-   app.js — 的士助手主业务逻辑
-   （从原 index.html 的 <script> 内容原样提取）
+   app.js — 的士助手主業務邏輯
+   （從原 index.html 的 <script> 內容原樣提取）
    ========================================================= */
 
 const ICONS = {
@@ -519,9 +519,108 @@ function updateLocationChip(){
   hydrateIcons(chip);
 }
 
+/* =========================================================
+   ========== 修改：新增阻塞式定位工具 ==========
+   ========================================================= */
+
+/**
+ * 取得當下位置。永不使用 maximumAge 快取，確保是「此刻」的位置。
+ * 成功 → resolve({lat,lng,accuracy,timestamp})
+ * 失敗 → reject(Error)，error.message ∈ {NO_GEOLOCATION, INSECURE_CONTEXT, TIMEOUT, PERMISSION_DENIED, POSITION_UNAVAILABLE}
+ */
+function getFreshLocation(opts){
+  opts = opts || {};
+  var timeoutMs    = opts.timeoutMs    || 6000;
+  var highAccuracy = !!opts.highAccuracy;
+
+  return new Promise(function(resolve, reject){
+    if (!navigator.geolocation){ reject(new Error('NO_GEOLOCATION')); return; }
+    if (!window.isSecureContext){ reject(new Error('INSECURE_CONTEXT')); return; }
+
+    var done = false;
+    var timer = setTimeout(function(){
+      if (done) return;
+      done = true;
+      reject(new Error('TIMEOUT'));
+    }, timeoutMs);
+
+    navigator.geolocation.getCurrentPosition(
+      function(pos){
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy || 0,
+          timestamp: Date.now()
+        });
+      },
+      function(err){
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        reject(new Error(err && err.code === 1 ? 'PERMISSION_DENIED' : 'POSITION_UNAVAILABLE'));
+      },
+      { enableHighAccuracy: highAccuracy, timeout: timeoutMs, maximumAge: 0 }
+    );
+  });
+}
+
+/** 高精度優先，失敗自動降級為網絡定位 */
+async function getLocationBestEffort(){
+  try {
+    return await getFreshLocation({ timeoutMs: 3500, highAccuracy: true });
+  } catch (e1){
+    return await getFreshLocation({ timeoutMs: 3500, highAccuracy: false });
+  }
+}
+
+function locationErrorText(e){
+  var m = e && e.message;
+  if (m === 'TIMEOUT')            return '定位逾時';
+  if (m === 'PERMISSION_DENIED')  return '定位權限被拒';
+  if (m === 'NO_GEOLOCATION')     return '此瀏覽器不支援定位';
+  if (m === 'INSECURE_CONTEXT')   return '非安全連線（需 HTTPS）';
+  return '定位失敗';
+}
+
+/** 保存按鈕 loading 狀態切換（無按鈕時靜默略過） */
+function setSaveBtnLoading(btn, loading){
+  if (!btn) return;
+  if (loading){
+    if (!btn.dataset.origHtml){
+      btn.dataset.origHtml     = btn.innerHTML;
+      btn.dataset.origDisabled = btn.disabled ? '1' : '0';
+    }
+    btn.disabled = true;
+    btn.classList.add('opacity-60','cursor-wait');
+    btn.innerHTML =
+      '<span class="inline-flex items-center gap-1.5">' +
+        '<span class="ico w-4 h-4 animate-spin">' + ico('loader','w-4 h-4') + '</span>定位中…' +
+      '</span>';
+  } else {
+    if (btn.dataset.origHtml){
+      btn.innerHTML = btn.dataset.origHtml;
+      delete btn.dataset.origHtml;
+    }
+    btn.disabled = btn.dataset.origDisabled === '1';
+    delete btn.dataset.origDisabled;
+    btn.classList.remove('opacity-60','cursor-wait');
+    btn.querySelectorAll('[data-icon]').forEach(function(el){ delete el.dataset.done; });
+    hydrateIcons(btn);
+  }
+}
+
+/* ========== 修改：buildTripLocation 增加 timestamp ========== */
 function buildTripLocation(){
   if (!cachedLocation) return null;
-  return { lat: cachedLocation.lat, lng: cachedLocation.lng, accuracy: cachedLocation.accuracy };
+  return {
+    lat: cachedLocation.lat,
+    lng: cachedLocation.lng,
+    accuracy: cachedLocation.accuracy,
+    timestamp: cachedLocation.timestamp || null
+  };
 }
 
 function openTripLocationInMaps(tripId){
@@ -1870,72 +1969,147 @@ function saveTripTime(){
   showToast(manualTripTime ? '行程時間已設為 ' + manualTripTime : '行程時間已重置為現在');
 }
 
-function saveTrip(){
+/* ========== 修改：saveTrip 改為 async，保存前阻塞取得當下位置 ========== */
+var tripSaving = false;
+
+async function saveTrip(){
+  // ---- 防重入（雙擊 / 連點） ----
+  if (tripSaving) return;
+
   var fareInput     = document.getElementById('trip-fare');
   var receivedInput = document.getElementById('trip-received');
   var noteInput     = document.getElementById('trip-note');
 
-  var fare = getFareValue();
-  if (isNaN(fare) || fare === 0){
+  // ---- 開頭即快照：以「點保存那一刻」為記錄時間 ----
+  var clickNow        = new Date();
+  var snapFare        = getFareValue();
+  var snapReceivedRaw = receivedInput.value;
+  var snapNote        = noteInput.value.trim();
+  var snapManualTime  = manualTripTime;
+
+  if (isNaN(snapFare) || snapFare === 0){
     showToast('請輸入有效的車資金額！');
     fareInput.focus();
     return;
   }
 
-  var isExpense = fare < 0;
-  var received  = isExpense ? fare : (parseFloat(receivedInput.value) || fare);
-  var changeVal = isExpense ? 0 : (received - fare);
-  var note      = noteInput.value.trim();
-  var now       = new Date();
-  var cfg       = getCurrentSettings();
-  var isManual  = !!manualShiftKey;
+  tripSaving = true;
+  var saveBtn = document.getElementById('save-trip-btn') ||
+                document.querySelector('[onclick="saveTrip()"]');
+  setSaveBtnLoading(saveBtn, true);
 
-  var tripTimestamp = now.getTime();
-  if (manualTripTime){
-    var tp = manualTripTime.split(':');
-    var hh = parseInt(tp[0], 10);
-    var mm = parseInt(tp[1], 10);
-    var resolved = resolveTripTimestamp(hh, mm);
-    if (resolved !== null) tripTimestamp = resolved;
+  try {
+    /* ============================================================
+       步驟 1：阻塞式取得「當下位置」
+       失敗時由使用者決定：用舊位置 / 不帶位置 / 取消保存
+       ============================================================ */
+    var tripLocation = null;
+    showToast('正在取得位置...');
+
+    try {
+      tripLocation = await getLocationBestEffort();
+      cachedLocation = {
+        lat: tripLocation.lat, lng: tripLocation.lng,
+        accuracy: tripLocation.accuracy, timestamp: tripLocation.timestamp
+      };
+      updateLocationChip();
+    } catch (locErr){
+      var reason = locationErrorText(locErr);
+      var cached = buildTripLocation();
+
+      if (cached){
+        var ageSec = cached.timestamp
+          ? Math.round((Date.now() - cached.timestamp) / 1000)
+          : null;
+        var useCached = confirm(
+          '未能取得當下位置（' + reason + '）。\n\n' +
+          '是否改用最近一次記錄的位置' +
+          (ageSec !== null ? '（約 ' + ageSec + ' 秒前）' : '') + '？'
+        );
+        if (!useCached){ showToast('已取消保存'); return; }
+        tripLocation = cached;
+      } else {
+        var saveAnyway = confirm(
+          '未能取得位置（' + reason + '）。\n\n' +
+          '仍要保存這筆記錄（不帶位置）嗎？'
+        );
+        if (!saveAnyway){ showToast('已取消保存'); return; }
+      }
+    }
+
+    /* ============================================================
+       步驟 2：寫入記錄
+       ============================================================ */
+    var isExpense = snapFare < 0;
+    var received  = isExpense ? snapFare : (parseFloat(snapReceivedRaw) || snapFare);
+    var changeVal = isExpense ? 0 : (received - snapFare);
+
+    var cfg      = getCurrentSettings();
+    var isManual = !!manualShiftKey;
+
+    // 記錄時間：預設為點擊保存時刻；手動指定時間則用其解析結果
+    var tripTimestamp = clickNow.getTime();
+    if (snapManualTime){
+      var tp = snapManualTime.split(':');
+      var hh = parseInt(tp[0], 10);
+      var mm = parseInt(tp[1], 10);
+      var resolved = resolveTripTimestamp(hh, mm);
+      if (resolved !== null) tripTimestamp = resolved;
+    }
+
+    var tripDateObj = new Date(tripTimestamp);
+    var shiftDate   = isManual ? manualShiftKey : calcShiftDate(tripTimestamp, cfg);
+
+    var newTrip = {
+      id: 'trip_' + tripTimestamp + '_' + Math.floor(Math.random() * 1000),
+      timestamp:  tripTimestamp,
+      shiftDate:  shiftDate,
+      dateStr:    toLocalISOString(tripDateObj),
+      fare:       snapFare,
+      type:       activeTripType,
+      payment:    activePaymentMethod,
+      received:   received,
+      change:     changeVal,
+      note:       snapNote,
+      isExpense:  isExpense,
+      location:   tripLocation   // ← 當下取得的真實位置
+    };
+
+    trips.push(newTrip);
+    trips.sort(function(a, b){ return b.timestamp - a.timestamp; });
+    localStorage.setItem('taxi_trips', JSON.stringify(trips));
+
+    /* ============================================================
+       步驟 3：清空表單、更新 UI
+       ============================================================ */
+    fareInput.value     = '';
+    receivedInput.value = '';
+    noteInput.value     = '';
+    fareSign = 1;
+    manualTripTime = null;
+    updateTripTimeChip();
+    updateFareSignUI();
+    collapseNoteTags();
+    calculateChange();
+
+    var prefix = isManual ? '【補錄 ' + shiftDate + '】' : '';
+    var payTag = isExpense ? '' : '[' + activePaymentMethod + '] ';
+    var locTag = tripLocation ? '📍 ' : '';
+
+    if (isExpense){
+      showToast(prefix + locTag + '支出記錄已保存：-$' + Math.abs(snapFare).toFixed(1));
+    } else if (changeVal < 0){
+      showToast(prefix + locTag + payTag + '行程已保存，客戶尚欠 $' + Math.abs(changeVal).toFixed(1));
+    } else {
+      showToast(prefix + locTag + payTag + '行程已成功保存！');
+    }
+
+    updateStatsAndNet();
+
+  } finally {
+    tripSaving = false;
+    setSaveBtnLoading(saveBtn, false);
   }
-
-  var tripDateObj = new Date(tripTimestamp);
-  var shiftDate = isManual ? manualShiftKey : calcShiftDate(tripTimestamp, cfg);
-
-  var tripLocation = buildTripLocation();
-
-  var newTrip = {
-    id: 'trip_' + tripTimestamp + '_' + Math.floor(Math.random() * 1000),
-    timestamp: tripTimestamp, shiftDate: shiftDate,
-    dateStr:   toLocalISOString(tripDateObj),
-    fare:      fare, type: activeTripType, payment: activePaymentMethod,
-    received:  received, change: changeVal, note: note,
-    isExpense: isExpense, location: tripLocation
-  };
-
-  trips.push(newTrip);
-  trips.sort(function(a, b){ return b.timestamp - a.timestamp; });
-  localStorage.setItem('taxi_trips', JSON.stringify(trips));
-
-  fareInput.value = '';
-  receivedInput.value = '';
-  noteInput.value = '';
-  fareSign = 1;
-  manualTripTime = null;
-  updateTripTimeChip();
-  updateFareSignUI();
-  collapseNoteTags();
-  calculateChange();
-
-  var prefix = isManual ? '【補錄 ' + shiftDate + '】' : '';
-  var payTag = isExpense ? '' : '[' + activePaymentMethod + '] ';
-  var locTag = tripLocation ? '📍 ' : '';
-  if (isExpense) showToast(prefix + locTag + '支出記錄已保存：-$' + Math.abs(fare).toFixed(1));
-  else if (changeVal < 0) showToast(prefix + locTag + payTag + '行程已保存，客戶尚欠 $' + Math.abs(changeVal).toFixed(1));
-  else showToast(prefix + locTag + payTag + '行程已成功保存！');
-  updateStatsAndNet();
-
-  setTimeout(function(){ refreshLocation(); }, 100);
 }
 
 function renderTripList(){
