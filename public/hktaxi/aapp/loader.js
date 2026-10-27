@@ -306,6 +306,14 @@ function mountSubPage(href, html, container, shouldShow){
       '    var __bindAll__ = function(el){\n' +
       '      if (!el || !el.dataset) return;\n' +
       '      __EVENT_ATTRS__.forEach(function(evt){\n' +
+      /* ★ FIX ★ 动态节点：先把原生 on* 属性搬到 data-on-*，否则 MutationObserver
+         只能看到 data-on-*，动态插入的 onclick="closeModal()" 将永远不生效。 */
+      '        var __rawAttr__  = "on" + evt;\n' +
+      '        var __dataAttr__ = "data-on-" + evt;\n' +
+      '        if (el.hasAttribute && el.hasAttribute(__rawAttr__) && !el.hasAttribute(__dataAttr__)){\n' +
+      '          try { el.setAttribute(__dataAttr__, el.getAttribute(__rawAttr__)); } catch(e){}\n' +
+      '          try { el.removeAttribute(__rawAttr__); } catch(e){}\n' +
+      '        }\n' +
       '        var dataKey = "on" + evt.charAt(0).toUpperCase() + evt.slice(1);\n' +
       '        var code = el.dataset[dataKey];\n' +
       '        if (!code) return;\n' +
