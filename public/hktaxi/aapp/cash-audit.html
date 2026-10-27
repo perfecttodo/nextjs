@@ -159,6 +159,37 @@ input[type=number],input[type=text],select{
 #shift-strip::-webkit-scrollbar{height:4px}
 #shift-strip::-webkit-scrollbar-track{background:transparent}
 #shift-strip::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
+
+/* =========================================================
+   ★ 金額輸入框一鍵清空按鈕 — 完全自訂定位與樣式
+   ========================================================= */
+.money-clear-btn{
+  position:absolute;
+  top:50%;
+  right:8px;
+  transform:translateY(-50%);
+  width:22px;
+  height:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:rgba(148,163,184,.18);
+  color:#64748b;
+  transition:background .15s ease, color .15s ease, transform .1s ease;
+  z-index:2;
+  -webkit-tap-highlight-color:transparent;
+  cursor:pointer;
+}
+.money-clear-btn:hover{
+  background:rgba(148,163,184,.4);
+  color:#334155;
+}
+.money-clear-btn:active{
+  transform:translateY(-50%) scale(.85);
+}
+/* hidden class 由 JS 控制，優先級最高 */
+.money-clear-btn.hidden{ display:none !important; }
 </style>
 </head>
 
@@ -364,20 +395,30 @@ input[type=number],input[type=text],select{
       </div>
       <div class="relative">
         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>
-        <input type="number" id="opening-balance" step="0.01" inputmode="decimal"
-          oninput="recalculate()" placeholder="0.00"
-          class="w-full pl-8 pr-3 py-2.5 text-base font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">
+        <input type="text" id="opening-balance" inputmode="decimal" autocomplete="off"
+          placeholder="0.00"
+          class="w-full pl-8 pr-10 py-2.5 text-base font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">
+        <button type="button" onclick="clearMoneyInput('opening-balance')" tabindex="-1" aria-label="清空"
+          data-clear-for="opening-balance"
+          class="money-clear-btn hidden">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
       </div>
-      <p class="text-[11px] text-slate-400 mt-1">上次盤點後的留存現金，自動帶入</p>
+      <p class="text-[11px] text-slate-400 mt-1">上次盤點後的留存現金，自動帶入（點擊可直接輸入新金額）</p>
     </div>
 
     <div>
       <label class="block text-xs font-semibold text-slate-600 mb-1">提取現金 (HKD)</label>
       <div class="relative">
         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>
-        <input type="number" id="withdrawn" step="0.01" inputmode="decimal"
-          oninput="recalculate()" placeholder="0.00"
-          class="w-full pl-8 pr-3 py-2.5 text-base font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">
+        <input type="text" id="withdrawn" inputmode="decimal" autocomplete="off"
+          placeholder="0.00"
+          class="w-full pl-8 pr-10 py-2.5 text-base font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">
+        <button type="button" onclick="clearMoneyInput('withdrawn')" tabindex="-1" aria-label="清空"
+          data-clear-for="withdrawn"
+          class="money-clear-btn hidden">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
       </div>
       <p class="text-[11px] text-slate-400 mt-1">從收入中拿走（存銀行、帶回家等）的金額</p>
     </div>
@@ -388,9 +429,14 @@ input[type=number],input[type=text],select{
       </label>
       <div class="relative">
         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>
-        <input type="number" id="actual-cash" step="0.01" inputmode="decimal"
-          oninput="recalculate()" placeholder="清點後輸入"
-          class="w-full pl-8 pr-3 py-3 text-lg font-bold bg-amber-50 border-2 border-amber-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">
+        <input type="text" id="actual-cash" inputmode="decimal" autocomplete="off"
+          placeholder="清點後輸入"
+          class="w-full pl-8 pr-10 py-3 text-lg font-bold bg-amber-50 border-2 border-amber-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">
+        <button type="button" onclick="clearMoneyInput('actual-cash')" tabindex="-1" aria-label="清空"
+          data-clear-for="actual-cash"
+          class="money-clear-btn hidden">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
       </div>
       <p class="text-[11px] text-slate-400 mt-1">清點錢包 / 車上實際的現金總額</p>
     </div>
@@ -688,6 +734,104 @@ function getExpectedOpeningBalance(currentShiftKey){
 var currentShiftKey = null;
 
 /* =========================================================
+   ★ 一鍵清空按鈕顯隱控制
+   ========================================================= */
+function updateClearButton(id){
+  var input = document.getElementById(id);
+  if (!input) return;
+  var btn = document.querySelector('[data-clear-for="' + id + '"]');
+  if (!btn) return;
+  var hasValue = input.value.trim() !== '';
+  if (hasValue) btn.classList.remove('hidden');
+  else btn.classList.add('hidden');
+}
+
+function updateAllClearButtons(){
+  ['opening-balance', 'withdrawn', 'actual-cash'].forEach(updateClearButton);
+}
+
+/* =========================================================
+   ★ 一鍵清空金額輸入框（清空後自動聚焦）
+   ========================================================= */
+function clearMoneyInput(id){
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.value = '';
+  el.focus();
+  updateClearButton(id);
+  recalculate();
+}
+
+/* =========================================================
+   ★ 智能金額輸入框：聚焦全選 / 清空 0 值，免退格
+   ========================================================= */
+function setupMoneyInput(id){
+  var el = document.getElementById(id);
+  if (!el) return;
+
+  /* 聚焦：0 值清空，其他值全選——直接輸入即可替換 */
+  el.addEventListener('focus', function(){
+    var v = el.value.trim();
+
+    if (v === '0' || v === '0.00' || v === '0.0'){
+      el.value = '';
+      updateClearButton(id);
+      recalculate();
+      return;
+    }
+
+    if (!v) return;
+
+    var snapshot = el.value;
+    function selectIt(){
+      if (el.value !== snapshot) return;
+      if (document.activeElement !== el) return;
+      try { el.setSelectionRange(0, el.value.length); } catch(e){}
+    }
+    selectIt();
+    setTimeout(selectIt, 50);
+  });
+
+  /* 輸入時：過濾非法字元 + 即時計算 + 更新清空按鈕 */
+  el.addEventListener('input', function(){
+    var raw = el.value;
+    var cleaned = raw.replace(/[^\d.]/g, '');
+    var dot = cleaned.indexOf('.');
+    if (dot !== -1){
+      cleaned = cleaned.slice(0, dot + 1) + cleaned.slice(dot + 1).replace(/\./g, '');
+    }
+    if (cleaned !== raw){
+      var pos = el.selectionStart - (raw.length - cleaned.length);
+      if (pos < 0) pos = 0;
+      if (pos > cleaned.length) pos = cleaned.length;
+      el.value = cleaned;
+      try { el.setSelectionRange(pos, pos); } catch(e){}
+    }
+    updateClearButton(id);
+    recalculate();
+  });
+
+  /* 失焦：格式化為兩位小數 + 更新清空按鈕 */
+  el.addEventListener('blur', function(){
+    var v = el.value.trim();
+    if (v === '' || v === '.') {
+      updateClearButton(id);
+      return;
+    }
+    var num = parseFloat(v);
+    if (!isNaN(num)){
+      el.value = num.toFixed(2);
+      recalculate();
+    }
+    updateClearButton(id);
+  });
+}
+
+function setupAllMoneyInputs(){
+  ['opening-balance', 'withdrawn', 'actual-cash'].forEach(setupMoneyInput);
+}
+
+/* =========================================================
    横向更期卡片条
    ========================================================= */
 function renderShiftStrip(){
@@ -811,7 +955,6 @@ function renderCalendar(){
     titleEl.innerText = year + ' 年 ' + (month + 1) + ' 月';
   }
 
-  // 有更期的日期集合
   var keys = getShiftKeys();
   var shiftDateSet = {};
   keys.forEach(function(k){ shiftDateSet[k] = true; });
@@ -821,22 +964,19 @@ function renderCalendar(){
 
   var firstDay = new Date(year, month, 1);
   var daysInMonth = new Date(year, month + 1, 0).getDate();
-  var startWeekday = firstDay.getDay(); // 0=周日
+  var startWeekday = firstDay.getDay();
 
   var weekdayLabels = ['日','一','二','三','四','五','六'];
   var html = '';
 
-  // 星期表头
   weekdayLabels.forEach(function(w){
     html += '<div class="text-[10px] text-slate-400 font-semibold text-center py-1">' + w + '</div>';
   });
 
-  // 月初空白格
   for (var i = 0; i < startWeekday; i++){
     html += '<div></div>';
   }
 
-  // 日期格
   for (var d = 1; d <= daysInMonth; d++){
     var dateStr = year + '-' + pad2(month + 1) + '-' + pad2(d);
     var hasShift = !!shiftDateSet[dateStr];
@@ -895,7 +1035,6 @@ function updateCalendarNavButtons(keys){
 
 function onCalendarDayClick(dateStr){
   selectShiftByKey(dateStr);
-  // 收起日历
   if (calendarOpen) toggleCalendar();
 }
 
@@ -915,7 +1054,6 @@ function selectShiftByKey(key){
   refreshAll();
   scrollSelectedCardIntoView();
 
-  // 如果日历展开，同步到新更期所在月
   if (calendarOpen){
     syncCalendarToSelected();
     renderCalendar();
@@ -999,9 +1137,14 @@ function autoFillOpeningBalance(){
   var existing = getAuditByShift(key);
   if (existing){
     document.getElementById('opening-balance').value = (parseFloat(existing.openingBalance) || 0).toFixed(2);
-    document.getElementById('withdrawn').value = existing.withdrawn ? parseFloat(existing.withdrawn).toFixed(2) : '';
-    document.getElementById('actual-cash').value = existing.actualCash ? parseFloat(existing.actualCash).toFixed(2) : '';
+    document.getElementById('withdrawn').value =
+      (existing.withdrawn === 0 || existing.withdrawn)
+        ? parseFloat(existing.withdrawn).toFixed(2) : '';
+    document.getElementById('actual-cash').value =
+      (existing.actualCash === 0 || existing.actualCash)
+        ? parseFloat(existing.actualCash).toFixed(2) : '';
     document.getElementById('audit-note').value = existing.note || '';
+    updateAllClearButtons();
     return;
   }
 
@@ -1010,11 +1153,13 @@ function autoFillOpeningBalance(){
   document.getElementById('withdrawn').value = '';
   document.getElementById('actual-cash').value = '';
   document.getElementById('audit-note').value = '';
+  updateAllClearButtons();
 }
 
 function resetOpeningBalance(){
   var opening = getExpectedOpeningBalance(currentShiftKey);
   document.getElementById('opening-balance').value = opening.toFixed(2);
+  updateClearButton('opening-balance');
   recalculate();
   showToast('期初已重置為上次盤點留存');
 }
@@ -1270,6 +1415,7 @@ function saveAudit(){
   document.getElementById('withdrawn').value = '';
   document.getElementById('actual-cash').value = '';
   document.getElementById('audit-note').value = '';
+  updateAllClearButtons();
 
   refreshAll();
   renderShiftStrip();
@@ -1400,6 +1546,8 @@ function updateLatestHint(){
 document.addEventListener('DOMContentLoaded', function(){
   hydrateIcons();
 
+  setupAllMoneyInputs();
+
   var keys = getShiftKeys();
 
   var noShiftPanel = document.getElementById('no-shift-panel');
@@ -1413,6 +1561,7 @@ document.addEventListener('DOMContentLoaded', function(){
     saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
     renderShiftStrip();
     refreshAll();
+    updateAllClearButtons();
     return;
   }
 
@@ -1425,6 +1574,7 @@ document.addEventListener('DOMContentLoaded', function(){
   renderShiftStrip();
   autoFillOpeningBalance();
   refreshAll();
+  updateAllClearButtons();
 });
 </script>
 </body>
