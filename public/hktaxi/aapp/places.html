@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>收藏地點 - 香港的士助手</title>
+<meta name="theme-color" content="#f59e0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="收藏地點">
+<style>
+:root{--safe-area-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box;border:0 solid #e2e8f0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+h1,h2,h3,p{margin:0;font-size:inherit;font-weight:inherit}
+button,input,select,textarea{font:inherit;color:inherit;margin:0}
+button{background:none;cursor:pointer;border:0;padding:0}
+input,select,textarea{background:none}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+svg{display:block}
+ul{list-style:none;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang HK","Hiragino Sans CNS","Microsoft JhengHei","Noto Sans TC",sans-serif;-webkit-tap-highlight-color:transparent;touch-action:manipulation;background-color:#f8fafc;color:#1e293b;min-height:100vh;display:flex;flex-direction:column;padding-bottom:calc(5rem + env(safe-area-inset-bottom, 0px))}
+.ico{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.flex{display:flex}.grid{display:grid}.hidden{display:none !important}.flex-1{flex:1 1 0%}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}
+.items-center{align-items:center}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-baseline{align-items:baseline}
+.justify-between{justify-content:space-between}.justify-center{justify-content:center}.justify-end{justify-content:flex-end}
+.text-center{text-align:center}.text-right{text-align:right}.mx-auto{margin-left:auto;margin-right:auto}.w-full{width:100%}
+.relative{position:relative}.absolute{position:absolute}.fixed{position:fixed}.sticky{position:sticky}
+.inset-0{top:0;right:0;bottom:0;left:0}.inset-y-0{top:0;bottom:0}.left-0{left:0}.right-0{right:0}
+.top-0{top:0}.bottom-0{bottom:0}.top-16{top:4rem}.left-1\/2{left:50%}.-translate-x-1\/2{transform:translateX(-50%)}
+.z-50{z-index:50}.z-60{z-index:60}
+.shrink-0{flex-shrink:0}.min-w-0{min-width:0}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.overflow-x-auto{overflow-x:auto}
+.pointer-events-none{pointer-events:none}.select-none{user-select:none;-webkit-user-select:none}.cursor-pointer{cursor:pointer}
+.max-w-md{max-width:28rem}.max-w-sm{max-width:24rem}.max-w-\[9rem\]{max-width:9rem}
+.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.gap-0\.5{gap:.125rem}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-2\.5{gap:.625rem}.gap-3{gap:.75rem}
+.gap-x-2{column-gap:.5rem}.gap-y-1\.5{row-gap:.375rem}
+.space-y-2 > * + *{margin-top:.5rem}.space-y-2\.5 > * + *{margin-top:.625rem}.space-y-3 > * + *{margin-top:.75rem}.space-y-4 > * + *{margin-top:1rem}
+.p-1{padding:.25rem}.p-1\.5{padding:.375rem}.p-2{padding:.5rem}.p-2\.5{padding:.625rem}.p-3{padding:.75rem}.p-3\.5{padding:.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-8{padding:2rem}
+.px-1\.5{padding-left:.375rem;padding-right:.375rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-2\.5{padding-left:.625rem;padding-right:.625rem}
+.px-3{padding-left:.75rem;padding-right:.75rem}.px-3\.5{padding-left:.875rem;padding-right:.875rem}.px-4{padding-left:1rem;padding-right:1rem}
+.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}
+.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}
+.py-3\.5{padding-top:.875rem;padding-bottom:.875rem}.py-4{padding-top:1rem;padding-bottom:1rem}
+.pt-1{padding-top:.25rem}.pt-1\.5{padding-top:.375rem}.pt-2{padding-top:.5rem}.pt-3{padding-top:.75rem}
+.pb-1{padding-bottom:.25rem}.pb-2{padding-bottom:.5rem}.pb-3{padding-bottom:.75rem}
+.pl-3{padding-left:.75rem}.pl-8{padding-left:2rem}.pl-9{padding-left:2.25rem}.pr-3{padding-right:.75rem}.pr-4{padding-right:1rem}.pr-1{padding-right:.25rem}
+.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-1\.5{margin-top:.375rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}
+.mb-1{margin-bottom:.25rem}.mb-1\.5{margin-bottom:.375rem}.mb-4{margin-bottom:1rem}.ml-1{margin-left:.25rem}.ml-auto{margin-left:auto}.-mr-1{margin-right:-.25rem}
+.w-2\.5{width:.625rem}.h-2\.5{height:.625rem}.w-3{width:.75rem}.h-3{height:.75rem}.w-3\.5{width:.875rem}.h-3\.5{height:.875rem}
+.w-4{width:1rem}.h-4{height:1rem}.w-5{width:1.25rem}.h-5{height:1.25rem}.w-6{width:1.5rem}.h-6{height:1.5rem}
+.w-7{width:1.75rem}.h-7{height:1.75rem}.w-10{width:2.5rem}.h-10{height:2.5rem}.w-11{width:2.75rem}.h-11{height:2.75rem}.h-16{height:4rem}
+.max-h-40{max-height:10rem}.max-h-64{max-height:16rem}.max-h-80{max-height:20rem}
+.text-\[9px\]{font-size:9px;line-height:1.2}.text-\[10px\]{font-size:10px;line-height:1.45}.text-\[11px\]{font-size:11px;line-height:1.45}
+.text-xs{font-size:.75rem;line-height:1.45}.text-sm{font-size:.875rem;line-height:1.45}.text-base{font-size:1rem;line-height:1.5}
+.text-lg{font-size:1.125rem;line-height:1.5}.text-xl{font-size:1.25rem;line-height:1.35}.text-2xl{font-size:1.5rem;line-height:1.3}.text-3xl{font-size:1.875rem;line-height:1.15}
+.font-medium{font-weight:500}.font-semibold{font-weight:600}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-black{font-weight:900}.font-normal{font-weight:400}
+.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.tracking-tight{letter-spacing:-.025em}.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}.leading-none{line-height:1}
+.underline{text-decoration:underline}.whitespace-nowrap{white-space:nowrap}.resize-none{resize:none}
+.text-slate-300{color:#cbd5e1}.text-slate-400{color:#94a3b8}.text-slate-500{color:#64748b}.text-slate-600{color:#475569}
+.text-slate-700{color:#334155}.text-slate-800{color:#1e293b}.text-slate-900{color:#0f172a}.text-white{color:#fff}
+.text-amber-500{color:#f59e0b}.text-amber-600{color:#d97706}.text-amber-700{color:#b45309}.text-amber-800{color:#92400e}.text-amber-900{color:#78350f}
+.text-blue-500{color:#3b82f6}.text-blue-600{color:#2563eb}.text-blue-700{color:#1d4ed8}
+.text-cyan-600{color:#0891b2}.text-cyan-700{color:#0e7490}
+.text-emerald-600{color:#059669}.text-emerald-700{color:#047857}
+.text-rose-600{color:#e11d48}.text-rose-700{color:#be123c}
+.text-orange-700{color:#c2410c}.text-purple-700{color:#7e22ce}
+.bg-white{background-color:#fff}.bg-slate-50{background-color:#f8fafc}.bg-slate-100{background-color:#f1f5f9}.bg-slate-900{background-color:#0f172a}
+.bg-amber-50{background-color:#fffbeb}.bg-amber-100{background-color:#fef3c7}.bg-amber-200{background-color:#fde68a}.bg-amber-500{background-color:#f59e0b}.bg-amber-600{background-color:#d97706}
+.bg-rose-50{background-color:#fff1f2}.bg-rose-100{background-color:#ffe4e6}
+.bg-blue-50{background-color:#eff6ff}.bg-blue-100{background-color:#dbeafe}.bg-blue-200{background-color:#bfdbfe}.bg-blue-500{background-color:#3b82f6}
+.bg-purple-50{background-color:#faf5ff}.bg-orange-50{background-color:#fff7ed}.bg-cyan-50{background-color:#ecfeff}.bg-emerald-50{background-color:#ecfdf5}.bg-indigo-50{background-color:#eef2ff}
+.bg-slate-900\/60{background-color:rgba(15,23,42,.62)}
+.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}
+.border-slate-100{border-color:#f1f5f9}.border-slate-200{border-color:#e2e8f0}.border-slate-300{border-color:#cbd5e1}
+.border-amber-100{border-color:#fef3c7}.border-amber-200{border-color:#fde68a}.border-amber-300{border-color:#fcd34d}.border-amber-600{border-color:#d97706}
+.border-blue-200{border-color:#bfdbfe}.border-blue-300{border-color:#93c5fd}.border-blue-600{border-color:#2563eb}
+.border-emerald-200{border-color:#a7f3d0}.border-orange-200{border-color:#fed7aa}.border-purple-200{border-color:#e9d5ff}
+.border-cyan-200{border-color:#a5f3fc}.border-indigo-200{border-color:#c7d2fe}.border-rose-200{border-color:#fecdd3}.border-rose-300{border-color:#fda4af}
+.rounded{border-radius:.25rem}.rounded-md{border-radius:.375rem}.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}
+.shadow-xs{box-shadow:0 1px 2px rgba(15,23,42,.06)}
+.shadow-sm{box-shadow:0 1px 3px rgba(15,23,42,.08),0 1px 2px rgba(15,23,42,.04)}
+.shadow-md{box-shadow:0 4px 10px rgba(15,23,42,.10),0 2px 4px rgba(15,23,42,.05)}
+.shadow-lg{box-shadow:0 8px 24px rgba(15,23,42,.12)}.shadow-xl{box-shadow:0 16px 40px rgba(15,23,42,.22)}
+.shadow-inner{box-shadow:inset 0 1px 3px rgba(15,23,42,.12)}
+.opacity-60{opacity:.6}
+.transition{transition:all .2s ease}.transition-all{transition:all .3s ease}.duration-300{transition-duration:.3s}
+.backdrop-blur-xs{backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.animate-in{animation:modalIn .18s ease-out}.animate-pulse{animation:pulse 2s cubic-bezier(0.4,0,0.6,1) infinite}.animate-spin{animation:spin 1s linear infinite}
+@keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.hover\:bg-amber-600:hover{background-color:#d97706}.hover\:bg-amber-700:hover{background-color:#b45309}
+.hover\:bg-slate-100:hover{background-color:#f1f5f9}.hover\:bg-slate-200:hover{background-color:#e2e8f0}
+.hover\:bg-blue-100:hover{background-color:#dbeafe}.hover\:bg-blue-600:hover{background-color:#2563eb}
+.hover\:bg-rose-100:hover{background-color:#ffe4e6}
+.hover\:text-slate-600:hover{color:#475569}.hover\:text-slate-900:hover{color:#0f172a}
+.hover\:text-amber-500:hover{color:#f59e0b}.hover\:text-amber-600:hover{color:#d97706}.hover\:text-amber-800:hover{color:#92400e}
+.hover\:text-blue-500:hover{color:#3b82f6}.hover\:text-rose-500:hover{color:#f43f5e}
+.active\:scale-\[0\.98\]:active{transform:scale(.98)}.active\:scale-\[0\.99\]:active{transform:scale(.99)}
+.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}
+.focus\:ring-2:focus{box-shadow:0 0 0 3px rgba(245,158,11,.35)}
+.focus\:ring-amber-500:focus{box-shadow:0 0 0 3px rgba(245,158,11,.35)}
+.focus\:ring-blue-500:focus{box-shadow:0 0 0 3px rgba(59,130,246,.35)}
+input[type=text],input[type=number],textarea,select{border-width:1px;border-style:solid;border-color:#e2e8f0}
+input::placeholder,textarea::placeholder{color:#94a3b8}
+select{-webkit-appearance:none;appearance:none;padding-right:2rem;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center}
+nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
+</style>
+</head>
+<body>
+
+<header class="bg-amber-500 text-slate-900 shadow-md sticky top-0 z-50" style="padding-top:var(--safe-area-top)">
+  <div class="max-w-md mx-auto px-4 py-2.5 flex justify-between items-center">
+    <div class="flex items-center space-x-2">
+      <span class="ico w-7 h-7" data-icon="map-pin"></span>
+      <h1 class="text-lg font-bold tracking-tight">收藏地點</h1>
+    </div>
+    <button type="button" onclick="location.href='./index.html'" class="flex items-center gap-1 bg-amber-600 hover:bg-amber-700 active:scale-[0.98] text-white px-3 py-1.5 rounded-xl shadow-inner transition text-xs font-bold">
+      <span class="ico w-3.5 h-3.5" data-icon="home"></span> 返回
+    </button>
+  </div>
+</header>
+
+<main class="flex-1 max-w-md w-full mx-auto p-4 space-y-3">
+  <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 space-y-3">
+    <div class="relative">
+      <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400"><span class="ico w-4 h-4" data-icon="search"></span></span>
+      <input type="text" id="place-search-keyword" oninput="renderPlacesList()" placeholder="搜尋地點名稱、地址、備注..." autocomplete="off" class="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
+    </div>
+    <div>
+      <div class="flex justify-between items-center mb-1.5">
+        <label class="block text-xs font-semibold text-slate-500">類型</label>
+        <button type="button" id="place-type-toggle" onclick="togglePlaceTypeExpanded()" class="text-[11px] text-amber-700 hover:text-amber-800 font-semibold transition flex items-center gap-1 hidden">
+          <span id="place-type-toggle-text">更多</span>
+          <svg id="place-type-toggle-chevron" style="width:10px;height:10px;transition:transform .2s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+      </div>
+      <div id="place-type-tabs" class="flex flex-wrap gap-1.5"></div>
+    </div>
+    <div class="flex gap-2 pt-2 border-t border-slate-100">
+      <button type="button" id="nearby-btn" onclick="toggleNearbyPlaces()" class="flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 active:scale-[0.98] text-blue-700 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 border border-blue-200">
+        <span class="ico w-3.5 h-3.5" data-icon="navigation"></span><span id="nearby-btn-text">附近地點</span>
+      </button>
+      <button type="button" onclick="openAddPlaceModal()" class="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-900 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+        <span class="ico w-4 h-4" data-icon="plus"></span> 新增地點
+      </button>
+    </div>
+    <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-xs gap-2">
+      <span id="nearby-status" class="text-blue-600 font-medium hidden truncate"></span>
+      <span id="place-count-badge" class="text-slate-400 font-medium ml-auto shrink-0">共 0 個</span>
+    </div>
+  </div>
+  <div id="places-list-container" class="space-y-2.5"></div>
+</main>
+
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-50">
+  <div class="max-w-md mx-auto grid grid-cols-4 h-16">
+    <button onclick="location.href='./index.html'" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition">
+      <span class="ico w-5 h-5" data-icon="plus-circle"></span><span class="text-[11px] font-medium mt-1">記帳</span>
+    </button>
+    <button onclick="location.href='./index.html?tab=list'" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition">
+      <span class="ico w-5 h-5" data-icon="list-bullet"></span><span class="text-[11px] font-medium mt-1">行程</span>
+    </button>
+    <button class="flex flex-col items-center justify-center text-amber-500 transition">
+      <span class="ico w-5 h-5" data-icon="map-pin"></span><span class="text-[11px] font-bold mt-1">地點</span>
+    </button>
+    <button onclick="location.href='./index.html?tab=stats'" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition">
+      <span class="ico w-5 h-5" data-icon="pie-chart"></span><span class="text-[11px] font-medium mt-1">統計</span>
+    </button>
+  </div>
+</nav>
+
+<div id="trip-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl animate-in">
+    <div class="bg-slate-900 text-white px-4 py-3 flex justify-between items-center">
+      <h3 id="modal-title" class="font-bold text-sm">詳情</h3>
+      <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1"><span class="ico w-5 h-5" data-icon="x"></span></button>
+    </div>
+    <div id="modal-body" class="p-4 space-y-3 max-h-80 overflow-y-auto"></div>
+    <div id="modal-footer" class="bg-slate-50 px-4 py-3 border-t flex justify-end gap-2"></div>
+  </div>
+</div>
+
+<div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-medium shadow-lg z-50 transition-all duration-300 opacity-0 pointer-events-none">
+  提示訊息
+</div>
+
+<script>
+/* =========================================================
+   places.html — 收藏地點獨立頁面
+   ========================================================= */
+
+const ICONS = {
+  'map-pin':'<path d="M12 21s-7-6-7-11a7 7 0 1 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+  'search':'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  'navigation':'<polygon points="3 11 22 2 13 21 11 13 3 11" fill="none"/>',
+  'plus':'<path d="M12 5v14M5 12h14"/>',
+  'x':'<path d="M6 6l12 12M18 6 6 18"/>',
+  'home':'<path d="M3 12 12 3l9 9v9a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2v-9z"/>',
+  'plus-circle':'<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+  'list-bullet':'<path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>',
+  'pie-chart':'<path d="M12 3a9 9 0 1 0 9 9h-9V3z"/>',
+  'utensils':'<path d="M4 2v7c0 1.1.9 2 2 2h3V2M7 11v11M17 2c-1.5 0-3 2.2-3 5s1.5 5 3 5v9"/>',
+  'car-taxi-front':'<path d="M5 17h14M3.5 13.5l1.4-4.2A2.2 2.2 0 0 1 7 7.8h10a2.2 2.2 0 0 1 2.1 1.5l1.4 4.2v3.5h-2M3.5 17v-3.5H21"/><circle cx="7.5" cy="17" r="1.8"/><circle cx="16.5" cy="17" r="1.8"/>',
+  'toilet':'<circle cx="9" cy="5.5" r="1.8"/><path d="M6.5 9h5v4.5a2.5 2.5 0 0 1-5 0V9z"/><path d="M9 16v5"/><circle cx="16" cy="5.5" r="1.8"/><path d="M14 9h4l-0.5 4h-3L14 9z"/><path d="M16 13v8"/>',
+  'fuel':'<path d="M3 22V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M3 10h12"/><path d="M13 6h2l3 3v10a2 2 0 0 1-4 0v-4h-1"/><path d="M6 14h6"/>',
+  'star':'<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>',
+  'edit-3':'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>',
+  'trash-2':'<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14"/>',
+  'clipboard':'<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>',
+  'crosshair':'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+  'loader':'<path d="M21 12a9 9 0 1 1-6.219-8.56"/>',
+  'rotate-cw':'<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+  'info':'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'
+};
+
+function ico(name, cls){
+  cls = cls || 'w-4 h-4';
+  return '<svg class="' + cls + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+       + 'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+       + (ICONS[name] || '') + '</svg>';
+}
+
+function hydrateIcons(root){
+  (root || document).querySelectorAll('[data-icon]').forEach(function(el){
+    if (el.dataset.done) return;
+    el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+                 + 'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" '
+                 + 'style="width:100%;height:100%">' + (ICONS[el.dataset.icon] || '') + '</svg>';
+    el.dataset.done = '1';
+  });
+}
+
+function escapeHtml(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function showToast(message){
+  var toast = document.getElementById('toast');
+  toast.innerText = message;
+  toast.style.opacity = '1';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(function(){ toast.style.opacity = '0'; }, 2800);
+}
+
+function closeModal(){
+  var m = document.getElementById('trip-modal');
+  m.classList.add('hidden');
+  m.classList.remove('flex');
+  currentEditingPlaceId = null;
+  hidePasteFallback();
+}
+
+/* ---------- 地點類型設定 ---------- */
+var PLACE_TYPE_CONFIG = {
+  '餐廳':   { icon: 'utensils',       cls: 'bg-orange-50 text-orange-700 border-orange-200' },
+  '的士站': { icon: 'car-taxi-front', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
+  '廁所':   { icon: 'toilet',         cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  '氣站':   { icon: 'fuel',           cls: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
+  '重要':   { icon: 'star',           cls: 'bg-rose-50 text-rose-700 border-rose-200' },
+  '其他':   { icon: 'map-pin',        cls: 'bg-purple-50 text-purple-700 border-purple-200' }
+};
+var PLACE_TYPES = Object.keys(PLACE_TYPE_CONFIG);
+var PLACE_TYPE_FALLBACK = { icon: 'map-pin', cls: 'bg-purple-50 text-purple-700 border-purple-200' };
+
+var PLACE_TYPE_HOT_LIMIT = 5;
+var placeTypeExpanded = localStorage.getItem('taxi_place_type_expanded') === '1';
+
+function getPlaceTypeStyle(type){ return PLACE_TYPE_CONFIG[type] || PLACE_TYPE_FALLBACK; }
+
+var DISTRICT_KEYWORDS = {
+  '中西區': ['central and western', 'central & western', '中西區', '中環', '上環', '西環', '西營盤', '半山', '山頂', '金鐘', '石塘咀', '堅尼地城'],
+  '灣仔區': ['wan chai', '灣仔', '銅鑼灣', '跑馬地', '大坑', '掃桿埔', '天后'],
+  '東區': ['eastern district', 'eastern', '東區', '北角', '鰂魚涌', '太古', '西灣河', '筲箕灣', '柴灣', '小西灣'],
+  '南區': ['southern district', 'southern', '南區', '香港仔', '鴨脷洲', '薄扶林', '赤柱', '淺水灣', '石澳', '黃竹坑', '田灣'],
+  '油尖旺區': ['yau tsim mong', '油尖旺', '尖沙咀', '油麻地', '旺角', '大角咀', '佐敦', '太子'],
+  '深水埗區': ['sham shui po', '深水埗', '長沙灣', '荔枝角', '石硤尾', '美孚', '南昌'],
+  '九龍城區': ['kowloon city', '九龍城', '土瓜灣', '紅磡', '何文田', '啟德', '九龍塘'],
+  '黃大仙區': ['wong tai sin', '黃大仙', '慈雲山', '鑽石山', '樂富', '新蒲崗', '彩虹'],
+  '觀塘區': ['kwun tong', '觀塘', '牛頭角', '九龍灣', '藍田', '油塘', '順利'],
+  '元朗區': ['yuen long', '元朗', '天水圍', '錦田', '八鄉', '流浮山', '廈村'],
+  '屯門區': ['tuen mun', '屯門', '蝴蝶灣', '掃管笏', '大興'],
+  '沙田區': ['sha tin', '沙田', '大圍', '馬鞍山', '火炭', '沙田圍', '石門'],
+  '大埔區': ['tai po', '大埔', '太和', '汀角', '大尾篤'],
+  '北區': ['north district', 'north', '北區', '粉嶺', '上水', '沙頭角', '打鼓嶺'],
+  '西貢區': ['sai kung', '西貢', '將軍澳', '坑口', '調景嶺', '寶琳'],
+  '葵青區': ['kwai tsing', '葵青', '葵涌', '青衣', '荔景'],
+  '荃灣區': ['tsuen wan', '荃灣', '深井', '汀九', '馬灣'],
+  '離島區': ['islands district', 'islands', '離島', '東涌', '長洲', '大嶼山', '南丫島', '坪洲']
+};
+
+/* ---------- 地點狀態 ---------- */
+var places = JSON.parse(localStorage.getItem('taxi_places')) || [];
+
+var placeFilterRegion   = '';
+var placeFilterDistrict = '';
+var placeFilterType     = '';
+var placeNearbyMode     = false;
+var userLat = null;
+var userLng = null;
+var currentEditingPlaceId = null;
+var _pendingPlaceAddr = null;
+
+/* ---------- 距離工具 ---------- */
+function getDistance(lat1, lon1, lat2, lon2){
+  var R = 6371000;
+  var f1 = lat1 * Math.PI / 180;
+  var f2 = lat2 * Math.PI / 180;
+  var df = (lat2 - lat1) * Math.PI / 180;
+  var dl = (lon2 - lon1) * Math.PI / 180;
+  var a = Math.sin(df/2) * Math.sin(df/2) + Math.cos(f1) * Math.cos(f2) * Math.sin(dl/2) * Math.sin(dl/2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+function formatDistance(meters){
+  if (meters === null || meters === undefined) return '--';
+  if (meters < 1000) return Math.round(meters) + ' m';
+  return (meters / 1000).toFixed(1) + ' km';
+}
+
+/* ---------- 類型篩選 ---------- */
+function togglePlaceTypeExpanded(){
+  placeTypeExpanded = !placeTypeExpanded;
+  localStorage.setItem('taxi_place_type_expanded', placeTypeExpanded ? '1' : '0');
+  renderPlaceFilters();
+}
+
+function buildPlaceFilterBtn(label, isActive, onClick){
+  var cls = isActive
+    ? 'px-2.5 py-1 rounded-md text-[11px] font-bold border transition bg-amber-500 text-slate-900 border-amber-600 shadow-xs whitespace-nowrap'
+    : 'px-2.5 py-1 rounded-md text-[11px] font-medium border transition bg-white text-slate-600 border-slate-200 hover:bg-slate-100 whitespace-nowrap';
+  return '<button type="button" onclick="' + onClick + '" class="' + cls + '">' + escapeHtml(label) + '</button>';
+}
+
+function renderPlaceFilters(){
+  var typeWrap     = document.getElementById('place-type-tabs');
+  var typeToggle   = document.getElementById('place-type-toggle');
+  var typeToggleText = document.getElementById('place-type-toggle-text');
+  var typeChev     = document.getElementById('place-type-toggle-chevron');
+  if (!typeWrap) return;
+
+  var allTypes = [''].concat(PLACE_TYPES);
+  var totalCount = allTypes.length;
+  var hasMore = totalCount > PLACE_TYPE_HOT_LIMIT;
+
+  var visibleTypes;
+  if (!hasMore || placeTypeExpanded) visibleTypes = allTypes;
+  else {
+    visibleTypes = allTypes.slice(0, PLACE_TYPE_HOT_LIMIT);
+    if (placeFilterType && visibleTypes.indexOf(placeFilterType) === -1) visibleTypes = visibleTypes.concat([placeFilterType]);
+  }
+
+  typeWrap.innerHTML = visibleTypes.map(function(t){
+    var label = t === '' ? '全部' : t;
+    return buildPlaceFilterBtn(label, placeFilterType === t, "setPlaceFilterType('" + t + "')");
+  }).join('');
+
+  if (typeToggle){
+    if (hasMore){
+      typeToggle.classList.remove('hidden');
+      var hiddenCount = totalCount - PLACE_TYPE_HOT_LIMIT;
+      typeToggleText.innerText = placeTypeExpanded ? '收起' : ('更多（+' + hiddenCount + '）');
+      if (typeChev){ typeChev.style.transform = placeTypeExpanded ? 'rotate(180deg)' : ''; }
+    } else { typeToggle.classList.add('hidden'); }
+  }
+}
+
+function setPlaceFilterType(t){
+  placeFilterType = t;
+  renderPlaceFilters();
+  renderPlacesList();
+}
+
+/* ---------- 地點列表 ---------- */
+function renderPlacesList(){
+  var container = document.getElementById('places-list-container');
+  if (!container) return;
+
+  var searchEl = document.getElementById('place-search-keyword');
+  var keyword = searchEl ? (searchEl.value || '').toLowerCase().trim() : '';
+
+  var filtered = places.filter(function(p){
+    if (keyword){
+      var hay = (p.name + ' ' + (p.address||'') + ' ' + (p.note||'') + ' ' + p.type).toLowerCase();
+      if (hay.indexOf(keyword) === -1) return false;
+    }
+    if (placeFilterType && p.type !== placeFilterType) return false;
+    return true;
+  });
+
+  var hasUserLoc = (userLat !== null && userLng !== null);
+  filtered.forEach(function(p){
+    if (hasUserLoc && typeof p.lat === 'number' && typeof p.lng === 'number'){
+      p._distance = getDistance(userLat, userLng, p.lat, p.lng);
+    } else { p._distance = null; }
+  });
+
+  if (placeNearbyMode && hasUserLoc){
+    filtered.sort(function(a, b){
+      if (a._distance === null && b._distance === null) return b.timestamp - a.timestamp;
+      if (a._distance === null) return 1;
+      if (b._distance === null) return -1;
+      return a._distance - b._distance;
+    });
+  } else {
+    filtered.sort(function(a, b){ return b.timestamp - a.timestamp; });
+  }
+
+  var countEl = document.getElementById('place-count-badge');
+  if (countEl) countEl.innerText = '共 ' + filtered.length + ' 個';
+
+  var statusEl = document.getElementById('nearby-status');
+  if (statusEl){
+    if (placeNearbyMode && hasUserLoc){
+      statusEl.classList.remove('hidden');
+      statusEl.innerHTML = ico('navigation','w-3 h-3') + ' 已按距離排序';
+    } else { statusEl.classList.add('hidden'); }
+  }
+
+  if (filtered.length === 0){
+    container.innerHTML =
+      '<div class="bg-white rounded-2xl p-8 text-center border border-slate-100 text-slate-400 space-y-2">' +
+        '<div class="ico w-10 h-10 mx-auto text-slate-300">' + ico('map-pin','w-10 h-10') + '</div>' +
+        '<p class="text-sm font-medium">' + (places.length === 0 ? '尚無收藏地點' : '沒有符合條件的地點') + '</p>' +
+        '<p class="text-[11px] text-slate-400">' + (places.length === 0 ? '點「新增地點」開始收藏常用位置' : '試試切換其他篩選條件') + '</p>' +
+      '</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(function(p){
+    var style = getPlaceTypeStyle(p.type);
+    var hasCoords = (typeof p.lat === 'number' && typeof p.lng === 'number');
+
+    var distanceBadge = '';
+    if (p._distance !== null){
+      distanceBadge = '<span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-bold flex items-center gap-1 shrink-0">' + ico('navigation','w-3 h-3') + formatDistance(p._distance) + '</span>';
+    }
+
+    return '' +
+      '<div class="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm">' +
+        '<div class="flex items-start justify-between gap-3">' +
+          '<div class="flex items-start space-x-3 min-w-0 flex-1">' +
+            '<div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ' + style.cls + '">' + ico(style.icon, 'w-5 h-5') + '</div>' +
+            '<div class="min-w-0 flex-1">' +
+              '<div class="flex items-center gap-2 flex-wrap">' +
+                '<span class="text-sm font-bold text-slate-900 truncate">' + escapeHtml(p.name) + '</span>' +
+                distanceBadge +
+              '</div>' +
+              '<div class="flex items-center gap-1.5 flex-wrap mt-1">' +
+                '<span class="text-[10px] px-2 py-0.5 rounded-full border font-semibold ' + style.cls + '">' + escapeHtml(p.type) + '</span>' +
+              '</div>' +
+              (p.address ? '<p class="text-xs text-slate-500 mt-1 truncate flex items-center gap-1"><span class="ico w-3 h-3 text-slate-400 shrink-0">' + ico('map-pin','w-3 h-3') + '</span>' + escapeHtml(p.address) + '</p>' : '') +
+              (p.note ? '<p class="text-xs text-slate-400 mt-0.5 truncate">' + escapeHtml(p.note) + '</p>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="flex items-center gap-0.5 shrink-0">' +
+            (hasCoords ? '<button onclick="openPlaceInMaps(\'' + p.id + '\')" class="p-2 text-slate-400 hover:text-blue-500 transition" title="用高德 App 導航">' + ico('navigation','w-4 h-4') + '</button>' : '') +
+            '<button onclick="openEditPlaceModal(\'' + p.id + '\')" class="p-2 text-slate-400 hover:text-amber-500 transition" title="編輯">' + ico('edit-3','w-4 h-4') + '</button>' +
+            '<button onclick="deletePlace(\'' + p.id + '\')" class="p-2 text-slate-400 hover:text-rose-500 transition" title="刪除">' + ico('trash-2','w-4 h-4') + '</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }).join('');
+}
+
+/* ---------- 高德導航 ---------- */
+function openPlaceInMaps(id){
+  var p = places.find(function(x){ return x.id === id; });
+  if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
+
+  var name = encodeURIComponent(p.name || '目的地');
+  var webUrl = 'https://uri.amap.com/navigation?to=' + p.lng + ',' + p.lat + ',' + name + '&mode=car&policy=1&src=hk-taxi-helper&coordinate=wgs84&callnative=1';
+
+  var ua = navigator.userAgent || '';
+  var isMobile = /iPhone|iPad|iPod|Android|HarmonyOS|Mobile|Windows Phone/i.test(ua);
+
+  if (!isMobile){ window.open(webUrl, '_blank'); return; }
+
+  var appScheme = 'amapuri://route/plan/?dlat=' + p.lat + '&dlon=' + p.lng + '&dname=' + name + '&dev=1&t=0';
+
+  var startTime = Date.now();
+  var fallbackTriggered = false;
+
+  var fallbackTimer = setTimeout(function(){
+    if (fallbackTriggered) return;
+    if (!document.hidden && (Date.now() - startTime) < 3000){
+      fallbackTriggered = true;
+      window.location.href = webUrl;
+    }
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    document.removeEventListener('pagehide', onPageHide);
+  }, 2000);
+
+  function onVisibilityChange(){
+    if (document.hidden){
+      fallbackTriggered = true;
+      clearTimeout(fallbackTimer);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      document.removeEventListener('pagehide', onPageHide);
+    }
+  }
+  function onPageHide(){ fallbackTriggered = true; clearTimeout(fallbackTimer); }
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  window.addEventListener('pagehide', onPageHide, { once: true });
+
+  try { window.location.href = appScheme; }
+  catch (err){ fallbackTriggered = true; clearTimeout(fallbackTimer); window.location.href = webUrl; }
+}
+
+/* ---------- 附近排序 ---------- */
+function toggleNearbyPlaces(){
+  var btnText = document.getElementById('nearby-btn-text');
+  var btn = document.getElementById('nearby-btn');
+
+  if (placeNearbyMode){
+    placeNearbyMode = false;
+    userLat = null;
+    userLng = null;
+    if (btnText) btnText.innerText = '附近地點';
+    if (btn){ btn.className = 'flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 active:scale-[0.98] text-blue-700 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 border border-blue-200'; }
+    renderPlacesList();
+    showToast('已取消附近排序');
+    return;
+  }
+
+  if (!navigator.geolocation){ showToast('此瀏覽器不支援定位功能'); return; }
+
+  showToast('正在取得位置...');
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      placeNearbyMode = true;
+      if (btnText) btnText.innerText = '清除附近';
+      if (btn){ btn.className = 'flex-1 py-2.5 bg-blue-500 hover:bg-blue-600 active:scale-[0.98] text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 border border-blue-600'; }
+      renderPlacesList();
+      showToast('已按距離排序（誤差約 ' + Math.round(pos.coords.accuracy || 0) + ' m）');
+    },
+    function(err){ showToast('定位失敗：' + (err.message || '請檢查定位權限')); },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+  );
+}
+
+/* ---------- 高德短連結／地名解析 ---------- */
+async function resolveAmapPlace(input){
+  var res = await fetch('/api/amap-place', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ input: input })
+  });
+
+  var data;
+  try { data = await res.json(); }
+  catch (e){ throw new Error('後端回傳非 JSON'); }
+
+  if (!res.ok || !data.success){
+    throw new Error(data.error || ('HTTP ' + res.status));
+  }
+  return data;
+}
+
+async function quickPasteAndParse(){
+  var btn = document.getElementById('quick-paste-btn');
+  var btnText = document.getElementById('quick-paste-btn-text');
+
+  if (!window.isSecureContext || !navigator.clipboard || typeof navigator.clipboard.readText !== 'function'){
+    toggleManualInput(true);
+    showPasteFallback(document.getElementById('amap-paste-input'));
+    showToast('此瀏覽器不支援自動讀取，請長按下方輸入框粘貼');
+    return;
+  }
+
+  if (btn) btn.disabled = true;
+  if (btnText) btnText.innerText = '讀取剪貼板中...';
+
+  try {
+    var text = await navigator.clipboard.readText();
+    text = (text || '').trim();
+    if (!text){
+      showToast('剪貼板為空，請先複製高德連結或地名');
+      if (btn) btn.disabled = false;
+      if (btnText) btnText.innerText = '一鍵貼上並解析';
+      return;
+    }
+
+    hidePasteFallback();
+    var input = document.getElementById('amap-paste-input');
+    if (input) input.value = text;
+
+    await applyAmapPaste(text);
+  } catch (err) {
+    console.warn('[clipboard] readText failed:', err);
+    var msg = (err && err.name === 'NotAllowedError')
+      ? '剪貼板權限被拒，請手動粘貼'
+      : '無法讀取剪貼板，請手動粘貼';
+    showToast(msg);
+    toggleManualInput(true);
+    showPasteFallback(document.getElementById('amap-paste-input'));
+  } finally {
+    if (btn) btn.disabled = false;
+    if (btnText) btnText.innerText = '一鍵貼上並解析';
+  }
+}
+
+function toggleManualInput(show){
+  var wrap = document.getElementById('manual-input-wrap');
+  if (!wrap) return;
+  if (show === undefined) show = wrap.classList.contains('hidden');
+  if (show){
+    wrap.classList.remove('hidden');
+    setTimeout(function(){
+      var input = document.getElementById('amap-paste-input');
+      if (input) input.focus();
+    }, 50);
+  } else {
+    wrap.classList.add('hidden');
+    hidePasteFallback();
+  }
+}
+
+function showPasteFallback(input){
+  var wrap = document.getElementById('paste-fallback-wrap');
+  var ta   = document.getElementById('paste-fallback');
+  if (!wrap || !ta) return;
+
+  wrap.classList.remove('hidden');
+  ta.value = '';
+  setTimeout(function(){ ta.focus(); }, 50);
+
+  if (!ta._bound){
+    ta._bound = true;
+    ta.addEventListener('paste', function(){
+      setTimeout(function(){ consumeFallback(input, ta, wrap); }, 10);
+    });
+    ta.addEventListener('input', function(){
+      consumeFallback(input, ta, wrap);
+    });
+  }
+}
+
+function consumeFallback(input, ta, wrap){
+  var v = ta.value.trim();
+  if (!v) return;
+  input.value = v;
+  ta.value = '';
+  wrap.classList.add('hidden');
+  applyAmapPaste();
+}
+
+function hidePasteFallback(){
+  var wrap = document.getElementById('paste-fallback-wrap');
+  var ta   = document.getElementById('paste-fallback');
+  if (wrap) wrap.classList.add('hidden');
+  if (ta) ta.value = '';
+}
+
+async function applyAmapPaste(rawText){
+  var input = document.getElementById('amap-paste-input');
+  var raw = rawText !== undefined
+    ? String(rawText).trim()
+    : (input ? input.value.trim() : '');
+
+  if (!raw){
+    showToast('請先貼上連結、座標，或輸入地名');
+    if (input) input.focus();
+    return;
+  }
+
+  showToast('正在解析...');
+
+  try {
+    var result = await resolveAmapPlace(raw);
+
+    var latEl = document.getElementById('place-lat');
+    var lngEl = document.getElementById('place-lng');
+    if (latEl) latEl.value = result.lat.toFixed(6);
+    if (lngEl) lngEl.value = result.lng.toFixed(6);
+
+    var nameEl = document.getElementById('place-name');
+    var nameFilled = false;
+    if (nameEl && result.name && !nameEl.value.trim()){
+      nameEl.value = result.name;
+      nameFilled = true;
+    }
+
+    var addrEl = document.getElementById('place-address');
+    var addrFilled = false;
+    if (addrEl && result.address && !addrEl.value.trim()){
+      addrEl.value = result.address;
+      addrFilled = true;
+    }
+
+    var sourceText = { geocode: '地理編碼', expand: '短連結展開', shortlink: '連結解析', direct: '連結解析' }[result.source] || result.source;
+
+    var parts = ['座標'];
+    if (nameFilled) parts.push('名稱');
+    if (addrFilled) parts.push('地址');
+    showToast('已透過' + sourceText + '填入：' + parts.join('、'));
+
+    if (addrEl && !addrEl.value.trim()){
+      reverseGeocode(result.lat, result.lng, function(err, data){
+        if (err) return;
+        applyGeocodeResult(data);
+      });
+    }
+  } catch (e) {
+    showToast('解析失敗：' + (e.message || '未知錯誤'));
+  }
+}
+
+/* ---------- 新增地點彈窗 ---------- */
+function openAddPlaceModal(){
+  currentEditingPlaceId = null;
+  _pendingPlaceAddr = null;
+
+  var typeOptions = PLACE_TYPES.map(function(t){
+    return '<option value="' + t + '">' + t + '</option>';
+  }).join('');
+
+  var html = '<div class="space-y-3 text-sm">' +
+    '<button type="button" onclick="quickPasteAndParse()" id="quick-paste-btn" class="w-full py-3.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-slate-900 font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 text-sm"><span class="ico w-5 h-5" data-icon="clipboard"></span><span id="quick-paste-btn-text">📋 一鍵貼上並解析</span></button>' +
+    '<button type="button" onclick="toggleManualInput()" class="w-full text-center text-xs text-slate-500 hover:text-amber-600 underline transition py-1">或手動輸入連結、座標、地名</button>' +
+    '<div id="manual-input-wrap" class="hidden space-y-2"><div class="flex gap-1.5"><input type="text" id="amap-paste-input" autocomplete="off" onfocus="this.value=\'\'" placeholder="貼上連結、座標，或輸入地名（如：香港国际机场）" class="flex-1 min-w-0 px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"><button type="button" onclick="applyAmapPaste()" class="px-3 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-900 font-bold rounded-xl text-xs transition shrink-0">解析</button></div><div id="paste-fallback-wrap" class="hidden"><textarea id="paste-fallback" rows="2" autocomplete="off" placeholder="長按此處粘貼（系統菜單 → 粘貼）" class="w-full px-3 py-2 text-sm bg-white border border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea><p class="text-[11px] text-blue-600 mt-1">粘貼後會自動解析；若無反應，請手動點上方「解析」。</p></div></div>' +
+    '<button type="button" id="place-autofill-btn" onclick="autoFillPlaceByLocation()" class="w-full py-2.5 bg-blue-50 hover:bg-blue-100 active:scale-[0.98] text-blue-700 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 border border-blue-200"><span class="ico w-3.5 h-3.5" data-icon="navigation"></span> 使用當前位置自動填寫</button>' +
+    '<div><label class="block text-xs font-semibold text-slate-600 mb-1">地點名稱 *</label><input type="text" id="place-name" autocomplete="off" placeholder="例如：翠華餐廳（中環）" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"></div>' +
+    '<div><label class="block text-xs font-semibold text-slate-600 mb-1">類型 *</label><select id="place-type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2">' + typeOptions + '</select></div>' +
+    '<div><label class="block text-xs font-semibold text-slate-600 mb-1">地址 (選填)</label><input type="text" id="place-address" autocomplete="off" placeholder="例如：中環威靈頓街15號" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2"><div id="place-address-preview" class="mt-1.5"></div></div>' +
+    '<div><label class="block text-xs font-semibold text-slate-600 mb-1">備注 (選填)</label><input type="text" id="place-note" autocomplete="off" placeholder="例如：24小時、有停車位" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2"></div>' +
+    '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">' +
+      '<div class="flex justify-between items-center gap-2">' +
+        '<span class="text-xs font-bold text-slate-700">座標（用於導航與附近排序）</span>' +
+        '<div class="flex items-center gap-1.5 shrink-0">' +
+          '<button type="button" id="place-regeo-btn" onclick="reverseGeocodePlaceCoords()" class="text-[11px] px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded-lg transition flex items-center gap-1"><span class="ico w-3 h-3" data-icon="rotate-cw"></span> 依座標解析地址</button>' +
+          '<button type="button" onclick="useCurrentLocationForPlace()" class="text-[11px] px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg transition flex items-center gap-1"><span class="ico w-3 h-3" data-icon="crosshair"></span> 只填座標</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="grid grid-cols-2 gap-2">' +
+        '<div><label class="block text-[11px] font-semibold text-slate-500 mb-1">緯度 Lat</label><input type="number" id="place-lat" step="0.000001" inputmode="decimal" autocomplete="off" placeholder="22.xxxxxx" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"></div>' +
+        '<div><label class="block text-[11px] font-semibold text-slate-500 mb-1">經度 Lng</label><input type="number" id="place-lng" step="0.000001" inputmode="decimal" autocomplete="off" placeholder="114.xxxxxx" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"></div>' +
+      '</div>' +
+      '<p class="text-[11px] text-slate-400 leading-relaxed">填入座標後，點「依座標解析地址」可自動反查地址；點列表的 <span class="ico w-3 h-3 align-middle" style="display:inline-flex;vertical-align:middle">' + ico('navigation','w-3 h-3') + '</span> 即用高德 App 導航（手機）。</p>' +
+    '</div>' +
+  '</div>';
+
+  document.getElementById('modal-title').innerText = '新增收藏地點';
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-footer').innerHTML =
+    '<button onclick="closeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition">取消</button>' +
+    '<button onclick="savePlace()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl text-xs transition">保存</button>';
+
+  var m = document.getElementById('trip-modal');
+  m.classList.remove('hidden');
+  m.classList.add('flex');
+  hydrateIcons();
+}
+
+/* ---------- 定位与反向地理编码 ---------- */
+function useCurrentLocationForPlace(){
+  if (!navigator.geolocation){ showToast('此瀏覽器不支援定位功能'); return; }
+  showToast('正在取得位置...');
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      var latEl = document.getElementById('place-lat');
+      var lngEl = document.getElementById('place-lng');
+      if (latEl) latEl.value = pos.coords.latitude.toFixed(6);
+      if (lngEl) lngEl.value = pos.coords.longitude.toFixed(6);
+      showToast('已填入當前位置座標');
+    },
+    function(err){ showToast('定位失敗：' + (err.message || '請檢查定位權限')); },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+  );
+}
+
+function autoFillPlaceByLocation(){
+  var btn = document.getElementById('place-autofill-btn');
+  if (!navigator.geolocation){ showToast('此瀏覽器不支援定位功能'); return; }
+
+  if (btn){
+    btn.disabled = true;
+    btn.classList.remove('bg-blue-50','hover:bg-blue-100','text-blue-700','border-blue-200');
+    btn.classList.add('bg-blue-100','text-blue-600','border-blue-300','cursor-wait');
+    btn.innerHTML = '<span class="ico w-3.5 h-3.5 animate-pulse">' + ico('loader','w-3.5 h-3.5') + '</span> 定位並解析地址中...';
+  }
+
+  showToast('正在取得位置...');
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      var lat = pos.coords.latitude;
+      var lng = pos.coords.longitude;
+      var accuracy = pos.coords.accuracy || 0;
+
+      var latEl = document.getElementById('place-lat');
+      var lngEl = document.getElementById('place-lng');
+      if (latEl) latEl.value = lat.toFixed(6);
+      if (lngEl) lngEl.value = lng.toFixed(6);
+
+      reverseGeocode(lat, lng, function(err, data){
+        resetAutoFillButton();
+        if (err){ showToast('已填入座標，但地址解析失敗：' + err); return; }
+        var filled = applyGeocodeResult(data);
+        if (filled) showToast('已自動填寫位置資訊（誤差約 ' + Math.round(accuracy) + ' m）');
+        else showToast('已填入座標（誤差約 ' + Math.round(accuracy) + ' m）');
+      });
+    },
+    function(err){ resetAutoFillButton(); showToast('定位失敗：' + (err.message || '請檢查定位權限')); },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+}
+
+function resetAutoFillButton(){
+  var btn = document.getElementById('place-autofill-btn');
+  if (!btn) return;
+  btn.disabled = false;
+  btn.classList.remove('bg-blue-100','text-blue-600','border-blue-300','cursor-wait');
+  btn.classList.add('bg-blue-50','hover:bg-blue-100','text-blue-700','border-blue-200');
+  btn.innerHTML = '<span class="ico w-3.5 h-3.5" data-icon="navigation"></span> 使用當前位置自動填寫';
+  btn.querySelectorAll('[data-icon]').forEach(function(el){ el.dataset.done = ''; });
+  hydrateIcons(btn);
+}
+
+function reverseGeocode(lat, lng, callback) {
+  function fetchNominatimFallback(reasonMsg) {
+    var nominatimUrl = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lng + '&accept-language=zh-HK,zh-TW,zh,en&zoom=18&addressdetails=1';
+    var nomFinished = false;
+    var nomTimer = setTimeout(function() {
+      if (!nomFinished) {
+        nomFinished = true;
+        callback('所有地圖服務均失敗 (高德失敗: ' + reasonMsg + '，且 Nominatim 逾時)');
+      }
+    }, 10000);
+
+    fetch(nominatimUrl, { method: 'GET', headers: { 'Accept': 'application/json' } })
+      .then(function(res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function(data) {
+        if (nomFinished) return;
+        nomFinished = true;
+        clearTimeout(nomTimer);
+        if (!data || !data.address) {
+          callback('高德與 Nominatim 後備均無法解析地址');
+          return;
+        }
+        var addr = data.address || {};
+        var building = addr.building || addr.amenity || addr.building_name || addr.house_name || addr.office || '';
+        data.provider = 'nominatim';
+        data.extracted_building = building;
+        callback(null, data);
+      })
+      .catch(function(err) {
+        if (nomFinished) return;
+        nomFinished = true;
+        clearTimeout(nomTimer);
+        callback('高德失敗 (' + reasonMsg + ') 且 Nominatim 後備失敗: ' + (err && err.message ? err.message : '網絡錯誤'));
+      });
+  }
+
+  var amapApiUrl = '/api/amap-regeo?lat=' + lat + '&lng=' + lng;
+  var amapFinished = false;
+  var amapTimer = setTimeout(function() {
+    if (!amapFinished) {
+      amapFinished = true;
+      fetchNominatimFallback('高德請求逾時');
+    }
+  }, 10000);
+
+  fetch(amapApiUrl, { method: 'GET', headers: { 'Accept': 'application/json' } })
+    .then(function(res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    })
+    .then(function(data) {
+      if (amapFinished) return;
+      if (!data || !data.success) {
+        amapFinished = true;
+        clearTimeout(amapTimer);
+        fetchNominatimFallback(data && data.error ? data.error : '高德解析失敗');
+        return;
+      }
+      amapFinished = true;
+      clearTimeout(amapTimer);
+      var normalizedData = {
+        provider: 'amap',
+        display_name: data.formatted_address,
+        address: {
+          building: data.building,
+          road: data.road,
+          formatted_address: data.formatted_address
+        },
+        raw: data.raw
+      };
+      callback(null, normalizedData);
+    })
+    .catch(function(err) {
+      if (amapFinished) return;
+      amapFinished = true;
+      clearTimeout(amapTimer);
+      fetchNominatimFallback(err && err.message ? err.message : '高德網絡錯誤');
+    });
+}
+
+function pickAddressText(data){
+  if (!data) return '';
+  var addr = data.address || {};
+  return data.display_name
+      || addr.formatted_address
+      || [addr.road, addr.building, addr.district].filter(Boolean).join(' ')
+      || '';
+}
+
+function fillPlaceAddressFromGeocode(data, opts){
+  opts = opts || {};
+  var filled = false;
+  var addr = data.address || {};
+
+  var addrEl = document.getElementById('place-address');
+  var text = pickAddressText(data);
+  if (addrEl && text && (opts.overwrite || !addrEl.value.trim())){
+    addrEl.value = text;
+    filled = true;
+  }
+
+  var nameEl = document.getElementById('place-name');
+  if (nameEl && (opts.overwriteName || !nameEl.value.trim())){
+    var autoName = addr.amenity || addr.shop || addr.building || addr.tourism
+                || addr.office || addr.road || '';
+    if (autoName){ nameEl.value = autoName; filled = true; }
+  }
+  return filled;
+}
+
+function setPlaceRegeoBtnLoading(btn, loading){
+  if (!btn) return;
+  if (loading){
+    if (!btn.dataset.origHtml) btn.dataset.origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.classList.add('opacity-60','cursor-wait');
+    btn.innerHTML = '<span class="inline-flex items-center gap-1"><span class="ico w-3 h-3 animate-spin">' + ico('loader','w-3 h-3') + '</span>解析中…</span>';
+  } else {
+    if (btn.dataset.origHtml){
+      btn.innerHTML = btn.dataset.origHtml;
+      delete btn.dataset.origHtml;
+    }
+    btn.disabled = false;
+    btn.classList.remove('opacity-60','cursor-wait');
+    btn.querySelectorAll('[data-icon]').forEach(function(el){ delete el.dataset.done; });
+    hydrateIcons(btn);
+  }
+}
+
+function reverseGeocodePlaceCoords(opts){
+  opts = opts || {};
+  var latEl  = document.getElementById('place-lat');
+  var lngEl  = document.getElementById('place-lng');
+  var addrEl = document.getElementById('place-address');
+  if (!latEl || !lngEl) return;
+
+  var lat = parseFloat(latEl.value);
+  var lng = parseFloat(lngEl.value);
+
+  if (isNaN(lat) || isNaN(lng)){
+    if (!opts.silent) showToast('請先填入有效的緯度與經度');
+    return;
+  }
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180){
+    if (!opts.silent) showToast('座標超出有效範圍');
+    return;
+  }
+
+  var reqLat = lat, reqLng = lng;
+  var btn = document.getElementById('place-regeo-btn');
+  setPlaceRegeoBtnLoading(btn, true);
+  if (!opts.silent) showToast('正在依座標解析地址...');
+
+  reverseGeocode(lat, lng, function(err, data){
+    setPlaceRegeoBtnLoading(btn, false);
+
+    if (err){
+      if (!opts.silent) showToast('地址解析失敗：' + err);
+      return;
+    }
+
+    var nowLat = parseFloat(latEl.value);
+    var nowLng = parseFloat(lngEl.value);
+    if (nowLat !== reqLat || nowLng !== reqLng){
+      if (!opts.silent) showToast('座標已變更，請重新解析');
+      return;
+    }
+
+    var text = pickAddressText(data);
+    if (!text){
+      if (!opts.silent) showToast('解析成功，但沒有可用的地址資訊');
+      return;
+    }
+
+    var isEmpty = !(addrEl && addrEl.value.trim());
+
+    if (isEmpty){
+      if (addrEl) addrEl.value = text;
+      if (!opts.silent) showToast('已填入地址');
+      return;
+    }
+
+    if (opts.silent) return;
+
+    if (opts.overwrite){
+      if (addrEl) addrEl.value = text;
+      showToast('已更新地址');
+      return;
+    }
+
+    showPlaceAddressPreview(text);
+  });
+}
+
+function showPlaceAddressPreview(text){
+  _pendingPlaceAddr = text;
+  var wrap = document.getElementById('place-address-preview');
+  if (!wrap) return;
+  wrap.innerHTML =
+    '<div class="bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-2">' +
+      '<div class="text-[11px] text-amber-800 font-semibold mb-1">解析到的新地址（可選擇是否套用）</div>' +
+      '<div class="text-[11px] text-slate-700 mb-1.5 break-all leading-relaxed">' + escapeHtml(text) + '</div>' +
+      '<div class="flex gap-1.5">' +
+        '<button type="button" onclick="applyPendingPlaceAddr()" class="flex-1 py-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-md text-[11px] transition">套用</button>' +
+        '<button type="button" onclick="cancelPendingPlaceAddr()" class="flex-1 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-md text-[11px] transition">取消</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function applyPendingPlaceAddr(){
+  if (_pendingPlaceAddr){
+    var addrEl = document.getElementById('place-address');
+    if (addrEl) addrEl.value = _pendingPlaceAddr;
+    showToast('已更新地址');
+  }
+  cancelPendingPlaceAddr();
+}
+
+function cancelPendingPlaceAddr(){
+  _pendingPlaceAddr = null;
+  var wrap = document.getElementById('place-address-preview');
+  if (wrap) wrap.innerHTML = '';
+}
+
+function matchDistrictFromAddress(addr){
+  var hay = [
+    addr.state || '', addr.state_district || '', addr.region || '',
+    addr.city || '', addr.city_district || '', addr.county || '',
+    addr.district || '', addr.suburb || '', addr.quarter || '',
+    addr.neighbourhood || '', addr.road || '', addr.display_name || ''
+  ].join(' ').toLowerCase();
+
+  for (var district in DISTRICT_KEYWORDS){
+    var keys = DISTRICT_KEYWORDS[district];
+    for (var i = 0; i < keys.length; i++){
+      if (hay.indexOf(keys[i].toLowerCase()) !== -1) return district;
+    }
+  }
+  return null;
+}
+
+function applyGeocodeResult(data){
+  return fillPlaceAddressFromGeocode(data, { overwrite: false, overwriteName: false });
+}
+
+/* ---------- 保存 / 编辑 / 删除 ---------- */
+function savePlace(){
+  var nameEl     = document.getElementById('place-name');
+  var typeEl     = document.getElementById('place-type');
+  var addressEl  = document.getElementById('place-address');
+  var noteEl     = document.getElementById('place-note');
+  var latEl      = document.getElementById('place-lat');
+  var lngEl      = document.getElementById('place-lng');
+
+  var name = nameEl ? nameEl.value.trim() : '';
+  var type = typeEl ? typeEl.value : '';
+  var address = addressEl ? addressEl.value.trim() : '';
+  var note = noteEl ? noteEl.value.trim() : '';
+  var latVal = latEl ? latEl.value.trim() : '';
+  var lngVal = lngEl ? lngEl.value.trim() : '';
+
+  if (!name){ showToast('請輸入地點名稱'); return; }
+  if (!type){ showToast('請選擇類型'); return; }
+
+  var lat = latVal === '' ? null : parseFloat(latVal);
+  var lng = lngVal === '' ? null : parseFloat(lngVal);
+  if (lat !== null && isNaN(lat)) lat = null;
+  if (lng !== null && isNaN(lng)) lng = null;
+
+  var editId = currentEditingPlaceId;
+  var editIndex = editId ? places.findIndex(function(p){ return p.id === editId; }) : -1;
+
+  if (editId && editIndex !== -1){
+    places[editIndex].name = name;
+    places[editIndex].type = type;
+    places[editIndex].address = address;
+    places[editIndex].note = note;
+    places[editIndex].lat = lat;
+    places[editIndex].lng = lng;
+    places[editIndex].updatedAt = Date.now();
+    showToast('地點已更新');
+  } else {
+    places.unshift({
+      id: 'place_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+      name: name, type: type,
+      address: address, note: note, lat: lat, lng: lng,
+      timestamp: Date.now()
+    });
+    showToast('地點已保存');
+  }
+
+  localStorage.setItem('taxi_places', JSON.stringify(places));
+  currentEditingPlaceId = null;
+  closeModal();
+  renderPlacesList();
+}
+
+function openEditPlaceModal(id){
+  var p = places.find(function(x){ return x.id === id; });
+  if (!p){ showToast('找不到此地點'); return; }
+
+  openAddPlaceModal();
+  currentEditingPlaceId = id;
+
+  document.getElementById('modal-title').innerText = '修改收藏地點';
+  document.getElementById('place-name').value = p.name || '';
+  document.getElementById('place-type').value = p.type || PLACE_TYPES[0];
+  document.getElementById('place-address').value = p.address || '';
+  document.getElementById('place-note').value = p.note || '';
+  document.getElementById('place-lat').value = (typeof p.lat === 'number') ? p.lat : '';
+  document.getElementById('place-lng').value = (typeof p.lng === 'number') ? p.lng : '';
+
+  if (typeof p.lat === 'number' && typeof p.lng === 'number' && !(p.address || '').trim()){
+    reverseGeocodePlaceCoords({ silent: true });
+  }
+}
+
+function deletePlace(id){
+  if (!confirm('確定要刪除此收藏地點嗎？')) return;
+  places = places.filter(function(p){ return p.id !== id; });
+  localStorage.setItem('taxi_places', JSON.stringify(places));
+  renderPlacesList();
+  showToast('地點已刪除');
+}
+
+/* ---------- 触摸 / 键盘处理 ---------- */
+document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, { passive:false });
+var lastTouchEnd = 0;
+document.addEventListener('touchend', function(e){
+  var now = Date.now();
+  if (now - lastTouchEnd <= 300) e.preventDefault();
+  lastTouchEnd = now;
+}, { passive:false });
+
+(function setupTapToDismiss(){
+  function isFormField(el){ if (!el) return false; var tag = el.tagName; return tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA'; }
+  function dismissKeyboard(e){
+    var target = e.target;
+    if (target.closest && target.closest('input, select, textarea, button, a, label')) return;
+    var active = document.activeElement;
+    if (isFormField(active)) active.blur();
+  }
+  document.addEventListener('touchstart', dismissKeyboard, { passive: true });
+  document.addEventListener('mousedown', dismissKeyboard);
+})();
+
+document.addEventListener('touchmove', function(e){
+  var tripModal = document.getElementById('trip-modal');
+  if (tripModal && !tripModal.classList.contains('hidden')){
+    if (!tripModal.contains(e.target)) e.preventDefault();
+  }
+}, { passive:false });
+
+/* ---------- 初始化 ---------- */
+window.addEventListener('DOMContentLoaded', function(){
+  hydrateIcons();
+  renderPlaceFilters();
+  renderPlacesList();
+});
+</script>
+</body>
+</html>

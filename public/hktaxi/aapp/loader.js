@@ -27,7 +27,7 @@ function isSubPageHref(href){
   return true;
 }
 
-function loadSubPage(href){
+function loadSubPage(href,tabName){
   if (currentSubPageHref === href && loadedSubPages[href]) return;
 
   currentSubPageHref = href;
@@ -44,6 +44,18 @@ function loadSubPage(href){
       if (label) label.className = 'text-[11px] font-medium mt-1';
     }
   });
+
+
+  if(tabName){
+    var activeNav = document.getElementById('nav-' + tabName);
+    if (activeNav){
+      activeNav.className = 'flex flex-col items-center justify-center text-amber-500 transition';
+      var activeLabel = activeNav.querySelector('span:last-child');
+      if (activeLabel) activeLabel.className = 'text-[11px] font-bold mt-1';
+    }
+  }
+
+
 
   document.getElementById('main-tab-content').classList.add('hidden');
   var container = document.getElementById('sub-page-container');
@@ -482,7 +494,7 @@ window.handleDrawerItem = function(id){
   setTimeout(function(){
     if (item.href){
       if (isSubPageHref(item.href)){
-        loadSubPage(item.href);
+        loadSubPage(item.href,id);
       } else {
         var from = encodeURIComponent(window.location.href);
         var sep = item.href.indexOf('?') === -1 ? '?' : '&';
