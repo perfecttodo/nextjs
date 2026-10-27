@@ -67,6 +67,17 @@ function loadSubPage(href){
 
   if (loadedSubPages[href]){
     loadedSubPages[href].host.style.display = 'block';
+
+    /* ★ 每次切回该子页面：重新执行它的 DOMContentLoaded / load 回调，
+       让子页面有机会重新读数据、重渲染 UI（等价于"重新初始化"）。 ★ */
+    var entry = window.__PAGE_CAPTURED__ && window.__PAGE_CAPTURED__[loadedSubPages[href].ns];
+    if (entry && typeof entry.run === 'function'){
+      setTimeout(function(){
+        try { entry.run(); }
+        catch(e){ console.error('[loader] refresh error:', e); }
+      }, 0);
+    }
+
     window.scrollTo(0, 0);
     return;
   }
@@ -99,6 +110,10 @@ function loadSubPage(href){
       if (loadingEl.parentNode) loadingEl.remove();
       if (loadedSubPages[href] && loadedSubPages[href].host){
         loadedSubPages[href].host.remove();
+        /* 清理旧 ns 的 captured 记录，避免内存泄漏 */
+        if (window.__PAGE_CAPTURED__ && loadedSubPages[href].ns){
+          delete window.__PAGE_CAPTURED__[loadedSubPages[href].ns];
+        }
         delete loadedSubPages[href];
       }
       var shouldShow = (currentSubPageHref === href);
@@ -198,13 +213,16 @@ function mountSubPage(href, html, container, shouldShow){
       '  var __shadow__ = __realWin__.__SHADOW_POOL__["' + ns + '"];\n' +
       '  var __bodyDiv__ = __shadow__.querySelector(".subpage-body");\n' +
       '  var window = __realWin__;\n' +
+      /* ★ 先定义 __captured__：document.addEventListener 与 window.addEventListener 两条路径都要能往里 push ★ */
+      '  var __captured__ = [];\n' +
       '  var document = {\n' +
       '    getElementById: function(id){ return __shadow__.getElementById(id); },\n' +
       '    querySelector: function(sel){ return __shadow__.querySelector(sel); },\n' +
       '    querySelectorAll: function(sel){ return __shadow__.querySelectorAll(sel); },\n' +
       '    addEventListener: function(type, handler, opts){\n' +
-      '      if (type === "DOMContentLoaded"){\n' +
-      '        setTimeout(function(){ try { handler.call(window, {type:"DOMContentLoaded"}); } catch(e){ console.error("[' + ns + '] DOMContentLoaded", e); } }, 0);\n' +
+      /* ★ 统一收集：不再立即执行，交由末尾的统一执行器，这样首次/切回都能复用同一份 handler ★ */
+      '      if (type === "DOMContentLoaded" || type === "load"){\n' +
+      '        __captured__.push({ type: type, handler: handler });\n' +
       '        return;\n' +
       '      }\n' +
       '      __shadow__.addEventListener(type, handler, opts);\n' +
@@ -254,9 +272,8 @@ function mountSubPage(href, html, container, shouldShow){
       '  function confirm(msg){ return __realWin__.confirm(msg); }\n' +
       '  function alert(msg){ return __realWin__.alert(msg); }\n' +
       '\n' +
-      /* 拦截 DOMContentLoaded / load */
+      /* 拦截 window.addEventListener 上的 DOMContentLoaded / load，同样收集到 __captured__ */
       '  var __origAdd__ = __realWin__.addEventListener;\n' +
-      '  var __captured__ = [];\n' +
       '  __realWin__.addEventListener = function(type, handler, opts){\n' +
       '    if (type === "DOMContentLoaded" || type === "load"){\n' +
       '      __captured__.push({ type: type, handler: handler });\n' +
@@ -270,12 +287,10 @@ function mountSubPage(href, html, container, shouldShow){
       '\n' +
       '  var __bindDone__ = false;\n' +
       '  try {\n' +
-      /* ★ 关键修复：__bindAll__ 定义在 try 块内部（函数表达式），
-         它在创建时捕获的是 try 块的作用域，所以 eval(code) 的作用域链为：
+      /* ★ 关键：__bindAll__ 定义在 try 块内，eval(code) 的作用域链为：
          事件回调(含 event 参数) → __bindAll__ → try 块 → IIFE → 全局。
-         1) inlineScripts 里用 const / let 声明的 download 等函数可以被找到；
-         2) 回调参数命名为 event，eval 里的 event.stopPropagation() 才能解析到真实事件对象
-            （原来的 e 会让 event 落到 window.event 或被子页面同名变量污染）。 */
+         1) inlineScripts 里 const/let 声明的 download 等函数能被找到；
+         2) 回调参数命名为 event，eval 里的 event.stopPropagation() 解析到真实事件对象。 */
       '    var __bindAll__ = function(el){\n' +
       '      if (!el || !el.dataset) return;\n' +
       '      __EVENT_ATTRS__.forEach(function(evt){\n' +
@@ -285,19 +300,15 @@ function mountSubPage(href, html, container, shouldShow){
       '        var flag = "__bound_" + evt;\n' +
       '        if (el[flag]) return;\n' +
       '        el[flag] = true;\n' +
-      /* ★ 参数名必须是 event：direct eval 才能解析到它 ★ */
       '        el.addEventListener(evt, function(event){\n' +
       '          var __self__ = this;\n' +
       '          try {\n' +
       '            var __ret__ = eval(code);\n' +
-      /* 模拟原生内联 handler 的 return false */
       '            if (__ret__ === false){\n' +
       '              if (event && event.preventDefault) event.preventDefault();\n' +
       '              if (event && event.stopPropagation) event.stopPropagation();\n' +
       '            }\n' +
       '          } catch(err){\n' +
-      /* 兜底：改用 new Function("event", code)，而不是间接 eval。
-         间接 eval 在全局作用域执行，既拿不到 event，也拿不到块作用域里的函数。 */
       '            if (err && err.name === "ReferenceError"){\n' +
       '              try {\n' +
       '                var __r2__ = new __realWin__.Function("event", code).call(__self__, event);\n' +
@@ -331,14 +342,27 @@ function mountSubPage(href, html, container, shouldShow){
       '      mo.observe(__shadow__, { childList:true, subtree:true });\n' +
       '    })();\n' +
       '    __bindDone__ = true;\n' +
+      '\n' +
+      /* ★ 把捕获的 handler 存到全局池，供 loader 切回时再次调用 ★ */
+      '    __realWin__.__PAGE_CAPTURED__ = __realWin__.__PAGE_CAPTURED__ || {};\n' +
+      '    __realWin__.__PAGE_CAPTURED__["' + ns + '"] = {\n' +
+      '      list: __captured__,\n' +
+      '      run: function(){\n' +
+      '        __captured__.forEach(function(item){\n' +
+      '          try { item.handler.call(__realWin__, { type: item.type }); }\n' +
+      '          catch(e){ console.error("[' + ns + '] " + item.type + " handler error:", e); }\n' +
+      '        });\n' +
+      '      }\n' +
+      '    };\n' +
       '  } catch(e){ console.error("[' + ns + '] script error:", e); }\n' +
       '  finally {\n' +
       '    __realWin__.addEventListener = __origAdd__;\n' +
       '  }\n' +
       '\n' +
-      /* 异步执行捕获的 DOMContentLoaded / load handler */
+      /* 首次执行：与切回时的刷新共用 entry.run() */
       '  setTimeout(function(){\n' +
-      '    if (!__captured__.length) return;\n' +
+      '    var __entry__ = __realWin__.__PAGE_CAPTURED__ && __realWin__.__PAGE_CAPTURED__["' + ns + '"];\n' +
+      '    if (!__entry__ || !__entry__.list.length) return;\n' +
       '    var __origAdd2__ = __realWin__.addEventListener;\n' +
       '    __realWin__.addEventListener = function(type, handler, opts){\n' +
       '      if (type === "DOMContentLoaded" || type === "load"){\n' +
@@ -351,10 +375,7 @@ function mountSubPage(href, html, container, shouldShow){
       '      return __origAdd2__.call(__realWin__, type, handler, opts);\n' +
       '    };\n' +
       '    try {\n' +
-      '      __captured__.forEach(function(item){\n' +
-      '        try { item.handler.call(__realWin__, { type: item.type }); }\n' +
-      '        catch(e){ console.error("[' + ns + '] " + item.type + " handler error:", e); }\n' +
-      '      });\n' +
+      '      __entry__.run();\n' +
       '    } finally {\n' +
       '      __realWin__.addEventListener = __origAdd2__;\n' +
       '    }\n' +
