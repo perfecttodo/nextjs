@@ -300,176 +300,6 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
     <div id="trip-list-container" class="space-y-2"></div>
   </section>
 
-
-  <section id="tab-stats" class="space-y-4 hidden">
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
-      <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-settings')">
-        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5"><span class="ico w-4 h-4 text-amber-500" data-icon="settings"></span> 最後一更成本與設定</h2>
-        <div class="flex items-center gap-1.5">
-          <button type="button" onclick="event.stopPropagation(); openShiftHistoryModal()" class="text-[11px] px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 font-semibold transition flex items-center gap-1"><span class="ico w-3.5 h-3.5" data-icon="history"></span> 查看歷史更次</button>
-          <span class="ico w-4 h-4 text-slate-400" data-icon="chevron-down" data-card-chevron="card-settings"></span>
-        </div>
-      </div>
-      <div class="space-y-3" data-card-body="card-settings">
-        <div class="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-[11px] text-amber-800 font-medium flex justify-between items-center"><span>最後一更日期</span><span id="current-shift-date-badge" class="font-bold font-mono">--</span></div>
-        <div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 flex justify-between items-center">
-          <div class="min-w-0">
-            <div class="text-[11px] font-semibold text-slate-600 mb-0.5">更次時間</div>
-            <div id="setting-shift-time-display" class="text-xs text-slate-800 font-mono font-bold">未設定</div>
-          </div>
-          <button type="button" onclick="openShiftTimeModal()" class="text-[11px] px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded-lg transition shrink-0">設定</button>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">租車費用 (HKD)</label>
-            <input type="number" id="setting-rental" onchange="saveSettings()" placeholder="0" inputmode="decimal" autocomplete="off" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">總油費 (HKD)</label>
-            <div class="flex gap-1">
-              <input type="number" id="setting-fuel" readonly class="flex-1 min-w-0 px-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-xl focus:outline-none text-slate-700 font-bold">
-              <button type="button" onclick="openAddFuelModal()" class="px-3 py-2 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-900 font-black rounded-xl text-base transition shrink-0 leading-none">+</button>
-            </div>
-          </div>
-        </div>
-        <button type="button" onclick="openFuelHistoryModal()" class="w-full text-[11px] py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-amber-700 font-semibold transition flex items-center justify-center gap-1.5">
-          <span class="ico w-3.5 h-3.5" data-icon="droplet"></span><span id="fuel-history-btn-text">查看加油記錄 (0 筆)</span>
-        </button>
-        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">
-          <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5"><span class="ico w-3.5 h-3.5 text-amber-500" data-icon="road"></span> 最後一更行駛里程</span>
-            <span id="mileage-summary" class="text-[11px] text-slate-400 font-medium">未完成</span>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-[11px] font-semibold text-slate-500 mb-1">開始咪錶 (km)</label>
-              <input type="number" id="setting-mileage-start" onchange="saveSettings()" placeholder="0" inputmode="decimal" autocomplete="off" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none font-mono">
-            </div>
-            <div><label class="block text-[11px] font-semibold text-slate-500 mb-1">結束咪錶 (km)</label>
-              <input type="number" id="setting-mileage-end" onchange="saveSettings()" placeholder="0" inputmode="decimal" autocomplete="off" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none font-mono">
-            </div>
-          </div>
-          <div id="mileage-detail" class="text-[11px] text-slate-500 leading-relaxed"></div>
-        </div>
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <label class="block text-xs font-semibold text-slate-600 flex items-center gap-1.5"><span class="ico w-3.5 h-3.5 text-amber-500" data-icon="edit-3"></span> 更次備註 (選填)</label>
-            <button type="button" id="setting-note-clear-btn" onclick="clearSettingNote()" class="text-[11px] px-2 py-0.5 rounded-full border font-medium transition bg-white text-rose-600 border-rose-200 hover:bg-rose-50 hidden">清除</button>
-          </div>
-          <input type="text" id="setting-note" oninput="onSettingNoteInput()" onchange="saveSettings()" placeholder="例如：早更、紅日、雨天、旺角開工、車輛保養..." autocomplete="off" class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
-          <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">備註會跟隨此更次保存，方便日後回顧。</p>
-        </div>
-      </div>
-    </div>
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
-      <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-combined')">
-        <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5 min-w-0">
-          <span class="ico w-4 h-4 text-amber-500 shrink-0" data-icon="bar-chart-3"></span>
-          <span class="truncate">利潤與統計</span><span id="net-shift-tag" class="text-[10px] text-amber-600 font-mono ml-1"></span>
-        </span>
-        <div class="flex items-center gap-2 shrink-0">
-          <span id="current-shift-time-range" class="text-[11px] text-slate-500 font-mono"></span>
-          <span class="ico w-4 h-4 text-slate-400" data-icon="chevron-down" data-card-chevron="card-combined"></span>
-        </div>
-      </div>
-      <div class="space-y-3 border-t border-slate-100 pt-3" data-card-body="card-combined">
-        <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
-          <button type="button" onclick="setStatsPeriod('day')" id="period-btn-day" class="py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition font-bold">最近一更</button>
-          <button type="button" onclick="setStatsPeriod('week')" id="period-btn-week" class="py-1.5 rounded-lg text-slate-600 transition font-medium">最近一星期</button>
-          <button type="button" onclick="setStatsPeriod('month')" id="period-btn-month" class="py-1.5 rounded-lg text-slate-600 transition font-medium">最近一個月</button>
-        </div>
-        <div class="flex justify-between items-baseline">
-          <div id="stats-period-title" class="text-xs font-semibold text-slate-600">最近一更利潤</div>
-          <div id="stats-period-shift-count-badge" class="text-[10px] text-slate-400 font-mono">-- 更</div>
-        </div>
-        <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100"><div class="text-[10px] text-slate-500 font-medium">營業額</div><div id="net-gross" class="text-sm font-bold text-slate-800 mt-0.5 font-mono">$0</div></div>
-          <div class="bg-rose-50 p-2.5 rounded-xl border border-rose-200"><div class="text-[10px] text-rose-600 font-medium">總成本（租+油+支出）</div><div id="net-cost" class="text-sm font-bold text-rose-600 mt-0.5 font-mono">$0</div></div>
-          <div class="bg-amber-100 p-2.5 rounded-xl border border-amber-200"><div class="text-[10px] text-amber-800 font-medium">實收淨利</div><div id="net-profit" class="text-base font-extrabold text-amber-800 mt-0.5 font-mono">$0</div></div>
-        </div>
-        <div id="net-cost-breakdown" class="text-[11px] text-slate-500 text-center"></div>
-        <div class="border-t border-slate-100 pt-2">
-          <div class="text-[10px] text-slate-500 font-semibold mb-1.5 px-1 flex items-center gap-1"><span class="ico w-3 h-3" data-icon="credit-card"></span>付款方式分布（收入）</div>
-          <div id="stats-payment-breakdown" class="grid grid-cols-3 gap-2 text-center text-[11px]"></div>
-        </div>
-        <div class="border-t border-slate-100 pt-2 space-y-2 text-center text-[11px]">
-          <div class="grid grid-cols-3 gap-2">
-            <div class="bg-slate-50 rounded-lg py-2 border border-slate-100"><div class="text-slate-500">行駛里程</div><div id="metric-mileage" class="text-slate-800 font-bold font-mono mt-0.5">-- km</div></div>
-            <div class="bg-emerald-50 rounded-lg py-2 border border-emerald-200"><div class="text-emerald-700">每公里收入</div><div id="metric-rev-per-km" class="text-emerald-700 font-bold font-mono mt-0.5">--</div></div>
-            <div class="bg-amber-50 rounded-lg py-2 border border-amber-200"><div class="text-amber-700">每公里淨利</div><div id="metric-profit-per-km" class="text-amber-800 font-extrabold font-mono mt-0.5">--</div></div>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div class="bg-rose-50 rounded-lg py-2 border border-rose-200"><div class="text-rose-600">每公里油費</div><div id="metric-fuel-per-km" class="text-rose-600 font-bold font-mono mt-0.5">--</div></div>
-            <div class="bg-rose-50 rounded-lg py-2 border border-rose-200"><div class="text-rose-600">每公里成本</div><div id="metric-cost-per-km" class="text-rose-600 font-bold font-mono mt-0.5">--</div></div>
-          </div>
-        </div>
-        <div id="duration-metrics-row" class="border-t border-slate-100 pt-2 grid grid-cols-2 gap-2 text-center text-[11px]">
-          <div class="bg-slate-50 rounded-lg py-2 border border-slate-100"><div class="text-slate-500">更次時長</div><div id="metric-duration" class="text-slate-800 font-bold font-mono mt-0.5">-- 小時</div></div>
-          <div class="bg-amber-50 rounded-lg py-2 border border-amber-200"><div class="text-amber-700">時薪（每小時淨利）</div><div id="metric-profit-per-hour" class="text-amber-800 font-extrabold font-mono mt-0.5">--</div></div>
-        </div>
-        <div class="border-t border-slate-100 pt-2 grid grid-cols-2 gap-2 text-center text-[11px]">
-          <div class="bg-emerald-50 rounded-lg py-2 border border-emerald-200"><div class="text-[10px] text-emerald-700 font-medium flex items-center justify-center gap-1"><span class="ico w-3 h-3" data-icon="trending-up"></span>收入筆數</div><div id="net-income-count" class="text-base font-extrabold text-emerald-700 font-mono mt-0.5">0</div></div>
-          <div class="bg-rose-50 rounded-lg py-2 border border-rose-200"><div class="text-[10px] text-rose-600 font-medium flex items-center justify-center gap-1"><span class="ico w-3 h-3" data-icon="alert-triangle"></span>支出筆數</div><div id="net-expense-count" class="text-base font-extrabold text-rose-600 font-mono mt-0.5">0</div></div>
-        </div>
-        <div id="stats-type-breakdown" class="border-t border-slate-100 pt-2 grid grid-cols-3 gap-2 text-center text-[11px]"></div>
-      </div>
-    </div>
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
-      <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-chart')">
-        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5 min-w-0">
-          <span class="ico w-4 h-4 text-amber-500 shrink-0" data-icon="trending-up"></span><span class="truncate">收入走勢</span>
-        </h2>
-        <div class="flex items-center gap-2 shrink-0">
-          <span id="chart-peak-tag" class="text-[10px] text-amber-600 font-mono"></span>
-          <span class="ico w-4 h-4 text-slate-400" data-icon="chevron-down" data-card-chevron="card-chart"></span>
-        </div>
-      </div>
-      <div class="space-y-3 border-t border-slate-100 pt-3" data-card-body="card-chart">
-        <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
-          <button type="button" id="chart-range-7" onclick="setChartRange(7)" class="py-1.5 rounded-lg transition">最近 7 天</button>
-          <button type="button" id="chart-range-14" onclick="setChartRange(14)" class="py-1.5 rounded-lg transition">最近 14 天</button>
-          <button type="button" id="chart-range-30" onclick="setChartRange(30)" class="py-1.5 rounded-lg transition">最近 30 天</button>
-        </div>
-        <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
-          <button type="button" id="chart-mode-daily" onclick="setChartMode('daily')" class="py-1.5 rounded-lg transition">按日走勢</button>
-          <button type="button" id="chart-mode-hourly" onclick="setChartMode('hourly')" class="py-1.5 rounded-lg transition">按時段分佈</button>
-        </div>
-        <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
-          <button type="button" id="chart-metric-gross" onclick="setChartMetric('gross')" class="py-1.5 rounded-lg transition">營業額</button>
-          <button type="button" id="chart-metric-profit" onclick="setChartMetric('profit')" class="py-1.5 rounded-lg transition">淨利</button>
-          <button type="button" id="chart-metric-count" onclick="setChartMetric('count')" class="py-1.5 rounded-lg transition">筆數</button>
-        </div>
-        <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
-          <div class="bg-slate-50 rounded-lg py-2 border border-slate-100"><div class="text-slate-500">總計</div><div id="chart-sum" class="text-slate-800 font-bold font-mono mt-0.5">--</div></div>
-          <div class="bg-emerald-50 rounded-lg py-2 border border-emerald-200"><div class="text-emerald-700">平均</div><div id="chart-avg" class="text-emerald-700 font-bold font-mono mt-0.5">--</div></div>
-          <div class="bg-amber-50 rounded-lg py-2 border border-amber-200"><div class="text-amber-700">最高</div><div id="chart-max" class="text-amber-800 font-extrabold font-mono mt-0.5">--</div></div>
-        </div>
-        <div id="chart-container" class="relative select-none"></div>
-        <p id="chart-hint" class="text-[11px] text-slate-400 leading-relaxed text-center"></p>
-      </div>
-    </div>
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
-      <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-data')">
-        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5"><span class="ico w-4 h-4 text-amber-500" data-icon="database"></span> 數據管理</h2>
-        <div class="flex items-center gap-2">
-          <span class="text-[11px] text-slate-400 font-medium">共 <span id="total-trip-count" class="font-bold text-slate-600">0</span> 筆紀錄</span>
-          <span class="ico w-4 h-4 text-slate-400" data-icon="chevron-down" data-card-chevron="card-data"></span>
-        </div>
-      </div>
-      <div class="space-y-3" data-card-body="card-data">
-        <div class="grid grid-cols-2 gap-2">
-          <button type="button" onclick="deleteOldTrips('day')" class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 active:scale-[0.98] text-rose-600 font-semibold text-xs transition flex items-center justify-center gap-1.5"><span class="ico w-3.5 h-3.5" data-icon="calendar-x"></span> 刪除一天前</button>
-          <button type="button" onclick="deleteOldTrips('week')" class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 active:scale-[0.98] text-rose-600 font-semibold text-xs transition flex items-center justify-center gap-1.5"><span class="ico w-3.5 h-3.5" data-icon="calendar-minus"></span> 刪除一星期前</button>
-          <button type="button" onclick="deleteOldTrips('month')" class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 active:scale-[0.98] text-rose-600 font-semibold text-xs transition flex items-center justify-center gap-1.5"><span class="ico w-3.5 h-3.5" data-icon="calendar-clock"></span> 刪除一月前</button>
-          <button type="button" onclick="deleteOldTrips('all')" class="py-2.5 px-3 rounded-xl border border-rose-700 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm"><span class="ico w-3.5 h-3.5" data-icon="trash-2"></span> 刪除全部數據</button>
-        </div>
-        <div id="undo-banner" class="hidden bg-slate-900 text-white rounded-xl p-3 flex items-center justify-between gap-3">
-          <span class="text-xs font-medium flex items-center gap-1.5 min-w-0"><span class="ico w-4 h-4 text-rose-400 shrink-0" data-icon="history"></span><span id="undo-text" class="truncate">已刪除紀錄</span></span>
-          <button type="button" onclick="undoDelete()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs font-bold rounded-lg transition shrink-0">撤銷</button>
-        </div>
-        <p class="text-[11px] text-slate-400 leading-relaxed flex items-start gap-1.5"><span class="ico w-3.5 h-3.5 mt-0.5 shrink-0" data-icon="info"></span><span>刪除時會連同該更次的成本、油費、里程設定一併移除。刪除後可於上方橫幅按「撤銷」還原，重新載入頁面後則無法復原。</span></p>
-      </div>
-    </div>
-  </section>
 </main>
 
 <div id="sub-page-container" class="hidden w-full"></div>
@@ -485,7 +315,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
     <button onclick="handleDrawerItem('places')" id="nav-places" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition">
       <span class="ico w-5 h-5" data-icon="map-pin"></span><span class="text-[11px] font-medium mt-1">地點</span>
     </button>
-    <button onclick="switchTab('stats')" id="nav-stats" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition">
+    <button onclick="handleDrawerItem('stats')" id="nav-stats" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition">
       <span class="ico w-5 h-5" data-icon="pie-chart"></span><span class="text-[11px] font-medium mt-1">統計</span>
     </button>
   </div>
@@ -1309,8 +1139,6 @@ function selectManualShift(key){
   closeModal();
   updateDateTimePreview();
   updateTripTimeChip();
-  initSettingsForm();
-  updateStatsAndNet();
   renderTripList();
 
   if (key) showToast('已切換至補錄模式：' + key);
@@ -1338,10 +1166,8 @@ function startShift(){
   localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
 
   closeModal();
-  initSettingsForm();
   updateDateTimePreview();
   updateTripTimeChip();
-  updateStatsAndNet();
   renderTripList();
   updateHeaderWorked();
 
@@ -1361,10 +1187,8 @@ function endShift(){
   localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
 
   closeModal();
-  initSettingsForm();
   updateDateTimePreview();
   updateTripTimeChip();
-  updateStatsAndNet();
   renderTripList();
   updateHeaderWorked();
 
@@ -1542,8 +1366,6 @@ function saveQuickShiftNote(){
   shiftSettings[targetKey] = cfg;
   localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
 
-  initSettingsForm();
-  updateStatsAndNet();
   renderTripList();
 
   showToast(note ? '更次備註已保存' : '更次備註已清除');
@@ -1771,10 +1593,8 @@ function saveManualShiftTime(){
   localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
 
   closeModal();
-  initSettingsForm();
   updateDateTimePreview();
   updateTripTimeChip();
-  updateStatsAndNet();
   renderTripList();
   updateHeaderWorked();
 
@@ -1807,7 +1627,6 @@ document.addEventListener('touchend', function(e){
 window.addEventListener('DOMContentLoaded', function(){
   hydrateIcons();
   applyAllCardStates();
-  initSettingsForm();
 
   var allTypes = getAllTripTypes();
   if (allTypes.indexOf(activeTripType) === -1){ activeTripType = '街客'; localStorage.setItem('taxi_last_type', activeTripType); }
@@ -1829,7 +1648,6 @@ window.addEventListener('DOMContentLoaded', function(){
   renderTripList();
 
   applyChartUIState();
-  updateStatsAndNet();
 
   renderPlaceFilters();
   renderPlacesList();
@@ -1944,7 +1762,6 @@ function switchTab(tabName){
 
   if (tabName === 'list')  renderTripList();
   if (tabName === 'places'){ renderPlaceFilters(); renderPlacesList(); }
-  if (tabName === 'stats'){ initSettingsForm(); applyChartUIState(); updateStatsAndNet(); }
   hydrateIcons();
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2565,7 +2382,6 @@ async function saveTrip(){
       showToast(prefix + locTag + payTag + '行程已成功保存！');
     }
 
-    updateStatsAndNet();
 
   } finally {
     tripSaving = false;
@@ -3790,7 +3606,6 @@ function saveEditedTrip(){
   localStorage.setItem('taxi_trips', JSON.stringify(trips));
   closeModal();
   renderTripList();
-  updateStatsAndNet();
   showToast('行程已更新！');
 }
 
@@ -3799,7 +3614,6 @@ function deleteTrip(id){
     trips = trips.filter(function(item){ return item.id !== id; });
     localStorage.setItem('taxi_trips', JSON.stringify(trips));
     renderTripList();
-    updateStatsAndNet();
     showToast('記錄已刪除');
   }
 }
@@ -4052,8 +3866,6 @@ function saveShiftEdit(key){
   localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
 
   renderTripList();
-  updateStatsAndNet();
-  initSettingsForm();
   updateHeaderWorked();
 
   showToast('更次 ' + key + ' 已更新');
@@ -4108,8 +3920,6 @@ function confirmAddFuelInline(key){
   localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
 
   renderTripList();
-  updateStatsAndNet();
-  initSettingsForm();
 
   var msg = '已加入加油 $' + amount;
   if (unitPrice !== null && liters !== null) msg += '（' + liters.toFixed(2) + ' L）';
@@ -4128,8 +3938,6 @@ function deleteFuelInline(key, id){
   localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
 
   renderTripList();
-  updateStatsAndNet();
-  initSettingsForm();
 
   showToast('已刪除加油記錄');
   openShiftEditModal(key);
@@ -4166,8 +3974,6 @@ function deleteShift(key){
   localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
 
   renderTripList();
-  updateStatsAndNet();
-  initSettingsForm();
   updateHeaderWorked();
   updateTripTimeChip();
 
@@ -4331,8 +4137,6 @@ function addFuelEntry(){
   saveFuelPrefs(prefs);
 
   closeModal();
-  initSettingsForm();
-  updateStatsAndNet();
 
   var toastMsg = '已加入加油 $' + amount;
   if (unitPrice !== null && liters !== null) toastMsg += '（' + liters.toFixed(2) + ' L）';
@@ -4415,8 +4219,6 @@ function deleteFuelEntry(id){
   shiftSettings[key] = cfg;
   localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
 
-  initSettingsForm();
-  updateStatsAndNet();
   showToast('加油記錄已刪除，總油費 $' + getFuelTotal(cfg).toFixed(1));
   openFuelHistoryModal();
 }
@@ -4480,8 +4282,6 @@ function deleteOldTrips(period){
   localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
 
   renderTripList();
-  updateStatsAndNet();
-  initSettingsForm();
 
   var bannerText = '已刪除 ' + tripTargets.length + ' 筆紀錄、' + keysToDelete.length + ' 個更次';
   showUndoBanner(bannerText);
@@ -4521,8 +4321,6 @@ function undoDelete(){
 
   hideUndoBanner();
   renderTripList();
-  updateStatsAndNet();
-  initSettingsForm();
 
   var msg = '已復原 ' + restoredTripCount + ' 筆紀錄';
   if (restoredShiftCount > 0) msg += '、' + restoredShiftCount + ' 個更次';
@@ -4534,60 +4332,6 @@ function updateTripCount(){
   if (el) el.innerText = trips.length;
 }
 
-function initSettingsForm(){
-  var lastKey = getLastShiftKey();
-  var cfg     = getLastSettings(false);
-
-  if (!cfg){
-    document.getElementById('setting-rental').value        = '';
-    document.getElementById('setting-fuel').value          = '0';
-    document.getElementById('setting-mileage-start').value = '';
-    document.getElementById('setting-mileage-end').value   = '';
-    var settingNote = document.getElementById('setting-note');
-    if (settingNote) settingNote.value = '';
-    updateSettingNoteClearBtn();
-
-    document.getElementById('current-shift-time-range').innerText = '';
-    var badge = document.getElementById('current-shift-date-badge');
-    if (badge) badge.innerText = lastKey;
-    var timeDisplay = document.getElementById('setting-shift-time-display');
-    if (timeDisplay) timeDisplay.innerText = '未設定';
-    var btnText = document.getElementById('fuel-history-btn-text');
-    if (btnText) btnText.innerText = '查看加油記錄 (0 筆)';
-    updateMileagePanel(null);
-    updateDateTimePreview();
-    return;
-  }
-
-  document.getElementById('setting-rental').value = cfg.rental;
-  document.getElementById('setting-fuel').value   = getFuelTotal(cfg);
-
-  document.getElementById('setting-mileage-start').value = (cfg.mileage && cfg.mileage.start != null) ? cfg.mileage.start : '';
-  document.getElementById('setting-mileage-end').value   = (cfg.mileage && cfg.mileage.end   != null) ? cfg.mileage.end   : '';
-
-  var settingNote = document.getElementById('setting-note');
-  if (settingNote && document.activeElement !== settingNote){ settingNote.value = cfg.note || ''; }
-  updateSettingNoteClearBtn();
-
-  var timeRangeText;
-  if (cfg.startedAt && cfg.endedAt) timeRangeText = (cfg.startTime || '--') + ' - ' + (cfg.endTime || '--');
-  else if (cfg.startedAt) timeRangeText = (cfg.startTime || '--') + ' - 工作中';
-  else timeRangeText = '未設定';
-
-  document.getElementById('current-shift-time-range').innerText = (cfg.startedAt && cfg.endedAt) ? timeRangeText : '';
-
-  var timeDisplay = document.getElementById('setting-shift-time-display');
-  if (timeDisplay) timeDisplay.innerText = timeRangeText;
-
-  var badge = document.getElementById('current-shift-date-badge');
-  if (badge) badge.innerText = lastKey;
-
-  var btnText = document.getElementById('fuel-history-btn-text');
-  if (btnText) btnText.innerText = '查看加油記錄 (' + (cfg.fuelEntries || []).length + ' 筆)';
-
-  updateMileagePanel(cfg);
-  updateDateTimePreview();
-}
 
 function onSettingNoteInput(){ updateSettingNoteClearBtn(); }
 
@@ -4656,9 +4400,7 @@ function saveSettings(){
   shiftSettings[key] = cfg;
   localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
 
-  initSettingsForm();
   renderTripList();
-  updateStatsAndNet();
   updateHeaderWorked();
   showToast('設定已保存');
 }
@@ -4671,7 +4413,6 @@ function setStatsPeriod(period){
     if (p === period) btn.className = 'py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition font-bold';
     else btn.className = 'py-1.5 rounded-lg text-slate-600 transition font-medium';
   });
-  updateStatsAndNet();
 }
 
 function shiftKeyInPeriod(key, period, now, currentShiftKey){
@@ -5287,47 +5028,6 @@ function renderTrendChart(){
   hit.addEventListener('pointercancel', hideTip);
 }
 
-function updateStatsAndNet(){
-  var now = new Date();
-  updateTripCount();
-
-  var lastKey    = getLastShiftKey();
-  var currentKey = getCurrentShiftKey();
-  var lastCfg    = getLastSettings(false);
-
-  var shiftTagEl = document.getElementById('net-shift-tag');
-  if (shiftTagEl){
-    if (lastKey !== currentKey){ shiftTagEl.innerText = '（' + lastKey + '）'; }
-    else { shiftTagEl.innerText = ''; }
-    shiftTagEl.className = 'text-[10px] text-amber-600 font-mono ml-1';
-  }
-
-  var timeRangeText = '';
-  if (lastCfg && lastCfg.startedAt){
-    if (lastCfg.endedAt) timeRangeText = (lastCfg.startTime || '--') + ' - ' + (lastCfg.endTime || '--');
-    else timeRangeText = (lastCfg.startTime || '--') + ' - 工作中';
-  }
-  setText('current-shift-time-range', timeRangeText);
-
-  var badge = document.getElementById('current-shift-date-badge');
-  if (badge) badge.innerText = lastKey;
-
-  var timeDisplay = document.getElementById('setting-shift-time-display');
-  if (timeDisplay) timeDisplay.innerText = timeRangeText || '未設定';
-
-  var fuelInput = document.getElementById('setting-fuel');
-  if (fuelInput && document.activeElement !== fuelInput) fuelInput.value = lastCfg ? getFuelTotal(lastCfg) : '0';
-
-  updateMileagePanel(lastCfg);
-
-  if (statsPeriod === 'day') renderDayStatsView(lastKey, lastCfg);
-  else renderPeriodStatsView(statsPeriod, now, lastKey);
-
-  renderTrendChart();
-
-  updateDateTimePreview();
-  updateHeaderWorked();
-}
 
 function showToast(message){
   var toast = document.getElementById('toast');
@@ -5341,6 +5041,7 @@ var DRAWER_ITEMS = [
   { id: 'home',    label: '首頁',       desc: '返回記帳主頁',        icon: 'home',          tab: 'trip' },
   { id: 'airport', label: '機場航班', desc: '查詢香港國際機場航班', icon: 'plane-takeoff', href: './airport.html' },
   { id: 'places',  label: '收藏地點',    desc: '管理常用地點、一鍵導航',     icon: 'map-pin',       href: './places.html' },  // ★ 新增
+  { id: 'stats',  label: '統計',    desc: '統計',     icon: 'pie-chart',       href: './stats.html' },  // ★ 新增
   { id: 'gdrive',  label: 'Google Drive',  desc: '一鍵上傳／下載備份',      icon: 'database',      href: './backup.html' },
   { id: 'cash',     label: '現金盤點',    desc: '核對現金收入並記錄提取留存', icon: 'coins',         href: './cash-audit.html' },
   { id: 'other',   label: '其他',       desc: '更多功能（開發中）',    icon: 'settings',      tab: null }

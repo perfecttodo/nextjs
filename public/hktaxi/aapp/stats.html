@@ -1,0 +1,2374 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>統計 · 香港的士助手</title>
+<meta name="theme-color" content="#f59e0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="的士助手">
+<link rel="manifest" href="./manifest.json">
+<style>
+:root{--safe-area-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box;border:0 solid #e2e8f0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+h1,h2,h3,p{margin:0;font-size:inherit;font-weight:inherit}
+button,input,select,textarea{font:inherit;color:inherit;margin:0}
+button{background:none;cursor:pointer;border:0;padding:0}
+input,select,textarea{background:none}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+svg{display:block}
+ul{list-style:none;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang HK","Hiragino Sans CNS","Microsoft JhengHei","Noto Sans TC",sans-serif;-webkit-tap-highlight-color:transparent;touch-action:manipulation;background-color:#f8fafc;color:#1e293b;min-height:100vh;display:flex;flex-direction:column;padding-bottom:calc(5rem + env(safe-area-inset-bottom, 0px))}
+.ico{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.flex{display:flex}.grid{display:grid}.hidden{display:none !important}.flex-1{flex:1 1 0%}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}
+.items-center{align-items:center}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-baseline{align-items:baseline}
+.justify-between{justify-content:space-between}.justify-center{justify-content:center}.justify-end{justify-content:flex-end}
+.text-center{text-align:center}.text-right{text-align:right}.mx-auto{margin-left:auto;margin-right:auto}.w-full{width:100%}
+.relative{position:relative}.absolute{position:absolute}.fixed{position:fixed}.sticky{position:sticky}
+.inset-0{top:0;right:0;bottom:0;left:0}.inset-y-0{top:0;bottom:0}.left-0{left:0}.right-0{right:0}
+.top-0{top:0}.bottom-0{bottom:0}.top-16{top:4rem}.left-1\/2{left:50%}.-translate-x-1\/2{transform:translateX(-50%)}
+.z-50{z-index:50}.z-60{z-index:60}.z-70{z-index:70}
+.shrink-0{flex-shrink:0}.min-w-0{min-width:0}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.overflow-x-auto{overflow-x:auto}
+.pointer-events-none{pointer-events:none}.select-none{user-select:none;-webkit-user-select:none}.cursor-pointer{cursor:pointer}
+.max-w-md{max-width:28rem}.max-w-sm{max-width:24rem}.max-w-\[9rem\]{max-width:9rem}.w-\[75vw\]{width:75vw}
+.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.gap-0\.5{gap:.125rem}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-2\.5{gap:.625rem}.gap-3{gap:.75rem}
+.gap-x-2{column-gap:.5rem}.gap-y-1\.5{row-gap:.375rem}
+.space-y-2 > * + *{margin-top:.5rem}.space-y-2\.5 > * + *{margin-top:.625rem}.space-y-3 > * + *{margin-top:.75rem}.space-y-4 > * + *{margin-top:1rem}
+.space-x-1\.5 > * + *{margin-left:.375rem}.space-x-2 > * + *{margin-left:.5rem}.space-x-3 > * + *{margin-left:.75rem}
+.p-1{padding:.25rem}.p-1\.5{padding:.375rem}.p-2{padding:.5rem}.p-2\.5{padding:.625rem}.p-3{padding:.75rem}.p-3\.5{padding:.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-8{padding:2rem}
+.px-1\.5{padding-left:.375rem;padding-right:.375rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-2\.5{padding-left:.625rem;padding-right:.625rem}
+.px-3{padding-left:.75rem;padding-right:.75rem}.px-3\.5{padding-left:.875rem;padding-right:.875rem}.px-4{padding-left:1rem;padding-right:1rem}
+.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}
+.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}
+.py-3\.5{padding-top:.875rem;padding-bottom:.875rem}.py-4{padding-top:1rem;padding-bottom:1rem}
+.pt-1{padding-top:.25rem}.pt-1\.5{padding-top:.375rem}.pt-2{padding-top:.5rem}.pt-3{padding-top:.75rem}
+.pb-1{padding-bottom:.25rem}.pb-2{padding-bottom:.5rem}.pb-3{padding-bottom:.75rem}
+.pl-3{padding-left:.75rem}.pl-8{padding-left:2rem}.pl-9{padding-left:2.25rem}.pr-3{padding-right:.75rem}.pr-4{padding-right:1rem}.pr-1{padding-right:.25rem}
+.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-1\.5{margin-top:.375rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}
+.mb-1{margin-bottom:.25rem}.mb-1\.5{margin-bottom:.375rem}.mb-4{margin-bottom:1rem}.ml-1{margin-left:.25rem}.ml-auto{margin-left:auto}.-mr-1{margin-right:-.25rem}
+.w-2\.5{width:.625rem}.h-2\.5{height:.625rem}.w-3{width:.75rem}.h-3{height:.75rem}.w-3\.5{width:.875rem}.h-3\.5{height:.875rem}
+.w-4{width:1rem}.h-4{height:1rem}.w-5{width:1.25rem}.h-5{height:1.25rem}.w-6{width:1.5rem}.h-6{height:1.5rem}
+.w-7{width:1.75rem}.h-7{height:1.75rem}.w-10{width:2.5rem}.h-10{height:2.5rem}.w-11{width:2.75rem}.h-11{height:2.75rem}.h-16{height:4rem}
+.max-h-40{max-height:10rem}.max-h-64{max-height:16rem}.max-h-80{max-height:20rem}
+.text-\[9px\]{font-size:9px;line-height:1.2}.text-\[10px\]{font-size:10px;line-height:1.45}.text-\[11px\]{font-size:11px;line-height:1.45}
+.text-xs{font-size:.75rem;line-height:1.45}.text-sm{font-size:.875rem;line-height:1.45}.text-base{font-size:1rem;line-height:1.5}
+.text-lg{font-size:1.125rem;line-height:1.5}.text-xl{font-size:1.25rem;line-height:1.35}.text-2xl{font-size:1.5rem;line-height:1.3}.text-3xl{font-size:1.875rem;line-height:1.15}
+.font-medium{font-weight:500}.font-semibold{font-weight:600}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-black{font-weight:900}.font-normal{font-weight:400}
+.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.tracking-tight{letter-spacing:-.025em}.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}.leading-none{line-height:1}
+.underline{text-decoration:underline}.whitespace-nowrap{white-space:nowrap}.resize-none{resize:none}
+.text-slate-300{color:#cbd5e1}.text-slate-400{color:#94a3b8}.text-slate-500{color:#64748b}.text-slate-600{color:#475569}
+.text-slate-700{color:#334155}.text-slate-800{color:#1e293b}.text-slate-900{color:#0f172a}.text-white{color:#fff}
+.text-white\/70{color:rgba(255,255,255,.7)}.text-white\/60{color:rgba(255,255,255,.6)}
+.text-amber-300{color:#fcd34d}.text-amber-400{color:#fbbf24}.text-amber-500{color:#f59e0b}.text-amber-600{color:#d97706}
+.text-amber-700{color:#b45309}.text-amber-800{color:#92400e}.text-amber-900{color:#78350f}
+.text-rose-400{color:#fb7185}.text-rose-500{color:#f43f5e}.text-rose-600{color:#e11d48}.text-rose-700{color:#be123c}
+.text-blue-500{color:#3b82f6}.text-blue-600{color:#2563eb}.text-blue-700{color:#1d4ed8}
+.text-cyan-600{color:#0891b2}.text-cyan-700{color:#0e7490}
+.text-emerald-300{color:#6ee7b7}.text-emerald-400{color:#34d399}.text-emerald-600{color:#059669}.text-emerald-700{color:#047857}.text-emerald-800{color:#065f46}
+.text-orange-700{color:#c2410c}.text-purple-700{color:#7e22ce}.text-indigo-700{color:#4338ca}
+.bg-white{background-color:#fff}.bg-slate-50{background-color:#f8fafc}.bg-slate-100{background-color:#f1f5f9}.bg-slate-800{background-color:#1e293b}.bg-slate-900{background-color:#0f172a}
+.bg-amber-50{background-color:#fffbeb}.bg-amber-100{background-color:#fef3c7}.bg-amber-200{background-color:#fde68a}.bg-amber-500{background-color:#f59e0b}.bg-amber-600{background-color:#d97706}.bg-amber-700{background-color:#b45309}
+.bg-rose-50{background-color:#fff1f2}.bg-rose-100{background-color:#ffe4e6}.bg-rose-500{background-color:#f43f5e}.bg-rose-600{background-color:#e11d48}.bg-rose-700{background-color:#be123c}
+.bg-emerald-50{background-color:#ecfdf5}.bg-emerald-100{background-color:#d1fae5}.bg-emerald-500{background-color:#10b981}.bg-emerald-600{background-color:#059669}.bg-emerald-700{background-color:#047857}
+.bg-blue-50{background-color:#eff6ff}.bg-blue-100{background-color:#dbeafe}.bg-blue-200{background-color:#bfdbfe}.bg-blue-500{background-color:#3b82f6}.bg-blue-600{background-color:#2563eb}
+.bg-purple-50{background-color:#faf5ff}.bg-orange-50{background-color:#fff7ed}.bg-cyan-50{background-color:#ecfeff}.bg-cyan-100{background-color:#cffafe}.bg-indigo-50{background-color:#eef2ff}
+.bg-emerald-500\/15{background-color:rgba(16,185,129,.15)}.bg-rose-500\/15{background-color:rgba(244,63,94,.15)}
+.bg-slate-800\/80{background-color:rgba(30,41,59,.8)}.bg-amber-50\/60{background-color:rgba(255,251,235,.6)}
+.bg-amber-500\/10{background-color:rgba(245,158,11,.1)}.bg-white\/10{background-color:rgba(255,255,255,.1)}
+.bg-slate-900\/60{background-color:rgba(15,23,42,.62)}
+.bg-gradient-to-br{background-image:linear-gradient(to bottom right,#0f172a,#1e293b)}
+.bg-gradient-to-r{background-image:linear-gradient(to right,#fef3c7,#fcd34d)}
+.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}
+.border-slate-100{border-color:#f1f5f9}.border-slate-200{border-color:#e2e8f0}.border-slate-200\/80{border-color:rgba(226,232,240,.8)}.border-slate-300{border-color:#cbd5e1}
+.border-slate-700\/50{border-color:rgba(51,65,85,.5)}.border-slate-700\/60{border-color:rgba(51,65,85,.6)}.border-slate-700\/40{border-color:rgba(51,65,85,.4)}
+.border-amber-100{border-color:#fef3c7}.border-amber-200{border-color:#fde68a}.border-amber-200\/60{border-color:rgba(253,230,138,.6)}
+.border-amber-300{border-color:#fcd34d}.border-amber-400{border-color:#fbbf24}.border-amber-500\/30{border-color:rgba(245,158,11,.3)}.border-amber-600{border-color:#d97706}
+.border-rose-200{border-color:#fecdd3}.border-rose-300{border-color:#fda4af}.border-rose-400{border-color:#fb7185}.border-rose-700{border-color:#be123c}
+.border-emerald-200{border-color:#a7f3d0}.border-emerald-300{border-color:#6ee7b7}.border-emerald-500\/30{border-color:rgba(16,185,129,.3)}.border-rose-500\/30{border-color:rgba(244,63,94,.3)}
+.border-blue-200{border-color:#bfdbfe}.border-blue-300{border-color:#93c5fd}.border-blue-600{border-color:#2563eb}
+.border-orange-200{border-color:#fed7aa}.border-purple-200{border-color:#e9d5ff}.border-cyan-200{border-color:#a5f3fc}.border-cyan-300{border-color:#67e8f9}.border-indigo-200{border-color:#c7d2fe}
+.rounded{border-radius:.25rem}.rounded-md{border-radius:.375rem}.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}
+.shadow-xs{box-shadow:0 1px 2px rgba(15,23,42,.06)}
+.shadow-sm{box-shadow:0 1px 3px rgba(15,23,42,.08),0 1px 2px rgba(15,23,42,.04)}
+.shadow-md{box-shadow:0 4px 10px rgba(15,23,42,.10),0 2px 4px rgba(15,23,42,.05)}
+.shadow-lg{box-shadow:0 8px 24px rgba(15,23,42,.12)}.shadow-xl{box-shadow:0 16px 40px rgba(15,23,42,.22)}
+.shadow-2xl{box-shadow:0 25px 50px rgba(15,23,42,.35)}.shadow-inner{box-shadow:inset 0 1px 3px rgba(15,23,42,.12)}
+.change-shadow{text-shadow:0 1px 0 rgba(255,255,255,.6),0 2px 4px rgba(6,95,70,.25)}
+.debt-shadow{text-shadow:0 1px 0 rgba(255,255,255,.6),0 2px 4px rgba(190,18,60,.25)}
+.opacity-0{opacity:0}.opacity-90{opacity:.9}
+.transition{transition:all .2s ease}.transition-all{transition:all .3s ease}.duration-200{transition-duration:.2s}.duration-300{transition-duration:.3s}.ease-out{transition-timing-function:cubic-bezier(0,0,.2,1)}
+.backdrop-blur-xs{backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.animate-in{animation:modalIn .18s ease-out}.animate-pulse{animation:pulse 2s cubic-bezier(0.4,0,0.6,1) infinite}.animate-spin{animation:spin 1s linear infinite}
+@keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+[data-card-chevron]{transition:transform .2s ease;transform-origin:center}
+[data-card-chevron].collapsed{transform:rotate(-90deg)}
+.hover\:bg-amber-600:hover{background-color:#d97706}.hover\:bg-amber-700:hover{background-color:#b45309}
+.hover\:bg-slate-100:hover{background-color:#f1f5f9}.hover\:bg-slate-200:hover{background-color:#e2e8f0}.hover\:bg-slate-300:hover{background-color:#cbd5e1}
+.hover\:bg-rose-100:hover{background-color:#ffe4e6}.hover\:bg-rose-700:hover{background-color:#be123c}.hover\:bg-emerald-700:hover{background-color:#047857}
+.hover\:bg-blue-100:hover{background-color:#dbeafe}.hover\:bg-blue-200:hover{background-color:#bfdbfe}.hover\:bg-blue-600:hover{background-color:#2563eb}
+.hover\:text-slate-600:hover{color:#475569}.hover\:text-slate-900:hover{color:#0f172a}
+.hover\:text-amber-500:hover{color:#f59e0b}.hover\:text-amber-800:hover{color:#92400e}
+.hover\:text-blue-500:hover{color:#3b82f6}.hover\:text-rose-500:hover{color:#f43f5e}.hover\:text-rose-700:hover{color:#be123c}.hover\:text-white:hover{color:#fff}
+.active\:scale-\[0\.99\]:active{transform:scale(.99)}.active\:scale-\[0\.98\]:active{transform:scale(.98)}.active\:scale-\[0\.995\]:active{transform:scale(.995)}
+.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}
+.focus\:ring-2:focus{box-shadow:0 0 0 3px rgba(245,158,11,.35)}
+.focus\:ring-amber-500:focus{box-shadow:0 0 0 3px rgba(245,158,11,.35)}
+.focus\:ring-blue-500:focus{box-shadow:0 0 0 3px rgba(59,130,246,.35)}
+.focus\:ring-rose-500:focus{box-shadow:0 0 0 3px rgba(244,63,94,.35)}
+input[type=text],input[type=number],input[type=time],input[type=date],textarea,select{border-width:1px;border-style:solid;border-color:#e2e8f0}
+input::placeholder,textarea::placeholder{color:#94a3b8}
+input[type=time],input[type=date]{min-height:2.35rem}
+input[readonly]{cursor:pointer}
+select{-webkit-appearance:none;appearance:none;padding-right:2rem;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center}
+nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
+#drawer-overlay{opacity:0;visibility:hidden;transition:opacity .3s ease, visibility 0s linear .3s}
+#drawer-overlay.visible{opacity:1;visibility:visible;transition:opacity .3s ease, visibility 0s}
+#side-drawer{transform:translateX(100%);transition:transform .3s cubic-bezier(0.4, 0, 0.2, 1);will-change:transform;-webkit-overflow-scrolling:touch}
+#side-drawer.open{transform:translateX(0)}
+#drawer-content{-webkit-overflow-scrolling:touch}
+</style>
+</head>
+<body>
+
+<header class="bg-amber-500 text-slate-900 shadow-md sticky top-0 z-50" style="padding-top:var(--safe-area-top)">
+  <div class="max-w-md mx-auto px-4 py-2.5 flex justify-between items-center">
+    <div id="header-logo-btn" class="flex items-center space-x-2 cursor-pointer active:scale-[0.98] transition select-none">
+      <span class="ico w-7 h-7" data-icon="car-taxi-front"></span>
+      <h1 class="text-lg font-bold tracking-tight">香港的士助手</h1>
+      <span class="ico w-4 h-4 text-amber-700 opacity-70" data-icon="chevron-down"></span>
+    </div>
+    <button type="button" id="header-shift-badge" onclick="openShiftTimeModal()" title="點擊開工/收工" class="flex flex-col items-end bg-amber-600 hover:bg-amber-700 active:scale-[0.98] text-white px-2.5 py-1 rounded-xl shadow-inner transition">
+      <span id="header-current-time" class="font-mono font-bold text-xs leading-none">--:--:--</span>
+      <span id="header-worked" class="font-mono text-[9px] opacity-90 leading-none mt-0.5">未開工</span>
+    </button>
+  </div>
+</header>
+
+<main id="main-tab-content" class="flex-1 max-w-md w-full mx-auto p-4">
+  <section id="tab-stats" class="space-y-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+      <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-settings')">
+        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5"><span class="ico w-4 h-4 text-amber-500" data-icon="settings"></span> 最後一更成本與設定</h2>
+        <div class="flex items-center gap-1.5">
+          <button type="button" onclick="event.stopPropagation(); openShiftHistoryModal()" class="text-[11px] px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 font-semibold transition flex items-center gap-1"><span class="ico w-3.5 h-3.5" data-icon="history"></span> 查看歷史更次</button>
+          <span class="ico w-4 h-4 text-slate-400" data-icon="chevron-down" data-card-chevron="card-settings"></span>
+        </div>
+      </div>
+      <div class="space-y-3" data-card-body="card-settings">
+        <div class="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-[11px] text-amber-800 font-medium flex justify-between items-center"><span>最後一更日期</span><span id="current-shift-date-badge" class="font-bold font-mono">--</span></div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 flex justify-between items-center">
+          <div class="min-w-0">
+            <div class="text-[11px] font-semibold text-slate-600 mb-0.5">更次時間</div>
+            <div id="setting-shift-time-display" class="text-xs text-slate-800 font-mono font-bold">未設定</div>
+          </div>
+          <button type="button" onclick="openShiftTimeModal()" class="text-[11px] px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded-lg transition shrink-0">設定</button>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">租車費用 (HKD)</label>
+            <input type="number" id="setting-rental" onchange="saveSettings()" placeholder="0" inputmode="decimal" autocomplete="off" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">總油費 (HKD)</label>
+            <div class="flex gap-1">
+              <input type="number" id="setting-fuel" readonly class="flex-1 min-w-0 px-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-xl focus:outline-none text-slate-700 font-bold">
+              <button type="button" onclick="openAddFuelModal()" class="px-3 py-2 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-900 font-black rounded-xl text-base transition shrink-0 leading-none">+</button>
+            </div>
+          </div>
+        </div>
+        <button type="button" onclick="openFuelHistoryModal()" class="w-full text-[11px] py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-amber-700 font-semibold transition flex items-center justify-center gap-1.5">
+          <span class="ico w-3.5 h-3.5" data-icon="droplet"></span><span id="fuel-history-btn-text">查看加油記錄 (0 筆)</span>
+        </button>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5"><span class="ico w-3.5 h-3.5 text-amber-500" data-icon="road"></span> 最後一更行駛里程</span>
+            <span id="mileage-summary" class="text-[11px] text-slate-400 font-medium">未完成</span>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="block text-[11px] font-semibold text-slate-500 mb-1">開始咪錶 (km)</label>
+              <input type="number" id="setting-mileage-start" onchange="saveSettings()" placeholder="0" inputmode="decimal" autocomplete="off" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none font-mono">
+            </div>
+            <div><label class="block text-[11px] font-semibold text-slate-500 mb-1">結束咪錶 (km)</label>
+              <input type="number" id="setting-mileage-end" onchange="saveSettings()" placeholder="0" inputmode="decimal" autocomplete="off" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none font-mono">
+            </div>
+          </div>
+          <div id="mileage-detail" class="text-[11px] text-slate-500 leading-relaxed"></div>
+        </div>
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-xs font-semibold text-slate-600 flex items-center gap-1.5"><span class="ico w-3.5 h-3.5 text-amber-500" data-icon="edit-3"></span> 更次備註 (選填)</label>
+            <button type="button" id="setting-note-clear-btn" onclick="clearSettingNote()" class="text-[11px] px-2 py-0.5 rounded-full border font-medium transition bg-white text-rose-600 border-rose-200 hover:bg-rose-50 hidden">清除</button>
+          </div>
+          <input type="text" id="setting-note" oninput="onSettingNoteInput()" onchange="saveSettings()" placeholder="例如：早更、紅日、雨天、旺角開工、車輛保養..." autocomplete="off" class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+          <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">備註會跟隨此更次保存，方便日後回顧。</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+      <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-combined')">
+        <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5 min-w-0">
+          <span class="ico w-4 h-4 text-amber-500 shrink-0" data-icon="bar-chart-3"></span>
+          <span class="truncate">利潤與統計</span><span id="net-shift-tag" class="text-[10px] text-amber-600 font-mono ml-1"></span>
+        </span>
+        <div class="flex items-center gap-2 shrink-0">
+          <span id="current-shift-time-range" class="text-[11px] text-slate-500 font-mono"></span>
+          <span class="ico w-4 h-4 text-slate-400" data-icon="chevron-down" data-card-chevron="card-combined"></span>
+        </div>
+      </div>
+      <div class="space-y-3 border-t border-slate-100 pt-3" data-card-body="card-combined">
+        <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <button type="button" onclick="setStatsPeriod('day')" id="period-btn-day" class="py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition font-bold">最近一更</button>
+          <button type="button" onclick="setStatsPeriod('week')" id="period-btn-week" class="py-1.5 rounded-lg text-slate-600 transition font-medium">最近一星期</button>
+          <button type="button" onclick="setStatsPeriod('month')" id="period-btn-month" class="py-1.5 rounded-lg text-slate-600 transition font-medium">最近一個月</button>
+        </div>
+        <div class="flex justify-between items-baseline">
+          <div id="stats-period-title" class="text-xs font-semibold text-slate-600">最近一更利潤</div>
+          <div id="stats-period-shift-count-badge" class="text-[10px] text-slate-400 font-mono">-- 更</div>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100"><div class="text-[10px] text-slate-500 font-medium">營業額</div><div id="net-gross" class="text-sm font-bold text-slate-800 mt-0.5 font-mono">$0</div></div>
+          <div class="bg-rose-50 p-2.5 rounded-xl border border-rose-200"><div class="text-[10px] text-rose-600 font-medium">總成本（租+油+支出）</div><div id="net-cost" class="text-sm font-bold text-rose-600 mt-0.5 font-mono">$0</div></div>
+          <div class="bg-amber-100 p-2.5 rounded-xl border border-amber-200"><div class="text-[10px] text-amber-800 font-medium">實收淨利</div><div id="net-profit" class="text-base font-extrabold text-amber-800 mt-0.5 font-mono">$0</div></div>
+        </div>
+        <div id="net-cost-breakdown" class="text-[11px] text-slate-500 text-center"></div>
+        <div class="border-t border-slate-100 pt-2">
+          <div class="text-[10px] text-slate-500 font-semibold mb-1.5 px-1 flex items-center gap-1"><span class="ico w-3 h-3" data-icon="credit-card"></span>付款方式分布（收入）</div>
+          <div id="stats-payment-breakdown" class="grid grid-cols-3 gap-2 text-center text-[11px]"></div>
+        </div>
+        <div class="border-t border-slate-100 pt-2 space-y-2 text-center text-[11px]">
+          <div class="grid grid-cols-3 gap-2">
+            <div class="bg-slate-50 rounded-lg py-2 border border-slate-100"><div class="text-slate-500">行駛里程</div><div id="metric-mileage" class="text-slate-800 font-bold font-mono mt-0.5">-- km</div></div>
+            <div class="bg-emerald-50 rounded-lg py-2 border border-emerald-200"><div class="text-emerald-700">每公里收入</div><div id="metric-rev-per-km" class="text-emerald-700 font-bold font-mono mt-0.5">--</div></div>
+            <div class="bg-amber-50 rounded-lg py-2 border border-amber-200"><div class="text-amber-700">每公里淨利</div><div id="metric-profit-per-km" class="text-amber-800 font-extrabold font-mono mt-0.5">--</div></div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-rose-50 rounded-lg py-2 border border-rose-200"><div class="text-rose-600">每公里油費</div><div id="metric-fuel-per-km" class="text-rose-600 font-bold font-mono mt-0.5">--</div></div>
+            <div class="bg-rose-50 rounded-lg py-2 border border-rose-200"><div class="text-rose-600">每公里成本</div><div id="metric-cost-per-km" class="text-rose-600 font-bold font-mono mt-0.5">--</div></div>
+          </div>
+        </div>
+        <div id="duration-metrics-row" class="border-t border-slate-100 pt-2 grid grid-cols-2 gap-2 text-center text-[11px]">
+          <div class="bg-slate-50 rounded-lg py-2 border border-slate-100"><div class="text-slate-500">更次時長</div><div id="metric-duration" class="text-slate-800 font-bold font-mono mt-0.5">-- 小時</div></div>
+          <div class="bg-amber-50 rounded-lg py-2 border border-amber-200"><div class="text-amber-700">時薪（每小時淨利）</div><div id="metric-profit-per-hour" class="text-amber-800 font-extrabold font-mono mt-0.5">--</div></div>
+        </div>
+        <div class="border-t border-slate-100 pt-2 grid grid-cols-2 gap-2 text-center text-[11px]">
+          <div class="bg-emerald-50 rounded-lg py-2 border border-emerald-200"><div class="text-[10px] text-emerald-700 font-medium flex items-center justify-center gap-1"><span class="ico w-3 h-3" data-icon="trending-up"></span>收入筆數</div><div id="net-income-count" class="text-base font-extrabold text-emerald-700 font-mono mt-0.5">0</div></div>
+          <div class="bg-rose-50 rounded-lg py-2 border border-rose-200"><div class="text-[10px] text-rose-600 font-medium flex items-center justify-center gap-1"><span class="ico w-3 h-3" data-icon="alert-triangle"></span>支出筆數</div><div id="net-expense-count" class="text-base font-extrabold text-rose-600 font-mono mt-0.5">0</div></div>
+        </div>
+        <div id="stats-type-breakdown" class="border-t border-slate-100 pt-2 grid grid-cols-3 gap-2 text-center text-[11px]"></div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+      <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-chart')">
+        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5 min-w-0">
+          <span class="ico w-4 h-4 text-amber-500 shrink-0" data-icon="trending-up"></span><span class="truncate">收入走勢</span>
+        </h2>
+        <div class="flex items-center gap-2 shrink-0">
+          <span id="chart-peak-tag" class="text-[10px] text-amber-600 font-mono"></span>
+          <span class="ico w-4 h-4 text-slate-400" data-icon="chevron-down" data-card-chevron="card-chart"></span>
+        </div>
+      </div>
+      <div class="space-y-3 border-t border-slate-100 pt-3" data-card-body="card-chart">
+        <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <button type="button" id="chart-range-7" onclick="setChartRange(7)" class="py-1.5 rounded-lg transition">最近 7 天</button>
+          <button type="button" id="chart-range-14" onclick="setChartRange(14)" class="py-1.5 rounded-lg transition">最近 14 天</button>
+          <button type="button" id="chart-range-30" onclick="setChartRange(30)" class="py-1.5 rounded-lg transition">最近 30 天</button>
+        </div>
+        <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <button type="button" id="chart-mode-daily" onclick="setChartMode('daily')" class="py-1.5 rounded-lg transition">按日走勢</button>
+          <button type="button" id="chart-mode-hourly" onclick="setChartMode('hourly')" class="py-1.5 rounded-lg transition">按時段分佈</button>
+        </div>
+        <div class="grid grid-cols-3 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <button type="button" id="chart-metric-gross" onclick="setChartMetric('gross')" class="py-1.5 rounded-lg transition">營業額</button>
+          <button type="button" id="chart-metric-profit" onclick="setChartMetric('profit')" class="py-1.5 rounded-lg transition">淨利</button>
+          <button type="button" id="chart-metric-count" onclick="setChartMetric('count')" class="py-1.5 rounded-lg transition">筆數</button>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+          <div class="bg-slate-50 rounded-lg py-2 border border-slate-100"><div class="text-slate-500">總計</div><div id="chart-sum" class="text-slate-800 font-bold font-mono mt-0.5">--</div></div>
+          <div class="bg-emerald-50 rounded-lg py-2 border border-emerald-200"><div class="text-emerald-700">平均</div><div id="chart-avg" class="text-emerald-700 font-bold font-mono mt-0.5">--</div></div>
+          <div class="bg-amber-50 rounded-lg py-2 border border-amber-200"><div class="text-amber-700">最高</div><div id="chart-max" class="text-amber-800 font-extrabold font-mono mt-0.5">--</div></div>
+        </div>
+        <div id="chart-container" class="relative select-none"></div>
+        <p id="chart-hint" class="text-[11px] text-slate-400 leading-relaxed text-center"></p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+      <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleCard('card-data')">
+        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5"><span class="ico w-4 h-4 text-amber-500" data-icon="database"></span> 數據管理</h2>
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] text-slate-400 font-medium">共 <span id="total-trip-count" class="font-bold text-slate-600">0</span> 筆紀錄</span>
+          <span class="ico w-4 h-4 text-slate-400" data-icon="chevron-down" data-card-chevron="card-data"></span>
+        </div>
+      </div>
+      <div class="space-y-3" data-card-body="card-data">
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" onclick="deleteOldTrips('day')" class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 active:scale-[0.98] text-rose-600 font-semibold text-xs transition flex items-center justify-center gap-1.5"><span class="ico w-3.5 h-3.5" data-icon="calendar-x"></span> 刪除一天前</button>
+          <button type="button" onclick="deleteOldTrips('week')" class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 active:scale-[0.98] text-rose-600 font-semibold text-xs transition flex items-center justify-center gap-1.5"><span class="ico w-3.5 h-3.5" data-icon="calendar-minus"></span> 刪除一星期前</button>
+          <button type="button" onclick="deleteOldTrips('month')" class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 active:scale-[0.98] text-rose-600 font-semibold text-xs transition flex items-center justify-center gap-1.5"><span class="ico w-3.5 h-3.5" data-icon="calendar-clock"></span> 刪除一月前</button>
+          <button type="button" onclick="deleteOldTrips('all')" class="py-2.5 px-3 rounded-xl border border-rose-700 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm"><span class="ico w-3.5 h-3.5" data-icon="trash-2"></span> 刪除全部數據</button>
+        </div>
+        <div id="undo-banner" class="hidden bg-slate-900 text-white rounded-xl p-3 flex items-center justify-between gap-3">
+          <span class="text-xs font-medium flex items-center gap-1.5 min-w-0"><span class="ico w-4 h-4 text-rose-400 shrink-0" data-icon="history"></span><span id="undo-text" class="truncate">已刪除紀錄</span></span>
+          <button type="button" onclick="undoDelete()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs font-bold rounded-lg transition shrink-0">撤銷</button>
+        </div>
+        <p class="text-[11px] text-slate-400 leading-relaxed flex items-start gap-1.5"><span class="ico w-3.5 h-3.5 mt-0.5 shrink-0" data-icon="info"></span><span>刪除時會連同該更次的成本、油費、里程設定一併移除。刪除後可於上方橫幅按「撤銷」還原，重新載入頁面後則無法復原。</span></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-50">
+  <div class="max-w-md mx-auto grid grid-cols-4 h-16">
+    <button onclick="goMain('trip')" id="nav-trip" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition">
+      <span class="ico w-5 h-5" data-icon="plus-circle"></span><span class="text-[11px] font-medium mt-1">記帳</span>
+    </button>
+    <button onclick="goMain('list')" id="nav-list" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition">
+      <span class="ico w-5 h-5" data-icon="list-bullet"></span><span class="text-[11px] font-medium mt-1">行程</span>
+    </button>
+    <button onclick="handleDrawerItem('places')" id="nav-places" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition">
+      <span class="ico w-5 h-5" data-icon="map-pin"></span><span class="text-[11px] font-medium mt-1">地點</span>
+    </button>
+    <button id="nav-stats" class="flex flex-col items-center justify-center text-amber-500 transition">
+      <span class="ico w-5 h-5" data-icon="pie-chart"></span><span class="text-[11px] font-bold mt-1">統計</span>
+    </button>
+  </div>
+</nav>
+
+<div id="drawer-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-60" onclick="closeDrawer()"></div>
+<aside id="side-drawer" class="fixed top-0 right-0 h-full w-[75vw] max-w-xs bg-white z-70 flex flex-col">
+  <div class="bg-amber-500 px-4 py-3 flex justify-between items-center shrink-0">
+    <span class="font-bold text-slate-900 flex items-center gap-2"><span class="ico w-5 h-5" data-icon="car-taxi-front"></span> 功能選單</span>
+    <button type="button" onclick="closeDrawer()" class="p-1 text-slate-700 hover:text-slate-900 active:scale-[0.95] transition"><span class="ico w-5 h-5" data-icon="x"></span></button>
+  </div>
+  <div class="flex-1 overflow-y-auto p-3 space-y-2" id="drawer-content"></div>
+  <div class="border-t border-slate-100 px-3 py-2.5 text-[10px] text-slate-400 leading-relaxed shrink-0">
+    <div class="flex items-center gap-1.5"><span class="ico w-3 h-3" data-icon="info"></span><span>香港的士助手 v1.0</span></div>
+  </div>
+</aside>
+
+<div id="trip-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl animate-in">
+    <div class="bg-slate-900 text-white px-4 py-3 flex justify-between items-center">
+      <h3 id="modal-title" class="font-bold text-sm">視窗</h3>
+      <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1"><span class="ico w-5 h-5" data-icon="x"></span></button>
+    </div>
+    <div id="modal-body" class="p-4 space-y-3 max-h-80 overflow-y-auto"></div>
+    <div id="modal-footer" class="bg-slate-50 px-4 py-3 border-t flex justify-end gap-2"></div>
+  </div>
+</div>
+
+<div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-medium shadow-lg z-50 transition-all duration-300 opacity-0 pointer-events-none">
+  提示訊息
+</div>
+
+<script>
+/* ============================================================
+   stats.js — 統計子頁面邏輯（從 index.html 抽出的統計相關部分）
+   ============================================================ */
+
+const ICONS = {
+  'car-taxi-front':'<path d="M5 17h14M3.5 13.5l1.4-4.2A2.2 2.2 0 0 1 7 7.8h10a2.2 2.2 0 0 1 2.1 1.5l1.4 4.2v3.5h-2M3.5 17v-3.5H21"/><circle cx="7.5" cy="17" r="1.8"/><circle cx="16.5" cy="17" r="1.8"/>',
+  'receipt':'<path d="M5 3h14v18l-2.3-1.6L14.4 21l-2.4-1.6L9.6 21 7.3 19.4 5 21V3z"/><path d="M9 8h6M9 12h6"/>',
+  'flag':'<path d="M5 21V4M5 5h11l-2 4 2 4H5"/>',
+  'smartphone':'<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18h2"/>',
+  'layers':'<path d="M12 3 3 8l9 5 9-5-9-5z"/><path d="m3 13 9 5 9-5"/>',
+  'coins':'<circle cx="9" cy="9" r="6"/><path d="M15.6 4.4A6 6 0 0 1 15 16M7 19h10"/>',
+  'alert-triangle':'<path d="m10.3 3.6-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.4l-8-14a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+  'check-circle':'<circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.3 2.3 4.7-5"/>',
+  'search':'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  'settings':'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/>',
+  'wallet':'<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M16.5 14.5h1"/>',
+  'credit-card':'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+  'bar-chart-3':'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  'trending-up':'<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  'database':'<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+  'calendar-x':'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M10 14l4 4M14 14l-4 4"/>',
+  'calendar-minus':'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M9 15h6"/>',
+  'calendar-clock':'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v3l2 1.5"/>',
+  'trash-2':'<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14"/>',
+  'history':'<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 4v4h4M12 8v5l3.5 2"/>',
+  'info':'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  'plus-circle':'<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+  'list-bullet':'<path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>',
+  'pie-chart':'<path d="M12 3a9 9 0 1 0 9 9h-9V3z"/>',
+  'x':'<path d="M6 6l12 12M18 6 6 18"/>',
+  'file-question':'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z"/><path d="M14 3v5h5M10 13a2 2 0 1 1 3 1.7c-.6.4-1 .8-1 1.3v.5M12 18h.01"/>',
+  'eye':'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
+  'edit-3':'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>',
+  'droplet':'<path d="M12 2.7s6 6.3 6 11a6 6 0 0 1-12 0c0-4.7 6-11 6-11z"/>',
+  'plus':'<path d="M12 5v14M5 12h14"/>',
+  'road':'<path d="M4 21 6 3M20 21 18 3M12 3v3M12 12v3M12 21v-2"/>',
+  'map-pin':'<path d="M12 21s-7-6-7-11a7 7 0 1 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+  'chevron-down':'<path d="m6 9 6 6 6-6"/>',
+  'chevron-right':'<path d="m9 6 6 6-6 6"/>',
+  'clock':'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  'play':'<path d="M6 3 20 12 6 21V3z"/>',
+  'square':'<rect x="5" y="5" width="14" height="14" rx="2"/>',
+  'edit-2':'<path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>',
+  'arrow-left':'<path d="M19 12H5M12 19l-7-7 7-7"/>',
+  'home':'<path d="M3 12 12 3l9 9v9a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2v-9z"/>',
+  'plane-takeoff':'<path d="M2 22h20M6.36 17.4 4 17l-2-4 1.1-.55a2 2 0 0 1 1.8 0l.17.1a2 2 0 0 0 1.8 0L8 12 5 6l1-.5c.3-.2.7-.2 1 0l5.5 3.5 3-3c.5-.5 1.3-.7 2-.5l2.1.7c.6.2 1 .8 1 1.4v.1c0 .4-.2.8-.5 1L16 14l-2 .5c-.3.1-.7.1-1 0l-3.7-1.8-2.1 2.1c-.2.2-.5.3-.8.3l-.1.1c-.3 0-.5-.1-.7-.2l-.6-.4a1.5 1.5 0 0 0-1.7-.1z"/>',
+  'loader':'<path d="M21 12a9 9 0 1 1-6.219-8.56"/>'
+};
+
+function ico(name, cls){
+  cls = cls || 'w-4 h-4';
+  return '<svg class="' + cls + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+       + 'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+       + (ICONS[name] || '') + '</svg>';
+}
+
+function hydrateIcons(root){
+  (root || document).querySelectorAll('[data-icon]').forEach(function(el){
+    if (el.dataset.done) return;
+    el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+                 + 'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" '
+                 + 'style="width:100%;height:100%">' + (ICONS[el.dataset.icon] || '') + '</svg>';
+    el.dataset.done = '1';
+  });
+}
+
+/* ---------- 常數 / 配置 ---------- */
+var TRIP_TYPE_CONFIG = [
+  { name:'街客',       icon:'flag',       color:'emerald',  hot:true  },
+  { name:'Uber',       icon:'smartphone', color:'blue',     hot:true  },
+  { name:'HKTaxi',     icon:'smartphone', color:'cyan',     hot:true  },
+  { name:'飛的',       icon:'smartphone', color:'orange',   hot:false },
+  { name:'滴滴',       icon:'smartphone', color:'amber',    hot:false },
+  { name:'其他',       icon:'layers',     color:'purple',   hot:false },
+  { name:'高德打車',   icon:'smartphone', color:'rose',     hot:false },
+  { name:'星群',       icon:'smartphone', color:'cyan',     hot:false },
+  { name:'BigBoss',    icon:'smartphone', color:'blue',     hot:false }
+];
+var TRIP_TYPE_THEME = {
+  emerald: { card:'bg-emerald-50 border-emerald-200', text:'text-emerald-700' },
+  blue:    { card:'bg-blue-50 border-blue-200',       text:'text-blue-700' },
+  cyan:    { card:'bg-cyan-50 border-cyan-200',       text:'text-cyan-700' },
+  orange:  { card:'bg-orange-50 border-orange-200',   text:'text-orange-700' },
+  amber:   { card:'bg-amber-50 border-amber-200',     text:'text-amber-700' },
+  purple:  { card:'bg-purple-50 border-purple-200',   text:'text-purple-700' },
+  rose:    { card:'bg-rose-50 border-rose-200',       text:'text-rose-700' },
+  indigo:  { card:'bg-indigo-50 border-indigo-200',   text:'text-indigo-700' },
+  slate:   { card:'bg-slate-50 border-slate-200',     text:'text-slate-700' }
+};
+function getAllTripTypes(){ return TRIP_TYPE_CONFIG.map(function(t){ return t.name; }); }
+function getTripTypeConfig(type){
+  return TRIP_TYPE_CONFIG.find(function(t){ return t.name === type; })
+      || { name: type, icon:'layers', color:'purple', hot:false };
+}
+
+var PAYMENT_METHOD_CONFIG = [
+  { name:'現金',   icon:'coins',       color:'emerald', hot:true },
+  { name:'八達通', icon:'credit-card', color:'blue',    hot:true },
+  { name:'其他',   icon:'wallet',      color:'purple',  hot:true }
+];
+function getAllPaymentMethods(){ return PAYMENT_METHOD_CONFIG.map(function(p){ return p.name; }); }
+function getPaymentMethodConfig(name){
+  return PAYMENT_METHOD_CONFIG.find(function(p){ return p.name === name; })
+      || { name: name, icon:'wallet', color:'slate' };
+}
+
+/* ---------- 本地資料 ---------- */
+var trips         = JSON.parse(localStorage.getItem('taxi_trips')) || [];
+var shiftSettings = JSON.parse(localStorage.getItem('taxi_shift_settings')) || {};
+var DEFAULT_SHIFT = {
+  startedAt: null, endedAt: null, startTime: '', endTime: '',
+  rental: 0, fuelEntries: [], mileage: { start: null, end: null }, note: ''
+};
+
+var statsPeriod      = 'day';
+var currentEditingId = null;
+var currentEditingPlaceId = null;
+var shiftTimeMode    = 'quick';
+var manualShiftKey   = null;
+var manualTripTime   = null;
+var lastDeletedTrips = null;
+var lastDeletedShiftSettings = null;
+
+var CARD_STATES_KEY = 'taxi_card_states';
+var ALL_CARD_IDS = ['card-settings','card-chart','card-combined','card-data'];
+
+var chartMode   = localStorage.getItem('taxi_chart_mode')   || 'daily';
+var chartMetric = localStorage.getItem('taxi_chart_metric') || 'gross';
+var chartRange  = parseInt(localStorage.getItem('taxi_chart_range'), 10);
+if (!chartRange || [7,14,30].indexOf(chartRange) === -1) chartRange = 7;
+
+/* ---------- 通用工具 ---------- */
+function pad2(n){ return String(n).padStart(2, '0'); }
+function localDateStr(d){ return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+function toLocalISOString(d){
+  var tzOffset = -d.getTimezoneOffset();
+  var sign = tzOffset >= 0 ? '+' : '-';
+  var abs  = Math.abs(tzOffset);
+  var tzHH = pad2(Math.floor(abs / 60));
+  var tzMM = pad2(abs % 60);
+  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) +
+         'T' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()) +
+         '.' + String(d.getMilliseconds()).padStart(3, '0') + sign + tzHH + ':' + tzMM;
+}
+function escapeHtml(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function showToast(message){
+  var toast = document.getElementById('toast');
+  toast.innerText = message;
+  toast.style.opacity = '1';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(function(){ toast.style.opacity = '0'; }, 2800);
+}
+
+/* ---------- 更次工具 ---------- */
+function getActiveShiftKey(){
+  var keys = Object.keys(shiftSettings).sort().reverse();
+  for (var i = 0; i < keys.length; i++){
+    var k = keys[i];
+    var c = shiftSettings[k];
+    if (c && c.startedAt && !c.endedAt) return k;
+  }
+  return null;
+}
+function getLastShiftKey(){
+  var keysWithStart = Object.keys(shiftSettings).filter(function(k){
+    var c = shiftSettings[k];
+    return c && c.startedAt;
+  }).sort().reverse();
+  if (keysWithStart.length) return keysWithStart[0];
+
+  var latestTrip = null;
+  trips.forEach(function(t){
+    if (t.shiftDate && (!latestTrip || t.shiftDate > latestTrip)) latestTrip = t.shiftDate;
+  });
+  if (latestTrip) return latestTrip;
+  return localDateStr(new Date());
+}
+function getCurrentShiftKey(){
+  var activeKey = getActiveShiftKey();
+  if (activeKey) return activeKey;
+  return localDateStr(new Date());
+}
+function getShiftStatus(){
+  var activeKey = getActiveShiftKey();
+  if (activeKey) return 'working';
+  var lastKey = getLastShiftKey();
+  if (lastKey && shiftSettings[lastKey] && shiftSettings[lastKey].startedAt){
+    if (shiftSettings[lastKey].endedAt) return 'ended';
+  }
+  return 'idle';
+}
+function ensureShiftFields(cfg){
+  if (!cfg) return;
+  if (cfg.startedAt === undefined) cfg.startedAt = null;
+  if (cfg.endedAt   === undefined) cfg.endedAt   = null;
+  if (cfg.startTime === undefined) cfg.startTime = '';
+  if (cfg.endTime   === undefined) cfg.endTime   = '';
+  if (cfg.note      === undefined) cfg.note      = '';
+  if (!Array.isArray(cfg.fuelEntries)){
+    var oldFuel = parseFloat(cfg.fuel) || 0;
+    cfg.fuelEntries = oldFuel > 0
+      ? [{ id: 'fuel_legacy_' + Date.now(), amount: oldFuel, unitPrice: null, liters: null, station: '', timestamp: Date.now() }]
+      : [];
+    delete cfg.fuel;
+  }
+  cfg.fuelEntries.forEach(function(e){
+    if (e.unitPrice === undefined) e.unitPrice = null;
+    if (e.liters    === undefined) e.liters    = null;
+    if (e.station   === undefined) e.station   = '';
+  });
+  if (!cfg.mileage || typeof cfg.mileage !== 'object') cfg.mileage = { start: null, end: null };
+  else {
+    if (cfg.mileage.start === undefined) cfg.mileage.start = null;
+    if (cfg.mileage.end   === undefined) cfg.mileage.end   = null;
+  }
+}
+function getFuelTotal(cfg){
+  if (!cfg) return 0;
+  if (Array.isArray(cfg.fuelEntries))
+    return cfg.fuelEntries.reduce(function(s, e){ return s + (parseFloat(e.amount) || 0); }, 0);
+  return parseFloat(cfg.fuel) || 0;
+}
+function getShiftMileage(cfg){
+  if (!cfg || !cfg.mileage) return null;
+  var s = cfg.mileage.start, e = cfg.mileage.end;
+  if (s === null || s === undefined || s === '' || e === null || e === undefined || e === '') return null;
+  var sv = parseFloat(s), ev = parseFloat(e);
+  if (isNaN(sv) || isNaN(ev)) return null;
+  var diff = ev - sv;
+  return diff >= 0 ? diff : null;
+}
+function getShiftDuration(cfg){
+  if (!cfg || !cfg.startedAt) return null;
+  var end = cfg.endedAt || Date.now();
+  var diff = end - cfg.startedAt;
+  if (diff < 0) return null;
+  return diff / 3600000;
+}
+function getWorkedMs(cfg){
+  if (!cfg || !cfg.startedAt) return null;
+  var end = cfg.endedAt || Date.now();
+  var diff = end - cfg.startedAt;
+  return diff >= 0 ? diff : null;
+}
+function formatDuration(ms){
+  if (ms === null || ms === undefined || ms < 0) return '--';
+  var totalMin = Math.floor(ms / 60000);
+  var h = Math.floor(totalMin / 60);
+  var m = totalMin % 60;
+  if (h >= 100) return h + 'h';
+  return h + 'h' + pad2(m) + 'm';
+}
+function getShiftFinance(key){
+  var cfg = shiftSettings[key];
+  if (cfg) ensureShiftFields(cfg);
+
+  var list = trips.filter(function(t){ return t.shiftDate === key; });
+  var gross = 0, expenseTrip = 0;
+  var incomeCount = 0, expenseCount = 0;
+  list.forEach(function(t){
+    var v = parseFloat(t.fare) || 0;
+    if (v < 0){ expenseTrip += -v; expenseCount++; }
+    else { gross += v; incomeCount++; }
+  });
+
+  var rental = cfg ? (parseFloat(cfg.rental) || 0) : 0;
+  var fuel   = cfg ? getFuelTotal(cfg) : 0;
+  var totalCost = rental + fuel + expenseTrip;
+  var profit    = gross - totalCost;
+
+  return { list:list, gross:gross, incomeCount:incomeCount, expenseTrip:expenseTrip, expenseCount:expenseCount, rental:rental, fuel:fuel, totalCost:totalCost, profit:profit };
+}
+function getSettingsByKey(key, createIfMissing){
+  if (createIfMissing === undefined) createIfMissing = true;
+  if (!key) return null;
+  if (!shiftSettings[key]){
+    if (!createIfMissing) return null;
+    var keys = Object.keys(shiftSettings).sort().reverse();
+    var base = keys.length ? shiftSettings[keys[0]] : DEFAULT_SHIFT;
+    shiftSettings[key] = {
+      startedAt: null, endedAt: null, startTime: '', endTime: '',
+      rental: parseFloat(base.rental) || 0,
+      fuelEntries: [],
+      mileage: { start: null, end: null }, note: ''
+    };
+    localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+  }
+  ensureShiftFields(shiftSettings[key]);
+  return shiftSettings[key];
+}
+function getLastSettings(createIfMissing){ return getSettingsByKey(getLastShiftKey(), createIfMissing); }
+
+/* ---------- 卡片展開狀態 ---------- */
+function getCardStates(){
+  try { return JSON.parse(localStorage.getItem(CARD_STATES_KEY)) || {}; }
+  catch(e){ return {}; }
+}
+function saveCardStates(states){ localStorage.setItem(CARD_STATES_KEY, JSON.stringify(states)); }
+function applyCardState(id, collapsed){
+  var body = document.querySelector('[data-card-body="' + id + '"]');
+  var chev = document.querySelector('[data-card-chevron="' + id + '"]');
+  if (body){ if (collapsed) body.classList.add('hidden'); else body.classList.remove('hidden'); }
+  if (chev){ if (collapsed) chev.classList.add('collapsed'); else chev.classList.remove('collapsed'); }
+}
+function toggleCard(id){
+  var states = getCardStates();
+  states[id] = !states[id];
+  saveCardStates(states);
+  applyCardState(id, states[id]);
+  if (id === 'card-chart' && !states[id]) renderTrendChart();
+}
+function applyAllCardStates(){
+  var states = getCardStates();
+  ALL_CARD_IDS.forEach(function(id){ applyCardState(id, !!states[id]); });
+}
+
+/* ---------- 空殼（stats 頁不需要記帳列表） ---------- */
+function renderTripList(){ /* stats 頁不需要 */ }
+function updateTripTimeChip(){ /* stats 頁無記帳表單 */ }
+function updateDateTimePreview(){ /* stats 頁無補錄模式條 */ }
+
+/* ---------- Header 時間 ---------- */
+function updateHeaderTime(){
+  var now = new Date();
+  var timeStr = now.toLocaleTimeString('zh-HK', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+  var timeEl = document.getElementById('header-current-time');
+  if (timeEl) timeEl.innerText = timeStr;
+  updateHeaderWorked();
+}
+function updateHeaderWorked(){
+  var el = document.getElementById('header-worked');
+  if (!el) return;
+  var status = getShiftStatus();
+  if (status === 'idle'){ el.innerText = '未開工'; return; }
+  var activeKey = getActiveShiftKey();
+  var lastKey   = getLastShiftKey();
+  var cfg       = shiftSettings[activeKey || lastKey];
+  if (!cfg || !cfg.startedAt){ el.innerText = '未開工'; return; }
+  var workedMs = getWorkedMs(cfg);
+  if (status === 'working') el.innerText = '工作 ' + formatDuration(workedMs);
+  else { var totalMs = cfg.endedAt - cfg.startedAt; el.innerText = '已收工 ' + formatDuration(totalMs); }
+}
+
+/* ---------- 設定表單 ---------- */
+function initSettingsForm(){
+  var lastKey = getLastShiftKey();
+  var cfg     = getLastSettings(false);
+
+  if (!cfg){
+    var r = document.getElementById('setting-rental'); if (r) r.value = '';
+    var f = document.getElementById('setting-fuel');   if (f) f.value = '0';
+    var ms = document.getElementById('setting-mileage-start'); if (ms) ms.value = '';
+    var me = document.getElementById('setting-mileage-end');   if (me) me.value = '';
+    var sn = document.getElementById('setting-note'); if (sn) sn.value = '';
+    updateSettingNoteClearBtn();
+
+    var range0 = document.getElementById('current-shift-time-range'); if (range0) range0.innerText = '';
+    var badge0 = document.getElementById('current-shift-date-badge'); if (badge0) badge0.innerText = lastKey;
+    var td0 = document.getElementById('setting-shift-time-display'); if (td0) td0.innerText = '未設定';
+    var ft0 = document.getElementById('fuel-history-btn-text'); if (ft0) ft0.innerText = '查看加油記錄 (0 筆)';
+    updateMileagePanel(null);
+    return;
+  }
+
+  var rEl = document.getElementById('setting-rental'); if (rEl) rEl.value = cfg.rental;
+  var fEl = document.getElementById('setting-fuel');   if (fEl) fEl.value   = getFuelTotal(cfg);
+  var msEl = document.getElementById('setting-mileage-start');
+  if (msEl) msEl.value = (cfg.mileage && cfg.mileage.start != null) ? cfg.mileage.start : '';
+  var meEl = document.getElementById('setting-mileage-end');
+  if (meEl) meEl.value = (cfg.mileage && cfg.mileage.end != null) ? cfg.mileage.end : '';
+
+  var snEl = document.getElementById('setting-note');
+  if (snEl && document.activeElement !== snEl) snEl.value = cfg.note || '';
+  updateSettingNoteClearBtn();
+
+  var timeRangeText;
+  if (cfg.startedAt && cfg.endedAt) timeRangeText = (cfg.startTime || '--') + ' - ' + (cfg.endTime || '--');
+  else if (cfg.startedAt) timeRangeText = (cfg.startTime || '--') + ' - 工作中';
+  else timeRangeText = '未設定';
+
+  var rangeEl = document.getElementById('current-shift-time-range');
+  if (rangeEl) rangeEl.innerText = (cfg.startedAt && cfg.endedAt) ? timeRangeText : '';
+  var tdEl = document.getElementById('setting-shift-time-display');
+  if (tdEl) tdEl.innerText = timeRangeText;
+  var badgeEl = document.getElementById('current-shift-date-badge');
+  if (badgeEl) badgeEl.innerText = lastKey;
+  var ftEl = document.getElementById('fuel-history-btn-text');
+  if (ftEl) ftEl.innerText = '查看加油記錄 (' + (cfg.fuelEntries || []).length + ' 筆)';
+
+  updateMileagePanel(cfg);
+}
+function onSettingNoteInput(){ updateSettingNoteClearBtn(); }
+function updateSettingNoteClearBtn(){
+  var input = document.getElementById('setting-note');
+  var btn   = document.getElementById('setting-note-clear-btn');
+  if (!input || !btn) return;
+  if (input.value.trim()) btn.classList.remove('hidden');
+  else btn.classList.add('hidden');
+}
+function clearSettingNote(){
+  var input = document.getElementById('setting-note');
+  if (!input) return;
+  if (!input.value) return;
+  input.value = '';
+  updateSettingNoteClearBtn();
+  saveSettings();
+  input.focus();
+}
+function updateMileagePanel(cfg){
+  var summaryEl = document.getElementById('mileage-summary');
+  var detailEl  = document.getElementById('mileage-detail');
+  if (!summaryEl || !detailEl) return;
+  if (!cfg){
+    summaryEl.innerText = '未完成';
+    summaryEl.className = 'text-[11px] text-slate-400 font-medium';
+    detailEl.innerHTML = '填入開始與結束咪錶讀數即可自動計算行駛里程。';
+    return;
+  }
+  var km = getShiftMileage(cfg);
+  if (km === null){
+    summaryEl.innerText = '未完成';
+    summaryEl.className = 'text-[11px] text-slate-400 font-medium';
+    detailEl.innerHTML = '填入開始與結束咪錶讀數即可自動計算行駛里程。';
+  } else {
+    summaryEl.innerText = km.toFixed(1) + ' km';
+    summaryEl.className = 'text-[11px] text-emerald-700 font-bold font-mono';
+    detailEl.innerHTML = '開始 <b class="font-mono">' + cfg.mileage.start + '</b> → 結束 <b class="font-mono">' + cfg.mileage.end + '</b>';
+  }
+}
+function saveSettings(){
+  var key = getLastShiftKey();
+  var cfg = getLastSettings();
+  var rentEl = document.getElementById('setting-rental');
+  cfg.rental = rentEl ? (parseFloat(rentEl.value) || 0) : 0;
+
+  var msRaw = document.getElementById('setting-mileage-start').value;
+  var meRaw = document.getElementById('setting-mileage-end').value;
+  var msVal = msRaw === '' ? null : parseFloat(msRaw);
+  var meVal = meRaw === '' ? null : parseFloat(meRaw);
+  cfg.mileage = { start: (msVal===null||isNaN(msVal))?null:msVal, end: (meVal===null||isNaN(meVal))?null:meVal };
+
+  var sn = document.getElementById('setting-note');
+  if (sn) cfg.note = sn.value.trim();
+  if (!Array.isArray(cfg.fuelEntries)) cfg.fuelEntries = [];
+
+  shiftSettings[key] = cfg;
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+  initSettingsForm();
+  updateStatsAndNet();
+  updateHeaderWorked();
+  showToast('設定已保存');
+}
+
+/* ---------- 更次時間彈窗 ---------- */
+function openShiftTimeModal(){
+  shiftTimeMode = 'quick';
+  renderShiftTimeModal();
+  var m = document.getElementById('trip-modal');
+  m.classList.remove('hidden'); m.classList.add('flex');
+}
+function closeShiftTimeModal(){ closeModal(); shiftTimeMode = 'quick'; }
+function renderShiftTimeModal(){
+  if (shiftTimeMode === 'manual') renderManualShiftTimePanel();
+  else renderQuickShiftTimePanel();
+}
+function renderQuickShiftTimePanel(){
+  var activeKey = getActiveShiftKey();
+  var lastKey   = getLastShiftKey();
+  var targetKey = activeKey || lastKey;
+
+  var wkDay = '';
+  if (targetKey){
+    var dd = new Date(targetKey + 'T12:00:00');
+    if (!isNaN(dd.getTime())) wkDay = dd.toLocaleDateString('zh-HK', { weekday:'long' });
+  }
+
+  var html = '<div class="space-y-3">';
+  html +=
+    '<div class="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 flex justify-between items-center">' +
+      '<span class="text-[11px] font-semibold text-amber-800 flex items-center gap-1.5"><span class="ico w-3.5 h-3.5 text-amber-600" data-icon="clock"></span>更次日期</span>' +
+      '<span class="font-bold text-amber-900 font-mono text-xs">' + (targetKey || '--') + (wkDay ? ' <span class="text-[10px] text-amber-600 font-normal">' + wkDay + '</span>' : '') + '</span>' +
+    '</div>';
+  html += '<div id="shift-status-panel"></div><div id="shift-action-panel"></div><div id="shift-duration-panel"></div>';
+  html +=
+    '<div class="border-t border-slate-200 pt-3">' +
+      '<label class="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5"><span class="ico w-3.5 h-3.5 text-amber-500" data-icon="edit-3"></span> 更次備註 (選填)</label>' +
+      '<div class="flex gap-1.5">' +
+        '<input type="text" id="quick-shift-note" autocomplete="off" placeholder="例如：早更、紅日、雨天、旺角開工..." class="flex-1 min-w-0 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">' +
+        '<button type="button" onclick="saveQuickShiftNote()" class="px-3 py-2 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-900 font-bold rounded-xl text-xs transition shrink-0">保存</button>' +
+      '</div>' +
+      '<p class="text-[11px] text-slate-400 mt-1 leading-relaxed">備註會跟隨此更次保存。</p>' +
+    '</div>';
+  html +=
+    '<button type="button" onclick="switchShiftTimeMode(\'manual\')" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 font-semibold rounded-xl transition flex items-center justify-center gap-1.5 text-xs border border-slate-200">' +
+      '<span class="ico w-3.5 h-3.5" data-icon="edit-2"></span> 忘記打卡？手動輸入時間' +
+    '</button>';
+  html += '<p class="text-[11px] text-slate-400 leading-relaxed">※ 點「開工」記錄當前時間為開工時間<br>※ 點「收工」記錄當前時間為收工時間<br>※ 若忘記打卡，可點上方按鈕手動輸入</p>';
+  html += '</div>';
+
+  document.getElementById('modal-title').innerText = '更次時間';
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-footer').innerHTML =
+    '<button onclick="closeShiftTimeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition">關閉</button>';
+  hydrateIcons();
+  updateQuickShiftStatus();
+}
+function updateQuickShiftStatus(){
+  var panel  = document.getElementById('shift-status-panel');
+  var action = document.getElementById('shift-action-panel');
+  var durP   = document.getElementById('shift-duration-panel');
+  if (!panel || !action || !durP) return;
+
+  var status    = getShiftStatus();
+  var activeKey = getActiveShiftKey();
+  var lastKey   = getLastShiftKey();
+  var targetKey = activeKey || lastKey;
+  var cfg       = targetKey ? getSettingsByKey(targetKey, false) : null;
+
+  if (status === 'idle'){
+    panel.innerHTML =
+      '<div class="bg-slate-100 rounded-xl p-4 text-center border-2 border-slate-200">' +
+        '<div class="ico w-8 h-8 mx-auto text-slate-400">' + ico('clock','w-8 h-8') + '</div>' +
+        '<div class="text-sm font-bold text-slate-600 mt-2">未開工</div>' +
+        '<div class="text-[11px] text-slate-400 mt-1">點擊下方按鈕開始</div>' +
+      '</div>';
+  } else if (status === 'working'){
+    panel.innerHTML =
+      '<div class="bg-emerald-50 rounded-xl p-4 text-center border-2 border-emerald-300">' +
+        '<div class="flex items-center justify-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span class="text-[11px] font-bold text-emerald-700">工作中</span></div>' +
+        '<div class="text-3xl font-black text-emerald-700 mt-2 font-mono">' + formatDuration(getWorkedMs(cfg)) + '</div>' +
+        '<div class="text-[11px] text-emerald-600 mt-1">開工時間：' + (cfg.startTime || '--') + '</div>' +
+      '</div>';
+  } else {
+    var durationMs = cfg && cfg.startedAt && cfg.endedAt ? (cfg.endedAt - cfg.startedAt) : null;
+    panel.innerHTML =
+      '<div class="bg-blue-50 rounded-xl p-4 text-center border-2 border-blue-300">' +
+        '<div class="ico w-8 h-8 mx-auto text-blue-500">' + ico('check-circle','w-8 h-8') + '</div>' +
+        '<div class="text-sm font-bold text-blue-700 mt-2">已收工</div>' +
+        '<div class="text-2xl font-black text-blue-700 mt-1 font-mono">' + formatDuration(durationMs) + '</div>' +
+      '</div>';
+  }
+
+  if (status === 'working'){
+    action.innerHTML = '<button type="button" onclick="endShift()" class="w-full py-4 bg-rose-500 hover:bg-rose-700 active:scale-[0.98] text-white font-black rounded-xl shadow-md transition flex items-center justify-center gap-2 text-base"><span class="ico w-5 h-5">' + ico('square','w-5 h-5') + '</span> 收工</button>';
+  } else {
+    var btnText = status === 'ended' ? '重新開工' : '開工';
+    action.innerHTML = '<button type="button" onclick="startShift()" class="w-full py-4 bg-emerald-500 hover:bg-emerald-700 active:scale-[0.98] text-white font-black rounded-xl shadow-md transition flex items-center justify-center gap-2 text-base"><span class="ico w-5 h-5">' + ico('play','w-5 h-5') + '</span> ' + btnText + '</button>';
+  }
+
+  if (cfg && cfg.startedAt){
+    var startStr = new Date(cfg.startedAt).toLocaleString('zh-HK', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+    var endStr = cfg.endedAt ? new Date(cfg.endedAt).toLocaleString('zh-HK', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }) : '（工作中）';
+    durP.innerHTML =
+      '<div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 space-y-1.5 text-xs">' +
+        '<div class="flex justify-between"><span class="text-slate-500">開工</span><span class="font-bold font-mono text-slate-800">' + startStr + '</span></div>' +
+        '<div class="flex justify-between"><span class="text-slate-500">收工</span><span class="font-bold font-mono ' + (cfg.endedAt ? 'text-slate-800' : 'text-emerald-700') + '">' + endStr + '</span></div>' +
+      '</div>';
+  } else durP.innerHTML = '';
+
+  var qn = document.getElementById('quick-shift-note');
+  if (qn && document.activeElement !== qn) qn.value = (cfg && cfg.note) ? cfg.note : '';
+}
+function saveQuickShiftNote(){
+  var noteEl = document.getElementById('quick-shift-note');
+  if (!noteEl) return;
+  var note = noteEl.value.trim();
+  var targetKey = getActiveShiftKey() || getLastShiftKey();
+  if (!targetKey){ showToast('請先開工或建立更次'); return; }
+  var cfg = getSettingsByKey(targetKey, true);
+  cfg.note = note;
+  shiftSettings[targetKey] = cfg;
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+  initSettingsForm();
+  updateStatsAndNet();
+  showToast(note ? '更次備註已保存' : '更次備註已清除');
+}
+function switchShiftTimeMode(mode){ shiftTimeMode = mode; renderShiftTimeModal(); }
+function renderManualShiftTimePanel(){
+  var activeKey = getActiveShiftKey();
+  var lastKey   = getLastShiftKey();
+  var targetKey = activeKey || lastKey || localDateStr(new Date());
+  var cfg       = getSettingsByKey(targetKey, false);
+
+  var startVal = '', endVal = '';
+  if (cfg && cfg.startedAt){ var s = new Date(cfg.startedAt); startVal = pad2(s.getHours()) + ':' + pad2(s.getMinutes()); }
+  if (cfg && cfg.endedAt){ var e = new Date(cfg.endedAt); endVal = pad2(e.getHours()) + ':' + pad2(e.getMinutes()); }
+  var noteVal = (cfg && cfg.note) ? cfg.note : '';
+  var todayStr = localDateStr(new Date());
+
+  var html = '<div class="space-y-3">';
+  html +=
+    '<div class="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 text-[11px] text-amber-800 leading-relaxed flex items-start gap-1.5">' +
+      '<span class="ico w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" data-icon="info"></span>' +
+      '<span>用於補錄忘記打卡的更次。選擇日期並填入開工／收工時間即可。</span>' +
+    '</div>';
+  html +=
+    '<div><label class="block text-xs font-semibold text-slate-600 mb-1">日期</label>' +
+      '<input type="date" id="manual-shift-date" value="' + targetKey + '" max="' + todayStr + '" oninput="onManualDateChange()" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">' +
+    '</div>';
+  html +=
+    '<div class="grid grid-cols-2 gap-3">' +
+      '<div><label class="block text-xs font-semibold text-slate-600 mb-1">開工時間</label><div class="flex gap-1">' +
+        '<input type="time" id="manual-shift-start" value="' + startVal + '" oninput="updateManualPreview()" class="flex-1 min-w-0 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">' +
+        '<button type="button" onclick="setManualTimeNow(\'start\')" class="px-2 py-1 text-[11px] bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded-lg transition shrink-0">現在</button>' +
+      '</div></div>' +
+      '<div><label class="block text-xs font-semibold text-slate-600 mb-1">收工時間</label><div class="flex gap-1">' +
+        '<input type="time" id="manual-shift-end" value="' + endVal + '" oninput="updateManualPreview()" class="flex-1 min-w-0 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">' +
+        '<button type="button" onclick="setManualTimeNow(\'end\')" class="px-2 py-1 text-[11px] bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded-lg transition shrink-0">現在</button>' +
+      '</div></div>' +
+    '</div>';
+  html +=
+    '<div><label class="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5"><span class="ico w-3.5 h-3.5 text-amber-500" data-icon="edit-3"></span> 更次備註 (選填)</label>' +
+      '<input type="text" id="manual-shift-note" autocomplete="off" value="' + escapeHtml(noteVal) + '" placeholder="例如：早更、紅日、雨天..." class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">' +
+    '</div>';
+  html +=
+    '<div class="grid grid-cols-2 gap-2">' +
+      '<button type="button" onclick="fillManualOnlyStart()" class="py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-semibold rounded-lg transition border border-emerald-200">只填開工（忘記收工）</button>' +
+      '<button type="button" onclick="clearManualEnd()" class="py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 text-[11px] font-semibold rounded-lg transition border border-slate-200">清空收工時間</button>' +
+    '</div>';
+  html += '<div id="manual-preview" class="bg-slate-100 rounded-xl px-3 py-2.5 text-xs text-slate-700"></div>';
+  html += '<p class="text-[11px] text-slate-400 leading-relaxed">※ 收工留空 = 工作中<br>※ 若收工時間早於開工時間，視為跨日更次</p>';
+  html += '</div>';
+
+  document.getElementById('modal-title').innerText = '手動輸入時間';
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-footer').innerHTML =
+    '<button onclick="switchShiftTimeMode(\'quick\')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition flex items-center gap-1"><span class="ico w-3.5 h-3.5">' + ico('arrow-left','w-3.5 h-3.5') + '</span> 返回</button>' +
+    '<button onclick="saveManualShiftTime()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl text-xs transition">保存</button>';
+  hydrateIcons();
+  updateManualPreview();
+}
+function onManualDateChange(){
+  var dateEl = document.getElementById('manual-shift-date');
+  if (!dateEl) return;
+  var key = dateEl.value;
+  var cfg = shiftSettings[key];
+  var startEl = document.getElementById('manual-shift-start');
+  var endEl   = document.getElementById('manual-shift-end');
+  var noteEl  = document.getElementById('manual-shift-note');
+  if (cfg && cfg.startedAt){ var s = new Date(cfg.startedAt); startEl.value = pad2(s.getHours()) + ':' + pad2(s.getMinutes()); }
+  else startEl.value = '';
+  if (cfg && cfg.endedAt){ var e = new Date(cfg.endedAt); endEl.value = pad2(e.getHours()) + ':' + pad2(e.getMinutes()); }
+  else endEl.value = '';
+  if (noteEl) noteEl.value = (cfg && cfg.note) ? cfg.note : '';
+  updateManualPreview();
+}
+function setManualTimeNow(which){
+  var id = which === 'start' ? 'manual-shift-start' : 'manual-shift-end';
+  var el = document.getElementById(id);
+  if (!el) return;
+  var now = new Date();
+  el.value = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
+  updateManualPreview();
+}
+function fillManualOnlyStart(){
+  var startEl = document.getElementById('manual-shift-start');
+  var endEl   = document.getElementById('manual-shift-end');
+  if (!startEl || !endEl) return;
+  if (!startEl.value){ var now = new Date(); startEl.value = pad2(now.getHours()) + ':' + pad2(now.getMinutes()); }
+  endEl.value = '';
+  updateManualPreview();
+}
+function clearManualEnd(){
+  var endEl = document.getElementById('manual-shift-end');
+  if (endEl) endEl.value = '';
+  updateManualPreview();
+}
+function updateManualPreview(){
+  var previewEl = document.getElementById('manual-preview');
+  var dateEl    = document.getElementById('manual-shift-date');
+  var startEl   = document.getElementById('manual-shift-start');
+  var endEl     = document.getElementById('manual-shift-end');
+  if (!previewEl || !dateEl || !startEl || !endEl) return;
+  var dateVal = dateEl.value, s = startEl.value, e = endEl.value;
+  if (!dateVal || !s){ previewEl.innerHTML = '<div class="text-slate-400 text-center text-[11px]">請填入日期與開工時間</div>'; return; }
+
+  var base = new Date(dateVal + 'T00:00:00');
+  var sD = new Date(base); var sp = s.split(':');
+  sD.setHours(parseInt(sp[0],10), parseInt(sp[1],10), 0, 0);
+
+  var eD = null;
+  if (e){
+    eD = new Date(base); var ep = e.split(':');
+    eD.setHours(parseInt(ep[0],10), parseInt(ep[1],10), 0, 0);
+    if (eD.getTime() <= sD.getTime()) eD.setDate(eD.getDate() + 1);
+  }
+  var now = new Date();
+  var durationMs = (eD ? eD.getTime() : now.getTime()) - sD.getTime();
+  var modeText = !eD ? '工作中' : (sD.toDateString() === eD.toDateString() ? '同日更次' : '跨午夜更次');
+  var modeColor = !eD ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                  : (sD.toDateString() === eD.toDateString() ? 'text-blue-700 bg-blue-50 border-blue-200' : 'text-purple-700 bg-purple-50 border-purple-200');
+  previewEl.innerHTML =
+    '<div class="flex items-center justify-between gap-2">' +
+      '<span class="font-mono text-slate-700 text-[11px]">' + s + ' → ' + (e || '工作中') + '</span>' +
+      '<span class="px-2 py-0.5 rounded-full border text-[11px] font-bold ' + modeColor + '">' + modeText + '</span>' +
+    '</div>' +
+    '<div class="text-[11px] text-slate-500 mt-1.5">時長：<span class="font-bold text-slate-700 font-mono">' + formatDuration(durationMs) + '</span></div>';
+}
+function saveManualShiftTime(){
+  var dateEl  = document.getElementById('manual-shift-date');
+  var startEl = document.getElementById('manual-shift-start');
+  var endEl   = document.getElementById('manual-shift-end');
+  var noteEl  = document.getElementById('manual-shift-note');
+  if (!dateEl || !startEl || !endEl) return;
+  var dateVal = dateEl.value, s = startEl.value, e = endEl.value;
+  if (!dateVal){ showToast('請選擇日期'); return; }
+  if (!s){ showToast('請填入開工時間'); return; }
+
+  var activeKey = getActiveShiftKey();
+  if (activeKey && activeKey !== dateVal && !e){
+    if (!confirm('你目前在「' + activeKey + '」更次工作中。\n\n確定要在 ' + dateVal + ' 開啟新更次（不填收工時間）嗎？')) return;
+  }
+
+  var cfg = getSettingsByKey(dateVal, true);
+  var base = new Date(dateVal + 'T00:00:00');
+  var sD = new Date(base); var sp = s.split(':');
+  sD.setHours(parseInt(sp[0],10), parseInt(sp[1],10), 0, 0);
+  cfg.startedAt = sD.getTime(); cfg.startTime = s;
+
+  if (e){
+    var eD = new Date(base); var ep = e.split(':');
+    eD.setHours(parseInt(ep[0],10), parseInt(ep[1],10), 0, 0);
+    if (eD.getTime() <= sD.getTime()) eD.setDate(eD.getDate() + 1);
+    cfg.endedAt = eD.getTime(); cfg.endTime = e;
+  } else { cfg.endedAt = null; cfg.endTime = ''; }
+  if (noteEl) cfg.note = noteEl.value.trim();
+
+  shiftSettings[dateVal] = cfg;
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+  closeModal();
+  initSettingsForm();
+  updateStatsAndNet();
+  updateHeaderWorked();
+  var msg = '已設定 ' + dateVal + '：' + s;
+  msg += e ? ' - ' + e : '（工作中）';
+  showToast(msg);
+}
+function startShift(){
+  if (getActiveShiftKey()){ showToast('已在工作中，請先收工'); return; }
+  var now = new Date();
+  var today = localDateStr(now);
+  if (shiftSettings[today] && shiftSettings[today].startedAt && shiftSettings[today].endedAt){
+    if (!confirm('今日已收工，是否要重新開工？\n\n將覆蓋今日的開工/收工時間（行程紀錄與成本保留）。')) return;
+  }
+  var cfg = getSettingsByKey(today, true);
+  cfg.startedAt = now.getTime(); cfg.endedAt = null;
+  cfg.startTime = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
+  cfg.endTime = '';
+  shiftSettings[today] = cfg;
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+  closeModal(); initSettingsForm(); updateStatsAndNet(); updateHeaderWorked();
+  showToast('已開工：' + cfg.startTime);
+}
+function endShift(){
+  var activeKey = getActiveShiftKey();
+  if (!activeKey){ showToast('尚未開工'); return; }
+  var now = new Date();
+  var cfg = shiftSettings[activeKey];
+  cfg.endedAt = now.getTime();
+  cfg.endTime = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
+  shiftSettings[activeKey] = cfg;
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+  closeModal(); initSettingsForm(); updateStatsAndNet(); updateHeaderWorked();
+  var duration = (cfg.endedAt - cfg.startedAt) / 3600000;
+  showToast('已收工：' + cfg.endTime + '（工時 ' + duration.toFixed(1) + 'h）');
+}
+
+/* ---------- 歷史更次 ---------- */
+function openShiftHistoryModal(){
+  var keys = Object.keys(shiftSettings).sort().reverse();
+  var lastKey = getLastShiftKey();
+  var html = '<div class="space-y-2 max-h-80 overflow-y-auto pr-1">';
+  if (!keys.length){
+    html += '<p class="text-center text-slate-400 text-sm py-6">暫無更次記錄</p>';
+  } else {
+    keys.forEach(function(key){
+      var fin = getShiftFinance(key);
+      var cfg = shiftSettings[key];
+      if (cfg) ensureShiftFields(cfg);
+      var km = getShiftMileage(cfg);
+      var duration = getShiftDuration(cfg);
+      var fuelCount = (cfg.fuelEntries || []).length;
+      var isLast = (key === lastKey);
+
+      var timeRangeText;
+      if (!cfg || !cfg.startedAt) timeRangeText = '未開工';
+      else if (!cfg.endedAt) timeRangeText = '工作中 ' + formatDuration(getWorkedMs(cfg));
+      else timeRangeText = (cfg.startTime || '--') + ' - ' + (cfg.endTime || '--');
+
+      var unpaidTotal = fin.list.reduce(function(s,t){
+        var c = typeof t.change === 'number' ? t.change : 0;
+        return s + (c < 0 ? -c : 0);
+      }, 0);
+      var profitPerKm = (km && km > 0) ? (fin.profit / km) : null;
+      var profitPerHour = (duration && duration > 0) ? (fin.profit / duration) : null;
+      var fuelPerKm = (km && km > 0) ? (fin.fuel / km) : null;
+      var noteHtml = (cfg && cfg.note)
+        ? '<div class="mt-1 pt-1 border-t border-slate-100 text-[11px] text-slate-600 leading-relaxed flex items-start gap-1"><span class="ico w-3 h-3 text-amber-500 mt-0.5 shrink-0">' + ico('edit-3','w-3 h-3') + '</span><span class="truncate">' + escapeHtml(cfg.note) + '</span></div>'
+        : '';
+
+      html +=
+        '<div class="border ' + (isLast ? 'border-amber-400 bg-amber-50/60' : 'border-slate-200 bg-white') + ' rounded-xl p-3">' +
+          '<div class="flex justify-between items-center mb-1.5 gap-2">' +
+            '<span class="font-bold text-sm text-slate-800 min-w-0 truncate">' + key + (isLast ? ' <span class="text-[10px] text-amber-700 font-medium ml-1">最後一更</span>' : '') + '</span>' +
+            '<div class="flex items-center gap-1.5 shrink-0">' +
+              '<span class="text-[11px] text-slate-500 font-mono">' + timeRangeText + '</span>' +
+              '<button type="button" onclick="event.stopPropagation(); openShiftEditModal(\'' + key + '\')" class="p-1 text-slate-300 hover:text-blue-500 transition" title="編輯此更次">' + ico('edit-3','w-3.5 h-3.5') + '</button>' +
+              '<button type="button" onclick="event.stopPropagation(); deleteShift(\'' + key + '\')" class="p-1 -mr-1 text-slate-300 hover:text-rose-500 transition" title="刪除此更次">' + ico('trash-2','w-3.5 h-3.5') + '</button>' +
+            '</div>' +
+          '</div>' + noteHtml +
+          '<div class="grid grid-cols-2 gap-y-1 text-[11px] mt-1.5">' +
+            '<span class="text-slate-500">營業額：<b class="text-emerald-700">$' + fin.gross.toFixed(1) + '</b></span>' +
+            '<span class="text-slate-500">行程：<b class="text-slate-700">' + fin.list.length + ' 筆</b></span>' +
+            '<span class="text-slate-500">租車：<b class="text-rose-600">$' + fin.rental.toFixed(1) + '</b></span>' +
+            '<span class="text-slate-500">油費：<b class="text-rose-600">$' + fin.fuel.toFixed(1) + '</b>' + (fuelCount > 1 ? ' <span class="text-slate-400">(' + fuelCount + '筆)</span>' : '') + '</span>' +
+            '<span class="text-slate-500">行程支出：<b class="text-rose-600">$' + fin.expenseTrip.toFixed(1) + '</b></span>' +
+            '<span class="text-slate-500">總成本：<b class="text-rose-600">$' + fin.totalCost.toFixed(1) + '</b></span>' +
+            '<span class="text-slate-500">里程：<b class="text-slate-700">' + (km !== null ? km.toFixed(1) + ' km' : '未填') + '</b></span>' +
+            '<span class="text-slate-500">時長：<b class="text-slate-700">' + (duration !== null ? duration.toFixed(1) + ' 小時' : '未設定') + '</b></span>' +
+            '<span class="text-slate-500">每公里油費：<b class="text-rose-600">' + (fuelPerKm !== null ? '$' + fuelPerKm.toFixed(2) + '/km' : '--') + '</b></span>' +
+            '<span class="text-slate-500">每公里成本：<b class="text-rose-600">' + (km && km > 0 ? '$' + (fin.totalCost / km).toFixed(2) + '/km' : '--') + '</b></span>' +
+          '</div>' +
+          (unpaidTotal > 0 ? '<div class="mt-1 pt-1 text-[11px] text-rose-600 font-semibold flex items-center gap-1">' + ico('alert-triangle','w-3 h-3') + '客戶未收足總額 $' + unpaidTotal.toFixed(1) + '</div>' : '') +
+          '<div class="mt-1.5 pt-1.5 border-t border-slate-100 flex justify-between text-[11px]">' +
+            '<span class="text-slate-500">淨利（營業額 - 總成本）' + (profitPerKm !== null ? ' <span class="text-slate-400">（$' + profitPerKm.toFixed(2) + '/km）</span>' : '') + '</span>' +
+            '<span class="font-bold ' + (fin.profit >= 0 ? 'text-emerald-700' : 'text-rose-600') + '">$' + fin.profit.toFixed(1) + '</span>' +
+          '</div>' +
+          (profitPerHour !== null ? '<div class="mt-1 text-[11px] text-right text-slate-500">時薪：<b class="' + (profitPerHour >= 0 ? 'text-emerald-700' : 'text-rose-600') + ' font-mono">$' + profitPerHour.toFixed(2) + ' / 小時</b></div>' : '') +
+        '</div>';
+    });
+  }
+  html += '</div>';
+
+  document.getElementById('modal-title').innerText = '歷史更次設定';
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-footer').innerHTML =
+    '<button onclick="closeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition">關閉</button>';
+  var m = document.getElementById('trip-modal');
+  m.classList.remove('hidden'); m.classList.add('flex');
+  hydrateIcons();
+}
+function openShiftEditModal(key){
+  var cfg = shiftSettings[key];
+  if (!cfg){ showToast('此更次已不存在'); openShiftHistoryModal(); return; }
+  ensureShiftFields(cfg);
+  var wkDay = '';
+  var dd = new Date(key + 'T12:00:00');
+  if (!isNaN(dd.getTime())) wkDay = dd.toLocaleDateString('zh-HK', { weekday:'long' });
+  var startTimeStr = '', endTimeStr = '';
+  if (cfg.startedAt){ var s = new Date(cfg.startedAt); startTimeStr = pad2(s.getHours()) + ':' + pad2(s.getMinutes()); }
+  if (cfg.endedAt){ var e = new Date(cfg.endedAt); endTimeStr = pad2(e.getHours()) + ':' + pad2(e.getMinutes()); }
+
+  var fuelListHtml = '';
+  if (!cfg.fuelEntries || cfg.fuelEntries.length === 0){
+    fuelListHtml = '<p class="text-[11px] text-slate-400 text-center py-3">尚無加油記錄</p>';
+  } else {
+    fuelListHtml = '<div class="space-y-1.5 max-h-40 overflow-y-auto pr-0.5">';
+    cfg.fuelEntries.forEach(function(fe){
+      fuelListHtml +=
+        '<div class="flex justify-between items-center bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 gap-2">' +
+          '<div class="min-w-0 flex-1">' +
+            '<div class="text-xs font-bold text-slate-800">$' + (parseFloat(fe.amount)||0).toFixed(1) +
+              (fe.unitPrice ? ' <span class="text-[10px] text-slate-400 font-normal font-mono">@ $' + parseFloat(fe.unitPrice).toFixed(2) + '/L</span>' : '') +
+            '</div>' +
+            (fe.station ? '<div class="text-[10px] text-slate-500 truncate mt-0.5">' + escapeHtml(fe.station) + '</div>' : '') +
+          '</div>' +
+          '<button type="button" onclick="deleteFuelInline(\'' + key + '\',\'' + fe.id + '\')" class="p-1 text-slate-300 hover:text-rose-500 transition shrink-0">' + ico('trash-2','w-3.5 h-3.5') + '</button>' +
+        '</div>';
+    });
+    fuelListHtml += '</div>';
+  }
+
+  document.getElementById('modal-title').innerText = '修改歷史更次';
+  document.getElementById('modal-body').innerHTML =
+    '<div class="space-y-3 text-sm">' +
+      '<div class="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 flex justify-between items-center">' +
+        '<span class="text-[11px] font-semibold text-amber-800">更次日期</span>' +
+        '<span class="font-bold text-amber-900 font-mono text-xs">' + key + (wkDay ? ' <span class="text-[10px] text-amber-600 font-normal">' + wkDay + '</span>' : '') + '</span>' +
+      '</div>' +
+      '<div class="grid grid-cols-2 gap-2">' +
+        '<div><label class="block text-xs font-semibold text-slate-600 mb-1">開工時間</label>' +
+          '<input type="time" id="edit-shift-start" value="' + startTimeStr + '" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">' +
+        '</div>' +
+        '<div><label class="block text-xs font-semibold text-slate-600 mb-1">收工時間</label>' +
+          '<input type="time" id="edit-shift-end" value="' + endTimeStr + '" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">' +
+        '</div>' +
+      '</div>' +
+      '<div><label class="block text-xs font-semibold text-slate-600 mb-1">租車費 (HKD)</label>' +
+        '<input type="number" id="edit-shift-rental" step="1" inputmode="decimal" value="' + (parseFloat(cfg.rental) || 0) + '" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-bold">' +
+      '</div>' +
+      '<div><label class="block text-xs font-semibold text-slate-600 mb-1">更次備註 (選填)</label>' +
+        '<input type="text" id="edit-shift-note" value="' + escapeHtml(cfg.note || '') + '" autocomplete="off" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">' +
+      '</div>' +
+      '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">' +
+        '<div class="text-xs font-bold text-slate-700">行駛里程</div>' +
+        '<div class="grid grid-cols-2 gap-2">' +
+          '<div><label class="block text-[11px] font-semibold text-slate-500 mb-1">開始咪錶 (km)</label>' +
+            '<input type="number" id="edit-shift-mileage-start" step="0.1" inputmode="decimal" value="' + (cfg.mileage && cfg.mileage.start != null ? cfg.mileage.start : '') + '" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">' +
+          '</div>' +
+          '<div><label class="block text-[11px] font-semibold text-slate-500 mb-1">結束咪錶 (km)</label>' +
+            '<input type="number" id="edit-shift-mileage-end" step="0.1" inputmode="decimal" value="' + (cfg.mileage && cfg.mileage.end != null ? cfg.mileage.end : '') + '" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">' +
+        '<div class="flex justify-between items-center">' +
+          '<span class="text-xs font-bold text-slate-700">加油記錄</span>' +
+          '<button type="button" onclick="showAddFuelInline(\'' + key + '\')" class="text-[11px] px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg transition">+ 加入</button>' +
+        '</div>' +
+        fuelListHtml +
+        '<div id="add-fuel-inline-panel" class="hidden mt-2 p-2.5 bg-white border border-amber-200 rounded-lg space-y-1.5">' +
+          '<input type="number" id="inline-fuel-amount" step="1" inputmode="decimal" placeholder="加油金額 (HKD)" class="w-full px-2.5 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 font-bold">' +
+          '<input type="number" id="inline-fuel-price" step="0.1" inputmode="decimal" placeholder="油價 HKD/L（選填）" class="w-full px-2.5 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">' +
+          '<input type="text" id="inline-fuel-station" autocomplete="off" placeholder="地點（選填）" class="w-full px-2.5 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">' +
+          '<div class="flex gap-1.5 pt-0.5">' +
+            '<button type="button" onclick="hideAddFuelInline()" class="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold rounded-lg text-xs transition">取消</button>' +
+            '<button type="button" onclick="confirmAddFuelInline(\'' + key + '\')" class="flex-1 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg text-xs transition">確認加入</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  document.getElementById('modal-footer').innerHTML =
+    '<button onclick="openShiftHistoryModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition">返回列表</button>' +
+    '<button onclick="saveShiftEdit(\'' + key + '\')" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl text-xs transition">保存修改</button>';
+  var m = document.getElementById('trip-modal');
+  m.classList.remove('hidden'); m.classList.add('flex');
+  hydrateIcons();
+}
+function readShiftEditForm(key){
+  var cfg = shiftSettings[key];
+  if (!cfg) return null;
+  var startEl = document.getElementById('edit-shift-start');
+  var endEl   = document.getElementById('edit-shift-end');
+  var rentEl  = document.getElementById('edit-shift-rental');
+  var noteEl  = document.getElementById('edit-shift-note');
+  var msEl    = document.getElementById('edit-shift-mileage-start');
+  var meEl    = document.getElementById('edit-shift-mileage-end');
+  if (!startEl) return cfg;
+  var baseDate = new Date(key + 'T00:00:00');
+
+  var sVal = startEl.value;
+  if (sVal){
+    var sp = sVal.split(':'); var sD = new Date(baseDate);
+    sD.setHours(parseInt(sp[0],10), parseInt(sp[1],10), 0, 0);
+    cfg.startedAt = sD.getTime(); cfg.startTime = sVal;
+  } else { cfg.startedAt = null; cfg.startTime = ''; }
+
+  var eVal = endEl.value;
+  if (eVal){
+    var ep = eVal.split(':'); var eD = new Date(baseDate);
+    eD.setHours(parseInt(ep[0],10), parseInt(ep[1],10), 0, 0);
+    if (cfg.startedAt && eD.getTime() <= cfg.startedAt) eD.setDate(eD.getDate() + 1);
+    cfg.endedAt = eD.getTime(); cfg.endTime = eVal;
+  } else { cfg.endedAt = null; cfg.endTime = ''; }
+
+  cfg.rental = rentEl ? (parseFloat(rentEl.value) || 0) : 0;
+  if (noteEl) cfg.note = noteEl.value.trim();
+
+  var msVal = msEl.value === '' ? null : parseFloat(msEl.value);
+  var meVal = meEl.value === '' ? null : parseFloat(meEl.value);
+  cfg.mileage = { start:(msVal===null||isNaN(msVal))?null:msVal, end:(meVal===null||isNaN(meVal))?null:meVal };
+  return cfg;
+}
+function saveShiftEdit(key){
+  var cfg = readShiftEditForm(key);
+  if (!cfg){ showToast('更次不存在'); return; }
+  shiftSettings[key] = cfg;
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+  updateStatsAndNet();
+  initSettingsForm();
+  updateHeaderWorked();
+  showToast('更次 ' + key + ' 已更新');
+  openShiftHistoryModal();
+}
+function showAddFuelInline(key){
+  var panel = document.getElementById('add-fuel-inline-panel');
+  if (!panel) return;
+  panel.classList.remove('hidden');
+  setTimeout(function(){ var el = document.getElementById('inline-fuel-amount'); if (el) el.focus(); }, 50);
+}
+function hideAddFuelInline(){
+  var panel = document.getElementById('add-fuel-inline-panel');
+  if (!panel) return;
+  panel.classList.add('hidden');
+  var a = document.getElementById('inline-fuel-amount'); if (a) a.value = '';
+  var p = document.getElementById('inline-fuel-price');  if (p) p.value = '';
+  var s = document.getElementById('inline-fuel-station');if (s) s.value = '';
+}
+function confirmAddFuelInline(key){
+  var amountEl  = document.getElementById('inline-fuel-amount');
+  var priceEl   = document.getElementById('inline-fuel-price');
+  var stationEl = document.getElementById('inline-fuel-station');
+  if (!amountEl) return;
+  var amount = parseFloat(amountEl.value);
+  if (isNaN(amount) || amount <= 0){ showToast('請輸入有效金額'); amountEl.focus(); return; }
+  var cfg = readShiftEditForm(key);
+  if (!cfg){ showToast('更次不存在'); return; }
+
+  var unitPrice = priceEl.value.trim() ? parseFloat(priceEl.value) : null;
+  if (isNaN(unitPrice) || unitPrice <= 0) unitPrice = null;
+  var station = stationEl.value.trim();
+  var liters  = (unitPrice !== null) ? (amount / unitPrice) : null;
+  if (!Array.isArray(cfg.fuelEntries)) cfg.fuelEntries = [];
+  cfg.fuelEntries.push({ id: 'fuel_' + Date.now() + '_' + Math.floor(Math.random()*1000), amount:amount, unitPrice:unitPrice, liters:liters, station:station, timestamp: Date.now() });
+  shiftSettings[key] = cfg;
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+  updateStatsAndNet();
+  initSettingsForm();
+  var msg = '已加入加油 $' + amount;
+  if (unitPrice !== null && liters !== null) msg += '（' + liters.toFixed(2) + ' L）';
+  showToast(msg);
+  openShiftEditModal(key);
+}
+function deleteFuelInline(key, id){
+  var cfg = shiftSettings[key];
+  if (!cfg){ showToast('更次不存在'); return; }
+  if (!confirm('確定要刪除這筆加油記錄嗎？')) return;
+  readShiftEditForm(key);
+  cfg.fuelEntries = (cfg.fuelEntries || []).filter(function(e){ return e.id !== id; });
+  shiftSettings[key] = cfg;
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+  updateStatsAndNet();
+  initSettingsForm();
+  showToast('已刪除加油記錄');
+  openShiftEditModal(key);
+}
+function deleteShift(key){
+  var cfg  = shiftSettings[key];
+  var list = trips.filter(function(t){ return t.shiftDate === key; });
+  var isActive = (key === getActiveShiftKey());
+  var warnActive = isActive ? '⚠️ 這是「進行中」的更次（尚未收工）。\n\n' : '';
+  var confirmMsg = warnActive + '確定要刪除更次「' + key + '」嗎？\n\n將一併刪除：\n• ' + list.length + ' 筆行程紀錄\n• 該更次設定（含租車費、油費、里程、時間、備註）\n\n此操作可於「數據管理」按「撤銷」還原。';
+  if (!confirm(confirmMsg)) return;
+
+  lastDeletedTrips = list.slice();
+  lastDeletedShiftSettings = {};
+  if (cfg) lastDeletedShiftSettings[key] = JSON.parse(JSON.stringify(cfg));
+
+  var tripIdSet = {};
+  list.forEach(function(t){ tripIdSet[t.id] = true; });
+  trips = trips.filter(function(t){ return !tripIdSet[t.id]; });
+  delete shiftSettings[key];
+
+  localStorage.setItem('taxi_trips', JSON.stringify(trips));
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+
+  updateStatsAndNet();
+  initSettingsForm();
+  updateHeaderWorked();
+  var bannerText = '已刪除更次 ' + key + '（' + list.length + ' 筆）';
+  showUndoBanner(bannerText);
+  showToast(bannerText);
+  if (Object.keys(shiftSettings).length > 0) openShiftHistoryModal();
+  else closeModal();
+}
+
+/* ---------- 油費 ---------- */
+function getFuelPrefs(){
+  var prefs;
+  try { prefs = JSON.parse(localStorage.getItem('taxi_fuel_prefs')) || {}; }
+  catch(e){ prefs = {}; }
+  if (!Array.isArray(prefs.stationHistory)) prefs.stationHistory = [];
+  if (!Array.isArray(prefs.priceHistory))   prefs.priceHistory   = [];
+  if (prefs.lastUnitPrice === undefined)    prefs.lastUnitPrice  = null;
+  if (prefs.lastStation   === undefined)    prefs.lastStation    = '';
+  return prefs;
+}
+function saveFuelPrefs(prefs){ localStorage.setItem('taxi_fuel_prefs', JSON.stringify(prefs)); }
+function rebuildFuelPrefsFromHistory(){
+  var prefs = getFuelPrefs();
+  var stationMap = {}, priceMap = {};
+  Object.keys(shiftSettings).forEach(function(k){
+    (shiftSettings[k].fuelEntries || []).forEach(function(e){
+      if (e.station && String(e.station).trim()){
+        var s = String(e.station).trim();
+        stationMap[s] = (stationMap[s] || 0) + 1;
+      }
+      var p = parseFloat(e.unitPrice);
+      if (!isNaN(p) && p > 0){
+        var key = p.toFixed(2);
+        priceMap[key] = (priceMap[key] || 0) + 1;
+      }
+    });
+  });
+  var stations = Object.keys(stationMap).sort(function(a,b){ if (stationMap[b]!==stationMap[a]) return stationMap[b]-stationMap[a]; return a.localeCompare(b); });
+  var prices = Object.keys(priceMap).sort(function(a,b){ if (priceMap[b]!==priceMap[a]) return priceMap[b]-priceMap[a]; return parseFloat(b)-parseFloat(a); });
+  prefs.stationHistory = stations.slice(0,8);
+  prefs.priceHistory   = prices.slice(0,6);
+  saveFuelPrefs(prefs);
+  return prefs;
+}
+function calcFuelLiters(){
+  var amountEl = document.getElementById('fuel-add-amount');
+  var priceEl  = document.getElementById('fuel-add-price');
+  var el       = document.getElementById('fuel-add-liters');
+  if (!el || !amountEl || !priceEl) return;
+  var amount = parseFloat(amountEl.value) || 0;
+  var price  = parseFloat(priceEl.value)  || 0;
+  if (amount > 0 && price > 0){
+    el.innerText = (amount / price).toFixed(2) + ' L';
+    el.className = 'font-bold text-emerald-700 font-mono';
+  } else { el.innerText = '-- L'; el.className = 'font-bold text-slate-400 font-mono'; }
+}
+function openAddFuelModal(){
+  var prefs = rebuildFuelPrefsFromHistory();
+  var lastPrice   = (prefs.lastUnitPrice !== null && prefs.lastUnitPrice !== undefined) ? parseFloat(prefs.lastUnitPrice) : null;
+  var lastStation = prefs.lastStation || '';
+  var priceQuick = (prefs.priceHistory || []).filter(function(p){ return Math.abs(parseFloat(p) - (lastPrice || -1)) > 0.0001; }).slice(0,5);
+  var stationQuick = (prefs.stationHistory || []).filter(function(s){ return s !== lastStation; }).slice(0,3);
+
+  var html = '<div class="space-y-3">';
+  html += '<div><label class="block text-xs font-semibold text-slate-600 mb-1">本次加油金額 (HKD)</label>' +
+    '<div class="relative"><span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>' +
+      '<input type="number" id="fuel-add-amount" step="1" inputmode="decimal" autocomplete="off" placeholder="0" oninput="calcFuelLiters()" class="w-full pl-8 pr-3 py-3 text-xl font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">' +
+    '</div>' +
+    '<div class="grid grid-cols-5 gap-1.5 mt-2">' +
+      [100,200,300,500,600].map(function(v){ return '<button type="button" data-fuel-quick="amount" data-val="' + v + '" class="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs transition">' + v + '</button>'; }).join('') +
+    '</div></div>';
+
+  var priceLabelExtra = (lastPrice !== null)
+    ? '<button type="button" data-fuel-quick="price" data-val="' + lastPrice + '" class="text-[11px] text-amber-700 hover:text-amber-800 font-medium underline">最近 $' + lastPrice.toFixed(2) + '</button>'
+    : '';
+
+  html += '<div><div class="flex justify-between items-center mb-1"><label class="block text-xs font-semibold text-slate-600">油價 (HKD/L) <span class="text-slate-400 font-normal">(選填)</span></label>' + priceLabelExtra + '</div>' +
+    '<div class="relative"><span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>' +
+      '<input type="number" id="fuel-add-price" step="0.1" inputmode="decimal" autocomplete="off" placeholder="0.00" value="' + (lastPrice !== null ? lastPrice : '') + '" oninput="calcFuelLiters()" class="w-full pl-8 pr-3 py-2.5 text-lg font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">' +
+    '</div>' +
+    (priceQuick.length ? '<div class="flex flex-wrap gap-1.5 mt-2">' + priceQuick.map(function(p){ return '<button type="button" data-fuel-quick="price" data-val="' + escapeHtml(p) + '" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-md text-[11px] transition font-mono">$' + escapeHtml(p) + '</button>'; }).join('') + '</div>' : '') +
+    '</div>';
+
+  var stationLabelExtra = lastStation
+    ? '<button type="button" data-fuel-quick="station" data-val="' + escapeHtml(lastStation) + '" class="text-[11px] text-amber-700 hover:text-amber-800 font-medium underline truncate max-w-[9rem]">最近 ' + escapeHtml(lastStation) + '</button>'
+    : '';
+
+  html += '<div><div class="flex justify-between items-center mb-1"><label class="block text-xs font-semibold text-slate-600">加油地點 <span class="text-slate-400 font-normal">(選填)</span></label>' + stationLabelExtra + '</div>' +
+    '<input type="text" id="fuel-add-station" autocomplete="off" placeholder="例如：中石化-旺角" value="' + escapeHtml(lastStation) + '" class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">' +
+    (stationQuick.length ? '<div class="flex flex-wrap gap-1.5 mt-2">' + stationQuick.map(function(s){ return '<button type="button" data-fuel-quick="station" data-val="' + escapeHtml(s) + '" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-md text-[11px] transition">' + escapeHtml(s) + '</button>'; }).join('') + '</div>' : '') +
+    '</div>';
+
+  html += '<div class="bg-amber-50 border border-amber-100 rounded-xl px-3.5 py-2.5 flex justify-between items-center">' +
+    '<span class="text-xs font-semibold text-amber-800 flex items-center gap-1.5"><span class="ico w-3.5 h-3.5 text-amber-700" data-icon="droplet"></span>自動計算升數</span>' +
+    '<span id="fuel-add-liters" class="font-bold text-slate-400 font-mono">-- L</span></div>';
+
+  html += '<p class="text-[11px] text-slate-400 leading-relaxed flex items-start gap-1.5"><span class="ico w-3.5 h-3.5 mt-0.5 shrink-0" data-icon="info"></span><span>單價與地點會自動記憶，金額會累加至最後一更總油費。</span></p>';
+  html += '</div>';
+
+  document.getElementById('modal-title').innerText = '新增加油記錄';
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-footer').innerHTML =
+    '<button onclick="closeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition">取消</button>' +
+    '<button onclick="addFuelEntry()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl text-xs transition">確認加入</button>';
+  var m = document.getElementById('trip-modal');
+  m.classList.remove('hidden'); m.classList.add('flex');
+  hydrateIcons();
+
+  var modalBody = document.getElementById('modal-body');
+  modalBody.onclick = function(e){
+    var btn = e.target.closest ? e.target.closest('[data-fuel-quick]') : null;
+    if (!btn) return;
+    var field = btn.dataset.fuelQuick, val = btn.dataset.val;
+    var idMap = { amount:'fuel-add-amount', price:'fuel-add-price', station:'fuel-add-station' };
+    var el = document.getElementById(idMap[field]);
+    if (!el) return;
+    el.value = val;
+    if (field === 'amount' || field === 'price') calcFuelLiters();
+  };
+  calcFuelLiters();
+  setTimeout(function(){ var el = document.getElementById('fuel-add-amount'); if (el) el.focus(); }, 100);
+}
+function addFuelEntry(){
+  var amountEl  = document.getElementById('fuel-add-amount');
+  var priceEl   = document.getElementById('fuel-add-price');
+  var stationEl = document.getElementById('fuel-add-station');
+  var amount = parseFloat(amountEl.value);
+  if (!amount || isNaN(amount) || amount <= 0){ showToast('請輸入有效金額！'); amountEl.focus(); return; }
+  var unitPrice = priceEl ? parseFloat(priceEl.value) : NaN;
+  if (isNaN(unitPrice) || unitPrice <= 0) unitPrice = null;
+  var station = stationEl ? stationEl.value.trim() : '';
+  var liters  = (unitPrice !== null) ? (amount / unitPrice) : null;
+
+  var key = getLastShiftKey();
+  var cfg = getLastSettings();
+  if (!Array.isArray(cfg.fuelEntries)) cfg.fuelEntries = [];
+  cfg.fuelEntries.push({ id:'fuel_' + Date.now() + '_' + Math.floor(Math.random()*1000), amount:amount, unitPrice:unitPrice, liters:liters, station:station, timestamp: Date.now() });
+  shiftSettings[key] = cfg;
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+
+  var prefs = getFuelPrefs();
+  if (unitPrice !== null) prefs.lastUnitPrice = unitPrice;
+  if (station)            prefs.lastStation   = station;
+  saveFuelPrefs(prefs);
+
+  closeModal();
+  initSettingsForm();
+  updateStatsAndNet();
+  var toastMsg = '已加入加油 $' + amount;
+  if (unitPrice !== null && liters !== null) toastMsg += '（' + liters.toFixed(2) + ' L）';
+  showToast(toastMsg);
+}
+function openFuelHistoryModal(){
+  var cfg = getLastSettings(false);
+  var entries = (cfg && Array.isArray(cfg.fuelEntries)) ? cfg.fuelEntries.slice() : [];
+  entries.sort(function(a,b){ return b.timestamp - a.timestamp; });
+  var total = getFuelTotal(cfg);
+  var key = getLastShiftKey();
+
+  var html = '<div class="space-y-3">';
+  html += '<div class="bg-amber-50 border border-amber-100 rounded-xl px-3.5 py-2.5 flex justify-between items-center">' +
+    '<div><div class="text-[11px] text-amber-800 font-medium">最後一更總油費</div><div class="text-xl font-extrabold text-amber-900 mt-0.5">$' + total.toFixed(1) + '</div></div>' +
+    '<div class="text-right text-[11px] text-slate-500 font-mono">' + key + '<br>共 ' + entries.length + ' 筆</div></div>';
+
+  if (entries.length === 0){
+    html += '<p class="text-center text-slate-400 text-sm py-6">尚未有加油記錄</p>';
+  } else {
+    html += '<div class="space-y-1.5 max-h-64 overflow-y-auto pr-1">';
+    entries.forEach(function(e){
+      var d = new Date(e.timestamp);
+      var timeStr = d.toLocaleString('zh-HK', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+      var priceLine = '';
+      if (e.unitPrice){
+        priceLine = '<div class="text-[11px] text-slate-500 font-mono">' + parseFloat(e.unitPrice).toFixed(2) + ' HKD/L' + (e.liters ? ' × ' + parseFloat(e.liters).toFixed(2) + ' L' : '') + '</div>';
+      }
+      var stationLine = '';
+      if (e.station){
+        stationLine = '<div class="text-[11px] text-slate-600 mt-0.5 truncate flex items-center gap-1"><span class="ico w-3 h-3 text-slate-400 shrink-0">' + ico('map-pin','w-3 h-3') + '</span>' + escapeHtml(e.station) + '</div>';
+      }
+      html += '<div class="flex justify-between items-start bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 gap-2">' +
+        '<div class="min-w-0 flex-1">' +
+          '<div class="flex items-baseline gap-2 flex-wrap"><div class="font-bold text-slate-800 text-base">$' + e.amount + '</div></div>' +
+          priceLine + stationLine +
+          '<div class="text-[11px] text-slate-400 font-mono mt-0.5">' + timeStr + '</div>' +
+        '</div>' +
+        '<button onclick="deleteFuelEntry(\'' + e.id + '\')" class="p-2 text-slate-400 hover:text-rose-500 transition shrink-0">' + ico('trash-2','w-4 h-4') + '</button>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+
+  document.getElementById('modal-title').innerText = '加油記錄';
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-footer').innerHTML =
+    '<button onclick="closeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition">關閉</button>' +
+    '<button onclick="openAddFuelModal()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl text-xs transition">+ 新增加油</button>';
+  var m = document.getElementById('trip-modal');
+  m.classList.remove('hidden'); m.classList.add('flex');
+  hydrateIcons();
+}
+function deleteFuelEntry(id){
+  if (!confirm('確定要刪除這筆加油記錄嗎？')) return;
+  var key = getLastShiftKey();
+  var cfg = getLastSettings(false);
+  if (!cfg) return;
+  cfg.fuelEntries = (cfg.fuelEntries || []).filter(function(e){ return e.id !== id; });
+  shiftSettings[key] = cfg;
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+  initSettingsForm();
+  updateStatsAndNet();
+  showToast('加油記錄已刪除，總油費 $' + getFuelTotal(cfg).toFixed(1));
+  openFuelHistoryModal();
+}
+
+/* ---------- 數據管理 ---------- */
+var DELETE_PERIODS = {
+  day:   { daysBack: 1,  label: '一天前',   desc: '昨天及之前的更次' },
+  week:  { daysBack: 7,  label: '一星期前', desc: '7 天前的更次' },
+  month: { daysBack: 30, label: '一個月前', desc: '30 天前的更次' }
+};
+function deleteOldTrips(period){
+  var keysToDelete = [];
+  if (period === 'all') keysToDelete = Object.keys(shiftSettings);
+  else {
+    var conf = DELETE_PERIODS[period];
+    if (!conf) return;
+    var cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - conf.daysBack);
+    cutoffDate.setHours(0,0,0,0);
+    var cutoffKey = localDateStr(cutoffDate);
+    keysToDelete = Object.keys(shiftSettings).filter(function(k){ return k <= cutoffKey; });
+  }
+  var keySet = {};
+  keysToDelete.forEach(function(k){ keySet[k] = true; });
+
+  var tripTargets = (period === 'all') ? trips.slice() : trips.filter(function(t){ return keySet[t.shiftDate]; });
+  if (tripTargets.length + keysToDelete.length === 0){
+    showToast(period === 'all' ? '目前沒有任何數據可刪除' : '沒有 ' + DELETE_PERIODS[period].label + ' 的數據');
+    return;
+  }
+
+  var periodDesc = period === 'all' ? '全部' : DELETE_PERIODS[period].label + '（' + DELETE_PERIODS[period].desc + '）';
+  var confirmMsg = period === 'all'
+    ? '⚠️ 確定要刪除「全部」數據嗎？\n\n將一併刪除：\n• ' + tripTargets.length + ' 筆行程紀錄\n• ' + keysToDelete.length + ' 個更次設定（含成本、油費、里程）\n\n此操作無法復原！'
+    : '確定要刪除「' + periodDesc + '」的數據嗎？\n\n將一併刪除：\n• ' + tripTargets.length + ' 筆行程紀錄\n• ' + keysToDelete.length + ' 個更次設定\n\n此操作無法復原！';
+  if (!confirm(confirmMsg)) return;
+
+  lastDeletedTrips = tripTargets.slice();
+  lastDeletedShiftSettings = {};
+  keysToDelete.forEach(function(k){ if (shiftSettings[k]) lastDeletedShiftSettings[k] = JSON.parse(JSON.stringify(shiftSettings[k])); });
+
+  var tripIdSet = {};
+  tripTargets.forEach(function(t){ tripIdSet[t.id] = true; });
+  trips = trips.filter(function(t){ return !tripIdSet[t.id]; });
+  keysToDelete.forEach(function(k){ delete shiftSettings[k]; });
+
+  localStorage.setItem('taxi_trips', JSON.stringify(trips));
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+  updateStatsAndNet();
+  initSettingsForm();
+  var bannerText = '已刪除 ' + tripTargets.length + ' 筆紀錄、' + keysToDelete.length + ' 個更次';
+  showUndoBanner(bannerText);
+  showToast(bannerText);
+}
+function showUndoBanner(text){
+  var banner = document.getElementById('undo-banner');
+  if (!banner) return;
+  document.getElementById('undo-text').innerText = text;
+  banner.classList.remove('hidden');
+}
+function hideUndoBanner(){
+  var banner = document.getElementById('undo-banner');
+  if (banner) banner.classList.add('hidden');
+}
+function undoDelete(){
+  var hasTrips  = lastDeletedTrips && lastDeletedTrips.length > 0;
+  var hasShifts = lastDeletedShiftSettings && Object.keys(lastDeletedShiftSettings).length > 0;
+  if (!hasTrips && !hasShifts) return;
+
+  var existingTripIds = {};
+  trips.forEach(function(t){ existingTripIds[t.id] = true; });
+  var restoredTrips = (lastDeletedTrips || []).filter(function(t){ return !existingTripIds[t.id]; });
+  trips = trips.concat(restoredTrips).sort(function(a,b){ return b.timestamp - a.timestamp; });
+
+  var restoredShiftCount = 0;
+  if (lastDeletedShiftSettings){
+    Object.keys(lastDeletedShiftSettings).forEach(function(k){
+      if (!shiftSettings[k]){ shiftSettings[k] = lastDeletedShiftSettings[k]; restoredShiftCount++; }
+    });
+  }
+  localStorage.setItem('taxi_trips', JSON.stringify(trips));
+  localStorage.setItem('taxi_shift_settings', JSON.stringify(shiftSettings));
+
+  var restoredTripCount = restoredTrips.length;
+  lastDeletedTrips = null;
+  lastDeletedShiftSettings = null;
+  hideUndoBanner();
+  updateStatsAndNet();
+  initSettingsForm();
+  var msg = '已復原 ' + restoredTripCount + ' 筆紀錄';
+  if (restoredShiftCount > 0) msg += '、' + restoredShiftCount + ' 個更次';
+  showToast(msg);
+}
+function updateTripCount(){
+  var el = document.getElementById('total-trip-count');
+  if (el) el.innerText = trips.length;
+}
+
+/* ---------- 統計卡片 ---------- */
+function setStatsPeriod(period){
+  statsPeriod = period;
+  ['day','week','month'].forEach(function(p){
+    var btn = document.getElementById('period-btn-' + p);
+    if (!btn) return;
+    if (p === period) btn.className = 'py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition font-bold';
+    else btn.className = 'py-1.5 rounded-lg text-slate-600 transition font-medium';
+  });
+  updateStatsAndNet();
+}
+function shiftKeyInPeriod(key, period, now, currentShiftKey){
+  if (!key) return false;
+  var d = new Date(key + 'T12:00:00');
+  if (isNaN(d.getTime())) return false;
+  if (currentShiftKey === undefined) currentShiftKey = getLastShiftKey();
+  var endRef = new Date(currentShiftKey + 'T12:00:00');
+  if (isNaN(endRef.getTime())) return false;
+  if (period === 'day') return key === currentShiftKey;
+  if (period === 'week'){
+    var start = new Date(endRef); start.setDate(start.getDate() - 6);
+    return d >= start && d <= endRef;
+  }
+  if (period === 'month'){
+    var start2 = new Date(endRef); start2.setDate(start2.getDate() - 29);
+    return d >= start2 && d <= endRef;
+  }
+  return false;
+}
+function setText(id, text){
+  var el = document.getElementById(id);
+  if (el) el.innerText = text;
+}
+function updateMileageMetrics(km, data){
+  var metricKm        = document.getElementById('metric-mileage');
+  var metricRevPerKm  = document.getElementById('metric-rev-per-km');
+  var metricProfPerKm = document.getElementById('metric-profit-per-km');
+  var metricFuelPerKm = document.getElementById('metric-fuel-per-km');
+  var metricCostPerKm = document.getElementById('metric-cost-per-km');
+  if (!km || km <= 0){
+    if (metricKm)        metricKm.innerText        = '-- km';
+    if (metricRevPerKm)  metricRevPerKm.innerText  = '--';
+    if (metricProfPerKm) metricProfPerKm.innerText = '--';
+    if (metricFuelPerKm) metricFuelPerKm.innerText = '--';
+    if (metricCostPerKm) metricCostPerKm.innerText = '--';
+  } else {
+    if (metricKm)        metricKm.innerText        = km.toFixed(1) + ' km';
+    if (metricRevPerKm)  metricRevPerKm.innerText  = '$' + (data.gross / km).toFixed(2);
+    if (metricProfPerKm) metricProfPerKm.innerText = '$' + (data.profit / km).toFixed(2);
+    if (metricFuelPerKm) metricFuelPerKm.innerText = '$' + (data.fuel / km).toFixed(2);
+    if (metricCostPerKm) metricCostPerKm.innerText = '$' + (data.totalCost / km).toFixed(2);
+  }
+}
+function updateDurationMetrics(duration, profit){
+  var metricDuration      = document.getElementById('metric-duration');
+  var metricProfitPerHour = document.getElementById('metric-profit-per-hour');
+  if (!metricDuration || !metricProfitPerHour) return;
+  if (!duration || duration <= 0){
+    metricDuration.innerText = '-- 小時';
+    metricProfitPerHour.innerText = '--';
+  } else {
+    metricDuration.innerText = duration.toFixed(1) + ' 小時';
+    metricProfitPerHour.innerText = '$' + (profit / duration).toFixed(2);
+    metricProfitPerHour.className = (profit / duration) >= 0
+      ? 'text-amber-800 font-extrabold font-mono mt-0.5'
+      : 'text-rose-600 font-extrabold font-mono mt-0.5';
+  }
+}
+function renderTypeBreakdown(typeRev){
+  var container = document.getElementById('stats-type-breakdown');
+  if (!container) return;
+  var entries = Object.keys(typeRev).filter(function(k){ return typeRev[k] > 0.001; });
+  var orderMap = {};
+  TRIP_TYPE_CONFIG.forEach(function(t, i){ orderMap[t.name] = i; });
+  entries.sort(function(a,b){
+    var ia = (orderMap[a] === undefined) ? 999 : orderMap[a];
+    var ib = (orderMap[b] === undefined) ? 999 : orderMap[b];
+    return ia - ib;
+  });
+  if (entries.length === 0){
+    container.style.gridTemplateColumns = '';
+    container.innerHTML = '<div class="col-span-3 text-slate-400 text-[11px] py-1">暫無收入記錄</div>';
+    return;
+  }
+  var cols = Math.min(entries.length, 3);
+  container.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0,1fr))';
+  container.innerHTML = entries.map(function(name){
+    var cfg = getTripTypeConfig(name);
+    var theme = TRIP_TYPE_THEME[cfg.color] || TRIP_TYPE_THEME.slate;
+    return '<div class="rounded-lg py-2 border ' + theme.card + '">' +
+      '<div class="' + theme.text + ' font-medium truncate px-1">' + escapeHtml(name) + '</div>' +
+      '<div class="' + theme.text + ' font-bold font-mono mt-0.5">$' + typeRev[name].toFixed(1) + '</div>' +
+    '</div>';
+  }).join('');
+}
+function renderPaymentBreakdown(paymentRev){
+  var container = document.getElementById('stats-payment-breakdown');
+  if (!container) return;
+  var entries = Object.keys(paymentRev).filter(function(k){ return paymentRev[k] > 0.001; });
+  var orderMap = {};
+  PAYMENT_METHOD_CONFIG.forEach(function(p, i){ orderMap[p.name] = i; });
+  entries.sort(function(a,b){
+    var ia = (orderMap[a] === undefined) ? 999 : orderMap[a];
+    var ib = (orderMap[b] === undefined) ? 999 : orderMap[b];
+    return ia - ib;
+  });
+  if (entries.length === 0){
+    container.style.gridTemplateColumns = '';
+    container.innerHTML = '<div class="col-span-3 text-slate-400 text-[11px] py-1">暫無收入記錄</div>';
+    return;
+  }
+  var cols = Math.min(entries.length, 3);
+  container.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0,1fr))';
+  container.innerHTML = entries.map(function(name){
+    var cfg = getPaymentMethodConfig(name);
+    var theme = TRIP_TYPE_THEME[cfg.color] || TRIP_TYPE_THEME.slate;
+    return '<div class="rounded-lg py-2 border ' + theme.card + ' flex flex-col items-center">' +
+      '<div class="' + theme.text + ' font-medium truncate px-1 flex items-center gap-0.5">' + ico(cfg.icon, 'w-3 h-3') + escapeHtml(name) + '</div>' +
+      '<div class="' + theme.text + ' font-bold font-mono mt-0.5">$' + paymentRev[name].toFixed(1) + '</div>' +
+    '</div>';
+  }).join('');
+}
+function renderDayStatsView(lastKey, lastCfg){
+  var fin = getShiftFinance(lastKey);
+  setText('stats-period-title', '最近一更利潤（' + lastKey + '）');
+  setText('stats-period-shift-count-badge', '1 更');
+  setText('net-gross', '$' + fin.gross.toFixed(1));
+  setText('net-cost', '$' + fin.totalCost.toFixed(1));
+  var profitElem = document.getElementById('net-profit');
+  if (profitElem){
+    profitElem.innerText = '$' + fin.profit.toFixed(1);
+    profitElem.className = fin.profit >= 0
+      ? 'text-base font-extrabold text-amber-800 mt-0.5 font-mono'
+      : 'text-base font-extrabold text-rose-600 mt-0.5 font-mono';
+  }
+  setText('net-cost-breakdown', '租 $' + fin.rental.toFixed(1) + '　·　油 $' + fin.fuel.toFixed(1) + '　·　行程支出 $' + fin.expenseTrip.toFixed(1));
+  setText('net-income-count', fin.incomeCount);
+  setText('net-expense-count', fin.expenseCount);
+
+  var km = lastCfg ? getShiftMileage(lastCfg) : null;
+  updateMileageMetrics(km, fin);
+  var duration = lastCfg ? getShiftDuration(lastCfg) : null;
+  updateDurationMetrics(duration, fin.profit);
+
+  var durRow = document.getElementById('duration-metrics-row');
+  if (durRow) durRow.style.display = 'grid';
+
+  var typeRev = {};
+  TRIP_TYPE_CONFIG.forEach(function(t){ typeRev[t.name] = 0; });
+  var paymentRev = {};
+  PAYMENT_METHOD_CONFIG.forEach(function(p){ paymentRev[p.name] = 0; });
+  fin.list.forEach(function(t){
+    var v = parseFloat(t.fare) || 0;
+    if (v <= 0) return;
+    if (typeRev[t.type] !== undefined) typeRev[t.type] += v; else typeRev['其他'] += v;
+    var pay = t.payment || '現金';
+    if (paymentRev[pay] !== undefined) paymentRev[pay] += v; else paymentRev['其他'] += v;
+  });
+  renderTypeBreakdown(typeRev);
+  renderPaymentBreakdown(paymentRev);
+}
+function renderPeriodStatsView(period, now, lastKey){
+  var totalRev = 0, totalExpenseTrip = 0, periodProfit = 0;
+  var periodRental = 0, periodFuel = 0, periodMileage = 0;
+  var periodShiftCount = 0, periodIncomeCount = 0, periodExpenseCount = 0;
+  var typeRev = {};
+  TRIP_TYPE_CONFIG.forEach(function(t){ typeRev[t.name] = 0; });
+  var paymentRev = {};
+  PAYMENT_METHOD_CONFIG.forEach(function(p){ paymentRev[p.name] = 0; });
+
+  Object.keys(shiftSettings).forEach(function(k){
+    if (!shiftKeyInPeriod(k, period, now, lastKey)) return;
+    periodShiftCount++;
+    var finK = getShiftFinance(k);
+    periodProfit += finK.profit;
+    periodRental += finK.rental;
+    periodFuel   += finK.fuel;
+    finK.list.forEach(function(t){
+      var v = parseFloat(t.fare) || 0;
+      if (v < 0){ totalExpenseTrip += -v; periodExpenseCount++; return; }
+      totalRev += v; periodIncomeCount++;
+      if (typeRev[t.type] !== undefined) typeRev[t.type] += v; else typeRev['其他'] += v;
+      var pay = t.payment || '現金';
+      if (paymentRev[pay] !== undefined) paymentRev[pay] += v; else paymentRev['其他'] += v;
+    });
+    var shiftKm = getShiftMileage(shiftSettings[k]);
+    if (shiftKm !== null && shiftKm > 0) periodMileage += shiftKm;
+  });
+  var periodTotalCost = periodRental + periodFuel + totalExpenseTrip;
+  var titleMap = { week:'最近一星期利潤', month:'最近一個月利潤' };
+  setText('stats-period-title', titleMap[period] || '期間利潤');
+  setText('stats-period-shift-count-badge', periodShiftCount + ' 更');
+  setText('net-gross', '$' + totalRev.toFixed(1));
+  setText('net-cost', '$' + periodTotalCost.toFixed(1));
+  var profitElem = document.getElementById('net-profit');
+  if (profitElem){
+    profitElem.innerText = '$' + periodProfit.toFixed(1);
+    profitElem.className = periodProfit >= 0
+      ? 'text-base font-extrabold text-amber-800 mt-0.5 font-mono'
+      : 'text-base font-extrabold text-rose-600 mt-0.5 font-mono';
+  }
+  setText('net-cost-breakdown', '租 $' + periodRental.toFixed(1) + '　·　油 $' + periodFuel.toFixed(1) + '　·　行程支出 $' + totalExpenseTrip.toFixed(1));
+  setText('net-income-count', periodIncomeCount);
+  setText('net-expense-count', periodExpenseCount);
+  updateMileageMetrics(periodMileage, { gross: totalRev, profit: periodProfit, fuel: periodFuel, totalCost: periodTotalCost });
+  var durRow = document.getElementById('duration-metrics-row');
+  if (durRow) durRow.style.display = 'none';
+  renderTypeBreakdown(typeRev);
+  renderPaymentBreakdown(paymentRev);
+}
+function updateStatsAndNet(){
+  var now = new Date();
+  updateTripCount();
+  var lastKey    = getLastShiftKey();
+  var currentKey = getCurrentShiftKey();
+  var lastCfg    = getLastSettings(false);
+
+  var shiftTagEl = document.getElementById('net-shift-tag');
+  if (shiftTagEl){
+    if (lastKey !== currentKey) shiftTagEl.innerText = '（' + lastKey + '）';
+    else shiftTagEl.innerText = '';
+    shiftTagEl.className = 'text-[10px] text-amber-600 font-mono ml-1';
+  }
+  var timeRangeText = '';
+  if (lastCfg && lastCfg.startedAt){
+    if (lastCfg.endedAt) timeRangeText = (lastCfg.startTime || '--') + ' - ' + (lastCfg.endTime || '--');
+    else timeRangeText = (lastCfg.startTime || '--') + ' - 工作中';
+  }
+  setText('current-shift-time-range', timeRangeText);
+  var badge = document.getElementById('current-shift-date-badge');
+  if (badge) badge.innerText = lastKey;
+  var timeDisplay = document.getElementById('setting-shift-time-display');
+  if (timeDisplay) timeDisplay.innerText = timeRangeText || '未設定';
+
+  var fuelInput = document.getElementById('setting-fuel');
+  if (fuelInput && document.activeElement !== fuelInput) fuelInput.value = lastCfg ? getFuelTotal(lastCfg) : '0';
+  updateMileagePanel(lastCfg);
+
+  if (statsPeriod === 'day') renderDayStatsView(lastKey, lastCfg);
+  else renderPeriodStatsView(statsPeriod, now, lastKey);
+
+  renderTrendChart();
+  updateHeaderWorked();
+}
+
+/* ---------- 走勢圖 ---------- */
+function setChartMode(m){
+  if (chartMode === m) return;
+  chartMode = m;
+  localStorage.setItem('taxi_chart_mode', m);
+  if (m === 'hourly' && chartMetric === 'profit') chartMetric = 'gross';
+  applyChartUIState();
+  renderTrendChart();
+}
+function setChartMetric(m){
+  if (chartMode === 'hourly' && m === 'profit') return;
+  chartMetric = m;
+  localStorage.setItem('taxi_chart_metric', m);
+  applyChartUIState();
+  renderTrendChart();
+}
+function setChartRange(r){
+  chartRange = r;
+  localStorage.setItem('taxi_chart_range', String(r));
+  applyChartUIState();
+  renderTrendChart();
+}
+function applyChartUIState(){
+  var segOn  = 'py-1.5 rounded-lg bg-white shadow-xs text-slate-800 transition font-bold';
+  var segOff = 'py-1.5 rounded-lg text-slate-600 transition font-medium';
+  var segDis = 'py-1.5 rounded-lg text-slate-300 transition font-medium cursor-not-allowed';
+  [7,14,30].forEach(function(r){
+    var b = document.getElementById('chart-range-' + r);
+    if (b) b.className = (r === chartRange) ? segOn : segOff;
+  });
+  var bd = document.getElementById('chart-mode-daily');
+  var bh = document.getElementById('chart-mode-hourly');
+  if (bd) bd.className = (chartMode === 'daily') ? segOn : segOff;
+  if (bh) bh.className = (chartMode === 'hourly') ? segOn : segOff;
+  var mg = document.getElementById('chart-metric-gross');
+  var mp = document.getElementById('chart-metric-profit');
+  var mc = document.getElementById('chart-metric-count');
+  if (mg) mg.className = (chartMetric === 'gross') ? segOn : segOff;
+  if (mc) mc.className = (chartMetric === 'count') ? segOn : segOff;
+  if (mp){
+    if (chartMode === 'hourly'){ mp.className = segDis; mp.disabled = true; }
+    else { mp.disabled = false; mp.className = (chartMetric === 'profit') ? segOn : segOff; }
+  }
+}
+function buildDailySeries(days){
+  var now = new Date();
+  var agg = {};
+  trips.forEach(function(t){
+    var k = t.shiftDate;
+    if (!k) return;
+    if (!agg[k]) agg[k] = { gross:0, expense:0, incomeCount:0 };
+    var v = parseFloat(t.fare) || 0;
+    if (v < 0) agg[k].expense += -v;
+    else { agg[k].gross += v; agg[k].incomeCount += 1; }
+  });
+  var wd = ['日','一','二','三','四','五','六'];
+  var out = [];
+  for (var i = days - 1; i >= 0; i--){
+    var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    var key = localDateStr(d);
+    var a = agg[key] || { gross:0, expense:0, incomeCount:0 };
+    var cfg = shiftSettings[key];
+    if (cfg) ensureShiftFields(cfg);
+    var rental = cfg ? (parseFloat(cfg.rental) || 0) : 0;
+    var fuel   = cfg ? getFuelTotal(cfg) : 0;
+    var cost   = rental + fuel + a.expense;
+    out.push({
+      key: key,
+      label: (d.getMonth() + 1) + '/' + d.getDate(),
+      fullLabel: key + '（週' + wd[d.getDay()] + '）',
+      gross: a.gross, profit: a.gross - cost, count: a.incomeCount,
+      isToday: i === 0
+    });
+  }
+  return out;
+}
+function buildHourlySeries(days){
+  var now = new Date();
+  var start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1));
+  start.setHours(0,0,0,0);
+  var startMs = start.getTime();
+  var buckets = [];
+  for (var h = 0; h < 24; h++){
+    var hh = (h < 10 ? '0' : '') + h;
+    buckets.push({ hour: h, label: hh + ':00', fullLabel: hh + ':00 - ' + hh + ':59', gross:0, profit:0, count:0 });
+  }
+  trips.forEach(function(t){
+    if (!t.timestamp || t.timestamp < startMs) return;
+    var v = parseFloat(t.fare) || 0;
+    if (v <= 0) return;
+    var hIdx = new Date(t.timestamp).getHours();
+    buckets[hIdx].gross += v;
+    buckets[hIdx].count += 1;
+  });
+  return buckets;
+}
+function buildSmoothPath(pts, minY, maxY){
+  var n = pts.length;
+  if (n === 0) return '';
+  if (n === 1) return 'M' + pts[0].x.toFixed(2) + ',' + pts[0].y.toFixed(2);
+  if (n === 2) return 'M' + pts[0].x.toFixed(2) + ',' + pts[0].y.toFixed(2) + 'L' + pts[1].x.toFixed(2) + ',' + pts[1].y.toFixed(2);
+  var d = 'M' + pts[0].x.toFixed(2) + ',' + pts[0].y.toFixed(2);
+  for (var i = 0; i < n - 1; i++){
+    var p0 = pts[i - 1] || pts[i];
+    var p1 = pts[i];
+    var p2 = pts[i + 1];
+    var p3 = pts[i + 2] || p2;
+    var c1x = p1.x + (p2.x - p0.x) / 6;
+    var c1y = p1.y + (p2.y - p0.y) / 6;
+    var c2x = p2.x - (p3.x - p1.x) / 6;
+    var c2y = p2.y - (p3.y - p1.y) / 6;
+    if (c1y < minY) c1y = minY; if (c1y > maxY) c1y = maxY;
+    if (c2y < minY) c2y = minY; if (c2y > maxY) c2y = maxY;
+    d += ' C' + c1x.toFixed(2) + ',' + c1y.toFixed(2) + ' ' + c2x.toFixed(2) + ',' + c2y.toFixed(2) + ' ' + p2.x.toFixed(2) + ',' + p2.y.toFixed(2);
+  }
+  return d;
+}
+function fmtChartVal(v, isMoney){
+  if (!isMoney) return (Math.round(v * 10) / 10) + ' 筆';
+  return '$' + v.toFixed(1);
+}
+function renderTrendChart(){
+  var container = document.getElementById('chart-container');
+  if (!container) return;
+  var isHourly = (chartMode === 'hourly');
+  var data = isHourly ? buildHourlySeries(chartRange) : buildDailySeries(chartRange);
+  var metric = chartMetric;
+  if (isHourly && metric === 'profit') metric = 'gross';
+  var isMoney = (metric !== 'count');
+  var series = data.map(function(d){
+    if (metric === 'profit') return d.profit;
+    if (metric === 'count')  return d.count;
+    return d.gross;
+  });
+  var total = 0, maxV = 0, minV = 0;
+  series.forEach(function(v){ total += v; if (v > maxV) maxV = v; if (v < minV) minV = v; });
+  var nonZeroCount = series.filter(function(v){ return Math.abs(v) > 0.0001; }).length;
+  var avg = nonZeroCount ? total / nonZeroCount : 0;
+  setText('chart-sum', fmtChartVal(total, isMoney));
+  setText('chart-avg', fmtChartVal(avg, isMoney));
+  setText('chart-max', fmtChartVal(maxV, isMoney));
+  var peakTag = document.getElementById('chart-peak-tag');
+  if (peakTag){ if (maxV > 0) peakTag.innerText = '峰值 ' + fmtChartVal(maxV, isMoney); else peakTag.innerText = ''; }
+  setText('chart-hint', isHourly
+    ? '最近 ' + chartRange + ' 天內，每個時段的累計' + (isMoney ? '金額' : '筆數') + '（滑動／點擊曲線查看）'
+    : '最近 ' + chartRange + ' 天的每日' + (isMoney ? '金額' : '筆數') + '走勢（滑動／點擊曲線查看）');
+
+  if (maxV <= 0 && minV >= 0 && nonZeroCount === 0){
+    container.innerHTML =
+      '<div class="py-10 text-center text-slate-300 text-xs leading-relaxed">此期間暫無' + (isMoney ? '收入' : '行程') + '數據<br><span class="text-[11px] text-slate-300">新增紀錄後即會顯示走勢</span></div>';
+    return;
+  }
+  var n = data.length;
+  var W = 340, H = 172;
+  var padL = 8, padR = 8, padT = 22, padB = 26;
+  var plotW = W - padL - padR;
+  var plotH = H - padT - padB;
+  var topV = maxV, botV = minV;
+  if (topV < 0) topV = 0;
+  if (botV > 0) botV = 0;
+  var span = topV - botV; if (span <= 0) span = 1;
+  function px(i){ if (n <= 1) return padL + plotW / 2; return padL + (plotW * i) / (n - 1); }
+  function py(v){ return padT + plotH - ((v - botV) / span) * plotH; }
+  var pts = series.map(function(v, i){ return { x: px(i), y: py(v), v: v }; });
+  var pathD = buildSmoothPath(pts, padT - 6, padT + plotH + 6);
+  var zeroY = py(0);
+  var fillD = pathD + ' L' + pts[n-1].x.toFixed(2) + ',' + zeroY.toFixed(2) + ' L' + pts[0].x.toFixed(2) + ',' + zeroY.toFixed(2) + ' Z';
+
+  var gridHtml = '';
+  for (var g = 0; g <= 3; g++){
+    var gy = padT + (plotH * g) / 3;
+    gridHtml += '<line x1="' + padL + '" y1="' + gy.toFixed(1) + '" x2="' + (W-padR) + '" y2="' + gy.toFixed(1) + '" stroke="#e2e8f0" stroke-width="1"' + (g===3?'':' stroke-dasharray="3 4"') + '/>';
+  }
+  var step = 1;
+  if (n > 20) step = 4;
+  else if (n > 12) step = 3;
+  else if (n > 7) step = 2;
+  var labelHtml = '';
+  for (var li = 0; li < n; li++){
+    var isLast = (li === n - 1);
+    if (!isLast){
+      if (li % step !== 0) continue;
+      if ((n - 1 - li) < step) continue;
+    }
+    var lx = px(li);
+    var anchor = 'middle';
+    if (li === 0) anchor = 'start';
+    if (isLast) anchor = 'end';
+    labelHtml += '<text x="' + lx.toFixed(1) + '" y="' + (H-8) + '" font-size="9" fill="#94a3b8" text-anchor="' + anchor + '" font-family="ui-monospace,Menlo,monospace">' + escapeHtml(data[li].label) + '</text>';
+  }
+  var dotsHtml = '';
+  if (n <= 16){
+    for (var di = 0; di < n; di++){
+      var isLastDot = (di === n - 1);
+      var isToday = !isHourly && data[di].isToday;
+      var hi = (isLastDot || isToday);
+      dotsHtml += '<circle cx="' + pts[di].x.toFixed(1) + '" cy="' + pts[di].y.toFixed(1) + '" r="' + (hi?4:3) + '" fill="' + (hi?'#f59e0b':'#ffffff') + '" stroke="#f59e0b" stroke-width="2"/>';
+    }
+  } else {
+    var lastIdx = n - 1;
+    dotsHtml += '<circle cx="' + pts[lastIdx].x.toFixed(1) + '" cy="' + pts[lastIdx].y.toFixed(1) + '" r="4" fill="#f59e0b" stroke="#ffffff" stroke-width="2"/>';
+  }
+
+  container.innerHTML =
+    '<svg id="trend-svg" viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="auto" preserveAspectRatio="xMidYMid meet" style="display:block;touch-action:none;overflow:visible">' +
+      '<defs>' +
+        '<linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f59e0b" stop-opacity="0.35"/><stop offset="100%" stop-color="#f59e0b" stop-opacity="0.02"/></linearGradient>' +
+        '<linearGradient id="trendStroke" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#d97706"/></linearGradient>' +
+      '</defs>' +
+      gridHtml +
+      '<path d="' + fillD + '" fill="url(#trendFill)" stroke="none"/>' +
+      '<path d="' + pathD + '" fill="none" stroke="url(#trendStroke)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+      dotsHtml + labelHtml +
+      '<line id="trend-cursor-line" x1="0" y1="' + padT + '" x2="0" y2="' + (padT+plotH) + '" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>' +
+      '<circle id="trend-cursor-dot" cx="0" cy="0" r="5" fill="#f59e0b" stroke="#ffffff" stroke-width="2" opacity="0"/>' +
+      '<rect id="trend-hit" x="' + padL + '" y="' + padT + '" width="' + plotW + '" height="' + plotH + '" fill="transparent" pointer-events="all" style="touch-action:none;cursor:crosshair"/>' +
+    '</svg>' +
+    '<div id="trend-tip" class="hidden absolute pointer-events-none bg-slate-900 text-white text-[10px] rounded-lg px-2 py-1 shadow-lg leading-tight whitespace-nowrap z-10"></div>';
+
+  var svgEl      = document.getElementById('trend-svg');
+  var tipEl      = document.getElementById('trend-tip');
+  var cursorLine = document.getElementById('trend-cursor-line');
+  var cursorDot  = document.getElementById('trend-cursor-dot');
+  var hit        = document.getElementById('trend-hit');
+  if (!hit || n === 0) return;
+
+  function showAt(clientX){
+    var rect = svgEl.getBoundingClientRect();
+    if (!rect.width) return;
+    var vx = ((clientX - rect.left) / rect.width) * W;
+    var idx;
+    if (n <= 1) idx = 0;
+    else {
+      idx = Math.round(((vx - padL) / plotW) * (n - 1));
+      if (idx < 0) idx = 0; if (idx > n - 1) idx = n - 1;
+    }
+    var p = pts[idx], d = data[idx];
+    var extra = '';
+    if (isMoney && metric !== 'count' && d.count > 0) extra = '　·　' + d.count + ' 筆';
+    tipEl.innerHTML = escapeHtml(d.fullLabel) + '　' + fmtChartVal(p.v, isMoney) + extra;
+    tipEl.classList.remove('hidden');
+    var leftPct = (p.x / W) * 100;
+    if (leftPct < 14) leftPct = 14;
+    if (leftPct > 86) leftPct = 86;
+    tipEl.style.left = leftPct + '%';
+    tipEl.style.top  = ((p.y / H) * 100) + '%';
+    tipEl.style.transform = 'translate(-50%, calc(-100% - 10px))';
+    cursorLine.setAttribute('x1', p.x.toFixed(2));
+    cursorLine.setAttribute('x2', p.x.toFixed(2));
+    cursorLine.setAttribute('opacity', '1');
+    cursorDot.setAttribute('cx', p.x.toFixed(2));
+    cursorDot.setAttribute('cy', p.y.toFixed(2));
+    cursorDot.setAttribute('opacity', '1');
+  }
+  function hideTip(){
+    tipEl.classList.add('hidden');
+    cursorLine.setAttribute('opacity', '0');
+    cursorDot.setAttribute('opacity', '0');
+  }
+  hit.addEventListener('pointerdown', function(e){ showAt(e.clientX); });
+  hit.addEventListener('pointermove', function(e){ showAt(e.clientX); });
+  hit.addEventListener('pointerleave', hideTip);
+  hit.addEventListener('pointercancel', hideTip);
+}
+
+/* ---------- Modal ---------- */
+function closeModal(){
+  var m = document.getElementById('trip-modal');
+  if (!m) return;
+  m.classList.add('hidden');
+  m.classList.remove('flex');
+  currentEditingId = null;
+  currentEditingPlaceId = null;
+  shiftTimeMode = 'quick';
+}
+
+/* ---------- 抽屜 ---------- */
+var DRAWER_ITEMS = [
+  { id:'home',    label:'首頁',       desc:'返回記帳主頁',   icon:'home',          tab:'trip' },
+  { id:'airport', label:'機場航班',   desc:'查詢香港國際機場航班', icon:'plane-takeoff', href:'./airport.html' },
+  { id:'places',  label:'收藏地點',   desc:'管理常用地點、一鍵導航', icon:'map-pin',  href:'./places.html' },
+  { id:'gdrive',  label:'Google Drive', desc:'一鍵上傳／下載備份', icon:'database', href:'./backup.html' },
+  { id:'cash',    label:'現金盤點',   desc:'核對現金收入並記錄提取留存', icon:'coins', href:'./cash-audit.html' },
+  { id:'other',   label:'其他',       desc:'更多功能（開發中）', icon:'settings',  tab:null }
+];
+function renderDrawerMenu(){
+  var container = document.getElementById('drawer-content');
+  if (!container) return;
+  container.innerHTML = DRAWER_ITEMS.map(function(item){
+    return '<button type="button" onclick="handleDrawerItem(\'' + item.id + '\')" ' +
+      'class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-amber-50 active:bg-amber-100 transition text-left border border-transparent hover:border-amber-200">' +
+        '<span class="w-10 h-10 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0 text-amber-700">' + ico(item.icon, 'w-5 h-5') + '</span>' +
+        '<span class="flex-1 min-w-0"><div class="text-sm font-bold text-slate-800 truncate">' + escapeHtml(item.label) + '</div>' +
+        '<div class="text-[11px] text-slate-500 truncate mt-0.5">' + escapeHtml(item.desc) + '</div></span>' +
+        '<span class="ico w-4 h-4 text-slate-300 shrink-0">' + ico('chevron-right', 'w-4 h-4') + '</span>' +
+      '</button>';
+  }).join('');
+  hydrateIcons(container);
+}
+function handleDrawerItem(id){
+  var item = DRAWER_ITEMS.find(function(x){ return x.id === id; });
+  closeDrawer();
+  if (!item) return;
+  setTimeout(function(){
+    if (item.href){
+      var from = encodeURIComponent(window.location.href);
+      var sep = item.href.indexOf('?') === -1 ? '?' : '&';
+      window.location.href = item.href + sep + 'from=' + from;
+      return;
+    }
+    if (id === 'home'){ window.location.href = './index.html?tab=trip'; return; }
+    if (item.tab){ window.location.href = './index.html?tab=' + item.tab; return; }
+    showToast('此功能開發中');
+  }, 280);
+}
+var drawerOpen = false;
+function openDrawer(){
+  if (drawerOpen) return;
+  drawerOpen = true;
+  var overlay = document.getElementById('drawer-overlay');
+  var drawer  = document.getElementById('side-drawer');
+  if (!overlay || !drawer) return;
+  void overlay.offsetWidth;
+  overlay.classList.add('visible');
+  drawer.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDrawer(){
+  if (!drawerOpen) return;
+  drawerOpen = false;
+  var overlay = document.getElementById('drawer-overlay');
+  var drawer  = document.getElementById('side-drawer');
+  if (!overlay || !drawer) return;
+  overlay.classList.remove('visible');
+  drawer.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ---------- 底部導航（跳回主頁） ---------- */
+function goMain(tab){
+  window.location.href = './index.html?tab=' + encodeURIComponent(tab);
+}
+
+/* ---------- 初始化 ---------- */
+window.addEventListener('DOMContentLoaded', function(){
+  hydrateIcons();
+  applyAllCardStates();
+  initSettingsForm();
+  applyChartUIState();
+  updateStatsAndNet();
+  updateHeaderTime();
+  setInterval(updateHeaderTime, 1000);
+  renderDrawerMenu();
+
+  var logoBtn = document.getElementById('header-logo-btn');
+  if (logoBtn){
+    logoBtn.addEventListener('click', function(e){ e.stopPropagation(); openDrawer(); });
+  }
+});
+
+/* 阻止 iOS 雙擊縮放 */
+document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, { passive:false });
+var lastTouchEnd = 0;
+document.addEventListener('touchend', function(e){
+  var now = Date.now();
+  if (now - lastTouchEnd <= 300) e.preventDefault();
+  lastTouchEnd = now;
+}, { passive:false });
+
+/* 點擊空白收鍵盤 */
+(function setupTapToDismiss(){
+  function isFormField(el){ if (!el) return false; var tag = el.tagName; return tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA'; }
+  function dismissKeyboard(e){
+    var target = e.target;
+    if (target.closest && target.closest('input, select, textarea, button, a, label')) return;
+    var active = document.activeElement;
+    if (isFormField(active)) active.blur();
+  }
+  document.addEventListener('touchstart', dismissKeyboard, { passive: true });
+  document.addEventListener('mousedown', dismissKeyboard);
+})();
+
+/* Service Worker 註冊 */
+if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(err){ console.warn('[PWA] SW 註冊失敗：', err); });
+  });
+}
+</script>
+</body>
+</html>
