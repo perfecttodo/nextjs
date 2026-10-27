@@ -272,9 +272,10 @@ function mountSubPage(href, html, container, shouldShow){
       '  try {\n' +
       /* ★ 关键修复：__bindAll__ 定义在 try 块内部（函数表达式），
          它在创建时捕获的是 try 块的作用域，所以 eval(code) 的作用域链为：
-         事件回调 → __bindAll__ → try 块 → IIFE → 全局。
-         这样 inlineScripts 里用 const / let 声明的 download 等函数，
-         事件触发时才能被找到，不再报 ReferenceError。 */
+         事件回调(含 event 参数) → __bindAll__ → try 块 → IIFE → 全局。
+         1) inlineScripts 里用 const / let 声明的 download 等函数可以被找到；
+         2) 回调参数命名为 event，eval 里的 event.stopPropagation() 才能解析到真实事件对象
+            （原来的 e 会让 event 落到 window.event 或被子页面同名变量污染）。 */
       '    var __bindAll__ = function(el){\n' +
       '      if (!el || !el.dataset) return;\n' +
       '      __EVENT_ATTRS__.forEach(function(evt){\n' +
@@ -284,12 +285,28 @@ function mountSubPage(href, html, container, shouldShow){
       '        var flag = "__bound_" + evt;\n' +
       '        if (el[flag]) return;\n' +
       '        el[flag] = true;\n' +
-      '        el.addEventListener(evt, function(e){\n' +
-      '          try { eval(code); }\n' +
-      '          catch(err){\n' +
-      /* 兜底：如果块作用域仍找不到（例如函数挂在 window 上），用全局 eval 再试一次 */
+      /* ★ 参数名必须是 event：direct eval 才能解析到它 ★ */
+      '        el.addEventListener(evt, function(event){\n' +
+      '          var __self__ = this;\n' +
+      '          try {\n' +
+      '            var __ret__ = eval(code);\n' +
+      /* 模拟原生内联 handler 的 return false */
+      '            if (__ret__ === false){\n' +
+      '              if (event && event.preventDefault) event.preventDefault();\n' +
+      '              if (event && event.stopPropagation) event.stopPropagation();\n' +
+      '            }\n' +
+      '          } catch(err){\n' +
+      /* 兜底：改用 new Function("event", code)，而不是间接 eval。
+         间接 eval 在全局作用域执行，既拿不到 event，也拿不到块作用域里的函数。 */
       '            if (err && err.name === "ReferenceError"){\n' +
-      '              try { __realWin__.eval(code); return; } catch(_e){}\n' +
+      '              try {\n' +
+      '                var __r2__ = new __realWin__.Function("event", code).call(__self__, event);\n' +
+      '                if (__r2__ === false){\n' +
+      '                  if (event && event.preventDefault) event.preventDefault();\n' +
+      '                  if (event && event.stopPropagation) event.stopPropagation();\n' +
+      '                }\n' +
+      '                return;\n' +
+      '              } catch(_e){}\n' +
       '            }\n' +
       '            console.error("[' + ns + '] on" + evt + " error:", err, code);\n' +
       '          }\n' +
@@ -343,7 +360,7 @@ function mountSubPage(href, html, container, shouldShow){
       '    }\n' +
       '  }, 0);\n' +
       '\n' +
-      /* fallback（try 块抛错时，只处理 onclick） */
+      /* fallback（try 块抛错时，只处理 onclick），参数名同样为 event */
       '  if (!__bindDone__){\n' +
       '    console.warn("[' + ns + '] using fallback binding");\n' +
       '    (function __bindFallback__(){\n' +
@@ -351,7 +368,7 @@ function mountSubPage(href, html, container, shouldShow){
       '        if (el.__subBoundC) return;\n' +
       '        el.__subBoundC = true;\n' +
       '        var code = el.dataset.onClick;\n' +
-      '        el.addEventListener("click", function(e){\n' +
+      '        el.addEventListener("click", function(event){\n' +
       '          try { eval(code); } catch(err){ console.error("[' + ns + '] fallback error:", err, code); }\n' +
       '        });\n' +
       '      });\n' +
