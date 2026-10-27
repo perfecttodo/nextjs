@@ -156,12 +156,12 @@ input[type=number],input[type=text],select{
   scrollbar-color:#cbd5e1 transparent;
   -webkit-overflow-scrolling:touch;
 }
-#shift-strip::-webkit-scrollbar{height:4px}
+#shift-strip::-webkit-scrollbar{height:3px}
 #shift-strip::-webkit-scrollbar-track{background:transparent}
 #shift-strip::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
 
 /* =========================================================
-   ★ 金額輸入框一鍵清空按鈕 — 完全自訂定位與樣式
+   ★ 金額輸入框一鍵清空按鈕
    ========================================================= */
 .money-clear-btn{
   position:absolute;
@@ -181,15 +181,60 @@ input[type=number],input[type=text],select{
   -webkit-tap-highlight-color:transparent;
   cursor:pointer;
 }
-.money-clear-btn:hover{
-  background:rgba(148,163,184,.4);
-  color:#334155;
+.money-clear-btn:hover{background:rgba(148,163,184,.4);color:#334155}
+.money-clear-btn:active{transform:translateY(-50%) scale(.85)}
+.money-clear-btn.hidden{display:none !important}
+
+/* =========================================================
+   ★ 更期快捷切換迷你按鈕
+   ========================================================= */
+.shift-quick-btn{
+  width:26px;height:26px;border-radius:7px;
+  background:#fef3c7;color:#b45309;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s ease, transform .1s ease;
+  flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
 }
-.money-clear-btn:active{
-  transform:translateY(-50%) scale(.85);
+.shift-quick-btn:hover{background:#fde68a}
+.shift-quick-btn:active{transform:scale(.88)}
+
+/* ★ 日历图标按钮 */
+.shift-calendar-btn{
+  width:26px;height:26px;border-radius:7px;
+  background:#f1f5f9;color:#475569;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s ease, transform .1s ease, color .15s ease;
+  flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
 }
-/* hidden class 由 JS 控制，優先級最高 */
-.money-clear-btn.hidden{ display:none !important; }
+.shift-calendar-btn:hover{background:#e2e8f0}
+.shift-calendar-btn:active{transform:scale(.88)}
+.shift-calendar-btn.is-active{background:#fef3c7;color:#b45309}
+
+/* ★ 横向更期迷你卡片 */
+.shift-card-mini{
+  flex-shrink:0;
+  width:56px;
+  padding:5px 0 4px;
+  border-radius:8px;
+  border:2px solid #e2e8f0;
+  background:#fff;
+  color:#475569;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  transition:all .15s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.shift-card-mini:hover{background:#f8fafc}
+.shift-card-mini:active{transform:scale(.95)}
+.shift-card-mini.is-selected{
+  border-color:#f59e0b;
+  background:#fffbeb;
+  color:#78350f;
+  box-shadow:0 1px 3px rgba(245,158,11,.25);
+}
 </style>
 </head>
 
@@ -210,17 +255,29 @@ input[type=number],input[type=text],select{
 
 <main class="max-w-md w-full mx-auto p-4 space-y-3">
 
-  <!-- 更期选择 -->
-  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
-    <div class="flex justify-between items-center border-b pb-3">
-      <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-        <span class="ico w-4 h-4 text-amber-500" data-icon="history"></span>
-        選擇更期
+  <!-- ============================================================
+       ★ 更期选择 — 压缩版
+       ============================================================ -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-3 space-y-2">
+
+    <!-- 标题行：标题 + 共N個 + 上次X-X + 日历图标 -->
+    <div class="flex justify-between items-center gap-2">
+      <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5 min-w-0">
+        <span class="ico w-4 h-4 text-amber-500 shrink-0" data-icon="history"></span>
+        <span class="shrink-0">選擇更期</span>
+        <span id="shift-strip-hint" class="text-[10px] text-slate-400 font-normal shrink-0"></span>
       </h2>
-      <span id="latest-audit-hint" class="text-[11px] text-slate-400"></span>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <span id="latest-audit-hint" class="text-[10px] text-slate-400"></span>
+        <button type="button" id="calendar-toggle-btn" onclick="toggleCalendar()"
+          class="shift-calendar-btn" title="跳到指定日期">
+          <span class="ico w-3.5 h-3.5" data-icon="calendar-clock"></span>
+        </button>
+      </div>
     </div>
 
-    <div id="no-shift-panel" class="hidden bg-rose-50 border border-rose-200 rounded-xl p-3.5 text-center">
+    <!-- 无更期提示 -->
+    <div id="no-shift-panel" class="hidden bg-rose-50 border border-rose-200 rounded-xl p-3 text-center">
       <p class="text-xs font-bold text-rose-700 flex items-center justify-center gap-1">
         <span class="ico w-3.5 h-3.5" data-icon="alert-triangle"></span>
         尚無更期記錄
@@ -232,93 +289,75 @@ input[type=number],input[type=text],select{
       </button>
     </div>
 
-    <div id="current-shift-card" class="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-1.5">
-      <div class="flex justify-between items-center gap-2">
-        <span class="font-bold text-amber-900 font-mono text-sm truncate" id="current-shift-key">--</span>
-        <span class="text-[11px] text-amber-700 shrink-0" id="current-shift-weekday">--</span>
+    <!-- 当前更期 + 3 個快捷按鈕（合併為單行） -->
+    <div id="current-shift-card" class="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+      <div class="flex items-center gap-2">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1 flex-wrap leading-tight">
+            <span class="font-bold text-amber-900 font-mono text-sm" id="current-shift-key">--</span>
+            <span class="text-[10px] text-amber-700 font-medium" id="current-shift-weekday">--</span>
+            <span class="text-amber-400 text-[10px]">·</span>
+            <span class="text-[10px] text-amber-700 font-mono" id="current-shift-timerange">--</span>
+            <span class="text-amber-400 text-[10px]">·</span>
+            <span class="text-[10px] text-amber-600" id="current-shift-tripcount">-- 筆</span>
+          </div>
+        </div>
+        <div class="flex gap-1 shrink-0">
+          <button type="button" onclick="setShiftQuick('latest')" title="最新更期" class="shift-quick-btn">
+            <svg style="width:11px;height:11px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/><path d="M18 19H6"/></svg>
+          </button>
+          <button type="button" onclick="setShiftQuick('prev')" title="上一個更期" class="shift-quick-btn">
+            <svg style="width:11px;height:11px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <button type="button" onclick="setShiftQuick('next')" title="下一個更期" class="shift-quick-btn">
+            <svg style="width:11px;height:11px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
       </div>
-      <div class="flex justify-between items-center text-[11px] text-amber-700 gap-2">
-        <span id="current-shift-timerange" class="font-mono">--</span>
-        <span id="current-shift-tripcount" class="shrink-0">-- 筆</span>
-      </div>
-      <div id="current-shift-audited" class="hidden mt-1 pt-1 border-t border-amber-200 text-[11px] text-amber-700">
-        <span class="font-bold">✓ 此更期已盤點</span>
-      </div>
-    </div>
-
-    <!-- 三个快捷按钮 -->
-    <div class="grid grid-cols-3 gap-1.5">
-      <button type="button" onclick="setShiftQuick('latest')"
-        class="py-1.5 text-[11px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-semibold transition flex items-center justify-center gap-1">
-        <svg style="width:10px;height:10px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/><path d="M18 19H6"/></svg>
-        最新
-      </button>
-      <button type="button" onclick="setShiftQuick('prev')"
-        class="py-1.5 text-[11px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-semibold transition flex items-center justify-center gap-1">
-        <svg style="width:10px;height:10px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-        上一個
-      </button>
-      <button type="button" onclick="setShiftQuick('next')"
-        class="py-1.5 text-[11px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-semibold transition flex items-center justify-center gap-1">
-        下一個
-        <svg style="width:10px;height:10px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-      </button>
-    </div>
-
-    <!-- 横向更期卡片条 -->
-    <div>
-      <div class="flex justify-between items-center mb-1.5">
-        <label class="block text-[11px] font-semibold text-slate-500">快速切換更期</label>
-        <span id="shift-strip-hint" class="text-[10px] text-slate-400"></span>
-      </div>
-      <div id="shift-strip" class="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+      <div id="current-shift-audited" class="hidden mt-1 pt-1 border-t border-amber-200 text-[10px] text-emerald-700 flex items-center gap-1">
+        <span class="ico w-3 h-3" data-icon="check-circle"></span>
+        <span>已盤點 · 實際留存 <span id="current-shift-audited-amount" class="font-mono font-bold">$0.00</span></span>
       </div>
     </div>
 
-    <!-- ★ 自定义日历（无更期日期变灰） -->
-    <div>
-      <button type="button" onclick="toggleCalendar()"
-        class="w-full flex justify-between items-center px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 active:scale-[0.99] transition">
-        <span class="text-slate-600 flex items-center gap-1.5">
-          <span class="ico w-3.5 h-3.5 text-slate-400" data-icon="calendar-clock"></span>
-          <span>跳到指定日期</span>
+    <!-- 横向更期卡片条（无 label，紧凑） -->
+    <div id="shift-strip" class="flex gap-1 overflow-x-auto pb-0.5 -mx-1 px-1">
+    </div>
+
+    <!-- 小字说明 -->
+    <p class="text-[10px] text-slate-400 leading-snug">以更期為單位 · 自動統計現金收入、油費、飯錢</p>
+
+    <!-- ★ 日历面板（折叠，通过标题栏图标展开） -->
+    <div id="calendar-panel" class="hidden bg-white border border-slate-200 rounded-xl p-2.5">
+      <div class="flex justify-between items-center mb-2">
+        <button type="button" id="calendar-prev-btn" onclick="calendarPrevMonth()"
+          class="cal-nav-btn p-1.5 rounded-lg hover:bg-slate-100 active:scale-95 transition text-slate-600">
+          <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <div id="calendar-month-title" class="text-sm font-bold text-slate-800 font-mono"></div>
+        <button type="button" id="calendar-next-btn" onclick="calendarNextMonth()"
+          class="cal-nav-btn p-1.5 rounded-lg hover:bg-slate-100 active:scale-95 transition text-slate-600">
+          <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </div>
+
+      <div id="calendar-grid" class="grid grid-cols-7 gap-0.5"></div>
+
+      <div class="flex items-center justify-center gap-3 mt-2 pt-2 border-t border-slate-100 text-[10px]">
+        <span class="flex items-center gap-1">
+          <span class="w-2.5 h-2.5 rounded bg-amber-50 border border-amber-300"></span>
+          <span class="text-slate-500">有更期</span>
         </span>
-        <svg id="calendar-toggle-chevron" style="width:12px;height:12px;transition:transform .2s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-      </button>
-
-      <div id="calendar-panel" class="hidden mt-2 bg-white border border-slate-200 rounded-xl p-2.5">
-        <div class="flex justify-between items-center mb-2">
-          <button type="button" id="calendar-prev-btn" onclick="calendarPrevMonth()"
-            class="cal-nav-btn p-1.5 rounded-lg hover:bg-slate-100 active:scale-95 transition text-slate-600">
-            <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-          </button>
-          <div id="calendar-month-title" class="text-sm font-bold text-slate-800 font-mono"></div>
-          <button type="button" id="calendar-next-btn" onclick="calendarNextMonth()"
-            class="cal-nav-btn p-1.5 rounded-lg hover:bg-slate-100 active:scale-95 transition text-slate-600">
-            <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-          </button>
-        </div>
-
-        <div id="calendar-grid" class="grid grid-cols-7 gap-0.5"></div>
-
-        <div class="flex items-center justify-center gap-3 mt-2 pt-2 border-t border-slate-100 text-[10px]">
-          <span class="flex items-center gap-1">
-            <span class="w-2.5 h-2.5 rounded bg-amber-50 border border-amber-300"></span>
-            <span class="text-slate-500">有更期</span>
-          </span>
-          <span class="flex items-center gap-1">
-            <span class="w-2.5 h-2.5 rounded bg-slate-100"></span>
-            <span class="text-slate-500">無更期</span>
-          </span>
-          <span class="flex items-center gap-1">
-            <span class="w-2.5 h-2.5 rounded bg-amber-500"></span>
-            <span class="text-slate-500">已選中</span>
-          </span>
-        </div>
+        <span class="flex items-center gap-1">
+          <span class="w-2.5 h-2.5 rounded bg-slate-100"></span>
+          <span class="text-slate-500">無更期</span>
+        </span>
+        <span class="flex items-center gap-1">
+          <span class="w-2.5 h-2.5 rounded bg-amber-500"></span>
+          <span class="text-slate-500">已選中</span>
+        </span>
       </div>
     </div>
-
-    <p class="text-[11px] text-slate-400 leading-relaxed">盤點以「更期」為單位，現金收入、現金油費、現金飯錢會自動統計該更期相關記錄。</p>
   </div>
 
   <!-- 现金收支 -->
@@ -751,7 +790,7 @@ function updateAllClearButtons(){
 }
 
 /* =========================================================
-   ★ 一鍵清空金額輸入框（清空後自動聚焦）
+   ★ 一鍵清空金額輸入框
    ========================================================= */
 function clearMoneyInput(id){
   var el = document.getElementById(id);
@@ -763,13 +802,12 @@ function clearMoneyInput(id){
 }
 
 /* =========================================================
-   ★ 智能金額輸入框：聚焦全選 / 清空 0 值，免退格
+   ★ 智能金額輸入框
    ========================================================= */
 function setupMoneyInput(id){
   var el = document.getElementById(id);
   if (!el) return;
 
-  /* 聚焦：0 值清空，其他值全選——直接輸入即可替換 */
   el.addEventListener('focus', function(){
     var v = el.value.trim();
 
@@ -792,7 +830,6 @@ function setupMoneyInput(id){
     setTimeout(selectIt, 50);
   });
 
-  /* 輸入時：過濾非法字元 + 即時計算 + 更新清空按鈕 */
   el.addEventListener('input', function(){
     var raw = el.value;
     var cleaned = raw.replace(/[^\d.]/g, '');
@@ -811,7 +848,6 @@ function setupMoneyInput(id){
     recalculate();
   });
 
-  /* 失焦：格式化為兩位小數 + 更新清空按鈕 */
   el.addEventListener('blur', function(){
     var v = el.value.trim();
     if (v === '' || v === '.') {
@@ -840,7 +876,7 @@ function renderShiftStrip(){
   var keys = getShiftKeys();
 
   if (!keys.length){
-    strip.innerHTML = '<div class="text-center text-slate-400 text-xs py-3 w-full">尚無更期</div>';
+    strip.innerHTML = '<div class="text-center text-slate-400 text-xs py-2 w-full">尚無更期</div>';
     return;
   }
 
@@ -853,17 +889,14 @@ function renderShiftStrip(){
     var wk = info.weekday || '';
 
     var markHtml = audited
-      ? '<span class="text-[9px] text-emerald-600 font-bold leading-none mt-0.5">✓</span>'
-      : '<span class="text-[9px] leading-none mt-0.5" style="color:transparent">·</span>';
-
-    var cardCls = isSelected
-      ? 'shrink-0 w-[68px] py-2 rounded-lg border-2 transition flex flex-col items-center gap-0.5 border-amber-500 bg-amber-50 text-amber-900'
-      : 'shrink-0 w-[68px] py-2 rounded-lg border-2 transition flex flex-col items-center gap-0.5 border-slate-200 bg-white text-slate-600 hover:bg-slate-50';
+      ? '<span style="font-size:8px;color:#059669;font-weight:700;line-height:1;margin-top:1px">✓</span>'
+      : '<span style="font-size:8px;color:transparent;line-height:1;margin-top:1px">·</span>';
 
     return '<button type="button" data-shift-card="' + escapeHtml(k) + '" ' +
-      'onclick="selectShiftByKey(\'' + k + '\')" class="' + cardCls + '">' +
-      '<span class="text-[11px] font-mono font-bold leading-none">' + escapeHtml(md) + '</span>' +
-      '<span class="text-[9px] leading-none mt-0.5">' + escapeHtml(wk) + '</span>' +
+      'onclick="selectShiftByKey(\'' + k + '\')" ' +
+      'class="shift-card-mini' + (isSelected ? ' is-selected' : '') + '">' +
+      '<span style="font-size:10px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:700;line-height:1">' + escapeHtml(md) + '</span>' +
+      '<span style="font-size:8px;line-height:1;margin-top:1px">' + escapeHtml(wk) + '</span>' +
       markHtml +
     '</button>';
   }).join('');
@@ -879,9 +912,9 @@ function renderShiftStrip(){
 function updateShiftSelectionUI(){
   document.querySelectorAll('[data-shift-card]').forEach(function(el){
     if (el.dataset.shiftCard === currentShiftKey){
-      el.className = 'shrink-0 w-[68px] py-2 rounded-lg border-2 transition flex flex-col items-center gap-0.5 border-amber-500 bg-amber-50 text-amber-900';
+      el.classList.add('is-selected');
     } else {
-      el.className = 'shrink-0 w-[68px] py-2 rounded-lg border-2 transition flex flex-col items-center gap-0.5 border-slate-200 bg-white text-slate-600 hover:bg-slate-50';
+      el.classList.remove('is-selected');
     }
   });
   updateShiftCard();
@@ -907,15 +940,16 @@ var calendarOpen = false;
 function toggleCalendar(){
   calendarOpen = !calendarOpen;
   var panel = document.getElementById('calendar-panel');
-  var chev = document.getElementById('calendar-toggle-chevron');
+  var toggleBtn = document.getElementById('calendar-toggle-btn');
+  if (!panel) return;
   if (calendarOpen){
     syncCalendarToSelected();
     panel.classList.remove('hidden');
-    if (chev) chev.style.transform = 'rotate(180deg)';
+    if (toggleBtn) toggleBtn.classList.add('is-active');
     renderCalendar();
   } else {
     panel.classList.add('hidden');
-    if (chev) chev.style.transform = '';
+    if (toggleBtn) toggleBtn.classList.remove('is-active');
   }
 }
 
@@ -1039,7 +1073,7 @@ function onCalendarDayClick(dateStr){
 }
 
 /* =========================================================
-   选中指定更期（统一入口）
+   选中指定更期
    ========================================================= */
 function selectShiftByKey(key){
   if (!key) return;
@@ -1061,7 +1095,7 @@ function selectShiftByKey(key){
 }
 
 /* =========================================================
-   快捷切换（最新 / 上一个 / 下一个）
+   快捷切换
    ========================================================= */
 function setShiftQuick(type){
   var keys = getShiftKeys();
@@ -1094,7 +1128,7 @@ function setShiftQuick(type){
 }
 
 /* =========================================================
-   顶部更期卡片信息
+   顶部更期卡片信息（★ 适配新的紧凑结构）
    ========================================================= */
 function updateShiftCard(){
   var key = currentShiftKey;
@@ -1103,11 +1137,12 @@ function updateShiftCard(){
   var timeEl = document.getElementById('current-shift-timerange');
   var countEl = document.getElementById('current-shift-tripcount');
   var auditedEl = document.getElementById('current-shift-audited');
+  var auditedAmountEl = document.getElementById('current-shift-audited-amount');
 
   if (!key){
     keyEl.innerText = '--'; weekdayEl.innerText = '';
     timeEl.innerText = '--'; countEl.innerText = '-- 筆';
-    auditedEl.classList.add('hidden');
+    if (auditedEl) auditedEl.classList.add('hidden');
     return;
   }
 
@@ -1119,11 +1154,10 @@ function updateShiftCard(){
 
   var existingAudit = getAuditByShift(key);
   if (existingAudit){
-    auditedEl.classList.remove('hidden');
-    auditedEl.innerHTML = '<span class="font-bold">✓ 此更期已盤點</span>' +
-      ' · 實際留存 $' + (parseFloat(existingAudit.actualCash) || 0).toFixed(2);
+    if (auditedEl) auditedEl.classList.remove('hidden');
+    if (auditedAmountEl) auditedAmountEl.innerText = '$' + (parseFloat(existingAudit.actualCash) || 0).toFixed(2);
   } else {
-    auditedEl.classList.add('hidden');
+    if (auditedEl) auditedEl.classList.add('hidden');
   }
 }
 
@@ -1533,10 +1567,12 @@ function updateLatestHint(){
   var hintEl = document.getElementById('latest-audit-hint');
   if (!hintEl) return;
   if (latest){
-    hintEl.innerText = '上次盤點：' + latest.shiftKey;
+    var parts = latest.shiftKey.split('-');
+    var md = parts.length >= 3 ? (parts[1] + '-' + parts[2]) : latest.shiftKey;
+    hintEl.innerText = '上次 ' + md;
     hintEl.title = new Date(latest.createdAt).toLocaleString('zh-HK');
   } else {
-    hintEl.innerText = '尚未盤點';
+    hintEl.innerText = '未盤點';
   }
 }
 
@@ -1545,7 +1581,6 @@ function updateLatestHint(){
    ========================================================= */
 document.addEventListener('DOMContentLoaded', function(){
   hydrateIcons();
-
   setupAllMoneyInputs();
 
   var keys = getShiftKeys();
