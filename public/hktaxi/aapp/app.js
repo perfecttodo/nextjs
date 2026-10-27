@@ -625,7 +625,7 @@ function openTripLocationInMaps(tripId){
   var lat = t.location.lat;
   var lng = t.location.lng;
   var d = new Date(t.timestamp);
-  var label = d.toLocaleString('zh-HK', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+  var label = d.toLocaleString('zh-HK', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit',hour12: false });
   var pointName = '行程 ' + label;
   var encName = encodeURIComponent(pointName);
 
@@ -1419,7 +1419,7 @@ function updateDateTimePreview(){
 
 function updateHeaderTime(){
   var now = new Date();
-  var timeStr = now.toLocaleTimeString('zh-HK', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  var timeStr = now.toLocaleTimeString('zh-HK', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: false });
   var timeEl = document.getElementById('header-current-time');
   if (timeEl) timeEl.innerText = timeStr;
   updateHeaderWorked();
@@ -2156,7 +2156,7 @@ function renderTripList(){
 
   container.innerHTML = filtered.map(function(t){
     var dateObj  = new Date(t.timestamp);
-    var timeStr  = dateObj.toLocaleTimeString('zh-HK', { hour:'2-digit', minute:'2-digit' });
+    var timeStr  = dateObj.toLocaleTimeString('zh-HK', { hour:'2-digit', minute:'2-digit', hour12: false });
     var dateStr  = dateObj.toLocaleDateString('zh-HK', { month:'2-digit', day:'2-digit' });
 
     var fareNum   = parseFloat(t.fare) || 0;
@@ -3185,7 +3185,7 @@ function openDetailModal(id){
   document.getElementById('modal-title').innerText = '行程詳細內容';
   document.getElementById('modal-body').innerHTML =
     '<div class="space-y-2 text-sm">' +
-      '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">時間</span><span class="font-medium">' + dateObj.toLocaleString('zh-HK') + '</span></div>' +
+      '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">時間</span><span class="font-medium">' + dateObj.toLocaleString('zh-HK', { hour12: false }) + '</span></div>' +
       '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">所屬更次</span><span class="font-medium font-mono">' + (t.shiftDate || '--') + '</span></div>' +
       kindRow +
       '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">車資</span><span class="' + fareCls + '">' + fareText + '</span></div>' +
