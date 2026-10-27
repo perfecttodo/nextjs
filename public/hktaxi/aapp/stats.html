@@ -2363,12 +2363,7 @@ document.addEventListener('touchend', function(e){
   document.addEventListener('mousedown', dismissKeyboard);
 })();
 
-/* Service Worker 註冊 */
-if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('./sw.js').catch(function(err){ console.warn('[PWA] SW 註冊失敗：', err); });
-  });
-}
+
 </script>
 </body>
 </html>
