@@ -92,7 +92,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang HK","Hira
 .shadow-md{box-shadow:0 4px 10px rgba(15,23,42,.10),0 2px 4px rgba(15,23,42,.05)}
 .shadow-lg{box-shadow:0 8px 24px rgba(15,23,42,.12)}.shadow-xl{box-shadow:0 16px 40px rgba(15,23,42,.22)}
 .shadow-inner{box-shadow:inset 0 1px 3px rgba(15,23,42,.12)}
-.opacity-60{opacity:.6}
+.opacity-0{opacity:0}.opacity-60{opacity:.6}
 .transition{transition:all .2s ease}.transition-all{transition:all .3s ease}.duration-300{transition-duration:.3s}
 .backdrop-blur-xs{backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 .animate-in{animation:modalIn .18s ease-out}.animate-pulse{animation:pulse 2s cubic-bezier(0.4,0,0.6,1) infinite}.animate-spin{animation:spin 1s linear infinite}
@@ -191,9 +191,7 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
   </div>
 </div>
 
-<div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-medium shadow-lg z-50 transition-all duration-300 opacity-0 pointer-events-none">
-  提示訊息
-</div>
+<div id="toast" role="status" aria-live="polite" class="fixed top-16 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-medium shadow-lg z-50 transition-all duration-300 opacity-0 pointer-events-none" style="opacity:0"></div>
 
 <script>
 /* =========================================================
@@ -249,6 +247,7 @@ function escapeHtml(s){
 
 function showToast(message){
   var toast = document.getElementById('toast');
+  if (!toast) return;
   toast.innerText = message;
   toast.style.opacity = '1';
   clearTimeout(toast._timer);
@@ -275,7 +274,8 @@ var PLACE_TYPE_CONFIG = {
 var PLACE_TYPES = Object.keys(PLACE_TYPE_CONFIG);
 var PLACE_TYPE_FALLBACK = { icon: 'map-pin', cls: 'bg-purple-50 text-purple-700 border-purple-200' };
 
-var PLACE_TYPE_HOT_LIMIT = 5;
+/* HOT_LIMIT 只统计"真实类型"，不含"全部"；6 = 全显示不折叠 */
+var PLACE_TYPE_HOT_LIMIT = 6;
 var placeTypeExpanded = localStorage.getItem('taxi_place_type_expanded') === '1';
 
 function getPlaceTypeStyle(type){ return PLACE_TYPE_CONFIG[type] || PLACE_TYPE_FALLBACK; }
@@ -303,6 +303,24 @@ var DISTRICT_KEYWORDS = {
 
 /* ---------- 地點狀態 ---------- */
 var places = JSON.parse(localStorage.getItem('taxi_places')) || [];
+
+/* ---------- 舊資料遷移：統一 type 別名 ---------- */
+(function migratePlaceTypes(){
+  var TYPE_ALIAS = {
+    '餐厅':'餐廳', '厕所':'廁所', '气站':'氣站',
+    'restaurant':'餐廳', 'taxi':'的士站', 'taxi stand':'的士站',
+    'toilet':'廁所', 'fuel':'氣站', 'star':'重要',
+    'important':'重要', 'other':'其他', '其他地點':'其他'
+  };
+  var changed = false;
+  places.forEach(function(p){
+    var t = (p.type == null ? '' : String(p.type)).trim();
+    if (TYPE_ALIAS[t] && TYPE_ALIAS[t] !== t){ p.type = TYPE_ALIAS[t]; changed = true; return; }
+    if (!PLACE_TYPES.includes(t)){ p.type = '其他'; changed = true; return; }
+    if (t !== p.type){ p.type = t; changed = true; }
+  });
+  if (changed) localStorage.setItem('taxi_places', JSON.stringify(places));
+})();
 
 var placeFilterRegion   = '';
 var placeFilterDistrict = '';
@@ -338,43 +356,57 @@ function togglePlaceTypeExpanded(){
   renderPlaceFilters();
 }
 
-function buildPlaceFilterBtn(label, isActive, onClick){
-  var cls = isActive
-    ? 'px-2.5 py-1 rounded-md text-[11px] font-bold border transition bg-amber-500 text-slate-900 border-amber-600 shadow-xs whitespace-nowrap'
-    : 'px-2.5 py-1 rounded-md text-[11px] font-medium border transition bg-white text-slate-600 border-slate-200 hover:bg-slate-100 whitespace-nowrap';
-  return '<button type="button" onclick="' + onClick + '" class="' + cls + '">' + escapeHtml(label) + '</button>';
-}
-
 function renderPlaceFilters(){
-  var typeWrap     = document.getElementById('place-type-tabs');
-  var typeToggle   = document.getElementById('place-type-toggle');
+  var typeWrap       = document.getElementById('place-type-tabs');
+  var typeToggle     = document.getElementById('place-type-toggle');
   var typeToggleText = document.getElementById('place-type-toggle-text');
-  var typeChev     = document.getElementById('place-type-toggle-chevron');
+  var typeChev       = document.getElementById('place-type-toggle-chevron');
   if (!typeWrap) return;
 
-  var allTypes = [''].concat(PLACE_TYPES);
-  var totalCount = allTypes.length;
-  var hasMore = totalCount > PLACE_TYPE_HOT_LIMIT;
+  var hotTypes = PLACE_TYPES.slice(0, PLACE_TYPE_HOT_LIMIT);
+  var hasMore  = PLACE_TYPES.length > PLACE_TYPE_HOT_LIMIT;
 
   var visibleTypes;
-  if (!hasMore || placeTypeExpanded) visibleTypes = allTypes;
-  else {
-    visibleTypes = allTypes.slice(0, PLACE_TYPE_HOT_LIMIT);
-    if (placeFilterType && visibleTypes.indexOf(placeFilterType) === -1) visibleTypes = visibleTypes.concat([placeFilterType]);
+  if (!hasMore || placeTypeExpanded){
+    visibleTypes = PLACE_TYPES.slice();
+  } else {
+    visibleTypes = hotTypes.slice();
+    if (placeFilterType && visibleTypes.indexOf(placeFilterType) === -1){
+      visibleTypes.push(placeFilterType);
+    }
   }
 
-  typeWrap.innerHTML = visibleTypes.map(function(t){
-    var label = t === '' ? '全部' : t;
-    return buildPlaceFilterBtn(label, placeFilterType === t, "setPlaceFilterType('" + t + "')");
+  var allVisible = [''].concat(visibleTypes);
+
+  typeWrap.innerHTML = allVisible.map(function(t){
+    var label  = t === '' ? '全部' : t;
+    var active = placeFilterType === t;
+    var cls = active
+      ? 'px-2.5 py-1 rounded-md text-[11px] font-bold border transition bg-amber-500 text-slate-900 border-amber-600 shadow-xs whitespace-nowrap'
+      : 'px-2.5 py-1 rounded-md text-[11px] font-medium border transition bg-white text-slate-600 border-slate-200 hover:bg-slate-100 whitespace-nowrap';
+    return '<button type="button" data-place-type="' + escapeHtml(t) + '" class="' + cls + '">' + escapeHtml(label) + '</button>';
   }).join('');
+
+  /* 事件委託：只綁一次，innerHTML 替換不影響 */
+  if (!typeWrap._bound){
+    typeWrap._bound = true;
+    typeWrap.addEventListener('click', function(e){
+      var btn = e.target.closest('button[data-place-type]');
+      if (!btn) return;
+      setPlaceFilterType(btn.getAttribute('data-place-type') || '');
+    });
+  }
 
   if (typeToggle){
     if (hasMore){
       typeToggle.classList.remove('hidden');
-      var hiddenCount = totalCount - PLACE_TYPE_HOT_LIMIT;
-      typeToggleText.innerText = placeTypeExpanded ? '收起' : ('更多（+' + hiddenCount + '）');
-      if (typeChev){ typeChev.style.transform = placeTypeExpanded ? 'rotate(180deg)' : ''; }
-    } else { typeToggle.classList.add('hidden'); }
+      typeToggleText.innerText = placeTypeExpanded
+        ? '收起'
+        : ('更多（+' + (PLACE_TYPES.length - PLACE_TYPE_HOT_LIMIT) + '）');
+      if (typeChev) typeChev.style.transform = placeTypeExpanded ? 'rotate(180deg)' : '';
+    } else {
+      typeToggle.classList.add('hidden');
+    }
   }
 }
 
@@ -394,10 +426,13 @@ function renderPlacesList(){
 
   var filtered = places.filter(function(p){
     if (keyword){
-      var hay = (p.name + ' ' + (p.address||'') + ' ' + (p.note||'') + ' ' + p.type).toLowerCase();
+      var hay = [
+        p.name || '', p.address || '', p.note || '', p.type || ''
+      ].join(' ').toLowerCase();
       if (hay.indexOf(keyword) === -1) return false;
     }
-    if (placeFilterType && p.type !== placeFilterType) return false;
+    var pType = (p.type == null ? '' : String(p.type)).trim();
+    if (placeFilterType && pType !== placeFilterType) return false;
     return true;
   });
 
@@ -441,7 +476,8 @@ function renderPlacesList(){
   }
 
   container.innerHTML = filtered.map(function(p){
-    var style = getPlaceTypeStyle(p.type);
+    var pType = (p.type == null ? '' : String(p.type)).trim();
+    var style = getPlaceTypeStyle(pType);
     var hasCoords = (typeof p.lat === 'number' && typeof p.lng === 'number');
 
     var distanceBadge = '';
@@ -460,7 +496,7 @@ function renderPlacesList(){
                 distanceBadge +
               '</div>' +
               '<div class="flex items-center gap-1.5 flex-wrap mt-1">' +
-                '<span class="text-[10px] px-2 py-0.5 rounded-full border font-semibold ' + style.cls + '">' + escapeHtml(p.type) + '</span>' +
+                '<span class="text-[10px] px-2 py-0.5 rounded-full border font-semibold ' + style.cls + '">' + escapeHtml(pType || '未分類') + '</span>' +
               '</div>' +
               (p.address ? '<p class="text-xs text-slate-500 mt-1 truncate flex items-center gap-1"><span class="ico w-3 h-3 text-slate-400 shrink-0">' + ico('map-pin','w-3 h-3') + '</span>' + escapeHtml(p.address) + '</p>' : '') +
               (p.note ? '<p class="text-xs text-slate-400 mt-0.5 truncate">' + escapeHtml(p.note) + '</p>' : '') +
@@ -1163,6 +1199,11 @@ function deletePlace(id){
 document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, { passive:false });
 var lastTouchEnd = 0;
 document.addEventListener('touchend', function(e){
+  /* 交互元素不拦截，避免按钮点击被吞 */
+  if (e.target && e.target.closest &&
+      e.target.closest('button, a, input, select, textarea, label')){
+    return;
+  }
   var now = Date.now();
   if (now - lastTouchEnd <= 300) e.preventDefault();
   lastTouchEnd = now;
