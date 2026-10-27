@@ -5038,10 +5038,10 @@ function showToast(message){
 }
 
 var DRAWER_ITEMS = [
-  { id: 'home',    label: '首頁',       desc: '返回記帳主頁',        icon: 'home',          tab: 'trip' },
+  { id: 'home',    label: '首頁',       desc: '返回記帳主頁',        icon: 'home',          tab: 'trip'},
   { id: 'airport', label: '機場航班', desc: '查詢香港國際機場航班', icon: 'plane-takeoff', href: './airport.html' },
-  { id: 'places',  label: '收藏地點',    desc: '管理常用地點、一鍵導航',     icon: 'map-pin',       href: './places.html' },  // ★ 新增
-  { id: 'stats',  label: '統計',    desc: '統計',     icon: 'pie-chart',       href: './stats.html' },  // ★ 新增
+  { id: 'places',  label: '收藏地點',    desc: '管理常用地點、一鍵導航',     icon: 'map-pin',       href: './places.html' ,nav:1 },  // ★ 新增
+  { id: 'stats',  label: '統計',    desc: '統計',     icon: 'pie-chart',       href: './stats.html' ,nav:1 },  // ★ 新增
   { id: 'gdrive',  label: 'Google Drive',  desc: '一鍵上傳／下載備份',      icon: 'database',      href: './backup.html' },
   { id: 'cash',     label: '現金盤點',    desc: '核對現金收入並記錄提取留存', icon: 'coins',         href: './cash-audit.html' },
   { id: 'other',   label: '其他',       desc: '更多功能（開發中）',    icon: 'settings',      tab: null }
@@ -5051,7 +5051,7 @@ function renderDrawerMenu(){
   var container = document.getElementById('drawer-content');
   if (!container) return;
 
-  container.innerHTML = DRAWER_ITEMS.map(function(item){
+  container.innerHTML = DRAWER_ITEMS.filter(m=>!m.nav).map(function(item){
     return '<button type="button" onclick="handleDrawerItem(\'' + item.id + '\')" ' +
       'class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-amber-50 active:bg-amber-100 transition text-left border border-transparent hover:border-amber-200">' +
         '<span class="w-10 h-10 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0 text-amber-700">' + ico(item.icon, 'w-5 h-5') + '</span>' +

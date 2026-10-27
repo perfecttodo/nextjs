@@ -8,6 +8,12 @@ var loadedSubPages = {};
 var pendingLoads = {};
 var currentSubPageHref = null;
 
+/* ★ 预取的 HTML 缓存 ★ */
+var htmlCache = Object.create(null);
+
+/* ★ 共享的 constructed stylesheet 缓存（按 CSS 文本去重） ★ */
+var sheetCache = (typeof Map !== 'undefined') ? new Map() : null;
+
 /* 需要处理的内联事件类型（onclick / oninput / onchange ...） */
 var EVENT_ATTRS = [
   'click','input','change','blur','focus','keydown','keyup','keypress',
@@ -25,6 +31,34 @@ function isSubPageHref(href){
   var tgt = href.split('?')[0].split('#')[0].replace(/^\.\//, '').split('/').pop().toLowerCase();
   if (cur === tgt) return false;
   return true;
+}
+
+/* ★ 空闲时预取抽屉里的子页面 HTML ★ */
+function prefetchSubPage(href){
+  if (!href || htmlCache[href] || loadedSubPages[href] || pendingLoads[href]) return;
+  fetch(href).then(function(r){
+    if (!r.ok) return null;
+    return r.text();
+  }).then(function(t){
+    if (t && !htmlCache[href]) htmlCache[href] = t;
+  }).catch(function(){});
+}
+
+function prefetchAllDrawerPages(){
+  var hrefs = (window.DRAWER_ITEMS || [])
+    .map(function(x){ return x.href; })
+    .filter(function(h){ return h && isSubPageHref(h); });
+  var i = 0;
+  function next(){
+    if (i >= hrefs.length) return;
+    prefetchSubPage(hrefs[i++]);
+    setTimeout(next, 60); // 串行、错峰，避免抢占首屏带宽
+  }
+  if ('requestIdleCallback' in window){
+    requestIdleCallback(next, { timeout: 2500 });
+  } else {
+    setTimeout(next, 800);
+  }
 }
 
 function loadSubPage(href,tabName){
@@ -45,7 +79,6 @@ function loadSubPage(href,tabName){
     }
   });
 
-
   if(tabName){
     var activeNav = document.getElementById('nav-' + tabName);
     if (activeNav){
@@ -54,8 +87,6 @@ function loadSubPage(href,tabName){
       if (activeLabel) activeLabel.className = 'text-[11px] font-bold mt-1';
     }
   }
-
-
 
   document.getElementById('main-tab-content').classList.add('hidden');
   var container = document.getElementById('sub-page-container');
@@ -77,23 +108,35 @@ function loadSubPage(href,tabName){
     }
   });
 
+  /* ── 已缓存：直接显示，并用 View Transition 包住刷新 ── */
   if (loadedSubPages[href]){
-    loadedSubPages[href].host.style.display = 'block';
+    var rec = loadedSubPages[href];
+    rec.host.style.display = 'block';
+    rec.host.style.opacity = '1';
 
-    /* ★ 每次切回该子页面：重新执行它的 DOMContentLoaded / load 回调，
-       让子页面有机会重新读数据、重渲染 UI（等价于"重新初始化"）。 ★ */
-    var entry = window.__PAGE_CAPTURED__ && window.__PAGE_CAPTURED__[loadedSubPages[href].ns];
-    if (entry && typeof entry.run === 'function'){
-      setTimeout(function(){
-        try { entry.run(); }
-        catch(e){ console.error('[loader] refresh error:', e); }
-      }, 0);
+    var entry = window.__PAGE_CAPTURED__ && window.__PAGE_CAPTURED__[rec.ns];
+    if (entry){
+      var doUpdate = function(){
+        try {
+          if (entry.showList && entry.showList.length){
+            entry.show();                 // 有 pageshow 监听：轻量刷新
+          } else if (typeof entry.run === 'function'){
+            entry.run();                  // 否则退回全量重跑
+          }
+        } catch(e){ console.error('[loader] refresh error:', e); }
+      };
+      var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (document.startViewTransition && !reduceMotion){
+        document.startViewTransition(doUpdate);
+      } else {
+        doUpdate();
+      }
     }
-
     window.scrollTo(0, 0);
     return;
   }
 
+  /* ── 正在加载：显示 loading，等它完成 ── */
   if (pendingLoads[href]){
     if (pendingLoads[href].loadingEl){
       pendingLoads[href].loadingEl.style.display = 'block';
@@ -109,17 +152,26 @@ function loadSubPage(href,tabName){
   if (typeof window.hydrateIcons === 'function') window.hydrateIcons();
   window.scrollTo(0, 0);
 
-  var controller = new AbortController();
-  pendingLoads[href] = { loadingEl: loadingEl, controller: controller };
+  pendingLoads[href] = { loadingEl: loadingEl };
 
-  fetch(href, { signal: controller.signal })
-    .then(function(res){
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.text();
-    })
+  var htmlPromise;
+  if (htmlCache[href]){
+    htmlPromise = Promise.resolve(htmlCache[href]);
+  } else {
+    htmlPromise = fetch(href)
+      .then(function(res){
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.text();
+      })
+      .then(function(t){
+        htmlCache[href] = t;
+        return t;
+      });
+  }
+
+  htmlPromise
     .then(function(html){
       delete pendingLoads[href];
-      if (loadingEl.parentNode) loadingEl.remove();
       if (loadedSubPages[href] && loadedSubPages[href].host){
         loadedSubPages[href].host.remove();
         /* 清理旧 ns 的 captured 记录，避免内存泄漏 */
@@ -129,11 +181,10 @@ function loadSubPage(href,tabName){
         delete loadedSubPages[href];
       }
       var shouldShow = (currentSubPageHref === href);
-      mountSubPage(href, html, container, shouldShow);
+      mountSubPage(href, html, container, shouldShow, loadingEl);
     })
     .catch(function(err){
       delete pendingLoads[href];
-      if (err && err.name === 'AbortError') return;
       if (loadingEl.parentNode) loadingEl.remove();
       if (currentSubPageHref !== href) return;
 
@@ -177,7 +228,22 @@ function extractInlineEvents(el){
   });
 }
 
-function mountSubPage(href, html, container, shouldShow){
+/* ★ 取/缓存 constructed stylesheet ★ */
+function getAdoptedSheet(css){
+  if (!sheetCache || typeof CSSStyleSheet === 'undefined') return null;
+  var s = sheetCache.get(css);
+  if (s) return s;
+  try {
+    s = new CSSStyleSheet();
+    s.replaceSync(css);
+    sheetCache.set(css, s);
+    return s;
+  } catch(e){
+    return null;
+  }
+}
+
+function mountSubPage(href, html, container, shouldShow, loadingEl){
   var doc = new DOMParser().parseFromString(html, 'text/html');
 
   doc.querySelectorAll('header').forEach(function(el){ el.remove(); });
@@ -188,18 +254,28 @@ function mountSubPage(href, html, container, shouldShow){
 
   var host = document.createElement('div');
   host.className = 'subpage-host';
-  host.style.cssText = 'width:100%;display:' + (shouldShow ? 'block' : 'none') + ';';
+  /* 统一从 display:none + opacity:0 开始，等 ready 再淡入，避免"空壳闪现" */
+  host.style.cssText = 'width:100%;display:none;opacity:0;transition:opacity .2s ease;';
   var shadow = host.attachShadow({ mode: 'open' });
   container.appendChild(host);
 
+  /* ── 样式：优先 adoptedStyleSheets，重复内容只解析一次 ── */
   var styleContent = Array.prototype.map.call(doc.querySelectorAll('head style'), function(s){ return s.textContent; }).join('\n');
-  var styleEl = document.createElement('style');
-  styleEl.textContent = styleContent + '\n:host{display:block;}\n.subpage-body{padding-bottom:4rem;}\nbody{padding-bottom:0 !important;min-height:auto !important;}';
-  shadow.appendChild(styleEl);
+  var fullCss = styleContent + '\n:host{display:block;}\n.subpage-body{padding-bottom:4rem;}\nbody{padding-bottom:0 !important;min-height:auto !important;}';
+  var adopted = getAdoptedSheet(fullCss);
+  if (adopted){
+    shadow.adoptedStyleSheets = [adopted];
+  } else {
+    var styleEl = document.createElement('style');
+    styleEl.textContent = fullCss;
+    shadow.appendChild(styleEl);
+  }
 
+  /* ── body 节点直接搬，不再二次 innerHTML ── */
   var bodyDiv = document.createElement('div');
   bodyDiv.className = 'subpage-body';
-  bodyDiv.innerHTML = doc.body.innerHTML;
+  var srcNodes = Array.prototype.slice.call(doc.body.childNodes);
+  srcNodes.forEach(function(n){ bodyDiv.appendChild(n); });
   shadow.appendChild(bodyDiv);
 
   /* ★ 提取所有元素的 on* 属性（不只是 onclick） ★ */
@@ -225,16 +301,20 @@ function mountSubPage(href, html, container, shouldShow){
       '  var __shadow__ = __realWin__.__SHADOW_POOL__["' + ns + '"];\n' +
       '  var __bodyDiv__ = __shadow__.querySelector(".subpage-body");\n' +
       '  var window = __realWin__;\n' +
-      /* ★ 先定义 __captured__：document.addEventListener 与 window.addEventListener 两条路径都要能往里 push ★ */
+      /* ★ 两个收集池：DOMContentLoaded/load 与 pageshow 分开 ★ */
       '  var __captured__ = [];\n' +
+      '  var __capturedShow__ = [];\n' +
       '  var document = {\n' +
       '    getElementById: function(id){ return __shadow__.getElementById(id); },\n' +
       '    querySelector: function(sel){ return __shadow__.querySelector(sel); },\n' +
       '    querySelectorAll: function(sel){ return __shadow__.querySelectorAll(sel); },\n' +
       '    addEventListener: function(type, handler, opts){\n' +
-      /* ★ 统一收集：不再立即执行，交由末尾的统一执行器，这样首次/切回都能复用同一份 handler ★ */
       '      if (type === "DOMContentLoaded" || type === "load"){\n' +
       '        __captured__.push({ type: type, handler: handler });\n' +
+      '        return;\n' +
+      '      }\n' +
+      '      if (type === "pageshow"){\n' +
+      '        __capturedShow__.push({ type: type, handler: handler });\n' +
       '        return;\n' +
       '      }\n' +
       '      __shadow__.addEventListener(type, handler, opts);\n' +
@@ -284,11 +364,15 @@ function mountSubPage(href, html, container, shouldShow){
       '  function confirm(msg){ return __realWin__.confirm(msg); }\n' +
       '  function alert(msg){ return __realWin__.alert(msg); }\n' +
       '\n' +
-      /* 拦截 window.addEventListener 上的 DOMContentLoaded / load，同样收集到 __captured__ */
+      /* 拦截 window.addEventListener：DOMContentLoaded/load 与 pageshow 分开收集 */
       '  var __origAdd__ = __realWin__.addEventListener;\n' +
       '  __realWin__.addEventListener = function(type, handler, opts){\n' +
       '    if (type === "DOMContentLoaded" || type === "load"){\n' +
       '      __captured__.push({ type: type, handler: handler });\n' +
+      '      return;\n' +
+      '    }\n' +
+      '    if (type === "pageshow"){\n' +
+      '      __capturedShow__.push({ type: type, handler: handler });\n' +
       '      return;\n' +
       '    }\n' +
       '    return __origAdd__.call(__realWin__, type, handler, opts);\n' +
@@ -298,66 +382,88 @@ function mountSubPage(href, html, container, shouldShow){
       '  var __EVENT_ATTRS__ = ' + JSON.stringify(EVENT_ATTRS) + ';\n' +
       '\n' +
       '  var __bindDone__ = false;\n' +
+      '  var __pendingBind__ = [];\n' +
+      '  var __bindScheduled__ = false;\n' +
+      '  var __flushBind__ = function(){\n' +
+      '    __bindScheduled__ = false;\n' +
+      '    var list = __pendingBind__;\n' +
+      '    __pendingBind__ = [];\n' +
+      '    list.forEach(function(node){\n' +
+      '      if (!node || node.nodeType !== 1) return;\n' +
+      '      __bindAll__(node);\n' +
+      '      if (node.querySelectorAll) node.querySelectorAll("*").forEach(__bindAll__);\n' +
+      '    });\n' +
+      '  };\n' +
+      '\n' +
       '  try {\n' +
-      /* ★ 关键：__bindAll__ 定义在 try 块内，eval(code) 的作用域链为：
+      /* ★ __bindAll__ 定义在 try 内，eval(code) 作用域链：
          事件回调(含 event 参数) → __bindAll__ → try 块 → IIFE → 全局。
          1) inlineScripts 里 const/let 声明的 download 等函数能被找到；
          2) 回调参数命名为 event，eval 里的 event.stopPropagation() 解析到真实事件对象。 */
       '    var __bindAll__ = function(el){\n' +
-      '      if (!el || !el.dataset) return;\n' +
-      '      __EVENT_ATTRS__.forEach(function(evt){\n' +
-      /* ★ FIX ★ 动态节点：先把原生 on* 属性搬到 data-on-*，否则 MutationObserver
-         只能看到 data-on-*，动态插入的 onclick="closeModal()" 将永远不生效。 */
-      '        var __rawAttr__  = "on" + evt;\n' +
-      '        var __dataAttr__ = "data-on-" + evt;\n' +
-      '        if (el.hasAttribute && el.hasAttribute(__rawAttr__) && !el.hasAttribute(__dataAttr__)){\n' +
-      '          try { el.setAttribute(__dataAttr__, el.getAttribute(__rawAttr__)); } catch(e){}\n' +
-      '          try { el.removeAttribute(__rawAttr__); } catch(e){}\n' +
+      '      if (!el || el.nodeType !== 1) return;\n' +
+      '      var names;\n' +
+      '      try { names = el.getAttributeNames ? el.getAttributeNames() : []; } catch(e){ return; }\n' +
+      '      if (!names.length) return;\n' +
+      '      for (var i = 0; i < names.length; i++){\n' +
+      '        var name = names[i];\n' +
+      '        var evt = null;\n' +
+      '        if (name.indexOf("data-on-") === 0){\n' +
+      '          evt = name.slice(8);\n' +
+      '        } else if (name.indexOf("on") === 0 && __EVENT_ATTRS__.indexOf(name.slice(2)) !== -1){\n' +
+      '          evt = name.slice(2);\n' +
+      /* 动态节点：先把原生 on* 属性搬到 data-on-*，否则 MutationObserver 只能看到 data-on-* */
+      '          try { el.setAttribute("data-on-" + evt, el.getAttribute(name)); } catch(e){}\n' +
+      '          try { el.removeAttribute(name); } catch(e){}\n' +
       '        }\n' +
-      '        var dataKey = "on" + evt.charAt(0).toUpperCase() + evt.slice(1);\n' +
-      '        var code = el.dataset[dataKey];\n' +
-      '        if (!code) return;\n' +
+      '        if (!evt) continue;\n' +
       '        var flag = "__bound_" + evt;\n' +
-      '        if (el[flag]) return;\n' +
+      '        if (el[flag]) continue;\n' +
+      '        var code = el.getAttribute("data-on-" + evt);\n' +
+      '        if (!code) continue;\n' +
       '        el[flag] = true;\n' +
-      '        el.addEventListener(evt, function(event){\n' +
-      '          var __self__ = this;\n' +
-      '          try {\n' +
-      '            var __ret__ = eval(code);\n' +
-      '            if (__ret__ === false){\n' +
-      '              if (event && event.preventDefault) event.preventDefault();\n' +
-      '              if (event && event.stopPropagation) event.stopPropagation();\n' +
+      '        (function(evtName, evtCode){\n' +
+      '          el.addEventListener(evtName, function(event){\n' +
+      '            var __self__ = this;\n' +
+      '            try {\n' +
+      '              var __ret__ = eval(evtCode);\n' +
+      '              if (__ret__ === false){\n' +
+      '                if (event && event.preventDefault) event.preventDefault();\n' +
+      '                if (event && event.stopPropagation) event.stopPropagation();\n' +
+      '              }\n' +
+      '            } catch(err){\n' +
+      '              if (err && err.name === "ReferenceError"){\n' +
+      '                try {\n' +
+      '                  var __r2__ = new __realWin__.Function("event", evtCode).call(__self__, event);\n' +
+      '                  if (__r2__ === false){\n' +
+      '                    if (event && event.preventDefault) event.preventDefault();\n' +
+      '                    if (event && event.stopPropagation) event.stopPropagation();\n' +
+      '                  }\n' +
+      '                  return;\n' +
+      '                } catch(_e){}\n' +
+      '              }\n' +
+      '              console.error("[' + ns + '] on" + evtName + " error:", err, evtCode);\n' +
       '            }\n' +
-      '          } catch(err){\n' +
-      '            if (err && err.name === "ReferenceError"){\n' +
-      '              try {\n' +
-      '                var __r2__ = new __realWin__.Function("event", code).call(__self__, event);\n' +
-      '                if (__r2__ === false){\n' +
-      '                  if (event && event.preventDefault) event.preventDefault();\n' +
-      '                  if (event && event.stopPropagation) event.stopPropagation();\n' +
-      '                }\n' +
-      '                return;\n' +
-      '              } catch(_e){}\n' +
-      '            }\n' +
-      '            console.error("[' + ns + '] on" + evt + " error:", err, code);\n' +
-      '          }\n' +
-      '        });\n' +
-      '      });\n' +
+      '          });\n' +
+      '        })(evt, code);\n' +
+      '      }\n' +
       '    };\n' +
       '\n' +
       inlineScripts + '\n' +
       '\n' +
-      /* 初始扫描全部元素并绑定 */
+      /* 初始扫描全部元素并绑定；动态节点用 rAF 合并，避免长列表卡顿 */
       '    (function __bindInit__(){\n' +
       '      __shadow__.querySelectorAll("*").forEach(__bindAll__);\n' +
       '      var mo = new MutationObserver(function(muts){\n' +
       '        muts.forEach(function(m){\n' +
       '          m.addedNodes.forEach(function(node){\n' +
-      '            if (!node || node.nodeType !== 1) return;\n' +
-      '            __bindAll__(node);\n' +
-      '            if (node.querySelectorAll) node.querySelectorAll("*").forEach(__bindAll__);\n' +
+      '            if (node && node.nodeType === 1) __pendingBind__.push(node);\n' +
       '          });\n' +
       '        });\n' +
+      '        if (!__pendingBind__.length || __bindScheduled__) return;\n' +
+      '        __bindScheduled__ = true;\n' +
+      '        var raf = __realWin__.requestAnimationFrame || function(f){ return __realWin__.setTimeout(f, 16); };\n' +
+      '        raf(__flushBind__);\n' +
       '      });\n' +
       '      mo.observe(__shadow__, { childList:true, subtree:true });\n' +
       '    })();\n' +
@@ -367,10 +473,17 @@ function mountSubPage(href, html, container, shouldShow){
       '    __realWin__.__PAGE_CAPTURED__ = __realWin__.__PAGE_CAPTURED__ || {};\n' +
       '    __realWin__.__PAGE_CAPTURED__["' + ns + '"] = {\n' +
       '      list: __captured__,\n' +
+      '      showList: __capturedShow__,\n' +
       '      run: function(){\n' +
       '        __captured__.forEach(function(item){\n' +
       '          try { item.handler.call(__realWin__, { type: item.type }); }\n' +
       '          catch(e){ console.error("[' + ns + '] " + item.type + " handler error:", e); }\n' +
+      '        });\n' +
+      '      },\n' +
+      '      show: function(){\n' +
+      '        __capturedShow__.forEach(function(item){\n' +
+      '          try { item.handler.call(__realWin__, { type: "pageshow" }); }\n' +
+      '          catch(e){ console.error("[' + ns + '] pageshow error:", e); }\n' +
       '        });\n' +
       '      }\n' +
       '    };\n' +
@@ -379,10 +492,9 @@ function mountSubPage(href, html, container, shouldShow){
       '    __realWin__.addEventListener = __origAdd__;\n' +
       '  }\n' +
       '\n' +
-      /* 首次执行：与切回时的刷新共用 entry.run() */
+      /* 首次执行：与切回时的刷新共用 entry.run()；无论如何都派发 ready，让 loader 淡入 */
       '  setTimeout(function(){\n' +
       '    var __entry__ = __realWin__.__PAGE_CAPTURED__ && __realWin__.__PAGE_CAPTURED__["' + ns + '"];\n' +
-      '    if (!__entry__ || !__entry__.list.length) return;\n' +
       '    var __origAdd2__ = __realWin__.addEventListener;\n' +
       '    __realWin__.addEventListener = function(type, handler, opts){\n' +
       '      if (type === "DOMContentLoaded" || type === "load"){\n' +
@@ -395,9 +507,14 @@ function mountSubPage(href, html, container, shouldShow){
       '      return __origAdd2__.call(__realWin__, type, handler, opts);\n' +
       '    };\n' +
       '    try {\n' +
-      '      __entry__.run();\n' +
+      '      if (__entry__ && __entry__.list && __entry__.list.length) __entry__.run();\n' +
+      '    } catch(e){\n' +
+      '      console.error("[' + ns + '] run error:", e);\n' +
       '    } finally {\n' +
       '      __realWin__.addEventListener = __origAdd2__;\n' +
+      '      try {\n' +
+      '        __realWin__.dispatchEvent(new __realWin__.CustomEvent("subpage:ready", { detail: { ns: "' + ns + '" } }));\n' +
+      '      } catch(e){}\n' +
       '    }\n' +
       '  }, 0);\n' +
       '\n' +
@@ -408,7 +525,7 @@ function mountSubPage(href, html, container, shouldShow){
       '      __shadow__.querySelectorAll("[data-on-click]").forEach(function(el){\n' +
       '        if (el.__subBoundC) return;\n' +
       '        el.__subBoundC = true;\n' +
-      '        var code = el.dataset.onClick;\n' +
+      '        var code = el.getAttribute("data-on-click");\n' +
       '        el.addEventListener("click", function(event){\n' +
       '          try { eval(code); } catch(err){ console.error("[' + ns + '] fallback error:", err, code); }\n' +
       '        });\n' +
@@ -423,6 +540,8 @@ function mountSubPage(href, html, container, shouldShow){
     var scriptEl = document.createElement('script');
     scriptEl.textContent = wrapped;
     document.head.appendChild(scriptEl);
+    /* 同步执行完毕，立即移除，避免 head 里堆积 */
+    scriptEl.remove();
   };
 
   if (externalScripts.length){
@@ -439,6 +558,28 @@ function mountSubPage(href, html, container, shouldShow){
   }
 
   loadedSubPages[href] = { host: host, shadow: shadow, ns: ns };
+
+  /* ── ready 后淡入 ── */
+  var revealed = false;
+  function revealHost(){
+    if (revealed) return;
+    revealed = true;
+    if (loadingEl && loadingEl.parentNode) loadingEl.remove();
+    if (!shouldShow) return;
+    if (currentSubPageHref !== href) return;
+    host.style.display = 'block';
+    void host.offsetHeight; // 强制 reflow，确保 opacity 过渡生效
+    host.style.opacity = '1';
+  }
+
+  var onReady = function(e){
+    if (!e || !e.detail || e.detail.ns !== ns) return;
+    window.removeEventListener('subpage:ready', onReady);
+    revealHost();
+  };
+  window.addEventListener('subpage:ready', onReady);
+  /* 兜底：script 解析失败等极端情况，2s 后强制显示 */
+  setTimeout(revealHost, 2000);
 }
 
 function hideAllSubPages(){
@@ -449,22 +590,20 @@ function hideAllSubPages(){
     loadedSubPages[k].host.style.display = 'none';
   });
 
+  /* ★ 不再 abort pending：让请求完成、挂到隐藏 host，下次切回秒开 ★ */
   Object.keys(pendingLoads).forEach(function(k){
-    if (pendingLoads[k].controller){
-      try { pendingLoads[k].controller.abort(); } catch(e){}
-    }
     if (pendingLoads[k].loadingEl && pendingLoads[k].loadingEl.parentNode){
-      pendingLoads[k].loadingEl.remove();
+      pendingLoads[k].loadingEl.style.display = 'none';
     }
   });
-  pendingLoads = {};
 
   var container = document.getElementById('sub-page-container');
   if (container){
     Array.prototype.slice.call(container.children).forEach(function(child){
-      if (!child.classList.contains('subpage-host')){
-        child.remove();
-      }
+      /* 保留已挂载的 host 和 pending 的 loading，其他（error 等）清理掉 */
+      if (child.classList.contains('subpage-host')) return;
+      if (child.classList.contains('subpage-loading')) return;
+      child.remove();
     });
     container.classList.add('hidden');
   }
@@ -499,15 +638,17 @@ window.handleDrawerItem = function(id){
   if (typeof window.closeDrawer === 'function') window.closeDrawer();
   if (!item) return;
 
+  /* ★ 子页面：立即开始加载，不再等抽屉动画 280ms ★ */
+  if (item.href && isSubPageHref(item.href)){
+    loadSubPage(item.href, id);
+    return;
+  }
+
   setTimeout(function(){
     if (item.href){
-      if (isSubPageHref(item.href)){
-        loadSubPage(item.href,id);
-      } else {
-        var from = encodeURIComponent(window.location.href);
-        var sep = item.href.indexOf('?') === -1 ? '?' : '&';
-        window.location.href = item.href + sep + 'from=' + from;
-      }
+      var from = encodeURIComponent(window.location.href);
+      var sep = item.href.indexOf('?') === -1 ? '?' : '&';
+      window.location.href = item.href + sep + 'from=' + from;
       return;
     }
     if (item.tab) window.switchTab(item.tab);
@@ -528,5 +669,8 @@ window.switchTab = function(tabName){
     window.switchTabOriginal(tabName);
   }
 };
+
+/* 启动空闲预取（放到下一轮事件循环，避免影响主页面首屏） */
+setTimeout(prefetchAllDrawerPages, 0);
 
 })();
