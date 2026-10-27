@@ -652,67 +652,11 @@ var DEFAULT_SHIFT = {
   note: ''
 };
 
-/* ========== 修改：保留 REGIONS / DISTRICT_KEYWORDS 以兼容舊資料（不再用於 UI） ========== */
-var REGIONS = {
-  '港島': ['中西區', '灣仔區', '東區', '南區'],
-  '九龍': ['油尖旺區', '深水埗區', '九龍城區', '黃大仙區', '觀塘區'],
-  '新界': ['元朗區', '屯門區', '沙田區', '大埔區', '北區', '西貢區', '葵青區', '荃灣區', '離島區']
-};
 
-var PLACE_TYPE_CONFIG = {
-  '餐廳':   { icon: 'utensils',       cls: 'bg-orange-50 text-orange-700 border-orange-200' },
-  '的士站': { icon: 'car-taxi-front', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
-  '廁所':   { icon: 'toilet',         cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  '氣站':   { icon: 'fuel',           cls: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
-  '重要':   { icon: 'star',           cls: 'bg-rose-50 text-rose-700 border-rose-200' },
-  '其他':   { icon: 'map-pin',        cls: 'bg-purple-50 text-purple-700 border-purple-200' }
-};
-var PLACE_TYPES = Object.keys(PLACE_TYPE_CONFIG);
-var PLACE_TYPE_FALLBACK = { icon: 'map-pin', cls: 'bg-purple-50 text-purple-700 border-purple-200' };
 
-var PLACE_TYPE_HOT_LIMIT = 5;
-var placeTypeExpanded = localStorage.getItem('taxi_place_type_expanded') === '1';
 
-function getPlaceTypeStyle(type){ return PLACE_TYPE_CONFIG[type] || PLACE_TYPE_FALLBACK; }
-
-/* 保留：用於舊資料兼容 / 反向地理編碼內部參考 */
-var DISTRICT_KEYWORDS = {
-  '中西區': ['central and western', 'central & western', '中西區', '中環', '上環', '西環', '西營盤', '半山', '山頂', '金鐘', '石塘咀', '堅尼地城'],
-  '灣仔區': ['wan chai', '灣仔', '銅鑼灣', '跑馬地', '大坑', '掃桿埔', '天后'],
-  '東區': ['eastern district', 'eastern', '東區', '北角', '鰂魚涌', '太古', '西灣河', '筲箕灣', '柴灣', '小西灣'],
-  '南區': ['southern district', 'southern', '南區', '香港仔', '鴨脷洲', '薄扶林', '赤柱', '淺水灣', '石澳', '黃竹坑', '田灣'],
-  '油尖旺區': ['yau tsim mong', '油尖旺', '尖沙咀', '油麻地', '旺角', '大角咀', '佐敦', '太子'],
-  '深水埗區': ['sham shui po', '深水埗', '長沙灣', '荔枝角', '石硤尾', '美孚', '南昌'],
-  '九龍城區': ['kowloon city', '九龍城', '土瓜灣', '紅磡', '何文田', '啟德', '九龍塘'],
-  '黃大仙區': ['wong tai sin', '黃大仙', '慈雲山', '鑽石山', '樂富', '新蒲崗', '彩虹'],
-  '觀塘區': ['kwun tong', '觀塘', '牛頭角', '九龍灣', '藍田', '油塘', '順利'],
-  '元朗區': ['yuen long', '元朗', '天水圍', '錦田', '八鄉', '流浮山', '廈村'],
-  '屯門區': ['tuen mun', '屯門', '蝴蝶灣', '掃管笏', '大興'],
-  '沙田區': ['sha tin', '沙田', '大圍', '馬鞍山', '火炭', '沙田圍', '石門'],
-  '大埔區': ['tai po', '大埔', '太和', '汀角', '大尾篤'],
-  '北區': ['north district', 'north', '北區', '粉嶺', '上水', '沙頭角', '打鼓嶺'],
-  '西貢區': ['sai kung', '西貢', '將軍澳', '坑口', '調景嶺', '寶琳'],
-  '葵青區': ['kwai tsing', '葵青', '葵涌', '青衣', '荔景'],
-  '荃灣區': ['tsuen wan', '荃灣', '深井', '汀九', '馬灣'],
-  '離島區': ['islands district', 'islands', '離島', '東涌', '長洲', '大嶼山', '南丫島', '坪洲']
-};
-
-function getRegionByDistrict(district){
-  if (!district) return null;
-  if (['中西區','灣仔區','東區','南區'].indexOf(district) !== -1) return '港島';
-  if (['油尖旺區','深水埗區','九龍城區','黃大仙區','觀塘區'].indexOf(district) !== -1) return '九龍';
-  if (['元朗區','屯門區','沙田區','大埔區','北區','西貢區','葵青區','荃灣區','離島區'].indexOf(district) !== -1) return '新界';
-  return null;
-}
-
-var placeFilterRegion   = '';
-var placeFilterDistrict = '';
-var placeFilterType     = '';
-var placeNearbyMode     = false;
 var userLat = null;
 var userLng = null;
-var currentEditingPlaceId = null;
-var _pendingPlaceAddr = null;   // 依座標解析出的暫存地址（預覽用）
 
 var activeTripType   = localStorage.getItem('taxi_last_type') || '街客';
 var tripTypeExpanded = false;
