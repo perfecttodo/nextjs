@@ -155,6 +155,10 @@ button:disabled{cursor:not-allowed}
         <span class="text-slate-500">收藏地點</span>
         <span id="stat-places" class="font-bold font-mono text-slate-800">0 個</span>
       </div>
+      <div class="flex justify-between">
+        <span class="text-slate-500">可備份資料項</span>
+        <span id="stat-keys" class="font-bold font-mono text-slate-800">0 項</span>
+      </div>
     </div>
 
     <button type="button" id="logout-btn" onclick="logout()"
@@ -170,7 +174,7 @@ button:disabled{cursor:not-allowed}
 
   <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
     <p class="text-[11px] text-slate-400 leading-relaxed">
-      ※ 備份包含：行程、更次設定、收藏地點、加油記錄、偏好設定。<br>
+      ※ 備份範圍：所有以 <span class="font-mono font-semibold text-slate-500">taxi_</span> 開頭的本地資料（自動排除 <span class="font-mono font-semibold text-slate-500">taxi_private_</span> 開頭的私人資料）。<br>
       ※ 檔案儲存在 Google Drive「apps」資料夾內。<br>
       ※ 上傳與下載前皆會自動進行版本比對，提供完整防護選項。
     </p>
@@ -178,7 +182,7 @@ button:disabled{cursor:not-allowed}
 
 </main>
 
-<!-- 下載還原衝突選擇 Modal（已修復定位） -->
+<!-- 下載還原衝突選擇 Modal -->
 <div id="download-conflict-modal"
      class="fixed inset-0 hidden items-start justify-center p-4 overflow-y-auto"
      onclick="if(event.target===this) resolveDownloadConflict('cancel')"
@@ -243,6 +247,26 @@ var CLIENT_ID = '802199089900-5n676d4hansnab5c66igukb1mch5m7m1.apps.googleuserco
 var SCOPES = 'https://www.googleapis.com/auth/drive.file';
 var FILE_NAME = 'hk-taxi-helper-backup.json';
 var FOLDER_NAME = 'apps'; // 指定的目錄名稱
+
+/* ─── 備份範圍規則 ─────────────────────────────────────────
+   收錄：所有以 taxi_ 開頭的 localStorage 鍵
+   排除：taxi_private_ 開頭（私人資料）
+         taxi_google_token（登入憑證）
+         taxi_last_sync_time（同步中繼資料，由程式自行維護）
+   ──────────────────────────────────────────────────────── */
+var TOKEN_KEY        = 'taxi_google_token';
+var SYNC_TIME_KEY    = 'taxi_last_sync_time';
+var BACKUP_PREFIX    = 'taxi_';
+var PRIVATE_PREFIX   = 'taxi_private_';
+var EXCLUDE_KEYS     = [TOKEN_KEY, SYNC_TIME_KEY];
+
+function isBackupKey(key){
+  if (!key || typeof key !== 'string') return false;
+  if (key.indexOf(BACKUP_PREFIX) !== 0) return false;
+  if (key.indexOf(PRIVATE_PREFIX) === 0) return false;
+  if (EXCLUDE_KEYS.indexOf(key) !== -1) return false;
+  return true;
+}
 
 /* ═══════════════════════════════════════════════════════════
    圖示與提示
@@ -321,8 +345,6 @@ function goBack(){
 /* ═══════════════════════════════════════════════════════════
    Token 管理
    ═══════════════════════════════════════════════════════════ */
-var TOKEN_KEY = 'taxi_google_token';
-
 function getStoredAccessToken(){
   try {
     var raw = localStorage.getItem(TOKEN_KEY);
@@ -391,6 +413,40 @@ function logout(){
 }
 
 /* ═══════════════════════════════════════════════════════════
+   本地資料掃描（備份範圍核心）
+   ═══════════════════════════════════════════════════════════ */
+function collectBackupData(){
+  var out = {};
+  try {
+    for (var i = 0; i < localStorage.length; i++){
+      var key = localStorage.key(i);
+      if (!isBackupKey(key)) continue;
+      var val = localStorage.getItem(key);
+      if (val !== null) out[key] = val;
+    }
+  } catch(e){
+    console.warn('[backup] collect failed:', e);
+  }
+  return out;
+}
+
+function countBackupKeys(){
+  return Object.keys(collectBackupData()).length;
+}
+
+function clearBackupKeys(){
+  var keys = [];
+  try {
+    for (var i = 0; i < localStorage.length; i++){
+      var key = localStorage.key(i);
+      if (isBackupKey(key)) keys.push(key);
+    }
+  } catch(e){ console.warn('[backup] scan failed:', e); }
+  keys.forEach(function(k){ localStorage.removeItem(k); });
+  return keys.length;
+}
+
+/* ═══════════════════════════════════════════════════════════
    UI 狀態更新
    ═══════════════════════════════════════════════════════════ */
 function updateUI(){
@@ -426,12 +482,23 @@ function updateUI(){
 }
 
 function updateLocalStats(){
-  var trips = JSON.parse(localStorage.getItem('taxi_trips')) || [];
-  var shifts = JSON.parse(localStorage.getItem('taxi_shift_settings')) || {};
-  var places = JSON.parse(localStorage.getItem('taxi_places')) || [];
+  var trips = [];
+  var shifts = {};
+  var places = [];
+  try { trips  = JSON.parse(localStorage.getItem('taxi_trips')) || []; } catch(e){ trips = []; }
+  try { shifts = JSON.parse(localStorage.getItem('taxi_shift_settings')) || {}; } catch(e){ shifts = {}; }
+  try { places = JSON.parse(localStorage.getItem('taxi_places')) || []; } catch(e){ places = []; }
+
+  if (!Array.isArray(trips)) trips = [];
+  if (!places || typeof places !== 'object') places = [];
+  if (!shifts || typeof shifts !== 'object') shifts = {};
+
   document.getElementById('stat-trips').innerText = trips.length + ' 筆';
   document.getElementById('stat-shifts').innerText = Object.keys(shifts).length + ' 個';
   document.getElementById('stat-places').innerText = places.length + ' 個';
+
+  var keyEl = document.getElementById('stat-keys');
+  if (keyEl) keyEl.innerText = countBackupKeys() + ' 項';
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -539,18 +606,20 @@ function resolveDownloadConflict(action) {
    資料處理核心
    ═══════════════════════════════════════════════════════════ */
 function buildBackupPayload(){
-  var trips = JSON.parse(localStorage.getItem('taxi_trips')) || [];
-  var shiftSettings = JSON.parse(localStorage.getItem('taxi_shift_settings')) || {};
-  var places = JSON.parse(localStorage.getItem('taxi_places')) || [];
-  var fuelPrefs; try { fuelPrefs = JSON.parse(localStorage.getItem('taxi_fuel_prefs')) || {}; } catch(e){ fuelPrefs = {}; }
-  var cardStates; try { cardStates = JSON.parse(localStorage.getItem('taxi_card_states')) || {}; } catch(e){ cardStates = {}; }
+  var data = collectBackupData();
   return {
-    _meta: { app: 'hk-taxi-helper', version: 2, exportedAt: new Date().toISOString() },
-    trips: trips, shiftSettings: shiftSettings, places: places,
-    fuelPrefs: fuelPrefs,
-    lastType: localStorage.getItem('taxi_last_type') || '',
-    lastPayment: localStorage.getItem('taxi_last_payment') || '',
-    cardStates: cardStates
+    _meta: {
+      app: 'hk-taxi-helper',
+      version: 3,
+      exportedAt: new Date().toISOString(),
+      keyCount: Object.keys(data).length,
+      rule: {
+        include: BACKUP_PREFIX + '*',
+        exclude: [PRIVATE_PREFIX + '*'].concat(EXCLUDE_KEYS)
+      }
+    },
+    // v3：完整的鍵值快照（localStorage 原樣字串）
+    data: data
   };
 }
 
@@ -581,8 +650,9 @@ async function executeUpload(){
   var resultData = await resp.json();
 
   var newSyncTime = resultData.modifiedTime ? new Date(resultData.modifiedTime).getTime() : Date.now();
-  localStorage.setItem('taxi_last_sync_time', newSyncTime.toString());
+  localStorage.setItem(SYNC_TIME_KEY, newSyncTime.toString());
   refreshFileInfo();
+  return payload._meta.keyCount;
 }
 
 async function upload(){
@@ -594,10 +664,10 @@ async function upload(){
     uploadBtn.disabled = true;
     uploadText.innerText = '上傳中...';
     loading.classList.remove('hidden');
-    loadingText.innerText = '正在將備份上傳到 apps 資料夾...';
+    loadingText.innerText = '正在將 taxi_ 備份上傳到 apps 資料夾...';
 
-    await executeUpload();
-    showToast('備份已成功上傳到 apps 資料夾');
+    var count = await executeUpload();
+    showToast('已上傳 ' + count + ' 項資料到 apps 資料夾');
   } catch(e){
     console.error('[gdrive] upload failed:', e);
     showToast('上傳失敗：' + e.message);
@@ -605,31 +675,61 @@ async function upload(){
     uploadBtn.disabled = false;
     uploadText.innerText = '一鍵上傳到 Google Drive';
     loading.classList.add('hidden');
+    updateLocalStats();
   }
 }
 
+/* ─── 還原：兼容 v3（完整快照）與 v2（舊格式）─────────────── */
 async function applyFileToLocal(file){
   var resp = await api('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(file.id) + '?alt=media');
-  var data = JSON.parse(await resp.text());
+  var text = await resp.text();
+
+  var data;
+  try {
+    data = JSON.parse(text);
+  } catch(e){
+    showToast('備份檔案無法解析，已取消還原');
+    return false;
+  }
 
   if (!data || !data._meta || data._meta.app !== 'hk-taxi-helper'){
     showToast('備份格式不正確，已取消還原');
     return false;
   }
 
-  if (Array.isArray(data.trips)) localStorage.setItem('taxi_trips', JSON.stringify(data.trips));
-  if (data.shiftSettings) localStorage.setItem('taxi_shift_settings', JSON.stringify(data.shiftSettings));
-  if (Array.isArray(data.places)) localStorage.setItem('taxi_places', JSON.stringify(data.places));
-  if (data.fuelPrefs) localStorage.setItem('taxi_fuel_prefs', JSON.stringify(data.fuelPrefs));
-  if (data.lastType) localStorage.setItem('taxi_last_type', data.lastType);
-  if (data.lastPayment) localStorage.setItem('taxi_last_payment', data.lastPayment);
-  if (data.cardStates) localStorage.setItem('taxi_card_states', JSON.stringify(data.cardStates));
+  var restoredKeys = 0;
 
-  if (file.modifiedTime) {
-    localStorage.setItem('taxi_last_sync_time', new Date(file.modifiedTime).getTime().toString());
+  if (data.data && typeof data.data === 'object'){
+    /* ── v3：完整快照，先清空所有 taxi_ 再寫入 ── */
+    clearBackupKeys();
+    Object.keys(data.data).forEach(function(key){
+      // 雙重保護：即使備份檔內混入 private / token，也絕不還原
+      if (!isBackupKey(key)) return;
+      var val = data.data[key];
+      if (val === null || typeof val === 'undefined') return;
+      localStorage.setItem(key, String(val));
+      restoredKeys++;
+    });
+  } else {
+    /* ── v2：舊格式兼容（只覆蓋舊格式包含的欄位，不清空其他）── */
+    function setItem(key, value){
+      localStorage.setItem(key, value);
+      restoredKeys++;
+    }
+    if (Array.isArray(data.trips))          setItem('taxi_trips', JSON.stringify(data.trips));
+    if (data.shiftSettings)                 setItem('taxi_shift_settings', JSON.stringify(data.shiftSettings));
+    if (Array.isArray(data.places))         setItem('taxi_places', JSON.stringify(data.places));
+    if (data.fuelPrefs)                     setItem('taxi_fuel_prefs', JSON.stringify(data.fuelPrefs));
+    if (data.lastType)                      setItem('taxi_last_type', data.lastType);
+    if (data.lastPayment)                   setItem('taxi_last_payment', data.lastPayment);
+    if (data.cardStates)                    setItem('taxi_card_states', JSON.stringify(data.cardStates));
   }
 
-  showToast('還原成功！數據已更新');
+  if (file.modifiedTime) {
+    localStorage.setItem(SYNC_TIME_KEY, new Date(file.modifiedTime).getTime().toString());
+  }
+
+  showToast('還原成功！已寫入 ' + restoredKeys + ' 項資料');
   updateUI();
   return true;
 }
@@ -653,14 +753,14 @@ async function download(){
     }
 
     var cloudModifiedTime = new Date(file.modifiedTime).getTime();
-    var lastSyncTime = parseInt(localStorage.getItem('taxi_last_sync_time') || '0', 10);
+    var lastSyncTime = parseInt(localStorage.getItem(SYNC_TIME_KEY) || '0', 10);
 
     loading.classList.add('hidden');
 
     var confirmMsg = '找到備份：\n\n' +
       '• 時間：' + new Date(file.modifiedTime).toLocaleString('zh-HK') + '\n' +
       '• 大小：' + (parseInt(file.size || '0', 10) / 1024).toFixed(1) + ' KB\n\n' +
-      '下載還原會【覆蓋】目前所有本地數據，確定繼續嗎？';
+      '下載還原會【覆蓋】目前所有本地 taxi_ 資料（taxi_private_ 私人資料不受影響），確定繼續嗎？';
 
     if (lastSyncTime && lastSyncTime > cloudModifiedTime) {
       var cloudTimeStr = new Date(file.modifiedTime).toLocaleString('zh-HK');
@@ -698,6 +798,7 @@ async function download(){
     downloadBtn.disabled = false;
     downloadText.innerText = '從 Google Drive 下載還原';
     loading.classList.add('hidden');
+    updateLocalStats();
   }
 }
 
