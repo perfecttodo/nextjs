@@ -758,12 +758,23 @@ async function applyAmapPaste(rawText){
 }
 
 /* ---------- 新增地點彈窗 ---------- */
-function openAddPlaceModal(){
+function openAddPlaceModal(defaultType){
   currentEditingPlaceId = null;
   _pendingPlaceAddr = null;
 
+  /* 新增時自動沿用目前的地點類型篩選；
+     若篩選為「全部」或無效，則退回第一個類型（餐廳） */
+  var initialType = defaultType;
+  if (!initialType){
+    initialType = (placeFilterType && PLACE_TYPES.indexOf(placeFilterType) !== -1)
+      ? placeFilterType
+      : PLACE_TYPES[0];
+  }
+
   var typeOptions = PLACE_TYPES.map(function(t){
-    return '<option value="' + t + '">' + t + '</option>';
+    return '<option value="' + t + '"' +
+      (t === initialType ? ' selected' : '') +
+      '>' + t + '</option>';
   }).join('');
 
   var html = '<div class="space-y-3 text-sm">' +
