@@ -2514,17 +2514,16 @@ function renderTripList(){
       ? (t.route.endedAt - t.route.startedAt)
       : null;
 
-    /* ============ 主行：欠款 / 支出 badge ============ */
+    /* ===== 行1 badge ===== */
     var urgentBadge = '';
     if (isExpense){
-      urgentBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-0.5">' +
+      urgentBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-0.5 shrink-0">' +
         ico('alert-triangle','w-2.5 h-2.5') + '支出</span>';
     } else if (typeof t.change === 'number' && t.change < 0){
-      urgentBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-0.5">' +
+      urgentBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-0.5 shrink-0">' +
         ico('alert-triangle','w-2.5 h-2.5') + '欠 $' + Math.abs(t.change).toFixed(1) + '</span>';
     }
 
-    /* ============ 主行：付款方式 badge ============ */
     var payBadge = '';
     if (!isExpense){
       payBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-medium flex items-center gap-0.5 shrink-0 ' +
@@ -2533,97 +2532,124 @@ function renderTripList(){
       '</span>';
     }
 
-    /* ============ 行程行：時長（分）· 起訖 · N停 ============ */
-    var routePieces = [];
-    if (routeDurationMs !== null && routeDurationMs >= 0){
-      routePieces.push(
-        '<span class="flex items-center gap-0.5 text-emerald-700 font-bold shrink-0">' +
-          ico('clock','w-3 h-3') + formatDurationMinutes(routeDurationMs) +
-        '</span>'
-      );
-      routePieces.push(
-        '<span class="font-mono text-slate-600 shrink-0">' +
-          formatClock(t.route.startedAt) + '→' + formatClock(t.route.endedAt) +
-        '</span>'
-      );
-      var stopCount = (t.route.stops || []).length;
-      if (stopCount > 0){
-        routePieces.push(
-          '<span class="text-amber-700 font-medium shrink-0">' + stopCount + '停</span>'
-        );
-      }
-    }
-    var routeLine = routePieces.length
-      ? '<div class="flex items-center flex-wrap gap-x-1.5 gap-y-0.5 mt-1 text-[11px] text-slate-500">' +
-          routePieces.join('<span class="text-slate-300 shrink-0">·</span>') +
-        '</div>'
-      : '';
+    /* ===== 行2：位置（左） + 時長 chip（右） ===== */
 
-    /* ============ 補充行：位置 · 備註 ============ */
-    var infoPieces = [];
+    /* 位置：SVG 包一層 inline-flex 外殼 */
+    var locHtml = '';
     if (endName){
-      infoPieces.push(
-        '<span class="flex items-center gap-0.5 min-w-0 text-blue-700 font-medium">' +
-          '<span class="shrink-0">' + ico('map-pin','w-3 h-3') + '</span>' +
-          '<span class="truncate">' + escapeHtml(endName) + '</span>' +
-        '</span>'
-      );
+      locHtml =
+        '<span class="flex items-center gap-0.5 text-blue-700 font-medium min-w-0 flex-1">' +
+          '<span class="inline-flex items-center justify-center shrink-0" ' +
+                'style="width:11px;height:11px;flex:0 0 auto;line-height:0">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" ' +
+                 'stroke-linecap="round" stroke-linejoin="round" ' +
+                 'style="display:block;width:11px;height:11px" class="text-blue-700">' +
+              (ICONS['map-pin'] || '') +
+            '</svg>' +
+          '</span>' +
+          '<span class="truncate leading-none" title="' + escapeHtml(endName) + '">' + escapeHtml(endName) + '</span>' +
+        '</span>';
     }
-    if (t.note){
-      infoPieces.push('<span class="truncate min-w-0">' + escapeHtml(t.note) + '</span>');
+
+    /* 時長 chip：所有子項 flex:0 0 auto，SVG 包外殼，絕不換行 */
+    var durationChip = '';
+    if (routeDurationMs !== null && routeDurationMs >= 0){
+      var stopCount = (t.route.stops || []).length;
+      var timeRange = formatClock(t.route.startedAt) + '→' + formatClock(t.route.endedAt);
+
+      var clockIcon =
+        '<span class="inline-flex items-center justify-center" ' +
+              'style="width:11px;height:11px;flex:0 0 auto;line-height:0">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" ' +
+               'stroke-linecap="round" stroke-linejoin="round" ' +
+               'style="display:block;width:11px;height:11px" class="text-emerald-700">' +
+            (ICONS['clock'] || '') +
+          '</svg>' +
+        '</span>';
+
+      durationChip =
+        (       (stopCount > 0
+            ? '<span class="text-amber-700 font-medium" ' +
+                    'style="flex:0 0 auto;white-space:nowrap;line-height:1">' + stopCount + '停</span>'
+            : '') )+'<div class="shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-50 border border-slate-200 text-[10px]" ' +
+             'style="flex-wrap:nowrap;white-space:nowrap" ' +
+             'title="' + timeRange + '">' +
+          clockIcon +
+          '<span class="text-emerald-700 font-bold" ' +
+                'style="flex:0 0 auto;white-space:nowrap;line-height:1">' +
+            formatDurationMinutes(routeDurationMs) +
+          '</span>' +
+   
+        '</div>';
     }
-    var infoLine = infoPieces.length
-      ? '<div class="flex items-center flex-wrap gap-x-1.5 gap-y-0.5 mt-1 text-[11px] text-slate-500">' +
-          infoPieces.join('<span class="text-slate-300 shrink-0">·</span>') +
+
+    var row2 = '';
+    if (locHtml || durationChip){
+      row2 =
+        '<div class="flex items-center justify-between gap-2 text-[11px]">' +
+          (locHtml || '<span class="flex-1"></span>') +
+          durationChip +
+        '</div>';
+    }
+
+    /* ===== 行3：備註（全寬） ===== */
+    var row3 = t.note
+      ? '<div class="text-[11px] text-slate-600 break-words leading-snug">' +
+          escapeHtml(t.note) +
         '</div>'
       : '';
 
-    /* ============ 卡片邊框 ============ */
+    /* ===== 卡片邊框 ===== */
     var cardBorder = isExpense ? 'border-rose-200'
                    : (urgentBadge ? 'border-rose-200' : 'border-slate-100');
 
-    /* ============ 右側操作（已移除重複的「眼睛」按鈕） ============ */
+    /* ===== 按鈕組 ===== */
     var locationBtn = hasRoute
       ? '<button onclick="event.stopPropagation(); openTripRouteNavigation(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-emerald-600 transition" title="導航整段行程">' + ico('navigation','w-3.5 h-3.5') + '</button>'
       : (hasLocation
           ? '<button onclick="event.stopPropagation(); openTripLocationInMaps(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-blue-500 transition" title="查看位置">' + ico('map-pin','w-3.5 h-3.5') + '</button>'
           : '');
 
+    var actionBtns =
+      '<div class="flex items-center shrink-0 -mr-1" onclick="event.stopPropagation()">' +
+        locationBtn +
+        '<button onclick="event.stopPropagation(); openEditModal(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-blue-500 transition" title="編輯">' + ico('edit-3','w-3.5 h-3.5') + '</button>' +
+        '<button onclick="event.stopPropagation(); deleteTrip(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-rose-500 transition" title="刪除">' + ico('trash-2','w-3.5 h-3.5') + '</button>' +
+      '</div>';
+
+    /* ===== 組裝 ===== */
     return '' +
     '<div class="bg-white rounded-2xl border ' + cardBorder + ' shadow-sm cursor-pointer active:scale-[0.995] transition" ' +
          'data-trip-id="' + t.id + '" onclick="openDetailModal(\'' + t.id + '\')">' +
+
       '<div class="p-3 flex items-start gap-2.5">' +
 
-        /* 左時間塊 */
+        /* 列 1：時間塊 */
         '<div class="w-11 shrink-0 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center py-1.5">' +
           '<span class="font-mono font-bold text-slate-800 text-[11px] leading-none">' + timeStr + '</span>' +
           '<span class="font-mono text-slate-400 text-[9px] leading-none mt-1">' + dateStr + '</span>' +
         '</div>' +
 
-        /* 內容區（min-w-0 讓右側按鈕群不擠壓時仍可正常截斷/換行） */
-        '<div class="min-w-0 flex-1">' +
+        /* 列 2：內容區，3 行 */
+        '<div class="min-w-0 flex-1 space-y-1">' +
 
-          /* 主行 */
-          '<div class="flex items-center gap-1.5 flex-wrap">' +
-            '<span class="text-lg font-black ' + (isExpense ? 'text-rose-600' : 'text-slate-900') + ' leading-tight tracking-tight">' + fareText + '</span>' +
-            '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-semibold ' + typeColor + '">' + escapeHtml(t.type) + '</span>' +
-            payBadge +
-            urgentBadge +
+          /* 行1：金額 + 類型 + 付款 + 按鈕 */
+          '<div class="flex items-center gap-1.5">' +
+            '<div class="flex items-center gap-1.5 flex-wrap min-w-0 flex-1">' +
+              '<span class="text-lg font-black ' + (isExpense ? 'text-rose-600' : 'text-slate-900') + ' leading-tight tracking-tight shrink-0">' + fareText + '</span>' +
+              '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-semibold shrink-0 ' + typeColor + '">' + escapeHtml(t.type) + '</span>' +
+              payBadge +
+              urgentBadge +
+            '</div>' +
+            actionBtns +
           '</div>' +
 
-          /* 行程行（有軌跡才顯示） */
-          routeLine +
+          /* 行2：位置 + 時長 chip */
+          row2 +
 
-          /* 補充行（位置 / 備註） */
-          infoLine +
+          /* 行3：備註 */
+          row3 +
 
-        '</div>' +
-
-        /* 右側操作 */
-        '<div class="flex items-center shrink-0 -mr-1" onclick="event.stopPropagation()">' +
-          locationBtn +
-          '<button onclick="event.stopPropagation(); openEditModal(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-blue-500 transition" title="編輯">' + ico('edit-3','w-3.5 h-3.5') + '</button>' +
-          '<button onclick="event.stopPropagation(); deleteTrip(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-rose-500 transition" title="刪除">' + ico('trash-2','w-3.5 h-3.5') + '</button>' +
         '</div>' +
 
       '</div>' +
