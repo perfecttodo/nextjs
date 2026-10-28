@@ -2438,7 +2438,7 @@ async function saveTrip(){
 }
 function formatDurationMinutes(ms){
   if (ms === null || ms === undefined || ms < 0) return '--';
-  return Math.round(ms / 60000) + '分';
+  return Math.round(ms / 60000) + 'm';
 }
 
 function renderTripList(){
