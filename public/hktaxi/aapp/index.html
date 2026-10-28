@@ -2436,6 +2436,10 @@ async function saveTrip(){
     setSaveBtnLoading(saveBtn, false);
   }
 }
+function formatDurationMinutes(ms){
+  if (ms === null || ms === undefined || ms < 0) return '--';
+  return Math.round(ms / 60000) + '分';
+}
 
 function renderTripList(){
   var container = document.getElementById('trip-list-container');
@@ -2520,7 +2524,7 @@ function renderTripList(){
         ico('alert-triangle','w-2.5 h-2.5') + '欠 $' + Math.abs(t.change).toFixed(1) + '</span>';
     }
 
-    /* ============ 主行：付款方式 badge（原彩色 + 圖標） ============ */
+    /* ============ 主行：付款方式 badge ============ */
     var payBadge = '';
     if (!isExpense){
       payBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-medium flex items-center gap-0.5 shrink-0 ' +
@@ -2529,12 +2533,12 @@ function renderTripList(){
       '</span>';
     }
 
-    /* ============ 行程行：時長 · 起訖 · N停 ============ */
+    /* ============ 行程行：時長（分）· 起訖 · N停 ============ */
     var routePieces = [];
     if (routeDurationMs !== null && routeDurationMs >= 0){
       routePieces.push(
         '<span class="flex items-center gap-0.5 text-emerald-700 font-bold shrink-0">' +
-          ico('clock','w-3 h-3') + formatDuration(routeDurationMs) +
+          ico('clock','w-3 h-3') + formatDurationMinutes(routeDurationMs) +
         '</span>'
       );
       routePieces.push(
@@ -2550,7 +2554,7 @@ function renderTripList(){
       }
     }
     var routeLine = routePieces.length
-      ? '<div class="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500 min-w-0 overflow-hidden">' +
+      ? '<div class="flex items-center flex-wrap gap-x-1.5 gap-y-0.5 mt-1 text-[11px] text-slate-500">' +
           routePieces.join('<span class="text-slate-300 shrink-0">·</span>') +
         '</div>'
       : '';
@@ -2559,7 +2563,7 @@ function renderTripList(){
     var infoPieces = [];
     if (endName){
       infoPieces.push(
-        '<span class="flex items-center gap-0.5 shrink-0 max-w-[55%] text-blue-700 font-medium">' +
+        '<span class="flex items-center gap-0.5 min-w-0 text-blue-700 font-medium">' +
           '<span class="shrink-0">' + ico('map-pin','w-3 h-3') + '</span>' +
           '<span class="truncate">' + escapeHtml(endName) + '</span>' +
         '</span>'
@@ -2569,7 +2573,7 @@ function renderTripList(){
       infoPieces.push('<span class="truncate min-w-0">' + escapeHtml(t.note) + '</span>');
     }
     var infoLine = infoPieces.length
-      ? '<div class="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500 min-w-0 overflow-hidden">' +
+      ? '<div class="flex items-center flex-wrap gap-x-1.5 gap-y-0.5 mt-1 text-[11px] text-slate-500">' +
           infoPieces.join('<span class="text-slate-300 shrink-0">·</span>') +
         '</div>'
       : '';
@@ -2578,7 +2582,7 @@ function renderTripList(){
     var cardBorder = isExpense ? 'border-rose-200'
                    : (urgentBadge ? 'border-rose-200' : 'border-slate-100');
 
-    /* ============ 右側 4 個操作（原樣保留） ============ */
+    /* ============ 右側操作（已移除重複的「眼睛」按鈕） ============ */
     var locationBtn = hasRoute
       ? '<button onclick="event.stopPropagation(); openTripRouteNavigation(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-emerald-600 transition" title="導航整段行程">' + ico('navigation','w-3.5 h-3.5') + '</button>'
       : (hasLocation
@@ -2596,7 +2600,7 @@ function renderTripList(){
           '<span class="font-mono text-slate-400 text-[9px] leading-none mt-1">' + dateStr + '</span>' +
         '</div>' +
 
-        /* 內容區 */
+        /* 內容區（min-w-0 讓右側按鈕群不擠壓時仍可正常截斷/換行） */
         '<div class="min-w-0 flex-1">' +
 
           /* 主行 */
@@ -2615,10 +2619,9 @@ function renderTripList(){
 
         '</div>' +
 
-        /* 右側操作（4 個按鈕，原樣） */
+        /* 右側操作 */
         '<div class="flex items-center shrink-0 -mr-1" onclick="event.stopPropagation()">' +
           locationBtn +
-          '<button onclick="event.stopPropagation(); openDetailModal(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-amber-500 transition" title="詳情">' + ico('eye','w-3.5 h-3.5') + '</button>' +
           '<button onclick="event.stopPropagation(); openEditModal(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-blue-500 transition" title="編輯">' + ico('edit-3','w-3.5 h-3.5') + '</button>' +
           '<button onclick="event.stopPropagation(); deleteTrip(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-rose-500 transition" title="刪除">' + ico('trash-2','w-3.5 h-3.5') + '</button>' +
         '</div>' +
@@ -2627,7 +2630,6 @@ function renderTripList(){
     '</div>';
   }).join('');
 }
-
 function getDistance(lat1, lon1, lat2, lon2){
   var R = 6371000;
   var f1 = lat1 * Math.PI / 180;
