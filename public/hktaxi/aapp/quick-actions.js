@@ -1,19 +1,26 @@
 /* ================================================================
- *  HK Quick Actions  v2.0.0
+ *  HK Quick Actions  v2.0.1
  *  右侧快捷按钮 + 左侧快捷抽屉（可插拔，零侵入）
  *
- *  加载机制完全复用 loader.js 的 Shadow DOM 方案：
- *    - Shadow DOM 隔离样式/DOM，解决 const ICONS 冲突
- *    - 假 window/document，解决 DOMContentLoaded 永不触发 & var 污染
- *    - on* → data-on-* → eval（在 IIFE 作用域内），解决内联函数找不到
- *    - 外部脚本预加载，再去执行内联脚本
- *
  *  用法：<script src="./quick-actions.js"></script>
+ *  放在 loader.js 之后加载即可，不改任何原有文件。
+ *
+ *  v2.0.1 修复：
+ *    - #quick-sub-page-container 加 min-height:0，解决 flex 子项被内容撑高、
+ *      底部内容被抽屉裁剪的问题（flexbox 经典陷阱）
+ *    - shadow 内 .quick-subpage-body 补 padding-bottom（含 iOS 安全区）
+ *    - 覆盖子页面可能写死的 100vh / min-h-screen / overflow:hidden
+ *    - 覆盖子页面底部 fixed 底栏，避免相对 viewport 定位后被抽屉裁剪
+ *
+ *  v2.0.0 核心：
+ *    - Shadow DOM 隔离，解决 const ICONS 冲突 + var 污染
+ *    - 假 window/document，解决 DOMContentLoaded 永不触发
+ *    - on* → data-on-* → eval，解决内联函数找不到（支持任意嵌套）
  * ================================================================ */
 (function () {
   'use strict';
 
-  var VERSION         = '2.0.0';
+  var VERSION         = '2.0.1';
   var STORAGE_KEY     = 'taxi_quick_actions';
   var DEFAULT_ACTIONS = ['home', 'places', 'stats', 'cash'];
 
@@ -38,6 +45,7 @@
     var style = document.createElement('style');
     style.id = 'quick-actions-css';
     style.textContent = [
+      /* 右侧浮动按钮栏 */
       '#quick-action-bar{position:fixed;right:0;top:50%;transform:translateY(-50%);',
       'z-index:40;display:flex;flex-direction:column;gap:8px;padding-right:8px;pointer-events:none;}',
       '#quick-action-bar:empty{display:none;}',
@@ -46,16 +54,30 @@
       'display:flex;align-items:center;justify-content:center;color:#b45309;',
       'border:1px solid #fcd34d;cursor:pointer;transition:transform .15s,box-shadow .15s;}',
       '#quick-action-bar .quick-btn:active{transform:scale(.9);}',
+
+      /* 遮罩 */
       '#quick-page-overlay{position:fixed;top:0;left:0;right:0;bottom:0;',
       'background:rgba(15,23,42,.6);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);',
       'z-index:60;opacity:0;pointer-events:none;transition:opacity .25s;}',
       '#quick-page-overlay.visible{opacity:1;pointer-events:auto;}',
+
+      /* 左侧抽屉 */
       '#quick-page-drawer{position:fixed;top:0;left:0;height:100%;width:85vw;max-width:24rem;',
       'background:#f8fafc;z-index:70;display:flex;flex-direction:column;transform:translateX(-100%);',
-      'transition:transform .28s cubic-bezier(.4,0,.2,1);}',
+      'transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 24px rgba(0,0,0,.18);}',
       '#quick-page-drawer.open{transform:translateX(0);}',
-      '#quick-sub-page-container{position:relative;flex:1;overflow-y:auto;overflow-x:hidden;',
-      '-webkit-overflow-scrolling:touch;}',
+
+      /* ★ 关键：min-height:0 让 flex 子项能被内容压缩，overflow 才能生效 */
+      '#quick-sub-page-container{',
+      '  position:relative;',
+      '  flex:1 1 auto;',
+      '  min-height:0;',
+      '  overflow-y:auto;',
+      '  overflow-x:hidden;',
+      '  -webkit-overflow-scrolling:touch;',
+      '  overscroll-behavior:contain;',
+      '}',
+
       '#quick-sub-page-container .quick-subpage-host{width:100%;display:block;}',
       '#quick-sub-page-container .quick-loading{',
       '  padding:5rem 1rem;text-align:center;color:#94a3b8;font-size:13px;}'
@@ -192,16 +214,20 @@
     drawer.classList.remove('open');
     document.body.style.overflow = '';
     setTimeout(function () {
-      if (host) host.innerHTML = '';
+      if (host) {
+        host.innerHTML = '';
+        host.scrollTop = 0;
+      }
     }, 300);
   }
 
   /* ================================================================
-   * 7. ★ 加载子页面（Shadow DOM，完全照搬 loader.js 思路）
+   * 7. 加载子页面
    * ================================================================ */
   async function loadSubPageInto(container, href) {
     if (!container || !href) return;
 
+    container.scrollTop = 0;
     container.innerHTML =
       '<div class="quick-loading">' +
         '<div style="width:32px;height:32px;margin:0 auto;border:3px solid #fcd34d;' +
@@ -215,7 +241,6 @@
       if (!res.ok) throw new Error('HTTP ' + res.status);
       var html = await res.text();
       var baseUrl = new URL(href, location.href);
-
       mountSubPageInto(container, html, baseUrl);
     } catch (err) {
       container.innerHTML =
@@ -225,18 +250,20 @@
     }
   }
 
-  /* ★ 核心：把 HTML 挂到 Shadow DOM，转 on* → data-on-*，IIFE 内执行脚本 ★ */
+  /* ================================================================
+   * 8. ★ 把 HTML 挂到 Shadow DOM
+   * ================================================================ */
   function mountSubPageInto(container, html, baseUrl) {
     var doc = new DOMParser().parseFromString(html, 'text/html');
 
-    /* 1. 移除 header / nav / drawer 骨架 */
+    /* 1. 移除 header / nav / 各种 drawer 骨架 */
     doc.querySelectorAll('header').forEach(function (el) { el.remove(); });
+    doc.querySelectorAll('nav').forEach(function (el) { el.remove(); });
     ['#side-drawer', '#drawer-overlay', '#trip-drawer', '#trip-drawer-overlay',
      '#quick-page-drawer', '#quick-page-overlay'].forEach(function (sel) {
       var el = doc.querySelector(sel);
       if (el) el.remove();
     });
-    doc.querySelectorAll('nav').forEach(function (el) { el.remove(); });
 
     /* 2. 重写相对路径 */
     doc.querySelectorAll('[href]').forEach(function (el) {
@@ -258,7 +285,7 @@
     host.className = 'quick-subpage-host';
     var shadow = host.attachShadow({ mode: 'open' });
 
-    /* 4. 样式：head 里的 <style> / <link> 全部带入 */
+    /* 4. 样式 */
     var styleText = Array.prototype.map.call(
       doc.querySelectorAll('head style'),
       function (s) { return s.textContent; }
@@ -271,9 +298,34 @@
     var styleEl = document.createElement('style');
     styleEl.textContent =
       linkTags + '\n' + styleText + '\n' +
-      ':host{display:block;}\n' +
-      '.quick-subpage-body{padding-bottom:1rem;}\n' +
-      'body{padding:0 !important;min-height:auto !important;background:transparent !important;}';
+      /* host 与 body：不继承 100vh，随内容高度 */
+      ':host{display:block;height:auto;min-height:0;}\n' +
+      '.quick-subpage-body{' +
+        'padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 16px);' +
+        'min-height:0;' +
+        'height:auto;' +
+        'box-sizing:border-box;' +
+      '}\n' +
+      /* 覆盖子页面可能写死的满屏类，避免挤压滚动区 */
+      '.quick-subpage-body [class*="h-screen"],' +
+      '.quick-subpage-body [class*="min-h-screen"]{' +
+        'height:auto !important;min-height:0 !important;}\n' +
+      '.quick-subpage-body [style*="100vh"]{' +
+        'height:auto !important;min-height:0 !important;}\n' +
+      /* body 本身：清零 padding、禁用溢出 */
+      'body{' +
+        'padding:0 !important;' +
+        'min-height:auto !important;' +
+        'height:auto !important;' +
+        'overflow:visible !important;' +
+        'background:transparent !important;' +
+      '}\n' +
+      /* 底部 fixed 底栏：转 static，避免相对 viewport 定位后被抽屉裁剪
+       * 若某元素确实需要保持 fixed，加 class="subpage-allow-fixed" 即可 */
+      '.quick-subpage-body [class*="fixed"][class*="bottom-0"]:not(.subpage-allow-fixed),' +
+      '.quick-subpage-body [class*="fixed"][class*="bottom-["]:not(.subpage-allow-fixed){' +
+        'position:static !important;' +
+      '}';
     shadow.appendChild(styleEl);
 
     /* 5. body 节点整体搬入 */
@@ -283,7 +335,7 @@
     srcNodes.forEach(function (n) { bodyDiv.appendChild(n); });
     shadow.appendChild(bodyDiv);
 
-    /* 6. 把所有元素的 on* 属性转 data-on-* */
+    /* 6. on* → data-on-* */
     bodyDiv.querySelectorAll('*').forEach(extractInlineEvents);
     extractInlineEvents(bodyDiv);
 
@@ -304,7 +356,7 @@
     /* 8. 挂到容器 */
     container.appendChild(host);
 
-    /* 9. 加载外部脚本，然后执行内联脚本 */
+    /* 9. 加载外部脚本 → 执行内联脚本 */
     var ns = 'qs_' + Date.now() + '_' + Math.random().toString(36).slice(2);
     window.__QUICK_POOL__ = window.__QUICK_POOL__ || {};
     window.__QUICK_POOL__[ns] = shadow;
@@ -340,7 +392,7 @@
     });
   }
 
-  /* 加载外部 script（去重） */
+  /* 外部脚本加载（去重） */
   function loadExternalScript(src) {
     return new Promise(function (resolve, reject) {
       if (document.querySelector('script[src="' + src.replace(/"/g, '\\"') + '"]')) {
@@ -356,7 +408,7 @@
   }
 
   /* ================================================================
-   * 8. ★ 执行子页面 script（照搬 loader.js 的 IIFE + 假 window/document）
+   * 9. ★ 执行子页面脚本（假 window/document + IIFE + eval）
    * ================================================================ */
   function runScripts(inlineScripts, ns) {
     var wrapped =
@@ -365,6 +417,7 @@
       '  var __bodyDiv__ = __shadow__.querySelector(".quick-subpage-body");\n' +
       '  var window = __realWin__;\n' +
       '  var __captured__ = [];\n' +
+
       /* ---- 假 document ---- */
       '  var document = {\n' +
       '    getElementById: function(id){ return __shadow__.getElementById(id); },\n' +
@@ -385,6 +438,7 @@
       '    readyState: "complete", hidden: __realDoc__.hidden,\n' +
       '    activeElement: __realDoc__.activeElement\n' +
       '  };\n' +
+
       /* ---- 常用全局 ---- */
       '  var localStorage   = __realWin__.localStorage;\n' +
       '  var navigator      = __realWin__.navigator;\n' +
@@ -408,6 +462,7 @@
       '  var MutationObserver = __realWin__.MutationObserver;\n' +
       '  function confirm(m){ return __realWin__.confirm(m); }\n' +
       '  function alert(m){ return __realWin__.alert(m); }\n' +
+
       /* ---- 拦截 window.addEventListener 捕获 DOMContentLoaded / load ---- */
       '  var __origAdd__ = __realWin__.addEventListener;\n' +
       '  __realWin__.addEventListener = function(type, handler, opts){\n' +
@@ -417,10 +472,10 @@
       '    }\n' +
       '    return __origAdd__.call(__realWin__, type, handler, opts);\n' +
       '  };\n' +
-      '\n' +
+
       '  var __EVENT_ATTRS__ = ' + JSON.stringify(EVENT_ATTRS) + ';\n' +
       '  var __bindDone__ = false;\n' +
-      '\n' +
+
       '  try {\n' +
       '    var __bindAll__ = function(el){\n' +
       '      if (!el || el.nodeType !== 1) return;\n' +
@@ -452,7 +507,7 @@
       '            } catch(err){\n' +
       '              if (err && err.name === "ReferenceError"){\n' +
       '                try {\n' +
-      '                  var __r2__ = new __realWin__.Function("event", evtCode).call(__self__, event);\n' +
+      '                  new __realWin__.Function("event", evtCode).call(__self__, event);\n' +
       '                  return;\n' +
       '                } catch(_e){}\n' +
       '              }\n' +
@@ -462,9 +517,9 @@
       '        })(evt, code);\n' +
       '      }\n' +
       '    };\n' +
-      '\n' +
+
       inlineScripts + '\n' +
-      '\n' +
+
       '    (function __bindInit__(){\n' +
       '      __shadow__.querySelectorAll("*").forEach(__bindAll__);\n' +
       '      var mo = new MutationObserver(function(muts){\n' +
@@ -480,8 +535,8 @@
       '      mo.observe(__shadow__, { childList: true, subtree: true });\n' +
       '    })();\n' +
       '    __bindDone__ = true;\n' +
-      '\n' +
-      /* 同步执行 captured（DOMContentLoaded / load） */
+
+      /* 立即执行捕获的 DOMContentLoaded / load */
       '    __captured__.forEach(function(item){\n' +
       '      try { item.handler.call(__realWin__, { type: item.type }); }\n' +
       '      catch(e){ console.error("[quick-actions] " + item.type + " handler error:", e); }\n' +
@@ -491,10 +546,13 @@
       '  } finally {\n' +
       '    __realWin__.addEventListener = __origAdd__;\n' +
       '  }\n' +
-      '\n' +
-      '  try { window.goBack = function(){ if (__realWin__.HKQuickActions) __realWin__.HKQuickActions.closePage(); }; } catch(e){}\n' +
-      '  try { window.goHome = window.goBack; } catch(e){}\n' +
-      '\n' +
+
+      /* 提供返回按钮 */
+      '  try {\n' +
+      '    window.goBack = function(){ if (__realWin__.HKQuickActions) __realWin__.HKQuickActions.closePage(); };\n' +
+      '    window.goHome = window.goBack;\n' +
+      '  } catch(e){}\n' +
+
       '})(window, document);\n';
 
     var scriptEl = document.createElement('script');
@@ -504,7 +562,7 @@
   }
 
   /* ================================================================
-   * 9. 管理快捷欄弹窗
+   * 10. 管理快捷欄弹窗
    * ================================================================ */
   function openSettings() {
     if (typeof window.closeDrawer === 'function') window.closeDrawer();
@@ -569,7 +627,7 @@
   }
 
   /* ================================================================
-   * 10. 注入「管理右側快捷欄」按钮
+   * 11. 注入「管理右側快捷欄」按钮
    * ================================================================ */
   function injectSettingsButton() {
     if (document.getElementById('quick-actions-manage-btn')) return;
@@ -590,7 +648,7 @@
   }
 
   /* ================================================================
-   * 11. 抽屉互斥 / 手势
+   * 12. 抽屉互斥 / 手势
    * ================================================================ */
   function setupDrawerSync() {
     var sideDrawer = document.getElementById('side-drawer');
@@ -616,7 +674,7 @@
   }
 
   /* ================================================================
-   * 12. 初始化
+   * 13. 初始化
    * ================================================================ */
   function init() {
     injectCSS();
@@ -640,7 +698,7 @@
   }
 
   /* ================================================================
-   * 13. 对外 API
+   * 14. 对外 API
    * ================================================================ */
   window.HKQuickActions = {
     version:         VERSION,
