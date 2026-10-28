@@ -137,3 +137,37 @@ nav.fixed.bottom-0{padding-bottom:env(safe-area-inset-bottom, 0px)}
 #trip-drawer{transform:translateX(-100%);transition:transform .3s cubic-bezier(0.4, 0, 0.2, 1);will-change:transform;-webkit-overflow-scrolling:touch}
 #trip-drawer.open{transform:translateX(0)}
 #trip-drawer-content{-webkit-overflow-scrolling:touch}
+/* ============================================================
+   Tailwind Utility 补丁
+   目的：让 saveTrip() 后的 .ring-2 / .ring-amber-400 / .animate-pulse 高亮生效
+   说明：不完整 Tailwind build 会 purge 掉这些类，这里手动展开
+   ============================================================ */
+
+/* --- ring-2：生成 box-shadow 链（含 offset，兼容 Tailwind v3） --- */
+.ring-2 {
+  --tw-ring-inset: ;
+  --tw-ring-offset-width: 0px;
+  --tw-ring-offset-color: #fff;
+  --tw-ring-color: rgb(59 130 246 / 0.5);   /* 默认 blue-500/50，可被 .ring-amber-400 覆盖 */
+  --tw-ring-offset-shadow:
+    var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow:
+    var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow:
+    var(--tw-ring-offset-shadow),
+    var(--tw-ring-shadow),
+    var(--tw-shadow, 0 0 #0000);
+}
+
+/* --- ring-amber-400：只改颜色变量（amber-400 = #fbbf24） --- */
+.ring-amber-400 {
+  --tw-ring-color: rgb(251 191 36 / 1);
+}
+
+/* --- animate-pulse：脉冲动画 --- */
+@keyframes pulse {
+  50% { opacity: .5; }
+}
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
