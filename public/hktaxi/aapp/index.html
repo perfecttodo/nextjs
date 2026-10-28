@@ -2229,17 +2229,14 @@ function scheduleShowSavedTrip(savedTrip){
   setTimeout(function(){
     if (!savedTrip) return;
 
-    // 若剛保存的記錄不屬於「最後一更」（例如補錄舊更次），要先取消「只顯示最後一更」篩選
     if (savedTrip.shiftDate !== getLastShiftKey()){
       var chkShift = document.getElementById('filter-current-shift');
       if (chkShift && chkShift.checked) chkShift.checked = false;
     }
 
-    // 清除搜尋關鍵字，避免新記錄被關鍵字篩掉
     var kwEl = document.getElementById('search-keyword');
     if (kwEl && kwEl.value) kwEl.value = '';
 
-    // 若收支篩選把該筆記錄類型排除了，也一併打開
     var isExpense = (parseFloat(savedTrip.fare) || 0) < 0;
     var flowChk = document.getElementById(isExpense ? 'chk-flow-expense' : 'chk-flow-income');
     if (flowChk && !flowChk.checked) flowChk.checked = true;
@@ -2250,10 +2247,8 @@ function scheduleShowSavedTrip(savedTrip){
 }
 
 /* ===== 高亮参数：想调时长就改这两个数字 ===== */
-var HIGHLIGHT_HOLD_MS = 6000;   // 保持全高亮（脉冲）的时长，建议 2000 / 4000 / 6000
-var HIGHLIGHT_FADE_MS = 1200;   // 淡出过渡时长，建议 800 / 1200 / 1500
-/* 实际总时长 = 120 + HOLD_MS + FADE_MS ≈ 4.3 秒（默认） */
-/* ============================================ */
+var HIGHLIGHT_HOLD_MS = 6000;
+var HIGHLIGHT_FADE_MS = 1200;
 
 function highlightTripCard(tripId){
   if (!tripId) return;
@@ -2262,24 +2257,19 @@ function highlightTripCard(tripId){
     var el = document.querySelector('[data-trip-id="' + tripId + '"]');
     if (!el) return;
 
-    // 1) 立即高亮 + 脉冲
     el.classList.add('ring-2','ring-amber-400','animate-pulse');
 
-    // 2) HOLD_MS 后进入淡出
     setTimeout(function(){
       el.classList.remove('animate-pulse');
 
-      // 用 inline style 指定过渡时长 → 不依赖 duration-* 类是否被 purge
       el.style.transition = 'box-shadow ' + (HIGHLIGHT_FADE_MS / 1000) + 's ease';
 
-      // 3) 下一帧才移除 ring → 确保 transition 有时间触发
       requestAnimationFrame(function(){
         requestAnimationFrame(function(){
           el.classList.remove('ring-2','ring-amber-400');
         });
       });
 
-      // 4) 过渡播完后再清 transition
       setTimeout(function(){
         el.style.transition = '';
       }, HIGHLIGHT_FADE_MS + 200);
@@ -2439,7 +2429,6 @@ async function saveTrip(){
       showToast(prefix + locTag + nameTag + routeTag + payTag + '行程已成功保存！');
     }
 
-    /* ===== 自動切換：保存成功後切去行程 tab 並高亮 ===== */
     scheduleShowSavedTrip(newTrip);
 
   } finally {
@@ -2459,10 +2448,10 @@ function renderTripList(){
   var allowOther       = document.getElementById('chk-type-other').checked;
   var allowIncome      = document.getElementById('chk-flow-income').checked;
   var allowExpense     = document.getElementById('chk-flow-expense').checked;
-  var allowCash    = document.getElementById('chk-pay-cash').checked;
-  var allowOctopus = document.getElementById('chk-pay-octopus').checked;
-  var allowPayOther= document.getElementById('chk-pay-other').checked;
-  var lastShiftKey  = getLastShiftKey();
+  var allowCash        = document.getElementById('chk-pay-cash').checked;
+  var allowOctopus     = document.getElementById('chk-pay-octopus').checked;
+  var allowPayOther    = document.getElementById('chk-pay-other').checked;
+  var lastShiftKey     = getLastShiftKey();
 
   var filtered = trips.filter(function(t){
     var matchKeyword = (t.note || '').toLowerCase().indexOf(keyword) !== -1 || t.fare.toString().indexOf(keyword) !== -1;
@@ -2497,50 +2486,99 @@ function renderTripList(){
   }
 
   container.innerHTML = filtered.map(function(t){
-    var dateObj  = new Date(t.timestamp);
-    var timeStr  = dateObj.toLocaleTimeString('zh-HK', { hour:'2-digit', minute:'2-digit', hour12: false });
-    var dateStr  = dateObj.toLocaleDateString('zh-HK', { month:'2-digit', day:'2-digit' });
+    var dateObj = new Date(t.timestamp);
+    var timeStr = dateObj.toLocaleTimeString('zh-HK', { hour:'2-digit', minute:'2-digit', hour12: false });
+    var dateStr = dateObj.toLocaleDateString('zh-HK', { month:'2-digit', day:'2-digit' });
 
     var fareNum   = parseFloat(t.fare) || 0;
     var isExpense = fareNum < 0;
     var fareAbs   = Math.abs(fareNum);
     var fareText  = (isExpense ? '-$' : '$') + fareAbs;
 
-    var typeCfg = getTripTypeConfig(t.type);
-    var theme = TRIP_TYPE_THEME[typeCfg.color] || TRIP_TYPE_THEME.slate;
+    var typeCfg   = getTripTypeConfig(t.type);
+    var theme     = TRIP_TYPE_THEME[typeCfg.color] || TRIP_TYPE_THEME.slate;
     var typeColor = theme.card + ' ' + theme.text;
 
-    var urgentBadge = '';
-    if (isExpense){
-      urgentBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-0.5">' + ico('alert-triangle','w-2.5 h-2.5') + '支出</span>';
-    } else if (typeof t.change === 'number' && t.change < 0){
-      urgentBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-0.5">' + ico('alert-triangle','w-2.5 h-2.5') + '欠 $' + Math.abs(t.change).toFixed(1) + '</span>';
-    }
-
-    var payBadge = '';
-    if (!isExpense){
-      var payCfg = getPaymentMethodConfig(t.payment || '現金');
-      var payTheme = TRIP_TYPE_THEME[payCfg.color] || TRIP_TYPE_THEME.slate;
-      payBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-medium flex items-center gap-0.5 shrink-0 ' + payTheme.card + ' ' + payTheme.text + '">' + ico(payCfg.icon, 'w-2.5 h-2.5') + escapeHtml(payCfg.name) + '</span>';
-    }
+    var payCfg    = getPaymentMethodConfig(t.payment || '現金');
+    var payTheme  = TRIP_TYPE_THEME[payCfg.color] || TRIP_TYPE_THEME.slate;
 
     var hasLocation = t.location && typeof t.location.lat === 'number';
     var hasRoute    = t.route && t.route.startedAt;
     var endName     = (t.route && t.route.endName) || t.locationName || '';
 
-    var locationBadge = hasLocation
-      ? '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-medium flex items-center gap-0.5 max-w-[9rem] bg-blue-50 text-blue-700 border-blue-200 shrink-0" title="已記錄位置">' +
-          ico('map-pin','w-2.5 h-2.5') +
-          (endName ? '<span class="truncate">' + escapeHtml(endName) + '</span>' : '') +
+    var routeDurationMs = (t.route && t.route.startedAt && t.route.endedAt)
+      ? (t.route.endedAt - t.route.startedAt)
+      : null;
+
+    /* ============ 主行：欠款 / 支出 badge ============ */
+    var urgentBadge = '';
+    if (isExpense){
+      urgentBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-0.5">' +
+        ico('alert-triangle','w-2.5 h-2.5') + '支出</span>';
+    } else if (typeof t.change === 'number' && t.change < 0){
+      urgentBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-0.5">' +
+        ico('alert-triangle','w-2.5 h-2.5') + '欠 $' + Math.abs(t.change).toFixed(1) + '</span>';
+    }
+
+    /* ============ 主行：付款方式 badge（原彩色 + 圖標） ============ */
+    var payBadge = '';
+    if (!isExpense){
+      payBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-medium flex items-center gap-0.5 shrink-0 ' +
+        payTheme.card + ' ' + payTheme.text + '">' +
+        ico(payCfg.icon, 'w-2.5 h-2.5') + escapeHtml(payCfg.name) +
+      '</span>';
+    }
+
+    /* ============ 行程行：時長 · 起訖 · N停 ============ */
+    var routePieces = [];
+    if (routeDurationMs !== null && routeDurationMs >= 0){
+      routePieces.push(
+        '<span class="flex items-center gap-0.5 text-emerald-700 font-bold shrink-0">' +
+          ico('clock','w-3 h-3') + formatDuration(routeDurationMs) +
         '</span>'
+      );
+      routePieces.push(
+        '<span class="font-mono text-slate-600 shrink-0">' +
+          formatClock(t.route.startedAt) + '→' + formatClock(t.route.endedAt) +
+        '</span>'
+      );
+      var stopCount = (t.route.stops || []).length;
+      if (stopCount > 0){
+        routePieces.push(
+          '<span class="text-amber-700 font-medium shrink-0">' + stopCount + '停</span>'
+        );
+      }
+    }
+    var routeLine = routePieces.length
+      ? '<div class="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500 min-w-0 overflow-hidden">' +
+          routePieces.join('<span class="text-slate-300 shrink-0">·</span>') +
+        '</div>'
       : '';
 
-    var routeBadge = hasRoute
-      ? '<span class="text-[10px] px-1 py-0.5 rounded-md border font-medium flex items-center bg-amber-50 text-amber-700 border-amber-200 shrink-0" title="有行程軌跡">' + ico('navigation','w-2.5 h-2.5') + '</span>'
+    /* ============ 補充行：位置 · 備註 ============ */
+    var infoPieces = [];
+    if (endName){
+      infoPieces.push(
+        '<span class="flex items-center gap-0.5 shrink-0 max-w-[55%] text-blue-700 font-medium">' +
+          '<span class="shrink-0">' + ico('map-pin','w-3 h-3') + '</span>' +
+          '<span class="truncate">' + escapeHtml(endName) + '</span>' +
+        '</span>'
+      );
+    }
+    if (t.note){
+      infoPieces.push('<span class="truncate min-w-0">' + escapeHtml(t.note) + '</span>');
+    }
+    var infoLine = infoPieces.length
+      ? '<div class="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500 min-w-0 overflow-hidden">' +
+          infoPieces.join('<span class="text-slate-300 shrink-0">·</span>') +
+        '</div>'
       : '';
 
-    var cardBorder = isExpense ? 'border-rose-200' : (urgentBadge ? 'border-rose-200' : 'border-slate-100');
+    /* ============ 卡片邊框 ============ */
+    var cardBorder = isExpense ? 'border-rose-200'
+                   : (urgentBadge ? 'border-rose-200' : 'border-slate-100');
 
+    /* ============ 右側 4 個操作（原樣保留） ============ */
     var locationBtn = hasRoute
       ? '<button onclick="event.stopPropagation(); openTripRouteNavigation(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-emerald-600 transition" title="導航整段行程">' + ico('navigation','w-3.5 h-3.5') + '</button>'
       : (hasLocation
@@ -2548,34 +2586,47 @@ function renderTripList(){
           : '');
 
     return '' +
-    '<div class="bg-white rounded-2xl border ' + cardBorder + ' shadow-sm" data-trip-id="' + t.id + '">' +
+    '<div class="bg-white rounded-2xl border ' + cardBorder + ' shadow-sm cursor-pointer active:scale-[0.995] transition" ' +
+         'data-trip-id="' + t.id + '" onclick="openDetailModal(\'' + t.id + '\')">' +
       '<div class="p-3 flex items-start gap-2.5">' +
+
+        /* 左時間塊 */
         '<div class="w-11 shrink-0 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center py-1.5">' +
           '<span class="font-mono font-bold text-slate-800 text-[11px] leading-none">' + timeStr + '</span>' +
           '<span class="font-mono text-slate-400 text-[9px] leading-none mt-1">' + dateStr + '</span>' +
         '</div>' +
+
+        /* 內容區 */
         '<div class="min-w-0 flex-1">' +
+
+          /* 主行 */
           '<div class="flex items-center gap-1.5 flex-wrap">' +
-            '<span class="text-base font-black ' + (isExpense ? 'text-rose-600' : 'text-slate-900') + ' leading-tight tracking-tight">' + fareText + '</span>' +
+            '<span class="text-lg font-black ' + (isExpense ? 'text-rose-600' : 'text-slate-900') + ' leading-tight tracking-tight">' + fareText + '</span>' +
             '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-semibold ' + typeColor + '">' + escapeHtml(t.type) + '</span>' +
+            payBadge +
             urgentBadge +
           '</div>' +
-          '<div class="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500 min-w-0">' +
-            payBadge + locationBadge + routeBadge +
-            (t.note ? '<span class="truncate">' + escapeHtml(t.note) + '</span>' : '<span class="text-slate-300">無備注</span>') +
-          '</div>' +
+
+          /* 行程行（有軌跡才顯示） */
+          routeLine +
+
+          /* 補充行（位置 / 備註） */
+          infoLine +
+
         '</div>' +
-        '<div class="flex items-center shrink-0 -mr-1">' +
+
+        /* 右側操作（4 個按鈕，原樣） */
+        '<div class="flex items-center shrink-0 -mr-1" onclick="event.stopPropagation()">' +
           locationBtn +
-          '<button onclick="openDetailModal(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-amber-500 transition" title="詳情">' + ico('eye','w-3.5 h-3.5') + '</button>' +
-          '<button onclick="openEditModal(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-blue-500 transition" title="編輯">' + ico('edit-3','w-3.5 h-3.5') + '</button>' +
-          '<button onclick="deleteTrip(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-rose-500 transition" title="刪除">' + ico('trash-2','w-3.5 h-3.5') + '</button>' +
+          '<button onclick="event.stopPropagation(); openDetailModal(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-amber-500 transition" title="詳情">' + ico('eye','w-3.5 h-3.5') + '</button>' +
+          '<button onclick="event.stopPropagation(); openEditModal(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-blue-500 transition" title="編輯">' + ico('edit-3','w-3.5 h-3.5') + '</button>' +
+          '<button onclick="event.stopPropagation(); deleteTrip(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-rose-500 transition" title="刪除">' + ico('trash-2','w-3.5 h-3.5') + '</button>' +
         '</div>' +
+
       '</div>' +
     '</div>';
   }).join('');
 }
-
 function getDistance(lat1, lon1, lat2, lon2){
   var R = 6371000;
   var f1 = lat1 * Math.PI / 180;
