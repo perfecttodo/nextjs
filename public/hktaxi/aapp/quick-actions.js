@@ -22,7 +22,7 @@
 
   var VERSION         = '2.0.1';
   var STORAGE_KEY     = 'taxi_quick_actions';
-  var DEFAULT_ACTIONS = ['home', 'places', 'stats', 'cash'];
+  var DEFAULT_ACTIONS = [];
 
   var EVENT_ATTRS = [
     'click','input','change','blur','focus','keydown','keyup','keypress',
@@ -64,7 +64,7 @@
       /* 左侧抽屉 */
       '#quick-page-drawer{position:fixed;top:0;left:0;height:100%;width:85vw;max-width:24rem;',
       'background:#f8fafc;z-index:70;display:flex;flex-direction:column;transform:translateX(-100%);',
-      'transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 24px rgba(0,0,0,.18);}',
+      'transition:transform .28s cubic-bezier(.4,0,.2,1);}',
       '#quick-page-drawer.open{transform:translateX(0);}',
 
       /* ★ 关键：min-height:0 让 flex 子项能被内容压缩，overflow 才能生效 */
