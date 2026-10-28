@@ -11,7 +11,6 @@
 <meta name="apple-mobile-web-app-title" content="的士助手">
 <link rel="manifest" href="./manifest.json">
 <link rel="stylesheet" href="./styles.css">
-
 </head>
 <body>
 
@@ -612,6 +611,8 @@ function getLastSettings(createIfMissing){ return getSettingsByKey(getLastShiftK
       if (!isNaN(d.getTime())){ t.dateStr = toLocalISOString(d); tripsChanged = true; }
     }
     if (!t.dateStr && t.timestamp){ t.dateStr = toLocalISOString(new Date(t.timestamp)); tripsChanged = true; }
+    // ===== 新增：為舊記錄補默認字段 =====
+    if (t.locationName === undefined) { t.locationName = ''; tripsChanged = true; }
   });
   if (tripsChanged) localStorage.setItem('taxi_trips', JSON.stringify(trips));
 })();
@@ -776,7 +777,7 @@ function openTripLocationInMaps(tripId){
   var lng = t.location.lng;
   var d = new Date(t.timestamp);
   var label = d.toLocaleString('zh-HK', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit',hour12: false });
-  var pointName = '行程 ' + label;
+  var pointName = t.locationName || ('行程 ' + label);
   var encName = encodeURIComponent(pointName);
 
   var webUrl = 'https://uri.amap.com/marker' +
@@ -835,6 +836,158 @@ function openTripLocationInMaps(tripId){
     window.location.href = webUrl;
   }
 }
+
+/* =========================================================
+   ===== 新增：地名解析（保存進行程紀錄用） =====
+   ========================================================= */
+var _geoNameCache      = new Map();
+var _geoNameFailStreak = 0;
+var _geoNameDisabled   = false;
+var GEO_NAME_TTL       = 10 * 60 * 1000;
+var GEO_NAME_TIMEOUT   = 4000;
+var GEO_NAME_MAX_POINTS= 6;
+var GEO_NAME_TOTAL_WAIT= 8000;
+
+function extractShortLocationName(data){
+  if (!data) return '';
+  var a = data.address || {};
+  var name = a.building || a.amenity || a.shop || a.office ||
+             a.tourism  || a.road    || a.pedestrian || a.neighbourhood || '';
+  if (name) return String(name).trim().slice(0, 24);
+
+  var dn = data.display_name || a.formatted_address || '';
+  if (!dn) return '';
+  return dn.split(/[,，]/).slice(0, 2).join(' ').trim().slice(0, 24);
+}
+
+function reverseGeocodeAsync(lat, lng){
+  return new Promise(function(resolve){
+    var done = false;
+    var timer = setTimeout(function(){
+      if (done) return;
+      done = true; resolve('');
+    }, GEO_NAME_TIMEOUT);
+
+    reverseGeocode(lat, lng, function(err, data){
+      if (done) return;
+      done = true; clearTimeout(timer);
+      if (err || !data){ resolve(''); return; }
+      resolve(extractShortLocationName(data));
+    });
+  });
+}
+
+function _geoKey(lat, lng){ return lat.toFixed(5) + ',' + lng.toFixed(5); }
+
+async function resolvePlaceName(lat, lng){
+  if (_geoNameDisabled) return '';
+  var k = _geoKey(lat, lng);
+  var hit = _geoNameCache.get(k);
+  if (hit && Date.now() - hit.ts < GEO_NAME_TTL) return hit.name;
+
+  var name = await reverseGeocodeAsync(lat, lng);
+  if (name){
+    _geoNameFailStreak = 0;
+    _geoNameCache.set(k, { name: name, ts: Date.now() });
+  } else {
+    _geoNameFailStreak++;
+    if (_geoNameFailStreak >= 3){
+      _geoNameDisabled = true;
+      console.warn('[geoName] 連續失敗，本次工作階段暫停地名解析');
+    }
+  }
+  return name;
+}
+
+async function resolveRouteNames(route){
+  if (!route) return route;
+
+  var points = [];
+  if (route.startLocation && typeof route.startLocation.lat === 'number' && !route.startName){
+    points.push({ lat: route.startLocation.lat, lng: route.startLocation.lng,
+                  set: function(n){ route.startName = n; } });
+  }
+  (route.stops || []).forEach(function(s){
+    if (s.location && typeof s.location.lat === 'number' && !s.name){
+      points.push({ lat: s.location.lat, lng: s.location.lng,
+                    set: function(n){ s.name = n; } });
+    }
+  });
+  if (route.endLocation && typeof route.endLocation.lat === 'number' && !route.endName){
+    points.push({ lat: route.endLocation.lat, lng: route.endLocation.lng,
+                  set: function(n){ route.endName = n; } });
+  }
+
+  points = points.slice(0, GEO_NAME_MAX_POINTS);
+  if (!points.length) return route;
+
+  var CONCURRENCY = 2;
+  var i = 0;
+  async function worker(){
+    while (i < points.length){
+      var p = points[i++];
+      try {
+        var n = await resolvePlaceName(p.lat, p.lng);
+        if (n) p.set(n);
+      } catch (e) { /* 靜默 */ }
+    }
+  }
+  var workers = [];
+  for (var w = 0; w < Math.min(CONCURRENCY, points.length); w++) workers.push(worker());
+  await Promise.all(workers);
+  return route;
+}
+
+function openTripRouteNavigation(tripId){
+  var t = trips.find(function(x){ return x.id === tripId; });
+  if (!t){ return; }
+
+  var route   = t.route;
+  var fromLoc = null, toLoc = null;
+  var fromName = '', toName = '';
+  var vias = [];
+
+  if (route && route.startLocation && route.endLocation &&
+      typeof route.startLocation.lat === 'number' && typeof route.endLocation.lat === 'number'){
+    fromLoc  = route.startLocation;  fromName = route.startName || '起點';
+    toLoc    = route.endLocation;    toName   = route.endName || t.locationName || '終點';
+    (route.stops || []).forEach(function(s, i){
+      if (s.location && typeof s.location.lat === 'number'){
+        vias.push({ loc: s.location, name: s.name || ('途經' + (i + 1)) });
+      }
+    });
+  } else if (t.location && typeof t.location.lat === 'number'){
+    // 只有保存點，沒有軌跡 → 從當前設備位置導航過去
+    toLoc = t.location; toName = t.locationName || '目的地';
+  }
+
+  if (!toLoc){ showToast('此行程沒有可用的位置記錄'); return; }
+
+  var VIA_LIMIT = 3;   // 高德 URI 途經點上限，取保守值
+  var dropped = 0;
+  if (vias.length > VIA_LIMIT){ dropped = vias.length - VIA_LIMIT; vias = vias.slice(0, VIA_LIMIT); }
+
+  function pt(loc, name){
+    return loc.lng.toFixed(6) + ',' + loc.lat.toFixed(6) + ',' + encodeURIComponent(name || '');
+  }
+
+  var qs = [];
+  if (fromLoc) qs.push('from=' + pt(fromLoc, fromName));
+  qs.push('to=' + pt(toLoc, toName));
+  if (vias.length){
+    qs.push('via=' + vias.map(function(v){ return pt(v.loc, v.name); }).join(';'));
+  }
+  qs.push('mode=car', 'policy=1', 'src=hk-taxi-helper',
+          'coordinate=wgs84', 'callnative=1');
+
+  var url = 'https://uri.amap.com/navigation?' + qs.join('&');
+
+  if (dropped > 0) showToast('導航僅帶前 ' + VIA_LIMIT + ' 個途經點（共 ' + (dropped + VIA_LIMIT) + ' 個）');
+
+  window.open(url, '_blank');
+}
+
+/* ========================================================= */
 
 function getFuelPrefs(){
   var prefs;
@@ -2140,6 +2293,30 @@ async function saveTrip(){
       }
     }
 
+    /* ===== 新增：非同步解析地名（失敗不影響保存） ===== */
+    var tripLocationName = '';
+    if (!_geoNameDisabled){
+      showToast('正在解析位置名稱...');
+      try {
+        var nameJobs = [];
+        if (tripLocation){
+          nameJobs.push(resolvePlaceName(tripLocation.lat, tripLocation.lng).then(function(n){
+            tripLocationName = n || '';
+          }));
+        }
+        if (snapRoute){
+          nameJobs.push(resolveRouteNames(snapRoute));
+        }
+        if (nameJobs.length){
+          await Promise.race([
+            Promise.all(nameJobs),
+            new Promise(function(r){ setTimeout(r, GEO_NAME_TOTAL_WAIT); })
+          ]);
+        }
+      } catch (e) { /* 靜默 */ }
+    }
+    /* ===== 新增結束 ===== */
+
     var isExpense = snapFare < 0;
     var received  = isExpense ? snapFare : (parseFloat(snapReceivedRaw) || snapFare);
     var changeVal = isExpense ? 0 : (received - snapFare);
@@ -2172,6 +2349,7 @@ async function saveTrip(){
       note:       snapNote,
       isExpense:  isExpense,
       location:   tripLocation,
+      locationName: tripLocationName || '',   /* ===== 新增 ===== */
       route:      snapRoute
     };
 
@@ -2195,14 +2373,15 @@ async function saveTrip(){
     var prefix = isManual ? '【補錄 ' + shiftDate + '】' : '';
     var payTag = isExpense ? '' : '[' + activePaymentMethod + '] ';
     var locTag = tripLocation ? '📍 ' : '';
+    var nameTag = tripLocationName ? (tripLocationName + ' ') : '';
     var routeTag = snapRoute ? '🧭 ' : '';
 
     if (isExpense){
-      showToast(prefix + locTag + '支出記錄已保存：-$' + Math.abs(snapFare).toFixed(1));
+      showToast(prefix + locTag + nameTag + '支出記錄已保存：-$' + Math.abs(snapFare).toFixed(1));
     } else if (changeVal < 0){
-      showToast(prefix + locTag + routeTag + payTag + '行程已保存，客戶尚欠 $' + Math.abs(changeVal).toFixed(1));
+      showToast(prefix + locTag + nameTag + routeTag + payTag + '行程已保存，客戶尚欠 $' + Math.abs(changeVal).toFixed(1));
     } else {
-      showToast(prefix + locTag + routeTag + payTag + '行程已成功保存！');
+      showToast(prefix + locTag + nameTag + routeTag + payTag + '行程已成功保存！');
     }
 
   } finally {
@@ -2287,21 +2466,30 @@ function renderTripList(){
       payBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-medium flex items-center gap-0.5 shrink-0 ' + payTheme.card + ' ' + payTheme.text + '">' + ico(payCfg.icon, 'w-2.5 h-2.5') + escapeHtml(payCfg.name) + '</span>';
     }
 
+    /* ===== 修改：位置 badge 顯示地名 ===== */
     var hasLocation = t.location && typeof t.location.lat === 'number';
+    var hasRoute    = t.route && t.route.startedAt;
+    var endName     = (t.route && t.route.endName) || t.locationName || '';
+
     var locationBadge = hasLocation
-      ? '<span class="text-[10px] px-1 py-0.5 rounded-md border font-medium flex items-center bg-blue-50 text-blue-700 border-blue-200 shrink-0" title="已記錄位置">' + ico('map-pin','w-2.5 h-2.5') + '</span>'
+      ? '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-medium flex items-center gap-0.5 max-w-[9rem] bg-blue-50 text-blue-700 border-blue-200 shrink-0" title="已記錄位置">' +
+          ico('map-pin','w-2.5 h-2.5') +
+          (endName ? '<span class="truncate">' + escapeHtml(endName) + '</span>' : '') +
+        '</span>'
       : '';
 
-    var hasRoute = t.route && t.route.startedAt;
     var routeBadge = hasRoute
       ? '<span class="text-[10px] px-1 py-0.5 rounded-md border font-medium flex items-center bg-amber-50 text-amber-700 border-amber-200 shrink-0" title="有行程軌跡">' + ico('navigation','w-2.5 h-2.5') + '</span>'
       : '';
 
     var cardBorder = isExpense ? 'border-rose-200' : (urgentBadge ? 'border-rose-200' : 'border-slate-100');
 
-    var locationBtn = hasLocation
-      ? '<button onclick="event.stopPropagation(); openTripLocationInMaps(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-blue-500 transition" title="查看位置">' + ico('map-pin','w-3.5 h-3.5') + '</button>'
-      : '';
+    /* ===== 修改：有軌跡 → 導航全程；否則 → 查看位置 ===== */
+    var locationBtn = hasRoute
+      ? '<button onclick="event.stopPropagation(); openTripRouteNavigation(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-emerald-600 transition" title="導航整段行程">' + ico('navigation','w-3.5 h-3.5') + '</button>'
+      : (hasLocation
+          ? '<button onclick="event.stopPropagation(); openTripLocationInMaps(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-blue-500 transition" title="查看位置">' + ico('map-pin','w-3.5 h-3.5') + '</button>'
+          : '');
 
     return '' +
     '<div class="bg-white rounded-2xl border ' + cardBorder + ' shadow-sm">' +
@@ -3147,12 +3335,16 @@ function openDetailModal(id){
       '<span class="font-medium flex items-center gap-1">' + ico(payCfg.icon,'w-3.5 h-3.5') + escapeHtml(payCfg.name) + '</span></div>';
   }
 
+  /* ===== 修改：位置 row 顯示地名 ===== */
   var hasLocation = t.location && typeof t.location.lat === 'number';
   var locationRow;
   if (hasLocation){
     var latStr = t.location.lat.toFixed(6);
     var lngStr = t.location.lng.toFixed(6);
     var accStr = t.location.accuracy ? '±' + Math.round(t.location.accuracy) + 'm' : '';
+    var locNameLine = t.locationName
+      ? '<div class="text-xs text-blue-700 font-bold mb-1 truncate">' + escapeHtml(t.locationName) + '</div>'
+      : '';
     locationRow =
       '<div class="py-1.5 border-b border-slate-100">' +
         '<div class="flex justify-between items-center mb-1">' +
@@ -3161,6 +3353,7 @@ function openDetailModal(id){
             ico('navigation','w-3 h-3') + '查看地圖' +
           '</button>' +
         '</div>' +
+        locNameLine +
         '<div class="text-[11px] text-slate-500 font-mono bg-slate-50 rounded px-2 py-1 text-center">' + latStr + ', ' + lngStr + (accStr ? ' <span class="text-slate-400">' + accStr + '</span>' : '') + '</div>' +
       '</div>';
   } else {
@@ -3168,6 +3361,7 @@ function openDetailModal(id){
       '<div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">記錄位置</span><span class="font-medium text-slate-400">未記錄</span></div>';
   }
 
+  /* ===== 修改：軌跡 row 顯示各點名字 ===== */
   var routeRow = '';
   if (t.route && t.route.startedAt) {
     var r = t.route;
@@ -3177,9 +3371,13 @@ function openDetailModal(id){
     if (stopCount > 0) {
       stopLines = '<div class="text-[10px] text-slate-600 font-mono bg-slate-50 rounded px-2 py-1 space-y-0.5">' +
         (r.stops || []).map(function (s, i) {
-          return '<div>停' + (i + 1) + ' ' + formatClock(s.timestamp) +
-            (s.location ? ' · ' + s.location.lat.toFixed(5) + ',' + s.location.lng.toFixed(5) : '') +
-            '</div>';
+          return '<div class="flex gap-1 items-baseline">' +
+            '<span class="text-amber-700 shrink-0 font-bold">停' + (i + 1) + '</span>' +
+            '<span class="shrink-0">' + formatClock(s.timestamp) + '</span>' +
+            (s.name
+              ? '<span class="text-slate-800 font-bold truncate">' + escapeHtml(s.name) + '</span>'
+              : (s.location ? '<span class="text-slate-400 truncate">' + s.location.lat.toFixed(5) + ',' + s.location.lng.toFixed(5) + '</span>' : '<span class="text-slate-400">無位置</span>')) +
+          '</div>';
         }).join('') +
       '</div>';
     }
@@ -3194,11 +3392,11 @@ function openDetailModal(id){
           '</span>' +
         '</div>' +
         '<div class="text-[10px] text-slate-500 flex justify-between gap-2 mb-1">' +
-          '<span>起點 ' + (r.startLocation ? r.startLocation.lat.toFixed(5) + ',' + r.startLocation.lng.toFixed(5) : '無位置') + '</span>' +
+          '<span class="truncate">起點 ' + (r.startName ? '<b class="text-slate-800">' + escapeHtml(r.startName) + '</b> ' : '') + (r.startLocation ? r.startLocation.lat.toFixed(5) + ',' + r.startLocation.lng.toFixed(5) : '無位置') + '</span>' +
         '</div>' +
         stopLines +
         '<div class="text-[10px] text-slate-500 flex justify-between gap-2 mt-1">' +
-          '<span>終點 ' + (r.endLocation ? r.endLocation.lat.toFixed(5) + ',' + r.endLocation.lng.toFixed(5) : '無位置') + '</span>' +
+          '<span class="truncate">終點 ' + (r.endName ? '<b class="text-slate-800">' + escapeHtml(r.endName) + '</b> ' : '') + (r.endLocation ? r.endLocation.lat.toFixed(5) + ',' + r.endLocation.lng.toFixed(5) : '無位置') + '</span>' +
         '</div>' +
       '</div>';
   }
@@ -3215,10 +3413,18 @@ function openDetailModal(id){
       '<div class="flex justify-between py-1"><span class="text-slate-500">備注</span><span class="font-medium text-slate-700">' + (t.note ? escapeHtml(t.note) : '無') + '</span></div>' +
     '</div>';
 
+  /* ===== 修改：footer 加導航全程按鈕 ===== */
+  var navBtn;
+  if (t.route && t.route.startedAt){
+    navBtn = '<button onclick="openTripRouteNavigation(\'' + t.id + '\')" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs transition flex items-center gap-1">' + ico('navigation','w-3.5 h-3.5') + '導航全程</button>';
+  } else if (hasLocation){
+    navBtn = '<button onclick="openTripLocationInMaps(\'' + t.id + '\')" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl text-xs transition flex items-center gap-1">' + ico('navigation','w-3.5 h-3.5') + '位置</button>';
+  } else {
+    navBtn = '';
+  }
+
   document.getElementById('modal-footer').innerHTML =
-    (hasLocation
-      ? '<button onclick="openTripLocationInMaps(\'' + t.id + '\')" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl text-xs transition flex items-center gap-1">' + ico('navigation','w-3.5 h-3.5') + '位置</button>'
-      : '') +
+    navBtn +
     '<button onclick="closeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition">關閉</button>';
 
   var m = document.getElementById('trip-modal');
@@ -3272,7 +3478,10 @@ function openEditModal(id){
       '<div>' +
         '<label class="block text-xs font-semibold text-slate-600 mb-1">記錄位置</label>' +
         '<div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 flex items-center justify-between gap-2">' +
-          '<span class="text-[11px] text-slate-500 font-mono truncate">' + t.location.lat.toFixed(6) + ', ' + t.location.lng.toFixed(6) + '</span>' +
+          '<span class="text-[11px] text-slate-500 font-mono truncate">' +
+            (t.locationName ? '<b class="text-slate-700">' + escapeHtml(t.locationName) + '</b> ' : '') +
+            t.location.lat.toFixed(6) + ', ' + t.location.lng.toFixed(6) +
+          '</span>' +
           '<button type="button" onclick="clearTripLocation(\'' + t.id + '\')" class="text-[11px] px-2 py-1 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-medium transition shrink-0">清除</button>' +
         '</div>' +
       '</div>';
@@ -3333,6 +3542,7 @@ function clearTripLocation(id){
   var idx = trips.findIndex(function(item){ return item.id === id; });
   if (idx === -1) return;
   trips[idx].location = null;
+  trips[idx].locationName = '';
   localStorage.setItem('taxi_trips', JSON.stringify(trips));
   showToast('已清除位置');
   openEditModal(id);
@@ -4462,27 +4672,20 @@ function updatePendingTripDurationBadge() {
   }
 }
 
-/* ★★★ 改動 1：新增聚焦車資輸入框的函數 ★★★ */
 function focusFareInputAfterTrip(){
-  // 兩段式延時：先等 switchTab 的平滑滾動與 DOM 渲染完成，再聚焦
   setTimeout(function(){
     var fareInput = document.getElementById('trip-fare');
     if (!fareInput) return;
 
-    // 先滾動到輸入框可視區域（避免被虛擬鍵盤遮擋）
     try {
       fareInput.scrollIntoView({ block: 'center', behavior: 'smooth' });
     } catch (e) {
-      // 兼容不支援 options 的舊瀏覽器
       try { fareInput.scrollIntoView(); } catch (e2) {}
     }
 
-    // 給滾動一點時間後再 focus
     setTimeout(function(){
       try {
-        // preventScroll：避免 focus 觸發再一次跳轉
         fareInput.focus({ preventScroll: true });
-        // 若已有殘留內容（例如自動填入），一併選取方便覆蓋
         if (typeof fareInput.select === 'function') fareInput.select();
       } catch (e) {
         try { fareInput.focus(); } catch (e2) {}
@@ -4754,7 +4957,6 @@ async function endTripSession() {
     updatePendingTripDurationBadge();
     showToast('行程已結束，請填寫車資完成記錄');
 
-    // ★★★ 改動 2：結束行程後聚焦車資輸入框，方便用戶快速輸入 ★★★
     focusFareInputAfterTrip();
   } finally {
     tripSessionBusy = false;
