@@ -784,10 +784,11 @@ function openTripLocationInMaps(tripId){
   var lat = t.location.lat;
   var lng = t.location.lng;
   var d = new Date(t.timestamp);
-  var label = d.toLocaleString('zh-HK', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit',hour12: false });
-  var pointName = t.locationName || ('行程 ' + label);
+  var label = d.toLocaleString('zh-HK', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+  var pointName = '行程 ' + label;
   var encName = encodeURIComponent(pointName);
 
+  // Web 降级地址（浏览器 / 桌面端 / App 未安装时使用）
   var webUrl = 'https://uri.amap.com/marker' +
                '?position=' + lng + ',' + lat +
                '&name=' + encName +
@@ -796,11 +797,13 @@ function openTripLocationInMaps(tripId){
   var ua = navigator.userAgent || '';
   var isMobile = /iPhone|iPad|iPod|Android|HarmonyOS|Mobile|Windows Phone/i.test(ua);
 
+  // 桌面端：直接开网页
   if (!isMobile){
     window.open(webUrl, '_blank');
     return;
   }
 
+  // 手机端：优先用高德 App 打开（viewMap 查看地图标记点）
   var appScheme = 'amapuri://viewMap' +
                   '?sourceApplication=hk-taxi-helper' +
                   '&poiname=' + encName +
@@ -811,6 +814,7 @@ function openTripLocationInMaps(tripId){
   var startTime = Date.now();
   var fallbackTriggered = false;
 
+  // 2 秒内未切到 App → 自动降级到网页
   var fallbackTimer = setTimeout(function(){
     if (fallbackTriggered) return;
     if (!document.hidden && (Date.now() - startTime) < 3000){
