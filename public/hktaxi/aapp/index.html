@@ -163,16 +163,11 @@
       </div>
       <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-xs flex-wrap gap-x-2 gap-y-1.5">
         <div class="flex items-center gap-1.5 flex-wrap">
-          <label class="flex items-center space-x-1.5 cursor-pointer select-none"><input type="checkbox" id="filter-last-shift" checked onchange="renderTripList()"><span class="font-medium text-slate-700">最後一更</span></label>
+          <label class="flex items-center space-x-1.5 cursor-pointer select-none"><input type="checkbox" id="filter-last-shift" checked onchange="renderTripList()"><span class="font-medium text-slate-700">只顯示最後一更</span></label>
           <span class="text-slate-300 select-none">·</span>
           <label class="flex items-center space-x-1 cursor-pointer select-none"><input type="checkbox" id="chk-flow-income" checked onchange="renderTripList()"><span class="font-medium text-emerald-700">收入</span></label>
           <label class="flex items-center space-x-1 cursor-pointer select-none"><input type="checkbox" id="chk-flow-expense" checked onchange="renderTripList()"><span class="font-medium text-rose-600">支出</span></label>
         </div>
-        <button type="button" onclick="toggleAllGroups()" id="toggle-groups-btn"
-          class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition flex items-center gap-1">
-          <span class="ico w-3.5 h-3.5" data-icon="layers"></span>
-          <span id="toggle-groups-text">全部收起</span>
-        </button>
         <span id="trip-count-badge" class="text-slate-400 font-medium">共 0 筆</span>
       </div>
     </div>
@@ -2441,165 +2436,223 @@ function formatDurationMinutes(ms){
   return Math.round(ms / 60000) + 'm';
 }
 
-// 記錄每個更期收起狀態的物件 (key: shiftKey, value: boolean 為 true 代表收起)
-var collapsedShifts = {};
-
-function toggleShiftCollapse(shiftKey){
-  collapsedShifts[shiftKey] = !collapsedShifts[shiftKey];
-  renderTripList();
-}
-
 function renderTripList(){
-  var keyword = (document.getElementById('search-keyword').value || '').trim().toLowerCase();
-  var filterLastShift = document.getElementById('filter-last-shift').checked;
-  var lastShiftKey = getLastShiftKey();
-
-  // 1. 取得勾選的類型
-  var types = [];
-  if (document.getElementById('chk-type-street').checked) types.push('街客');
-  if (document.getElementById('chk-type-uber').checked) types.push('Uber');
-  if (document.getElementById('chk-type-other').checked){
-    getAllTripTypes().forEach(function(t){
-      if (t !== '街客' && t !== 'Uber') types.push(t);
-    });
-  }
-
-  // 2. 取得勾選的付款方式
-  var pays = [];
-  if (document.getElementById('chk-pay-cash').checked) pays.push('現金');
-  if (document.getElementById('chk-pay-octopus').checked) pays.push('八達通');
-  if (document.getElementById('chk-pay-other').checked){
-    getAllPaymentMethods().forEach(function(p){
-      if (p !== '現金' && p !== '八達通') pays.push(p);
-    });
-  }
-
-  var flowIncome = document.getElementById('chk-flow-income').checked;
-  var flowExpense = document.getElementById('chk-flow-expense').checked;
-
-  // 3. 過濾符合條件的行程
-  var filtered = trips.filter(function(t){
-    if (filterLastShift){
-      var tShift = t.shiftDate || calcShiftDate(t.timestamp, shiftSettings[t.shiftDate]);
-      if (tShift !== lastShiftKey) return false;
-    }
-
-    if (keyword && !(t.note && t.note.toLowerCase().indexOf(keyword) !== -1)) return false;
-
-    var isExpense = (parseFloat(t.fare) || 0) < 0;
-    if (isExpense && !flowExpense) return false;
-    if (!isExpense && !flowIncome) return false;
-
-    var tType = t.type || '街客';
-    var matchedType = types.indexOf(tType) !== -1 || (types.length > 2 && TRIP_TYPE_CONFIG.map(function(c){return c.name;}).indexOf(tType) === -1);
-    if (!matchedType) return false;
-
-    var tPay = t.paymentMethod || '現金';
-    var matchedPay = pays.indexOf(tPay) !== -1 || (pays.length > 2 && PAYMENT_METHOD_CONFIG.map(function(c){return c.name;}).indexOf(tPay) === -1);
-    if (!matchedPay) return false;
-
-    return true;
-  });
-
-  document.getElementById('trip-count-badge').textContent = '共 ' + filtered.length + ' 筆';
-
   var container = document.getElementById('trip-list-container');
   if (!container) return;
 
+  var keyword          = document.getElementById('search-keyword').value.toLowerCase();
+  var onlyLastShift = document.getElementById('filter-last-shift').checked;
+  var allowStreet      = document.getElementById('chk-type-street').checked;
+  var allowUber        = document.getElementById('chk-type-uber').checked;
+  var allowOther       = document.getElementById('chk-type-other').checked;
+  var allowIncome      = document.getElementById('chk-flow-income').checked;
+  var allowExpense     = document.getElementById('chk-flow-expense').checked;
+  var allowCash        = document.getElementById('chk-pay-cash').checked;
+  var allowOctopus     = document.getElementById('chk-pay-octopus').checked;
+  var allowPayOther    = document.getElementById('chk-pay-other').checked;
+  var lastShiftKey     = getLastShiftKey();
+
+  var filtered = trips.filter(function(t){
+    var matchKeyword = (t.note || '').toLowerCase().indexOf(keyword) !== -1 || t.fare.toString().indexOf(keyword) !== -1;
+    var matchType = false;
+    if (t.type === '街客' && allowStreet) matchType = true;
+    else if (t.type === 'Uber' && allowUber) matchType = true;
+    else if (t.type !== '街客' && t.type !== 'Uber' && allowOther) matchType = true;
+
+    var fareNum   = parseFloat(t.fare) || 0;
+    var isExpense = fareNum < 0;
+    var matchFlow = (isExpense && allowExpense) || (!isExpense && allowIncome);
+
+    var pay = t.payment || '現金';
+    var matchPayment = false;
+    if (pay === '現金' && allowCash) matchPayment = true;
+    else if (pay === '八達通' && allowOctopus) matchPayment = true;
+    else if (pay !== '現金' && pay !== '八達通' && allowPayOther) matchPayment = true;
+
+    var matchShift = !onlyLastShift || (t.shiftDate === lastShiftKey);
+    return matchKeyword && matchType && matchFlow && matchPayment && matchShift;
+  });
+
+  document.getElementById('trip-count-badge').innerText = '共 ' + filtered.length + ' 筆';
+
   if (filtered.length === 0){
-    container.innerHTML = '<div class="text-center py-12 text-slate-400 text-sm bg-white rounded-2xl border border-slate-100 shadow-sm">' +
-                          '<div class="w-10 h-10 mx-auto mb-2 text-slate-300">' + ico('file-question', 'w-full h-full') + '</div>' +
-                          '沒有找到符合條件的行程記錄</div>';
+    container.innerHTML =
+      '<div class="bg-white rounded-2xl p-8 text-center border border-slate-100 text-slate-400 space-y-2">' +
+        '<div class="ico w-10 h-10 mx-auto text-slate-300">' + ico('file-question','w-10 h-10') + '</div>' +
+        '<p class="text-sm font-medium">沒有找到符合的記錄</p>' +
+      '</div>';
     return;
   }
 
-  // ==========================================
-  // 4. 按更期 (shiftDate) 進行分組
-  // ==========================================
-  var groupedByShift = {};
-  filtered.forEach(function(t){
-    var shiftKey = t.shiftDate || calcShiftDate(t.timestamp, shiftSettings[t.shiftDate]);
-    if (!groupedByShift[shiftKey]){
-      groupedByShift[shiftKey] = [];
-    }
-    groupedByShift[shiftKey].push(t);
-  });
+  container.innerHTML = filtered.map(function(t){
+    var dateObj = new Date(t.timestamp);
+    var timeStr = dateObj.toLocaleTimeString('zh-HK', { hour:'2-digit', minute:'2-digit', hour12: false });
+    var dateStr = dateObj.toLocaleDateString('zh-HK', { month:'2-digit', day:'2-digit' });
 
-  var sortedShiftKeys = Object.keys(groupedByShift).sort().reverse();
+    var fareNum   = parseFloat(t.fare) || 0;
+    var isExpense = fareNum < 0;
+    var fareAbs   = Math.abs(fareNum);
+    var fareText  = (isExpense ? '-$' : '$') + fareAbs;
 
-  var html = '';
-  sortedShiftKeys.forEach(function(shiftKey){
-    var shiftTrips = groupedByShift[shiftKey];
-    var isCollapsed = !!collapsedShifts[shiftKey];
-    
-    var shiftTotal = 0;
-    shiftTrips.forEach(function(t){
-      shiftTotal += (parseFloat(t.fare) || 0);
-    });
+    var typeCfg   = getTripTypeConfig(t.type);
+    var theme     = TRIP_TYPE_THEME[typeCfg.color] || TRIP_TYPE_THEME.slate;
+    var typeColor = theme.card + ' ' + theme.text;
 
-    var shiftCfg = shiftSettings[shiftKey];
-    var shiftLabelText = shiftKey;
-    if (shiftCfg && shiftCfg.startTime && shiftCfg.endTime){
-      shiftLabelText += ' (' + shiftCfg.startTime + ' - ' + shiftCfg.endTime + ')';
-    } else if (shiftKey === lastShiftKey) {
-      shiftLabelText += ' (當前更期)';
-    }
+    var payCfg    = getPaymentMethodConfig(t.payment || '現金');
+    var payTheme  = TRIP_TYPE_THEME[payCfg.color] || TRIP_TYPE_THEME.slate;
 
-    html += '<div class="space-y-2 mb-4">';
-    
-    // 點擊標題列即可觸發收起/展開
-    html += '<div onclick="toggleShiftCollapse(\'' + shiftKey + '\')" class="flex justify-between items-center bg-slate-100 px-3 py-2 rounded-xl border border-slate-200/80 text-xs font-bold text-slate-700 select-none cursor-pointer hover:bg-slate-200/70 transition">';
-    html += '<span class="flex items-center gap-1.5">';
-    html += '<span class="ico w-4 h-4 text-amber-600 transition-transform duration-200 ' + (isCollapsed ? '-rotate-90' : '') + '" data-icon="chevron-down"></span>';
-    html += shiftLabelText;
-    html += '</span>';
-    html += '<span class="flex items-center gap-2">';
-    html += '<span class="text-slate-500 font-medium">' + shiftTrips.length + '筆</span>';
-    html += '<span class="font-mono ' + (shiftTotal >= 0 ? 'text-emerald-700' : 'text-rose-600') + '">$' + shiftTotal.toFixed(1) + '</span>';
-    html += '</span>';
-    html += '</div>';
+    var hasLocation = t.location && typeof t.location.lat === 'number';
+    var hasRoute    = t.route && t.route.startedAt;
+    var endName     = (t.route && t.route.endName) || t.locationName || '';
 
-    // 若未收起，才渲染底下的行程清單
-    if (!isCollapsed) {
-      html += '<div class="space-y-2 pl-1">';
-      shiftTrips.forEach(function(t){
-        var fareVal = parseFloat(t.fare) || 0;
-        var isExp = fareVal < 0;
-        var typeCfg = getTripTypeConfig(t.type);
-        var payCfg = getPaymentMethodConfig(t.paymentMethod);
-        var theme = TRIP_TYPE_THEME[typeCfg.color] || TRIP_TYPE_THEME['purple'];
-        var timeStr = t.time || (t.timestamp ? new Date(t.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--');
+    var routeDurationMs = (t.route && t.route.startedAt && t.route.endedAt)
+      ? (t.route.endedAt - t.route.startedAt)
+      : null;
 
-        html += '<div onclick="openTripDetail(\'' + t.id + '\')" class="bg-white p-3 rounded-xl border border-slate-100 shadow-xs hover:border-amber-300 active:scale-[0.99] transition cursor-pointer flex justify-between items-center gap-3">' +
-                  '<div class="flex items-center gap-3 min-w-0">' +
-                    '<div class="w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ' + theme.card + ' ' + theme.text + '">' +
-                      ico(typeCfg.icon, 'w-5 h-5') +
-                    '</div>' +
-                    '<div class="min-w-0">' +
-                      '<div class="flex items-center gap-1.5 flex-wrap">' +
-                        '<span class="text-xs font-bold text-slate-800">' + (t.type || '街客') + '</span>' +
-                        '<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">' + (t.paymentMethod || '現金') + '</span>' +
-                        '<span class="text-[10px] text-slate-400 font-mono">' + timeStr + '</span>' +
-                      '</div>' +
-                      '<p class="text-xs text-slate-500 truncate mt-0.5">' + (t.note || '無備注') + '</p>' +
-                    '</div>' +
-                  '</div>' +
-                  '<div class="text-right shrink-0 font-mono">' +
-                    '<span class="text-base font-bold ' + (isExp ? 'text-rose-600' : 'text-emerald-700') + '">' +
-                      (isExp ? '-$' + Math.abs(fareVal).toFixed(1) : '$' + fareVal.toFixed(1)) +
-                    '</span>' +
-                  '</div>' +
-                '</div>';
-      });
-      html += '</div>';
+    /* ===== 行1 badge ===== */
+    var urgentBadge = '';
+    if (isExpense){
+      urgentBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-0.5 shrink-0">' +
+        ico('alert-triangle','w-2.5 h-2.5') + '支出</span>';
+    } else if (typeof t.change === 'number' && t.change < 0){
+      urgentBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-0.5 shrink-0">' +
+        ico('alert-triangle','w-2.5 h-2.5') + '欠 $' + Math.abs(t.change).toFixed(1) + '</span>';
     }
 
-    html += '</div>'; // 結束更期群組
-  });
+    var payBadge = '';
+    if (!isExpense){
+      payBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-medium flex items-center gap-0.5 shrink-0 ' +
+        payTheme.card + ' ' + payTheme.text + '">' +
+        ico(payCfg.icon, 'w-2.5 h-2.5') + escapeHtml(payCfg.name) +
+      '</span>';
+    }
 
-  container.innerHTML = html;
-  hydrateIcons(container);
+    /* ===== 行2：位置（左） + 時長 chip（右） ===== */
+
+    /* 位置：SVG 包一層 inline-flex 外殼 */
+    var locHtml = '';
+    if (endName){
+      locHtml =
+        '<span class="flex items-center gap-0.5 text-blue-700 font-medium min-w-0 flex-1">' +
+          '<span class="inline-flex items-center justify-center shrink-0" ' +
+                'style="width:11px;height:11px;flex:0 0 auto;line-height:0">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" ' +
+                 'stroke-linecap="round" stroke-linejoin="round" ' +
+                 'style="display:block;width:11px;height:11px" class="text-blue-700">' +
+              (ICONS['map-pin'] || '') +
+            '</svg>' +
+          '</span>' +
+          '<span class="truncate leading-none" title="' + escapeHtml(endName) + '">' + escapeHtml(endName) + '</span>' +
+        '</span>';
+    }
+
+    /* 時長 chip：所有子項 flex:0 0 auto，SVG 包外殼，絕不換行 */
+    var durationChip = '';
+    if (routeDurationMs !== null && routeDurationMs >= 0){
+      var stopCount = (t.route.stops || []).length;
+      var timeRange = formatClock(t.route.startedAt) + '→' + formatClock(t.route.endedAt);
+
+      var clockIcon =
+        '<span class="inline-flex items-center justify-center" ' +
+              'style="width:11px;height:11px;flex:0 0 auto;line-height:0">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" ' +
+               'stroke-linecap="round" stroke-linejoin="round" ' +
+               'style="display:block;width:11px;height:11px" class="text-emerald-700">' +
+            (ICONS['clock'] || '') +
+          '</svg>' +
+        '</span>';
+
+      durationChip =
+        (       (stopCount > 0
+            ? '<span class="text-amber-700 font-medium" ' +
+                    'style="flex:0 0 auto;white-space:nowrap;line-height:1">' + stopCount + '停</span>'
+            : '') )+'<div class="shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-50 border border-slate-200 text-[10px]" ' +
+             'style="flex-wrap:nowrap;white-space:nowrap" ' +
+             'title="' + timeRange + '">' +
+          clockIcon +
+          '<span class="text-emerald-700 font-bold" ' +
+                'style="flex:0 0 auto;white-space:nowrap;line-height:1">' +
+            formatDurationMinutes(routeDurationMs) +
+          '</span>' +
+   
+        '</div>';
+    }
+
+    var row2 = '';
+    if (locHtml || durationChip){
+      row2 =
+        '<div class="flex items-center justify-between gap-2 text-[11px]">' +
+          (locHtml || '<span class="flex-1"></span>') +
+          durationChip +
+        '</div>';
+    }
+
+    /* ===== 行3：備註（全寬） ===== */
+    var row3 = t.note
+      ? '<div class="text-[11px] text-slate-600 break-words leading-snug">' +
+          escapeHtml(t.note) +
+        '</div>'
+      : '';
+
+    /* ===== 卡片邊框 ===== */
+    var cardBorder = isExpense ? 'border-rose-200'
+                   : (urgentBadge ? 'border-rose-200' : 'border-slate-100');
+
+    /* ===== 按鈕組 ===== */
+    var locationBtn = hasRoute
+      ? '<button onclick="event.stopPropagation(); openTripRouteNavigation(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-emerald-600 transition" title="導航整段行程">' + ico('navigation','w-3.5 h-3.5') + '</button>'
+      : (hasLocation
+          ? '<button onclick="event.stopPropagation(); openTripLocationInMaps(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-blue-500 transition" title="查看位置">' + ico('map-pin','w-3.5 h-3.5') + '</button>'
+          : '');
+
+    var actionBtns =
+      '<div class="flex items-center shrink-0 -mr-1" onclick="event.stopPropagation()">' +
+        locationBtn +
+        '<button onclick="event.stopPropagation(); openEditModal(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-blue-500 transition" title="編輯">' + ico('edit-3','w-3.5 h-3.5') + '</button>' +
+        '<button onclick="event.stopPropagation(); deleteTrip(\'' + t.id + '\')" class="p-1.5 text-slate-400 hover:text-rose-500 transition" title="刪除">' + ico('trash-2','w-3.5 h-3.5') + '</button>' +
+      '</div>';
+
+    /* ===== 組裝 ===== */
+    return '' +
+    '<div class="bg-white rounded-2xl border ' + cardBorder + ' shadow-sm cursor-pointer active:scale-[0.995] transition" ' +
+         'data-trip-id="' + t.id + '" onclick="openDetailModal(\'' + t.id + '\')">' +
+
+      '<div class="p-3 flex items-start gap-2.5">' +
+
+        /* 列 1：時間塊 */
+        '<div class="w-11 shrink-0 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center justify-center py-1.5">' +
+          '<span class="font-mono font-bold text-slate-800 text-[11px] leading-none">' + timeStr + '</span>' +
+          '<span class="font-mono text-slate-400 text-[9px] leading-none mt-1">' + dateStr + '</span>' +
+        '</div>' +
+
+        /* 列 2：內容區，3 行 */
+        '<div class="min-w-0 flex-1 space-y-1">' +
+
+          /* 行1：金額 + 類型 + 付款 + 按鈕 */
+          '<div class="flex items-center gap-1.5">' +
+            '<div class="flex items-center gap-1.5 flex-wrap min-w-0 flex-1">' +
+              '<span class="text-lg font-black ' + (isExpense ? 'text-rose-600' : 'text-slate-900') + ' leading-tight tracking-tight shrink-0">' + fareText + '</span>' +
+              '<span class="text-[10px] px-1.5 py-0.5 rounded-md border font-semibold shrink-0 ' + typeColor + '">' + escapeHtml(t.type) + '</span>' +
+              payBadge +
+              urgentBadge +
+            '</div>' +
+            actionBtns +
+          '</div>' +
+
+          /* 行2：位置 + 時長 chip */
+          row2 +
+
+          /* 行3：備註 */
+          row3 +
+
+        '</div>' +
+
+      '</div>' +
+    '</div>';
+  }).join('');
 }
+
+
 
 async function resolveAmapPlace(input){
   var res = await fetch('/api/amap-place', {
@@ -4725,39 +4778,6 @@ document.addEventListener('touchmove', function(e){
     if (!tripDrawer.contains(e.target)) e.preventDefault();
   }
 }, { passive:false });
-
-
-function toggleAllGroups() {
-  // 找出目前畫面上所有的 shiftKey（或從你的 trips / shiftSettings 中取得所有出現過的更次/日期）
-  var allShiftKeys = Object.keys(shiftSettings);
-  
-  // 如果沒有儲存在 shiftSettings 裡的，也可以從 trips 收集所有不重複的 shiftDate
-  trips.forEach(function(t) {
-    if (t.shiftDate && allShiftKeys.indexOf(t.shiftDate) === -1) {
-      allShiftKeys.push(t.shiftDate);
-    }
-  });
-
-  if (allShiftKeys.length === 0) return;
-
-  // 判斷目前是否為「全部已收起」的狀態
-  // 如果大部分都是收起的，這次點擊就全部展開；反之全部收起
-  var allCurrentlyCollapsed = allShiftKeys.every(function(key) {
-    return collapsedShifts[key] === true;
-  });
-
-  var targetState = !allCurrentlyCollapsed; // true 代表要全部收起，false 代表全部展開
-
-  allShiftKeys.forEach(function(key) {
-    collapsedShifts[key] = targetState;
-  });
-
-  // 儲存狀態（可選）
-  localStorage.setItem('taxi_collapsed_shifts', JSON.stringify(collapsedShifts));
-
-  // 重新渲染列表，讓資料驅動 UI 更新
-  renderTripList();
-}
 </script>
 <!-- Shadow DOM 加载器（覆盖 handleDrawerItem / switchTab） -->
 <script src="./loader.js"></script>
