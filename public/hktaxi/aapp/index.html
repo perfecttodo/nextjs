@@ -2580,13 +2580,7 @@ function renderTripCard(t){
     : null;
 
   var urgentBadge = '';
-  if (isExpense){
-    urgentBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-0.5 shrink-0">' +
-      ico('alert-triangle','w-2.5 h-2.5') + '支出</span>';
-  } else if (typeof t.change === 'number' && t.change < 0){
-    urgentBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-300 font-bold flex items-center gap-0.5 shrink-0">' +
-      ico('alert-triangle','w-2.5 h-2.5') + '欠 $' + Math.abs(t.change).toFixed(1) + '</span>';
-  }
+
 
   var payBadge = '';
   if (!isExpense){
