@@ -973,12 +973,16 @@ function openTripRouteNavigation(tripId){
 
   var VIA_LIMIT = 3;
   var dropped = 0;
-  if (vias.length > VIA_LIMIT){ dropped = vias.length - VIA_LIMIT; vias = vias.slice(0, VIA_LIMIT); }
+  if (vias.length > VIA_LIMIT){ 
+    dropped = vias.length - VIA_LIMIT; 
+    vias = vias.slice(0, VIA_LIMIT); 
+  }
 
   function pt(loc, name){
     return loc.lng.toFixed(6) + ',' + loc.lat.toFixed(6) + ',' + encodeURIComponent(name || '');
   }
 
+  // 1. 建立網頁版降級 URL (Web URI)
   var qs = [];
   if (fromLoc) qs.push('from=' + pt(fromLoc, fromName));
   qs.push('to=' + pt(toLoc, toName));
@@ -988,13 +992,72 @@ function openTripRouteNavigation(tripId){
   qs.push('mode=car', 'policy=1', 'src=hk-taxi-helper',
           'coordinate=wgs84', 'callnative=1');
 
-  var url = 'https://uri.amap.com/navigation?' + qs.join('&');
+  var webUrl = 'https://uri.amap.com/navigation?' + qs.join('&');
 
   if (dropped > 0) showToast('導航僅帶前 ' + VIA_LIMIT + ' 個途經點（共 ' + (dropped + VIA_LIMIT) + ' 個）');
 
-  window.open(url, '_blank');
-}
+  var ua = navigator.userAgent || '';
+  var isMobile = /iPhone|iPad|iPod|Android|HarmonyOS|Mobile|Windows Phone/i.test(ua);
 
+  // 桌面端：直接開網頁版導航
+  if (!isMobile){
+    window.open(webUrl, '_blank');
+    return;
+  }
+
+  // 2. 手機端：建立高德 App 導航專用 Scheme (amapuri://route/plan/)
+  var appScheme = 'amapuri://route/plan/?sourceApplication=hk-taxi-helper&dev=0&t=0';
+  if (fromLoc) {
+    appScheme += '&slat=' + fromLoc.lat + '&slon=' + fromLoc.lng + '&sname=' + encodeURIComponent(fromName);
+  }
+  appScheme += '&lat=' + toLoc.lat + '&lon=' + toLoc.lng + '&poiname=' + encodeURIComponent(toName);
+
+  var startTime = Date.now();
+  var fallbackTriggered = false;
+
+  function cleanup(){
+    clearTimeout(fallbackTimer);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    window.removeEventListener('pagehide', onPageHide);
+  }
+
+  // 3. 啟動計時器：2 秒內若未跳轉到 App（即網頁未被隱藏），則自動降級開網頁
+  var fallbackTimer = setTimeout(function(){
+    if (fallbackTriggered) return;
+    if (!document.hidden && (Date.now() - startTime) < 3000){
+      fallbackTriggered = true;
+      cleanup();
+      window.location.href = webUrl;
+    }
+  }, 2000);
+
+  function onVisibilityChange(){
+    if (document.hidden){
+      fallbackTriggered = true;
+      cleanup();
+    }
+  }
+  
+  function onPageHide(){
+    if (fallbackTriggered) return;
+    fallbackTriggered = true;
+    cleanup();
+  }
+
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  window.addEventListener('pagehide', onPageHide, { once: true });
+
+  // 4. 嘗試喚起高德 App 導航
+  try {
+    window.location.href = appScheme;
+  } catch (err){
+    if (!fallbackTriggered){
+      fallbackTriggered = true;
+      cleanup();
+      window.location.href = webUrl;
+    }
+  }
+}
 function getFuelPrefs(){
   var prefs;
   try { prefs = JSON.parse(localStorage.getItem('taxi_fuel_prefs')) || {}; }
