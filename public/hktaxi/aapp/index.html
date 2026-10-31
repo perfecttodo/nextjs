@@ -163,11 +163,16 @@
       </div>
       <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-xs flex-wrap gap-x-2 gap-y-1.5">
         <div class="flex items-center gap-1.5 flex-wrap">
-          <label class="flex items-center space-x-1.5 cursor-pointer select-none"><input type="checkbox" id="filter-last-shift" checked onchange="renderTripList()"><span class="font-medium text-slate-700">只顯示最後一更</span></label>
+          <label class="flex items-center space-x-1.5 cursor-pointer select-none"><input type="checkbox" id="filter-last-shift" checked onchange="renderTripList()"><span class="font-medium text-slate-700">最後一更</span></label>
           <span class="text-slate-300 select-none">·</span>
           <label class="flex items-center space-x-1 cursor-pointer select-none"><input type="checkbox" id="chk-flow-income" checked onchange="renderTripList()"><span class="font-medium text-emerald-700">收入</span></label>
           <label class="flex items-center space-x-1 cursor-pointer select-none"><input type="checkbox" id="chk-flow-expense" checked onchange="renderTripList()"><span class="font-medium text-rose-600">支出</span></label>
         </div>
+        <button type="button" onclick="toggleAllGroups()" id="toggle-groups-btn"
+          class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition flex items-center gap-1">
+          <span class="ico w-3.5 h-3.5" data-icon="layers"></span>
+          <span id="toggle-groups-text">全部收起</span>
+        </button>
         <span id="trip-count-badge" class="text-slate-400 font-medium">共 0 筆</span>
       </div>
     </div>
@@ -4720,6 +4725,39 @@ document.addEventListener('touchmove', function(e){
     if (!tripDrawer.contains(e.target)) e.preventDefault();
   }
 }, { passive:false });
+
+
+function toggleAllGroups() {
+  // 找出目前畫面上所有的 shiftKey（或從你的 trips / shiftSettings 中取得所有出現過的更次/日期）
+  var allShiftKeys = Object.keys(shiftSettings);
+  
+  // 如果沒有儲存在 shiftSettings 裡的，也可以從 trips 收集所有不重複的 shiftDate
+  trips.forEach(function(t) {
+    if (t.shiftDate && allShiftKeys.indexOf(t.shiftDate) === -1) {
+      allShiftKeys.push(t.shiftDate);
+    }
+  });
+
+  if (allShiftKeys.length === 0) return;
+
+  // 判斷目前是否為「全部已收起」的狀態
+  // 如果大部分都是收起的，這次點擊就全部展開；反之全部收起
+  var allCurrentlyCollapsed = allShiftKeys.every(function(key) {
+    return collapsedShifts[key] === true;
+  });
+
+  var targetState = !allCurrentlyCollapsed; // true 代表要全部收起，false 代表全部展開
+
+  allShiftKeys.forEach(function(key) {
+    collapsedShifts[key] = targetState;
+  });
+
+  // 儲存狀態（可選）
+  localStorage.setItem('taxi_collapsed_shifts', JSON.stringify(collapsedShifts));
+
+  // 重新渲染列表，讓資料驅動 UI 更新
+  renderTripList();
+}
 </script>
 <!-- Shadow DOM 加载器（覆盖 handleDrawerItem / switchTab） -->
 <script src="./loader.js"></script>
