@@ -788,11 +788,12 @@ function openTripLocationInMaps(tripId){
   var pointName = '行程 ' + label;
   var encName = encodeURIComponent(pointName);
 
-  // Web 降级地址（浏览器 / 桌面端 / App 未安装时使用）
+  // 网页降级地址：纯粹用于浏览器展示，不再 callnative，
+  // 避免「网页再次拉起 App」造成双开。
   var webUrl = 'https://uri.amap.com/marker' +
                '?position=' + lng + ',' + lat +
                '&name=' + encName +
-               '&coordinate=wgs84&src=hk-taxi-helper&callnative=1';
+               '&coordinate=wgs84&src=hk-taxi-helper&callnative=0';
 
   var ua = navigator.userAgent || '';
   var isMobile = /iPhone|iPad|iPod|Android|HarmonyOS|Mobile|Windows Phone/i.test(ua);
@@ -811,44 +812,61 @@ function openTripLocationInMaps(tripId){
                   '&lon=' + lng +
                   '&dev=0';
 
-  var startTime = Date.now();
-  var fallbackTriggered = false;
+  var fallbackTimer = null;
+  var settled = false;   // 结果只结算一次：要么进 App，要么降级到网页
 
-  // 2 秒内未切到 App → 自动降级到网页
-  var fallbackTimer = setTimeout(function(){
-    if (fallbackTriggered) return;
-    if (!document.hidden && (Date.now() - startTime) < 3000){
-      fallbackTriggered = true;
-      window.location.href = webUrl;
-    }
+  function cleanup(){
+    clearTimeout(fallbackTimer);
     document.removeEventListener('visibilitychange', onVisibilityChange);
-    document.removeEventListener('pagehide', onPageHide);
-  }, 2000);
+    window.removeEventListener('pagehide', onPageHide);
+  }
 
+  // 降级到网页（只允许执行一次）
+  function fallbackToWeb(){
+    if (settled) return;
+    settled = true;
+    cleanup();
+    window.location.replace(webUrl);   // replace 避免在历史记录留下过渡页
+  }
+
+  // 页面被切到后台 → 认为 App 已成功打开，取消降级
   function onVisibilityChange(){
     if (document.hidden){
-      fallbackTriggered = true;
-      clearTimeout(fallbackTimer);
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-      document.removeEventListener('pagehide', onPageHide);
+      if (settled) return;
+      settled = true;
+      cleanup();
     }
   }
+
+  // 页面即将卸载（如跳转 App）→ 取消降级
   function onPageHide(){
-    fallbackTriggered = true;
-    clearTimeout(fallbackTimer);
+    if (settled) return;
+    settled = true;
+    cleanup();
   }
+
+  // 1) 启动降级计时器（1.8s 内没进 App 就跳网页）
+  fallbackTimer = setTimeout(fallbackToWeb, 1800);
+
+  // 2) 监听页面状态变化
   document.addEventListener('visibilitychange', onVisibilityChange);
   window.addEventListener('pagehide', onPageHide, { once: true });
 
+  // 3) 用隐藏 iframe 唤起 App（比 location.href 更稳定，唤端失败不会显示错误页）
   try {
-    window.location.href = appScheme;
+    var iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = appScheme;
+    document.body.appendChild(iframe);
+
+    setTimeout(function(){
+      if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+    }, 2500);
   } catch (err){
-    fallbackTriggered = true;
-    clearTimeout(fallbackTimer);
-    window.location.href = webUrl;
+    // iframe 创建就异常 → 直接降级
+    fallbackToWeb();
   }
 }
-
 var _geoNameCache      = new Map();
 var _geoNameFailStreak = 0;
 var _geoNameDisabled   = false;
