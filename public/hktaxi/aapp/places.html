@@ -558,44 +558,68 @@ function openPlaceInMaps(id){
   if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
 
   var name = encodeURIComponent(p.name || '目的地');
+  
+  // 1. 網頁版降級地址
   var webUrl = 'https://uri.amap.com/navigation?to=' + p.lng + ',' + p.lat + ',' + name + '&mode=car&policy=1&src=hk-taxi-helper&coordinate=wgs84&callnative=1';
 
   var ua = navigator.userAgent || '';
   var isMobile = /iPhone|iPad|iPod|Android|HarmonyOS|Mobile|Windows Phone/i.test(ua);
 
-  if (!isMobile){ window.open(webUrl, '_blank'); return; }
+  // 桌面端：直接開網頁
+  if (!isMobile){ 
+    window.open(webUrl, '_blank'); 
+    return; 
+  }
 
-  var appScheme = 'amapuri://route/plan/?dlat=' + p.lat + '&dlon=' + p.lng + '&dname=' + name + '&dev=1&t=0';
+  // 2. 手機端高德 App 導航 Scheme（dev=0 配合香港 WGS84 坐標）
+  var appScheme = 'amapuri://route/plan/?sourceApplication=hk-taxi-helper&lat=' + p.lat + '&lon=' + p.lng + '&poiname=' + name + '&dev=0&t=0';
 
   var startTime = Date.now();
   var fallbackTriggered = false;
 
+  function cleanup(){
+    clearTimeout(fallbackTimer);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    window.removeEventListener('pagehide', onPageHide);
+  }
+
+  // 3. 啟動 2 秒降級計時器
   var fallbackTimer = setTimeout(function(){
     if (fallbackTriggered) return;
     if (!document.hidden && (Date.now() - startTime) < 3000){
       fallbackTriggered = true;
+      cleanup();
       window.location.href = webUrl;
     }
-    document.removeEventListener('visibilitychange', onVisibilityChange);
-    document.removeEventListener('pagehide', onPageHide);
   }, 2000);
 
   function onVisibilityChange(){
     if (document.hidden){
       fallbackTriggered = true;
-      clearTimeout(fallbackTimer);
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-      document.removeEventListener('pagehide', onPageHide);
+      cleanup();
     }
   }
-  function onPageHide(){ fallbackTriggered = true; clearTimeout(fallbackTimer); }
+
+  function onPageHide(){
+    if (fallbackTriggered) return;
+    fallbackTriggered = true;
+    cleanup();
+  }
+
   document.addEventListener('visibilitychange', onVisibilityChange);
   window.addEventListener('pagehide', onPageHide, { once: true });
 
-  try { window.location.href = appScheme; }
-  catch (err){ fallbackTriggered = true; clearTimeout(fallbackTimer); window.location.href = webUrl; }
+  // 4. 嘗試喚起高德 App
+  try { 
+    window.location.href = appScheme; 
+  } catch (err){ 
+    if (!fallbackTriggered){
+      fallbackTriggered = true;
+      cleanup();
+      window.location.href = webUrl; 
+    }
+  }
 }
-
 /* ---------- 附近排序 ---------- */
 function toggleNearbyPlaces(){
   var btnText = document.getElementById('nearby-btn-text');
