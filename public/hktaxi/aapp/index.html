@@ -788,20 +788,22 @@ function openTripLocationInMaps(tripId){
   var pointName = '行程 ' + label;
   var encName = encodeURIComponent(pointName);
 
+  // Web 降级地址（浏览器 / 桌面端 / App 未安装时使用）
+  var webUrl = 'https://uri.amap.com/marker' +
+               '?position=' + lng + ',' + lat +
+               '&name=' + encName +
+               '&coordinate=wgs84&src=hk-taxi-helper&callnative=1';
+
   var ua = navigator.userAgent || '';
   var isMobile = /iPhone|iPad|iPod|Android|HarmonyOS|Mobile|Windows Phone/i.test(ua);
 
-  // 如果是桌面端，若真的需要也可以給個提示或直接用網頁版（此處保留或依需求調整）
+  // 桌面端：直接开网页
   if (!isMobile){
-    var webUrl = 'https://uri.amap.com/marker' +
-                 '?position=' + lng + ',' + lat +
-                 '&name=' + encName +
-                 '&coordinate=wgs84&src=hk-taxi-helper&callnative=0';
     window.open(webUrl, '_blank');
     return;
   }
 
-  // 手机端：只尝试用高德 App 打开，失败/没安装则留在原地，绝不跳网页
+  // 手机端：优先用高德 App 打开（viewMap 查看地图标记点）
   var appScheme = 'amapuri://viewMap' +
                   '?sourceApplication=hk-taxi-helper' +
                   '&poiname=' + encName +
@@ -809,21 +811,44 @@ function openTripLocationInMaps(tripId){
                   '&lon=' + lng +
                   '&dev=0';
 
-  // 尝试用隐藏 iframe 唤起 App
-  try {
-    var iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.src = appScheme;
-    document.body.appendChild(iframe);
+  var startTime = Date.now();
+  var fallbackTriggered = false;
 
-    setTimeout(function(){
-      if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-    }, 2500);
+  // 2 秒内未切到 App → 自动降级到网页
+  var fallbackTimer = setTimeout(function(){
+    if (fallbackTriggered) return;
+    if (!document.hidden && (Date.now() - startTime) < 3000){
+      fallbackTriggered = true;
+      window.location.href = webUrl;
+    }
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    document.removeEventListener('pagehide', onPageHide);
+  }, 2000);
+
+  function onVisibilityChange(){
+    if (document.hidden){
+      fallbackTriggered = true;
+      clearTimeout(fallbackTimer);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      document.removeEventListener('pagehide', onPageHide);
+    }
+  }
+  function onPageHide(){
+    fallbackTriggered = true;
+    clearTimeout(fallbackTimer);
+  }
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  window.addEventListener('pagehide', onPageHide, { once: true });
+
+  try {
+    window.location.href = appScheme;
   } catch (err){
-    // 捕获异常，静默处理，绝不跳转网页
-    console.warn('唤起高德地图 App 失败', err);
+    fallbackTriggered = true;
+    clearTimeout(fallbackTimer);
+    window.location.href = webUrl;
   }
 }
+
 var _geoNameCache      = new Map();
 var _geoNameFailStreak = 0;
 var _geoNameDisabled   = false;
