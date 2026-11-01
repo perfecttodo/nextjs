@@ -304,6 +304,9 @@ function mountSubPage(href, html, container, shouldShow, loadingEl){
       /* ★ 两个收集池：DOMContentLoaded/load 与 pageshow 分开 ★ */
       '  var __captured__ = [];\n' +
       '  var __capturedShow__ = [];\n' +
+      /* ★ 真实文档级事件白名单：这些事件只会在真实 document 上派发，
+           绑到 ShadowRoot 上永远收不到，必须转发到 __realDoc__ ★ */
+      '  var __DOC_LEVEL_EVENTS__ = { visibilitychange:1, freeze:1, resume:1, pagehide:1 };\n' +
       '  var document = {\n' +
       '    getElementById: function(id){ return __shadow__.getElementById(id); },\n' +
       '    querySelector: function(sel){ return __shadow__.querySelector(sel); },\n' +
@@ -317,15 +320,30 @@ function mountSubPage(href, html, container, shouldShow, loadingEl){
       '        __capturedShow__.push({ type: type, handler: handler });\n' +
       '        return;\n' +
       '      }\n' +
+      '      if (__DOC_LEVEL_EVENTS__[type]){\n' +
+      '        return __realDoc__.addEventListener(type, handler, opts);\n' +
+      '      }\n' +
       '      __shadow__.addEventListener(type, handler, opts);\n' +
       '    },\n' +
-      '    removeEventListener: function(t,h,o){ __shadow__.removeEventListener(t,h,o); },\n' +
+      '    removeEventListener: function(t,h,o){\n' +
+      '      if (__DOC_LEVEL_EVENTS__[t]){\n' +
+      '        return __realDoc__.removeEventListener(t,h,o);\n' +
+      '      }\n' +
+      '      __shadow__.removeEventListener(t,h,o);\n' +
+      '    },\n' +
       '    createElement: function(tag){ return __realDoc__.createElement(tag); },\n' +
       '    createTextNode: function(t){ return __realDoc__.createTextNode(t); },\n' +
       '    body: __bodyDiv__, head: __shadow__,\n' +
-      '    documentElement: __realDoc__.documentElement,\n' +
-      '    readyState: "complete", hidden: __realDoc__.hidden, activeElement: __realDoc__.activeElement\n' +
+      '    documentElement: __realDoc__.documentElement\n' +
       '  };\n' +
+      /* ★ hidden / readyState / activeElement 用 getter 实时读取。
+           注意：这里必须用 __realWin__.Object，因为 wrapped 后面有
+           "var Object = __realWin__.Object;"，var 提升会让裸 Object
+           在赋值前是 undefined，导致 "Cannot read properties of
+           undefined (reading 'defineProperty')" ★ */
+      '  __realWin__.Object.defineProperty(document, "readyState",    { get: function(){ return __realDoc__.readyState;    }, configurable: true });\n' +
+      '  __realWin__.Object.defineProperty(document, "hidden",        { get: function(){ return __realDoc__.hidden;        }, configurable: true });\n' +
+      '  __realWin__.Object.defineProperty(document, "activeElement", { get: function(){ return __realDoc__.activeElement; }, configurable: true });\n' +
       '  var localStorage = __realWin__.localStorage;\n' +
       '  var navigator = __realWin__.navigator;\n' +
       '  var location = __realWin__.location;\n' +
