@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MP3 智慧管理與分類系統</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome 擴充圖示 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- 頂部導覽列 -->
+    <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50 px-4 md:px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-start">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 p-2.5 rounded-xl text-white shadow-lg shadow-indigo-500/35">
+                    <i class="fa-solid fa-headphones-simple text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold tracking-wide">MP3 雲端管理</h1>
+                    <p class="text-xs text-slate-400">即時串流、分類與維護</p>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3 w-full md:w-auto max-w-xl">
+            <input type="text" id="dirInput" placeholder="輸入資料夾絕對路徑..." 
+                class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500 flex-1 md:w-80">
+            <button onclick="loadFiles()" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm font-medium transition shadow-md whitespace-nowrap">
+                <i class="fa-solid fa-rotate mr-1.5"></i> 載入
+            </button>
+        </div>
+    </header>
+
+    <!-- 主要內容區 -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6 pb-36">
+        
+        <!-- 左側：分類與搜尋 -->
+        <div class="lg:col-span-1 space-y-4">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl">
+                <div class="flex items-center justify-between mb-3 px-1">
+                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">分類標籤</h2>
+                    <span id="count-badge" class="text-xs text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-500/30">0 首</span>
+                </div>
+                <div id="categoryFilters" class="flex lg:flex-col space-x-2 lg:space-x-0 lg:space-y-1.5 overflow-x-auto lg:overflow-visible no-scrollbar pb-1 lg:pb-0">
+                    <!-- 動態載入分類 -->
+                </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl">
+                <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5 px-1">快速搜尋</h2>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
+                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                    </span>
+                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜尋歌名..." 
+                        class="w-full bg-slate-800/80 border border-slate-700 text-sm rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:border-indigo-500 text-slate-200">
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側：MP3 檔案列表與分頁 -->
+        <div class="lg:col-span-3 space-y-4">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="px-4 md:px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+                        <h2 class="font-semibold text-slate-200 flex items-center text-sm md:text-base">
+                            <i class="fa-solid fa-list-music mr-2 text-indigo-400"></i> 檔案列表
+                        </h2>
+                        <div class="flex items-center space-x-3">
+                            <span id="fileCountText" class="text-xs text-slate-400">共 0 首</span>
+                            <select id="pageSizeSelect" onchange="changePageSize(this.value)" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-300 focus:outline-none">
+                                <option value="10">10 筆/頁</option>
+                                <option value="20" selected>20 筆/頁</option>
+                                <option value="50">50 筆/頁</option>
+                                <option value="100">100 筆/頁</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase bg-slate-950/40">
+                                    <th class="py-3 px-4 md:px-6">狀態 / 歌名</th>
+                                    <th class="py-3 px-3 md:px-4">分類</th>
+                                    <th class="py-3 px-3 md:px-4">大小</th>
+                                    <th class="py-3 px-4 md:px-6 text-right">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fileTableBody" class="divide-y divide-slate-800/60 text-sm">
+                                <tr>
+                                    <td colspan="4" class="text-center py-12 text-slate-500">
+                                        <i class="fa-solid fa-folder-open text-3xl mb-2 block"></i>
+                                        請輸入路徑並點擊「載入」
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 分頁導航列 -->
+                <div id="paginationContainer" class="px-4 md:px-6 py-4 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-3 bg-slate-950/30"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部固定音訊播放器 -->
+    <footer class="fixed bottom-0 left-0 right-0 bg-slate-900/98 backdrop-blur-md border-t border-slate-800 p-3 md:p-4 shadow-2xl z-50">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="flex items-center space-x-3 w-full md:w-1/4">
+                <div class="w-10 h-10 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 flex-shrink-0">
+                    <i id="playerIcon" class="fa-solid fa-music"></i>
+                </div>
+                <div class="overflow-hidden">
+                    <div id="currentSongTitle" class="text-xs md:text-sm font-medium truncate text-slate-200">尚未選擇播放歌曲</div>
+                    <div id="currentSongCategory" class="text-xs text-indigo-400">就緒</div>
+                </div>
+            </div>
+
+            <!-- 播放控制項 -->
+            <div class="flex flex-col items-center w-full md:w-2/4 space-y-1">
+                <div class="flex items-center space-x-4">
+                    <!-- 播放模式切換按鈕 -->
+                    <button onclick="togglePlayMode()" id="playModeBtn" class="text-slate-400 hover:text-indigo-400 text-sm transition" title="播放模式: 列表循環">
+                        <i class="fa-solid fa-repeat"></i>
+                    </button>
+                    <button onclick="playPrev()" class="text-slate-400 hover:text-white transition" title="上一首"><i class="fa-solid fa-backward-step"></i></button>
+                    <button onclick="togglePlay()" id="playPauseBtn" class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg transition">
+                        <i class="fa-solid fa-play text-xs"></i>
+                    </button>
+                    <button onclick="playNext()" class="text-slate-400 hover:text-white transition" title="下一首"><i class="fa-solid fa-forward-step"></i></button>
+                    
+                    <!-- 快速顯示目前模式文字 -->
+                    <span id="modeText" class="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded">循環</span>
+                </div>
+                <div class="w-full flex items-center space-x-3 text-xs text-slate-400">
+                    <span id="currentTime">00:00</span>
+                    <input type="range" id="progressBar" value="0" max="100" step="0.1" onchange="seekAudio(this.value)"
+                        class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                    <span id="durationTime">00:00</span>
+                </div>
+            </div>
+
+            <!-- 音量 -->
+            <div class="hidden md:flex items-center space-x-3 w-1/4 justify-end">
+                <i class="fa-solid fa-volume-high text-slate-400 text-sm"></i>
+                <input type="range" min="0" max="1" step="0.05" value="1" oninput="audioPlayer.volume = this.value"
+                        class="w-24 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+            </div>
+        </div>
+    </footer>
+
+    <!-- 隱藏式音訊元素 -->
+    <audio id="audioPlayer" ontimeupdate="updateProgress()" onended="onAudioEnded()"></audio>
+
+    <!-- JavaScript 互動邏輯 -->
+    <script>
+        let allFiles = [];
+        let categories = ['未分類', '流行', '輕音樂', '工作', '其他'];
+        let currentCategory = '全部';
+        let currentPlayingFile = null;
+        const audioPlayer = document.getElementById('audioPlayer');
+
+        // 分頁與播放狀態
+        let currentPage = 1;
+        let pageSize = 20;
+        
+        // 播放模式: 'loop'(列表循環), 'shuffle'(隨機播放), 'single'(單曲循環), 'sequence'(順序播放停止)
+        let playMode = 'loop'; 
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const dirParam = params.get('dir');
+            if (dirParam) {
+                document.getElementById('dirInput').value = dirParam;
+            }
+            loadFiles();
+        });
+
+        async function loadFiles() {
+            const dirInputEl = document.getElementById('dirInput');
+            const dir = dirInputEl ? dirInputEl.value.trim() : '';
+            
+            try {
+                const url = `/api/mp3?dir=${encodeURIComponent(dir)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                if (data.success) {
+                    allFiles = data.files;
+                    if (data.categories && data.categories.length > 0) {
+                        categories = data.categories;
+                    }
+                    currentPage = 1;
+                    renderCategories();
+                    renderTable();
+                } else {
+                    alert('載入失敗: ' + (data.error || '未知錯誤'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('無法連線至 API 伺服器');
+            }
+        }
+
+        // 取得目前篩選及搜尋後的有效播放清單
+        function getFilteredFiles() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            return allFiles.filter(f => {
+                const matchCat = (currentCategory === '全部' || f.category === currentCategory);
+                const matchKey = f.displayName.toLowerCase().includes(keyword) || f.filename.toLowerCase().includes(keyword);
+                return matchCat && matchKey;
+            });
+        }
+
+        // 切換播放模式
+        function togglePlayMode() {
+            const modes = ['loop', 'shuffle', 'single', 'sequence'];
+            const modeNames = {
+                'loop': { icon: 'fa-repeat', text: '循環' },
+                'shuffle': { icon: 'fa-shuffle', text: '隨機' },
+                'single': { icon: 'fa-repeat-1', text: '單曲' },
+                'sequence': { icon: 'fa-arrow-right', text: '順序' }
+            };
+
+            let nextIdx = (modes.indexOf(playMode) + 1) % modes.length;
+            playMode = modes[nextIdx];
+
+            const btn = document.getElementById('playModeBtn');
+            const modeText = document.getElementById('modeText');
+            
+            btn.innerHTML = `<i class="fa-solid ${modeNames[playMode].icon}"></i>`;
+            modeText.innerText = modeNames[playMode].text;
+            btn.title = `播放模式: ${modeNames[playMode].text}`;
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categoryFilters');
+            let html = `
+                <button onclick="filterCategory('全部')" class="cat-btn flex-shrink-0 lg:w-full text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${currentCategory === '全部' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'bg-slate-800/60 lg:bg-transparent hover:bg-slate-800 text-slate-300'}" data-cat="全部">
+                    <span>全部</span>
+                    <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${allFiles.length}</span>
+                </button>
+            `;
+
+            categories.forEach(cat => {
+                const count = allFiles.filter(f => f.category === cat).length;
+                const isActive = currentCategory === cat;
+                html += `
+                    <button onclick="filterCategory('${cat}')" class="cat-btn flex-shrink-0 lg:w-full text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${isActive ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'bg-slate-800/60 lg:bg-transparent hover:bg-slate-800 text-slate-300'}" data-cat="${cat}">
+                        <span>${cat}</span>
+                        <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${count}</span>
+                    </button>
+                `;
+            });
+            container.innerHTML = html;
+            document.getElementById('count-badge').innerText = `${allFiles.length} 首`;
+        }
+
+        function filterCategory(cat) {
+            currentCategory = cat;
+            currentPage = 1;
+            renderCategories();
+            renderTable();
+        }
+
+        function handleSearch() {
+            currentPage = 1;
+            renderTable();
+        }
+
+        function changePageSize(size) {
+            pageSize = parseInt(size);
+            currentPage = 1;
+            renderTable();
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            renderTable();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderTable() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            const tbody = document.getElementById('fileTableBody');
+            let filtered = getFilteredFiles();
+
+            document.getElementById('fileCountText').innerText = `共 ${filtered.length} 首`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center py-12 text-slate-500">
+                            <i class="fa-solid fa-music text-3xl mb-2 block"></i>
+                            沒有找到符合的 MP3 檔案
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('paginationContainer').innerHTML = '';
+                return;
+            }
+
+            const totalPages = Math.ceil(filtered.length / pageSize);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIdx = (currentPage - 1) * pageSize;
+            const endIdx = startIdx + pageSize;
+            const pageItems = filtered.slice(startIdx, endIdx);
+
+            let html = '';
+            pageItems.forEach(file => {
+                const isPlaying = currentPlayingFile === file.filename;
+                const sizeMb = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+                let catOptions = categories.map(c => `<option value="${c}" ${c === file.category ? 'selected' : ''}>${c}</option>`).join('');
+
+                html += `
+                    <tr class="hover:bg-slate-900/50 transition ${isPlaying ? 'bg-indigo-950/20 border-l-4 border-indigo-500' : ''}">
+                        <td class="py-3 px-4 md:px-6 flex items-center space-x-3">
+                            <button onclick="playSong('${file.filename}', '${file.displayName}')" class="w-9 h-9 rounded-lg ${isPlaying ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-indigo-400 hover:bg-indigo-600 hover:text-white'} flex items-center justify-center transition shadow flex-shrink-0">
+                                <i class="fa-solid ${isPlaying && !audioPlayer.paused ? 'fa-pause' : 'fa-play'} text-xs"></i>
+                            </button>
+                            <span class="font-medium text-slate-200 truncate max-w-[180px] md:max-w-xs" title="${file.displayName}">${file.displayName}</span>
+                        </td>
+                        <td class="py-3 px-3 md:px-4">
+                            <select onchange="changeCategory('${file.filename}', this.value)" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-300 focus:outline-none focus:border-indigo-500">
+                                ${catOptions}
+                            </select>
+                        </td>
+                        <td class="py-3 px-3 md:px-4 text-xs text-slate-400 whitespace-nowrap">${sizeMb}</td>
+                        <td class="py-3 px-4 md:px-6 text-right">
+                            <button onclick="deleteSong('${file.filename}')" class="text-slate-500 hover:text-rose-400 p-1.5 transition" title="刪除檔案">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+            renderPagination(totalPages, filtered.length);
+        }
+
+        function renderPagination(totalPages, totalItems) {
+            const container = document.getElementById('paginationContainer');
+            if (totalPages <= 1) {
+                container.innerHTML = `<span class="text-xs text-slate-400">顯示全部 ${totalItems} 筆資料</span>`;
+                return;
+            }
+
+            const startItem = (currentPage - 1) * pageSize + 1;
+            const endItem = Math.min(currentPage * pageSize, totalItems);
+
+            let paginationHtml = `
+                <span class="text-xs text-slate-400">顯示 ${startItem}-${endItem} / 共 ${totalItems} 筆</span>
+                <div class="flex items-center space-x-1.5">
+                    <button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="px-3 py-1.5 bg-slate-800 text-xs rounded-lg font-medium text-slate-300 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                        <i class="fa-solid fa-chevron-left mr-1"></i> 上一頁
+                    </button>
+            `;
+
+            let startPage = Math.max(1, currentPage - 1);
+            let endPage = Math.min(totalPages, startPage + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                const isActive = i === currentPage;
+                paginationHtml += `
+                    <button onclick="goToPage(${i})" class="w-8 h-8 text-xs rounded-lg font-medium transition ${isActive ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}">
+                        ${i}
+                    </button>
+                `;
+            }
+
+            paginationHtml += `
+                    <button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="px-3 py-1.5 bg-slate-800 text-xs rounded-lg font-medium text-slate-300 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                        下一頁 <i class="fa-solid fa-chevron-right ml-1"></i>
+                    </button>
+                </div>
+            `;
+
+            container.innerHTML = paginationHtml;
+        }
+
+        function playSong(filename, displayName) {
+            const dir = document.getElementById('dirInput').value.trim();
+            const streamUrl = `/api/mp3?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(filename)}`;
+            
+            if (currentPlayingFile !== filename) {
+                currentPlayingFile = filename;
+                audioPlayer.src = streamUrl;
+                audioPlayer.play();
+                document.getElementById('currentSongTitle').innerText = displayName;
+                document.getElementById('currentSongCategory').innerText = allFiles.find(f => f.filename === filename)?.category || '';
+            } else {
+                if (audioPlayer.paused) {
+                    audioPlayer.play();
+                } else {
+                    audioPlayer.pause();
+                }
+            }
+            renderTable();
+            updatePlayButton();
+        }
+
+        // 上一首
+        function playPrev() {
+            const list = getFilteredFiles();
+            if (list.length === 0) return;
+            const currentIndex = list.findIndex(f => f.filename === currentPlayingFile);
+            let prevIndex = currentIndex - 1;
+            if (prevIndex < 0) prevIndex = list.length - 1;
+            playSong(list[prevIndex].filename, list[prevIndex].displayName);
+        }
+
+        // 下一首
+        function playNext() {
+            const list = getFilteredFiles();
+            if (list.length === 0) return;
+
+            if (playMode === 'shuffle') {
+                // 隨機播放：隨機挑選一首不同的歌
+                let randomIndex = Math.floor(Math.random() * list.length);
+                if (list.length > 1 && list[randomIndex].filename === currentPlayingFile) {
+                    randomIndex = (randomIndex + 1) % list.length;
+                }
+                playSong(list[randomIndex].filename, list[randomIndex].displayName);
+                return;
+            }
+
+            const currentIndex = list.findIndex(f => f.filename === currentPlayingFile);
+            let nextIndex = currentIndex + 1;
+
+            if (nextIndex >= list.length) {
+                if (playMode === 'sequence') {
+                    // 順序播放到底停止
+                    audioPlayer.pause();
+                    currentPlayingFile = null;
+                    renderTable();
+                    updatePlayButton();
+                    return;
+                }
+                nextIndex = 0; // 列表循環回到第一首
+            }
+            playSong(list[nextIndex].filename, list[nextIndex].displayName);
+        }
+
+        // 當歌曲自然播放結束時觸發
+        function onAudioEnded() {
+            if (playMode === 'single') {
+                // 單曲循環：重新播放當前歌曲
+                audioPlayer.currentTime = 0;
+                audioPlayer.play();
+                return;
+            }
+            playNext();
+        }
+
+        function togglePlay() {
+            if (!audioPlayer.src) {
+                const list = getFilteredFiles();
+                if (list.length > 0) {
+                    playSong(list[0].filename, list[0].displayName);
+                }
+                return;
+            }
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+            } else {
+                audioPlayer.pause();
+            }
+            updatePlayButton();
+            renderTable();
+        }
+
+        function updatePlayButton() {
+            const btn = document.getElementById('playPauseBtn');
+            btn.innerHTML = audioPlayer.paused ? '<i class="fa-solid fa-play text-xs"></i>' : '<i class="fa-solid fa-pause text-xs"></i>';
+        }
+
+        function updateProgress() {
+            if (isNaN(audioPlayer.duration)) return;
+            const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            document.getElementById('progressBar').value = progress;
+            document.getElementById('currentTime').innerText = formatTime(audioPlayer.currentTime);
+            document.getElementById('durationTime').innerText = formatTime(audioPlayer.duration);
+        }
+
+        function seekAudio(val) {
+            if (isNaN(audioPlayer.duration)) return;
+            audioPlayer.currentTime = (val / 100) * audioPlayer.duration;
+        }
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        async function changeCategory(filename, newCategory) {
+            const dir = document.getElementById('dirInput').value.trim();
+            try {
+                const res = await fetch('/api/mp3', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dir, filename, newCategory })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    loadFiles();
+                } else {
+                    alert('修改失敗: ' + data.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('網路錯誤');
+            }
+        }
+
+        async function deleteSong(filename) {
+            if (!confirm(`確定要刪除「${filename}」嗎？此操作無法復原。`)) return;
+            const dir = document.getElementById('dirInput').value.trim();
+            try {
+                const res = await fetch(`/api/mp3?dir=${encodeURIComponent(dir)}&filename=${encodeURIComponent(filename)}`, {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (currentPlayingFile === filename) {
+                        audioPlayer.pause();
+                        currentPlayingFile = null;
+                    }
+                    loadFiles();
+                } else {
+                    alert('刪除失敗: ' + data.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('網路錯誤');
+            }
+        }
+    </script>
+</body>
+</html>
