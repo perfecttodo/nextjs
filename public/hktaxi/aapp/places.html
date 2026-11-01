@@ -558,76 +558,40 @@ function openPlaceInMaps(id){
   var p = places.find(function(x){ return x.id === id; });
   if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
 
-  var destLat = p.lat;
-  var destLng = p.lng;
-  var destName = p.name;
-  var encDestName = encodeURIComponent(destName);
+  var lat = p.lat;
+  var lng = p.lng;
+  var pointName = p.name;
+  var encName = encodeURIComponent(pointName);
 
-  // 1. 主动获取浏览器当前定位，确保能带入起点
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      function(position) {
-        var startLat = position.coords.latitude;
-        var startLng = position.coords.longitude;
-        // 成功取得定位，带起终点执行导航
-        executeNavigation(startLat, startLng, "我的位置", destLat, destLng, encDestName);
-      },
-      function(error) {
-        // 定位失败或用户拒絕授权时，退化为只传终点（让高德尝试默认定位）
-        console.warn("Geolocation failed, falling back to destination-only:", error);
-        executeNavigation(null, null, "", destLat, destLng, encDestName);
-      },
-      { timeout: 5000, enableHighAccuracy: true }
-    );
-  } else {
-    // 浏览器不支持定位，直接传终点
-    executeNavigation(null, null, "", destLat, destLng, encDestName);
-  }
-}
-
-function executeNavigation(sLat, sLon, sName, dLat, dLon, encDestName) {
-  // Web 降级地址：如果有起点，就拼接 from 参数；没有则只传 to
-  var webUrl = 'https://uri.amap.com/navigation?' +
-               (sLat && sLon ? 'from=' + sLon + ',' + sLat + ',' + encodeURIComponent(sName) + '&' : '') +
-               'to=' + dLon + ',' + dLat + ',' + encDestName +
-               '&mode=car' +
-               '&policy=0' +
-               '&coordinate=wgs84' +
-               '&src=hk-taxi-helper' +
-               '&callnative=1';
+  // Web 降级地址（浏览器 / 桌面端 / App 未安装时使用）
+  var webUrl = 'https://uri.amap.com/marker' +
+               '?position=' + lng + ',' + lat +
+               '&name=' + encName +
+               '&coordinate=wgs84&src=hk-taxi-helper&callnative=1';
 
   var ua = navigator.userAgent || '';
   var isMobile = /iPhone|iPad|iPod|Android|HarmonyOS|Mobile|Windows Phone/i.test(ua);
 
-  // 桌面端：直接开网页导航
+  // 桌面端：直接开网页
   if (!isMobile){
     window.open(webUrl, '_blank');
     return;
   }
 
-  // 手机端 App Scheme：
-  // 如果成功拿到起点坐标，使用 route 协议明确指定起终点；否则使用 navi 协议
-  var appScheme = '';
-  if (sLat && sLon) {
-    appScheme = 'amapuri://route/?sourceApplication=hk-taxi-helper' +
-                '&slat=' + sLat +
-                '&slon=' + sLon +
-                '&sname=' + encodeURIComponent(sName) +
-                '&dlat=' + dLat +
-                '&dlon=' + dLon +
-                '&dname=' + encDestName +
-                '&dev=0' +
-                '&t=0'; // 0: 驾车
-  } else {
-    appScheme = 'amapuri://navi?' +
-                'sourceApplication=hk-taxi-helper' +
-                '&lat=' + dLat +
-                '&lon=' + dLon +
-                '&name=' + encDestName +
-                '&dev=0' +
-                '&style=2';
-  }
+  // 手机端：优先用高德 App 打开（viewMap 查看地图标记点）
+  var appScheme = 'amapuri://viewMap' +
+                  '?sourceApplication=hk-taxi-helper' +
+                  '&poiname=' + encName +
+                  '&lat=' + lat +
+                  '&lon=' + lng +
+                  '&dev=0';
 
+  // ★★★ 关键修复 ★★★
+  // loader.js 的 document shim 有两个坑：
+  //  1) visibilitychange 被转发到 ShadowRoot 上，永远收不到；
+  //  2) document.hidden 是快照，恒为 false。
+  // 而在 wrapped 里 window 就是真实 window，window.document 就是真实 document。
+  // 用 window.document 绕开 shim；独立运行时行为完全一样。
   var realDoc = window.document;
 
   var startTime = Date.now();
@@ -635,7 +599,7 @@ function executeNavigation(sLat, sLon, sName, dLat, dLon, encDestName) {
 
   function cleanup(){
     realDoc.removeEventListener('visibilitychange', onVisibilityChange);
-    window.removeEventListener('pagehide', onPageHide);
+    window.removeEventListener('pagehide', onPageHide);   // 原来写的是 document.removeEventListener，删不掉
   }
 
   // 2 秒内未切到 App → 自动降级到网页
@@ -673,6 +637,7 @@ function executeNavigation(sLat, sLon, sName, dLat, dLon, encDestName) {
     window.location.href = webUrl;
   }
 }
+
 /* ---------- 附近排序 ---------- */
 function toggleNearbyPlaces(){
   var btnText = document.getElementById('nearby-btn-text');
