@@ -558,10 +558,9 @@ function openPlaceInMaps(id){
   var p = places.find(function(x){ return x.id === id; });
   if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
 
-
   var lat = p.lat;
   var lng = p.lng;
-  var pointName = p.name ;
+  var pointName = p.name;
   var encName = encodeURIComponent(pointName);
 
   // Web 降级地址（浏览器 / 桌面端 / App 未安装时使用）
@@ -587,33 +586,46 @@ function openPlaceInMaps(id){
                   '&lon=' + lng +
                   '&dev=0';
 
+  // ★★★ 关键修复 ★★★
+  // loader.js 的 document shim 有两个坑：
+  //  1) visibilitychange 被转发到 ShadowRoot 上，永远收不到；
+  //  2) document.hidden 是快照，恒为 false。
+  // 而在 wrapped 里 window 就是真实 window，window.document 就是真实 document。
+  // 用 window.document 绕开 shim；独立运行时行为完全一样。
+  var realDoc = window.document;
+
   var startTime = Date.now();
   var fallbackTriggered = false;
+
+  function cleanup(){
+    realDoc.removeEventListener('visibilitychange', onVisibilityChange);
+    window.removeEventListener('pagehide', onPageHide);   // 原来写的是 document.removeEventListener，删不掉
+  }
 
   // 2 秒内未切到 App → 自动降级到网页
   var fallbackTimer = setTimeout(function(){
     if (fallbackTriggered) return;
-    if (!document.hidden && (Date.now() - startTime) < 3000){
+    if (!realDoc.hidden && (Date.now() - startTime) < 3000){
       fallbackTriggered = true;
       window.location.href = webUrl;
     }
-    document.removeEventListener('visibilitychange', onVisibilityChange);
-    document.removeEventListener('pagehide', onPageHide);
+    cleanup();
   }, 2000);
 
   function onVisibilityChange(){
-    if (document.hidden){
+    if (realDoc.hidden){
       fallbackTriggered = true;
       clearTimeout(fallbackTimer);
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-      document.removeEventListener('pagehide', onPageHide);
+      cleanup();
     }
   }
   function onPageHide(){
     fallbackTriggered = true;
     clearTimeout(fallbackTimer);
+    cleanup();
   }
-  document.addEventListener('visibilitychange', onVisibilityChange);
+
+  realDoc.addEventListener('visibilitychange', onVisibilityChange);
   window.addEventListener('pagehide', onPageHide, { once: true });
 
   try {
@@ -621,10 +633,10 @@ function openPlaceInMaps(id){
   } catch (err){
     fallbackTriggered = true;
     clearTimeout(fallbackTimer);
+    cleanup();
     window.location.href = webUrl;
   }
 }
-
 
 /* ---------- 附近排序 ---------- */
 function toggleNearbyPlaces(){
