@@ -13,35 +13,35 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+<body class="bg-slate-950 text-slate-100 h-screen flex flex-col overflow-hidden">
 
     <!-- 頂部導覽列 -->
-    <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50 px-4 md:px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur shrink-0 px-4 md:px-6 py-3 flex flex-col md:flex-row items-center justify-between gap-3 z-20">
         <div class="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-start">
             <div class="flex items-center space-x-3">
-                <div class="bg-indigo-600 p-2.5 rounded-xl text-white shadow-lg shadow-indigo-500/35">
-                    <i class="fa-solid fa-headphones-simple text-xl"></i>
+                <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/35">
+                    <i class="fa-solid fa-headphones-simple text-lg"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg md:text-xl font-bold tracking-wide">MP3 雲端管理</h1>
-                    <p class="text-xs text-slate-400">即時串流、分類與維護</p>
+                    <h1 class="text-base md:text-lg font-bold tracking-wide">MP3 雲端管理</h1>
+                    <p class="text-[11px] text-slate-400">即時串流、分類與維護</p>
                 </div>
             </div>
         </div>
         <div class="flex items-center space-x-3 w-full md:w-auto max-w-xl">
             <input type="text" id="dirInput" placeholder="輸入資料夾絕對路徑..." 
-                class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500 flex-1 md:w-80">
-            <button onclick="loadFiles()" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm font-medium transition shadow-md whitespace-nowrap">
+                class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500 flex-1 md:w-80">
+            <button onclick="loadFiles()" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-1.5 rounded-lg text-sm font-medium transition shadow-md whitespace-nowrap">
                 <i class="fa-solid fa-rotate mr-1.5"></i> 載入
             </button>
         </div>
     </header>
 
     <!-- 主要內容區 -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6 pb-36">
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-hidden pb-24">
         
         <!-- 左側：分類與搜尋 -->
-        <div class="lg:col-span-1 space-y-4">
+        <div class="lg:col-span-1 space-y-4 flex flex-col shrink-0">
             <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl">
                 <div class="flex items-center justify-between mb-3 px-1">
                     <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">分類標籤</h2>
@@ -58,61 +58,74 @@
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i>
                     </span>
-                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜尋歌名..." 
+                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜尋歌名或目錄..." 
                         class="w-full bg-slate-800/80 border border-slate-700 text-sm rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:border-indigo-500 text-slate-200">
                 </div>
             </div>
         </div>
 
         <!-- 右側：MP3 檔案列表與分頁 -->
-        <div class="lg:col-span-3 space-y-4">
-            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col justify-between">
-                <div>
-                    <div class="px-4 md:px-6 py-4 border-b border-slate-800 flex justify-between items-center">
-                        <h2 class="font-semibold text-slate-200 flex items-center text-sm md:text-base">
-                            <i class="fa-solid fa-list-music mr-2 text-indigo-400"></i> 檔案列表
-                        </h2>
-                        <div class="flex items-center space-x-3">
-                            <span id="fileCountText" class="text-xs text-slate-400">共 0 首</span>
-                            <select id="pageSizeSelect" onchange="changePageSize(this.value)" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-300 focus:outline-none">
-                                <option value="10">10 筆/頁</option>
-                                <option value="20" selected>20 筆/頁</option>
-                                <option value="50">50 筆/頁</option>
-                                <option value="100">100 筆/頁</option>
-                            </select>
-                        </div>
-                    </div>
+        <div class="lg:col-span-3 flex flex-col h-full overflow-hidden">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-xl flex flex-col h-full overflow-hidden">
+                
+                <!-- 表格標題列 (含頂部快速換頁按鈕) -->
+                <div class="px-4 md:px-6 py-3.5 border-b border-slate-800 flex justify-between items-center shrink-0 flex-wrap gap-2">
+                    <h2 class="font-semibold text-slate-200 flex items-center text-sm md:text-base">
+                        <i class="fa-solid fa-list-music mr-2 text-indigo-400"></i> 檔案列表
+                    </h2>
+                    <div class="flex items-center space-x-3">
+                        <span id="fileCountText" class="text-xs text-slate-400">共 0 首</span>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase bg-slate-950/40">
-                                    <th class="py-3 px-4 md:px-6">狀態 / 歌名</th>
-                                    <th class="py-3 px-3 md:px-4">分類</th>
-                                    <th class="py-3 px-3 md:px-4">大小</th>
-                                    <th class="py-3 px-4 md:px-6 text-right">操作</th>
-                                </tr>
-                            </thead>
-                            <tbody id="fileTableBody" class="divide-y divide-slate-800/60 text-sm">
-                                <tr>
-                                    <td colspan="4" class="text-center py-12 text-slate-500">
-                                        <i class="fa-solid fa-folder-open text-3xl mb-2 block"></i>
-                                        請輸入路徑並點擊「載入」
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <!-- 頂部快速分頁按鈕組 -->
+                        <div id="topPaginationBtns" class="flex items-center space-x-1">
+                            <button id="topPrevBtn" onclick="goToPage(currentPage - 1)" disabled class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition">
+                                <i class="fa-solid fa-chevron-left"></i> 上一頁
+                            </button>
+                            <span id="topPageIndicator" class="text-xs text-slate-400 font-mono px-1">1 / 1</span>
+                            <button id="topNextBtn" onclick="goToPage(currentPage + 1)" disabled class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition">
+                                下一頁 <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+
+                        <select id="pageSizeSelect" onchange="changePageSize(this.value)" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-300 focus:outline-none">
+                            <option value="10">10 筆/頁</option>
+                            <option value="20" selected>20 筆/頁</option>
+                            <option value="50">50 筆/頁</option>
+                            <option value="100">100 筆/頁</option>
+                        </select>
                     </div>
                 </div>
 
-                <!-- 分頁導航列 -->
-                <div id="paginationContainer" class="px-4 md:px-6 py-4 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-3 bg-slate-950/30"></div>
+                <!-- 支援捲動的表格本體 -->
+                <div id="tableContainer" class="flex-1 overflow-y-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="sticky top-0 bg-slate-950/90 backdrop-blur z-10">
+                            <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
+                                <th class="py-3 px-4 md:px-6">狀態 / 歌名與路徑</th>
+                                <th class="py-3 px-3 md:px-4">分類</th>
+                                <th class="py-3 px-3 md:px-4">大小</th>
+                                <th class="py-3 px-4 md:px-6 text-right">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fileTableBody" class="divide-y divide-slate-800/60 text-sm">
+                            <tr>
+                                <td colspan="4" class="text-center py-12 text-slate-500">
+                                    <i class="fa-solid fa-folder-open text-3xl mb-2 block"></i>
+                                    請輸入路徑並點擊「載入」
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 底部分頁導航列 -->
+                <div id="paginationContainer" class="px-4 md:px-6 py-3 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-3 bg-slate-950/40 shrink-0"></div>
             </div>
         </div>
     </main>
 
     <!-- 底部固定音訊播放器 -->
-    <footer class="fixed bottom-0 left-0 right-0 bg-slate-900/98 backdrop-blur-md border-t border-slate-800 p-3 md:p-4 shadow-2xl z-50">
+    <footer class="fixed bottom-0 left-0 right-0 bg-slate-900/98 backdrop-blur-md border-t border-slate-800 p-3 shadow-2xl z-50">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
             <div class="flex items-center space-x-3 w-full md:w-1/4">
                 <div class="w-10 h-10 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 flex-shrink-0">
@@ -127,7 +140,11 @@
             <!-- 播放控制項 -->
             <div class="flex flex-col items-center w-full md:w-2/4 space-y-1">
                 <div class="flex items-center space-x-4">
-                    <!-- 播放模式切換按鈕 -->
+                    <button onclick="toggleAutoMode()" id="autoModeBtn" class="text-xs px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1" title="切換自動模式 (10秒未Like自動下一首)">
+                        <i class="fa-solid fa-bolt text-[10px]"></i>
+                        <span>自動</span>
+                    </button>
+
                     <button onclick="togglePlayMode()" id="playModeBtn" class="text-slate-400 hover:text-indigo-400 text-sm transition" title="播放模式: 列表循環">
                         <i class="fa-solid fa-repeat"></i>
                     </button>
@@ -137,14 +154,18 @@
                     </button>
                     <button onclick="playNext()" class="text-slate-400 hover:text-white transition" title="下一首"><i class="fa-solid fa-forward-step"></i></button>
                     
-                    <!-- 快速顯示目前模式文字 -->
-                    <span id="modeText" class="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded">循環</span>
+                    <button id="playerLikeBtn" onclick="togglePlayerLike()" class="text-slate-500 hover:text-rose-400 transition hidden ml-1 text-base" title="加入最愛">
+                        <i id="playerLikeIcon" class="fa-regular fa-heart"></i>
+                    </button>
+                    
+                    <span id="modeText" class="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded ml-2">循環</span>
                 </div>
                 <div class="w-full flex items-center space-x-3 text-xs text-slate-400">
                     <span id="currentTime">00:00</span>
                     <input type="range" id="progressBar" value="0" max="100" step="0.1" onchange="seekAudio(this.value)"
                         class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
                     <span id="durationTime">00:00</span>
+                    <span id="autoTimerText" class="text-[11px] text-amber-400 font-mono hidden whitespace-nowrap"></span>
                 </div>
             </div>
 
@@ -164,16 +185,30 @@
     <script>
         let allFiles = [];
         let categories = ['未分類', '流行', '輕音樂', '工作', '其他'];
-        let currentCategory = '全部';
+        let currentCategory = '全部'; 
         let currentPlayingFile = null;
         const audioPlayer = document.getElementById('audioPlayer');
 
-        // 分頁與播放狀態
         let currentPage = 1;
         let pageSize = 20;
-        
-        // 播放模式: 'loop'(列表循環), 'shuffle'(隨機播放), 'single'(單曲循環), 'sequence'(順序播放停止)
         let playMode = 'loop'; 
+
+        let isAutoMode = false;
+        let autoTimer = null;
+        let autoCountdownInterval = null;
+        let remainingSeconds = 10;
+
+        function getLikedMap() {
+            try {
+                return JSON.parse(localStorage.getItem('mp3_liked_map') || '{}');
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function saveLikedMap(likedMap) {
+            localStorage.setItem('mp3_liked_map', JSON.stringify(likedMap));
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
@@ -194,13 +229,22 @@
                 const data = await res.json();
                 
                 if (data.success) {
-                    allFiles = data.files;
+                    const likedMap = getLikedMap();
+                    allFiles = data.files.map(f => {
+                        const key = f.relativePath || f.filename;
+                        return {
+                            ...f,
+                            isLiked: !!likedMap[key]
+                        };
+                    });
+
                     if (data.categories && data.categories.length > 0) {
                         categories = data.categories;
                     }
                     currentPage = 1;
                     renderCategories();
                     renderTable();
+                    updatePlayerLikeState();
                 } else {
                     alert('載入失敗: ' + (data.error || '未知錯誤'));
                 }
@@ -210,17 +254,150 @@
             }
         }
 
-        // 取得目前篩選及搜尋後的有效播放清單
+        function toggleAutoMode() {
+            isAutoMode = !isAutoMode;
+            const btn = document.getElementById('autoModeBtn');
+            if (isAutoMode) {
+                btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-400 transition flex items-center space-x-1 shadow-md shadow-amber-500/20';
+                btn.title = '自動模式已開啟 (10秒未Like自動換歌)';
+                if (currentPlayingFile && !audioPlayer.paused) {
+                    startAutoTimer(10);
+                }
+            } else {
+                btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1';
+                btn.title = '切換自動模式 (10秒未Like自動下一首)';
+                clearAutoTimer();
+            }
+        }
+
+        function startAutoTimer(seconds) {
+            clearAutoTimer();
+            if (!isAutoMode) return;
+
+            remainingSeconds = seconds;
+            updateTimerDisplay(remainingSeconds);
+
+            autoCountdownInterval = setInterval(() => {
+                remainingSeconds--;
+                if (remainingSeconds > 0) {
+                    updateTimerDisplay(remainingSeconds);
+                } else {
+                    updateTimerDisplay(0);
+                    clearInterval(autoCountdownInterval);
+                }
+            }, 1000);
+
+            autoTimer = setTimeout(() => {
+                if (isAutoMode) {
+                    playNext();
+                }
+            }, seconds * 1000);
+        }
+
+        function clearAutoTimer() {
+            if (autoTimer) {
+                clearTimeout(autoTimer);
+                autoTimer = null;
+            }
+            if (autoCountdownInterval) {
+                clearInterval(autoCountdownInterval);
+                autoCountdownInterval = null;
+            }
+            const timerText = document.getElementById('autoTimerText');
+            timerText.classList.add('hidden');
+            timerText.innerText = '';
+        }
+
+        function updateTimerDisplay(sec) {
+            const timerText = document.getElementById('autoTimerText');
+            if (!isAutoMode) {
+                timerText.classList.add('hidden');
+                return;
+            }
+            timerText.classList.remove('hidden');
+            timerText.innerText = `[自動換歌: ${sec}s]`;
+        }
+
+        function toggleLike(fileKey, event) {
+            if (event) event.stopPropagation();
+            const file = allFiles.find(f => (f.relativePath || f.filename) === fileKey);
+            if (!file) return;
+
+            file.isLiked = !file.isLiked;
+
+            const likedMap = getLikedMap();
+            if (file.isLiked) {
+                likedMap[fileKey] = true;
+            } else {
+                delete likedMap[fileKey];
+            }
+            saveLikedMap(likedMap);
+
+            renderCategories();
+            renderTable();
+            
+            if (currentPlayingFile === fileKey) {
+                updatePlayerLikeState();
+            }
+
+            if (isAutoMode && currentPlayingFile === fileKey && file.isLiked) {
+                clearAutoTimer();
+                const timerText = document.getElementById('autoTimerText');
+                timerText.classList.remove('hidden');
+                timerText.innerText = '[已Like，3秒後換歌...]';
+                
+                autoTimer = setTimeout(() => {
+                    if (isAutoMode) {
+                        playNext();
+                    }
+                }, 3000);
+            }
+        }
+
+        function togglePlayerLike() {
+            if (!currentPlayingFile) return;
+            toggleLike(currentPlayingFile);
+        }
+
+        function updatePlayerLikeState() {
+            const btn = document.getElementById('playerLikeBtn');
+            const icon = document.getElementById('playerLikeIcon');
+
+            if (!currentPlayingFile) {
+                btn.classList.add('hidden');
+                clearAutoTimer();
+                return;
+            }
+
+            btn.classList.remove('hidden');
+            const file = allFiles.find(f => (f.relativePath || f.filename) === currentPlayingFile);
+            
+            if (file && file.isLiked) {
+                icon.className = 'fa-solid fa-heart text-rose-500';
+                btn.title = '取消最愛';
+            } else {
+                icon.className = 'fa-regular fa-heart text-slate-500 hover:text-slate-300';
+                btn.title = '加入最愛';
+            }
+        }
+
         function getFilteredFiles() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             return allFiles.filter(f => {
-                const matchCat = (currentCategory === '全部' || f.category === currentCategory);
-                const matchKey = f.displayName.toLowerCase().includes(keyword) || f.filename.toLowerCase().includes(keyword);
+                let matchCat = true;
+                if (currentCategory === '我的最愛') {
+                    matchCat = f.isLiked;
+                } else if (currentCategory !== '全部') {
+                    matchCat = (f.category === currentCategory);
+                }
+
+                const targetKey = f.relativePath || f.filename;
+                const matchKey = (f.displayName || f.filename).toLowerCase().includes(keyword) || 
+                                 targetKey.toLowerCase().includes(keyword);
                 return matchCat && matchKey;
             });
         }
 
-        // 切換播放模式
         function togglePlayMode() {
             const modes = ['loop', 'shuffle', 'single', 'sequence'];
             const modeNames = {
@@ -243,10 +420,16 @@
 
         function renderCategories() {
             const container = document.getElementById('categoryFilters');
+            const totalLikedCount = allFiles.filter(f => f.isLiked).length;
+
             let html = `
                 <button onclick="filterCategory('全部')" class="cat-btn flex-shrink-0 lg:w-full text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${currentCategory === '全部' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'bg-slate-800/60 lg:bg-transparent hover:bg-slate-800 text-slate-300'}" data-cat="全部">
                     <span>全部</span>
                     <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${allFiles.length}</span>
+                </button>
+                <button onclick="filterCategory('我的最愛')" class="cat-btn flex-shrink-0 lg:w-full text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${currentCategory === '我的最愛' ? 'bg-rose-600/20 text-rose-400 border border-rose-500/30' : 'bg-slate-800/60 lg:bg-transparent hover:bg-slate-800 text-slate-300'}" data-cat="我的最愛">
+                    <span class="flex items-center"><i class="fa-solid fa-heart text-rose-500 mr-2"></i> 我的最愛</span>
+                    <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${totalLikedCount}</span>
                 </button>
             `;
 
@@ -285,11 +468,9 @@
         function goToPage(page) {
             currentPage = page;
             renderTable();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function renderTable() {
-            const keyword = document.getElementById('searchInput').value.toLowerCase();
             const tbody = document.getElementById('fileTableBody');
             let filtered = getFilteredFiles();
 
@@ -305,6 +486,9 @@
                     </tr>
                 `;
                 document.getElementById('paginationContainer').innerHTML = '';
+                document.getElementById('topPrevBtn').disabled = true;
+                document.getElementById('topNextBtn').disabled = true;
+                document.getElementById('topPageIndicator').innerText = '0 / 0';
                 return;
             }
 
@@ -312,32 +496,51 @@
             if (currentPage > totalPages) currentPage = totalPages;
             if (currentPage < 1) currentPage = 1;
 
+            document.getElementById('topPrevBtn').disabled = (currentPage === 1);
+            document.getElementById('topNextBtn').disabled = (currentPage === totalPages);
+            document.getElementById('topPageIndicator').innerText = `${currentPage} / ${totalPages}`;
+
             const startIdx = (currentPage - 1) * pageSize;
             const endIdx = startIdx + pageSize;
             const pageItems = filtered.slice(startIdx, endIdx);
 
             let html = '';
             pageItems.forEach(file => {
-                const isPlaying = currentPlayingFile === file.filename;
+                const fileKey = file.relativePath || file.filename;
+                const isPlaying = currentPlayingFile === fileKey;
                 const sizeMb = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
                 let catOptions = categories.map(c => `<option value="${c}" ${c === file.category ? 'selected' : ''}>${c}</option>`).join('');
 
+                const safeKey = fileKey.replace(/'/g, "\\'");
+                const safeDisplayName = (file.displayName || file.filename).replace(/'/g, "\\'");
+
+                // 修正：使用 encodeURIComponent 替代 btoa 避免中文字元引起 InvalidCharacterError
+                const rowId = `row-${encodeURIComponent(fileKey).replace(/[%._-]/g, '_')}`;
+
                 html += `
-                    <tr class="hover:bg-slate-900/50 transition ${isPlaying ? 'bg-indigo-950/20 border-l-4 border-indigo-500' : ''}">
+                    <tr id="${rowId}" class="hover:bg-slate-900/50 transition ${isPlaying ? 'bg-indigo-950/20 border-l-4 border-indigo-500' : ''}">
                         <td class="py-3 px-4 md:px-6 flex items-center space-x-3">
-                            <button onclick="playSong('${file.filename}', '${file.displayName}')" class="w-9 h-9 rounded-lg ${isPlaying ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-indigo-400 hover:bg-indigo-600 hover:text-white'} flex items-center justify-center transition shadow flex-shrink-0">
+                            <button onclick="playSong('${safeKey}', '${safeDisplayName}')" class="w-9 h-9 rounded-lg ${isPlaying ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-indigo-400 hover:bg-indigo-600 hover:text-white'} flex items-center justify-center transition shadow flex-shrink-0">
                                 <i class="fa-solid ${isPlaying && !audioPlayer.paused ? 'fa-pause' : 'fa-play'} text-xs"></i>
                             </button>
-                            <span class="font-medium text-slate-200 truncate max-w-[180px] md:max-w-xs" title="${file.displayName}">${file.displayName}</span>
+                            <div class="overflow-hidden flex-1">
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-medium text-slate-200 truncate max-w-[180px] md:max-w-md" title="${safeDisplayName}">${file.displayName}</span>
+                                    <button onclick="toggleLike('${safeKey}', event)" class="text-xs transition ${file.isLiked ? 'text-rose-500 hover:text-rose-400' : 'text-slate-600 hover:text-slate-400'}" title="${file.isLiked ? '取消最愛' : '加入最愛'}">
+                                        <i class="${file.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}"></i>
+                                    </button>
+                                </div>
+                                ${file.relativePath && file.relativePath !== file.filename ? `<div class="text-[11px] text-slate-500 truncate max-w-[200px] md:max-w-md">${file.relativePath}</div>` : ''}
+                            </div>
                         </td>
                         <td class="py-3 px-3 md:px-4">
-                            <select onchange="changeCategory('${file.filename}', this.value)" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-300 focus:outline-none focus:border-indigo-500">
+                            <select onchange="changeCategory('${safeKey}', this.value)" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-300 focus:outline-none focus:border-indigo-500">
                                 ${catOptions}
                             </select>
                         </td>
                         <td class="py-3 px-3 md:px-4 text-xs text-slate-400 whitespace-nowrap">${sizeMb}</td>
                         <td class="py-3 px-4 md:px-6 text-right">
-                            <button onclick="deleteSong('${file.filename}')" class="text-slate-500 hover:text-rose-400 p-1.5 transition" title="刪除檔案">
+                            <button onclick="deleteSong('${safeKey}')" class="text-slate-500 hover:text-rose-400 p-1.5 transition" title="刪除檔案">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </td>
@@ -388,16 +591,36 @@
             container.innerHTML = paginationHtml;
         }
 
-        function playSong(filename, displayName) {
+        function scrollToCurrentSong(fileKey) {
+            const rowId = `row-${encodeURIComponent(fileKey).replace(/[%._-]/g, '_')}`;
+            const targetRow = document.getElementById(rowId);
+            if (targetRow) {
+                targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function playSong(fileKey, displayName) {
             const dir = document.getElementById('dirInput').value.trim();
-            const streamUrl = `/api/mp3?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(filename)}`;
+            const streamUrl = `/api/mp3?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(fileKey)}`;
             
-            if (currentPlayingFile !== filename) {
-                currentPlayingFile = filename;
+            const filtered = getFilteredFiles();
+            const songIndex = filtered.findIndex(f => (f.relativePath || f.filename) === fileKey);
+            if (songIndex !== -1) {
+                const targetPage = Math.floor(songIndex / pageSize) + 1;
+                if (targetPage !== currentPage) {
+                    currentPage = targetPage;
+                    renderTable();
+                }
+            }
+
+            if (currentPlayingFile !== fileKey) {
+                currentPlayingFile = fileKey;
                 audioPlayer.src = streamUrl;
                 audioPlayer.play();
                 document.getElementById('currentSongTitle').innerText = displayName;
-                document.getElementById('currentSongCategory').innerText = allFiles.find(f => f.filename === filename)?.category || '';
+                
+                const fileObj = allFiles.find(f => (f.relativePath || f.filename) === fileKey);
+                document.getElementById('currentSongCategory').innerText = fileObj ? fileObj.category : '';
             } else {
                 if (audioPlayer.paused) {
                     audioPlayer.play();
@@ -405,56 +628,68 @@
                     audioPlayer.pause();
                 }
             }
+
+            updatePlayerLikeState();
             renderTable();
             updatePlayButton();
+
+            setTimeout(() => {
+                scrollToCurrentSong(fileKey);
+            }, 50);
+
+            if (isAutoMode && !audioPlayer.paused) {
+                startAutoTimer(10);
+            } else {
+                clearAutoTimer();
+            }
         }
 
-        // 上一首
         function playPrev() {
             const list = getFilteredFiles();
             if (list.length === 0) return;
-            const currentIndex = list.findIndex(f => f.filename === currentPlayingFile);
+            const currentIndex = list.findIndex(f => (f.relativePath || f.filename) === currentPlayingFile);
             let prevIndex = currentIndex - 1;
             if (prevIndex < 0) prevIndex = list.length - 1;
-            playSong(list[prevIndex].filename, list[prevIndex].displayName);
+            
+            const target = list[prevIndex];
+            playSong(target.relativePath || target.filename, target.displayName);
         }
 
-        // 下一首
         function playNext() {
+            clearAutoTimer();
             const list = getFilteredFiles();
             if (list.length === 0) return;
 
             if (playMode === 'shuffle') {
-                // 隨機播放：隨機挑選一首不同的歌
                 let randomIndex = Math.floor(Math.random() * list.length);
-                if (list.length > 1 && list[randomIndex].filename === currentPlayingFile) {
+                if (list.length > 1 && (list[randomIndex].relativePath || list[randomIndex].filename) === currentPlayingFile) {
                     randomIndex = (randomIndex + 1) % list.length;
                 }
-                playSong(list[randomIndex].filename, list[randomIndex].displayName);
+                const target = list[randomIndex];
+                playSong(target.relativePath || target.filename, target.displayName);
                 return;
             }
 
-            const currentIndex = list.findIndex(f => f.filename === currentPlayingFile);
+            const currentIndex = list.findIndex(f => (f.relativePath || f.filename) === currentPlayingFile);
             let nextIndex = currentIndex + 1;
 
             if (nextIndex >= list.length) {
                 if (playMode === 'sequence') {
-                    // 順序播放到底停止
                     audioPlayer.pause();
                     currentPlayingFile = null;
+                    updatePlayerLikeState();
                     renderTable();
                     updatePlayButton();
                     return;
                 }
-                nextIndex = 0; // 列表循環回到第一首
+                nextIndex = 0;
             }
-            playSong(list[nextIndex].filename, list[nextIndex].displayName);
+            const target = list[nextIndex];
+            playSong(target.relativePath || target.filename, target.displayName);
         }
 
-        // 當歌曲自然播放結束時觸發
         function onAudioEnded() {
             if (playMode === 'single') {
-                // 單曲循環：重新播放當前歌曲
                 audioPlayer.currentTime = 0;
                 audioPlayer.play();
                 return;
@@ -466,14 +701,16 @@
             if (!audioPlayer.src) {
                 const list = getFilteredFiles();
                 if (list.length > 0) {
-                    playSong(list[0].filename, list[0].displayName);
+                    playSong(list[0].relativePath || list[0].filename, list[0].displayName);
                 }
                 return;
             }
             if (audioPlayer.paused) {
                 audioPlayer.play();
+                if (isAutoMode) startAutoTimer(10);
             } else {
                 audioPlayer.pause();
+                clearAutoTimer();
             }
             updatePlayButton();
             renderTable();
@@ -503,13 +740,13 @@
             return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
-        async function changeCategory(filename, newCategory) {
+        async function changeCategory(fileKey, newCategory) {
             const dir = document.getElementById('dirInput').value.trim();
             try {
                 const res = await fetch('/api/mp3', {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ dir, filename, newCategory })
+                    body: JSON.stringify({ dir, filename: fileKey, newCategory })
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -523,18 +760,20 @@
             }
         }
 
-        async function deleteSong(filename) {
-            if (!confirm(`確定要刪除「${filename}」嗎？此操作無法復原。`)) return;
+        async function deleteSong(fileKey) {
+            if (!confirm(`確定要刪除該檔案嗎？此操作無法復原。`)) return;
             const dir = document.getElementById('dirInput').value.trim();
             try {
-                const res = await fetch(`/api/mp3?dir=${encodeURIComponent(dir)}&filename=${encodeURIComponent(filename)}`, {
+                const res = await fetch(`/api/mp3?dir=${encodeURIComponent(dir)}&filename=${encodeURIComponent(fileKey)}`, {
                     method: 'DELETE'
                 });
                 const data = await res.json();
                 if (data.success) {
-                    if (currentPlayingFile === filename) {
+                    if (currentPlayingFile === fileKey) {
                         audioPlayer.pause();
                         currentPlayingFile = null;
+                        updatePlayerLikeState();
+                        clearAutoTimer();
                     }
                     loadFiles();
                 } else {
