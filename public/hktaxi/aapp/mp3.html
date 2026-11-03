@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MP3 智慧管理與分類系統 (網址記憶分頁)</title>
+    <title>MP3 智慧管理與分類系統</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome 擴充圖示 -->
@@ -89,7 +89,7 @@
 
                         <select id="pageSizeSelect" onchange="changePageSize(this.value)" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-300 focus:outline-none">
                             <option value="10">10 筆/頁</option>
-                            <option value="20">20 筆/頁</option>
+                            <option value="20" selected>20 筆/頁</option>
                             <option value="50">50 筆/頁</option>
                             <option value="100">100 筆/頁</option>
                         </select>
@@ -210,7 +210,7 @@
             localStorage.setItem('mp3_liked_map', JSON.stringify(likedMap));
         }
 
-        // 初始化：讀取網址中的 dir、page、pageSize
+        // 初始化：讀取網址中的 dir、page、pageSize 並同步選單與狀態
         window.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             
@@ -227,13 +227,16 @@
             const sizeParam = parseInt(params.get('pageSize'));
             if (!isNaN(sizeParam) && sizeParam > 0) {
                 pageSize = sizeParam;
-                document.getElementById('pageSizeSelect').value = pageSize;
+                const sizeSelectEl = document.getElementById('pageSizeSelect');
+                if (sizeSelectEl) {
+                    sizeSelectEl.value = pageSize;
+                }
             }
 
-            loadFiles(false); // 載入檔案時不需要重置頁碼
+            loadFiles(false);
         });
 
-        // 更新網址列參數（不重新整理頁面）
+        // 更新網址列參數（同步 page 與 pageSize，但不重新整理）
         function updateUrlParams() {
             const dir = document.getElementById('dirInput').value.trim();
             const params = new URLSearchParams(window.location.search);
@@ -532,7 +535,7 @@
             if (currentPage > totalPages) currentPage = totalPages;
             if (currentPage < 1) currentPage = 1;
 
-            updateUrlParams(); // 確保每次渲染時 URL 保持最新頁碼
+            updateUrlParams();
 
             document.getElementById('topPrevBtn').disabled = (currentPage === 1);
             document.getElementById('topNextBtn').disabled = (currentPage === totalPages);
