@@ -340,7 +340,6 @@
                 subtitleEl.innerText = subtitle;
                 confirmBtn.innerText = confirmText;
 
-                // 根據類型設定圖示與按鈕色彩
                 let iconClass = 'fa-solid fa-circle-info';
                 let iconBgClass = 'bg-indigo-500/20 text-indigo-400';
                 let confirmBtnClass = 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/30';
@@ -359,7 +358,6 @@
                 iconContainer.className = `w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${iconBgClass}`;
                 confirmBtn.className = `px-5 py-2 rounded-xl text-xs font-medium text-white transition shadow-lg ${confirmBtnClass}`;
 
-                // 判斷是否需要「取消」按鈕（confirm 或 prompt 模式需要）
                 const needsCancel = (type === 'confirm' || type === 'danger' || isPrompt);
                 if (needsCancel) {
                     cancelBtn.classList.remove('hidden');
@@ -675,8 +673,12 @@
                         <span class="flex items-center"><i class="fa-solid fa-heart text-rose-500 mr-2"></i> 我的最愛</span>
                         <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${totalLikedCount}</span>
                     </button>
-                    <button onclick="copyFavoriteSongs()" class="p-2 bg-slate-800 hover:bg-rose-600/30 text-slate-400 hover:text-rose-400 border border-slate-700 rounded-xl transition text-xs" title="複製我的最愛到指定目錄">
-                        <i class="fa-solid fa-folder-arrow-right"></i>
+                    <!-- 使用原生內嵌 SVG：愛心傳輸/複製圖標 -->
+                    <button onclick="copyFavoriteSongs()" class="p-2 bg-slate-800 hover:bg-rose-600/30 text-slate-400 hover:text-rose-400 border border-slate-700 rounded-xl transition flex items-center justify-center shrink-0" title="複製我的最愛到指定目錄">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                            <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 1.259-.25 2.45-.71 3.518a.75.75 0 11-1.38-.586c.382-.897.59-1.91.59-2.932 0-2.112-1.748-3.75-3.937-3.75a3.98 3.98 0 00-3.322 1.77.75.75 0 01-1.238 0A3.98 3.98 0 008.437 4.5C6.248 4.5 4.5 6.138 4.5 8.25c0 3.256 2.052 6.132 4.38 8.16a23.684 23.684 0 003.882 2.871l.013.007.004.002.721 1.32-.721-1.32z"/>
+                            <path d="M13 16a.75.75 0 01.75-.75h5.19l-1.72-1.72a.75.75 0 011.06-1.06l3 3a.75.75 0 010 1.06l-3 3a.75.75 0 11-1.06-1.06l1.72-1.72H13.75A.75.75 0 0113 16z"/>
+                        </svg>
                     </button>
                 </div>
             `;
@@ -1033,7 +1035,6 @@
             }
         }
 
-        // 使用自訂 UI 替代原生 confirm 刪除歌曲
         async function deleteSong(fileKey) {
             const confirmed = await showCustomModal({
                 title: '刪除檔案確認',
