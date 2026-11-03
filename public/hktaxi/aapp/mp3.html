@@ -178,6 +178,32 @@
         </div>
     </footer>
 
+    <!-- ==================== 自訂對話框 Modal ==================== -->
+    <div id="customModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl transform scale-95 transition-transform duration-200" id="modalBox">
+            <div class="flex items-center space-x-3 mb-4">
+                <div id="modalIconContainer" class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                    <i id="modalIcon" class="fa-solid fa-circle-info text-lg"></i>
+                </div>
+                <div>
+                    <h3 id="modalTitle" class="text-base font-bold text-slate-100">提示</h3>
+                    <p id="modalSubtitle" class="text-xs text-slate-400">系統通知</p>
+                </div>
+            </div>
+            <div id="modalBody" class="text-sm text-slate-300 mb-6 bg-slate-950/50 p-3.5 rounded-xl border border-slate-800/80">
+                <!-- 訊息或輸入框 -->
+            </div>
+            <div class="flex items-center justify-end space-x-3">
+                <button id="modalCancelBtn" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 transition hidden">
+                    取消
+                </button>
+                <button id="modalConfirmBtn" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white transition shadow-lg shadow-indigo-600/30">
+                    確定
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- 隱藏式音訊元素 -->
     <audio id="audioPlayer" ontimeupdate="updateProgress()" onended="onAudioEnded()" onerror="onAudioError()"></audio>
 
@@ -210,7 +236,6 @@
             localStorage.setItem('mp3_liked_map', JSON.stringify(likedMap));
         }
 
-        // 初始化：讀取網址中的 dir、page、pageSize 並同步選單與狀態
         window.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             
@@ -236,7 +261,6 @@
             loadFiles(false);
         });
 
-        // 更新網址列參數（同步 page 與 pageSize，但不重新整理）
         function updateUrlParams() {
             const dir = document.getElementById('dirInput').value.trim();
             const params = new URLSearchParams(window.location.search);
@@ -281,11 +305,195 @@
                     renderTable();
                     updatePlayerLikeState();
                 } else {
-                    alert('載入失敗: ' + (data.error || '未知錯誤'));
+                    await showCustomModal({
+                        title: '載入失敗',
+                        subtitle: '伺服器回應異常',
+                        message: data.error || '未知錯誤',
+                        type: 'error'
+                    });
                 }
             } catch (err) {
                 console.error(err);
-                alert('無法連線至 API 伺服器');
+                await showCustomModal({
+                    title: '連線錯誤',
+                    subtitle: '網路異常',
+                    message: '無法連線至 API 伺服器',
+                    type: 'error'
+                });
+            }
+        }
+
+        // ==================== 通用自訂對話框 (Modal) 封裝函式 ====================
+        function showCustomModal({ title, subtitle = '系統通知', message, type = 'info', isPrompt = false, defaultValue = '', confirmText = '確定' }) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('customModal');
+                const modalBox = document.getElementById('modalBox');
+                const titleEl = document.getElementById('modalTitle');
+                const subtitleEl = document.getElementById('modalSubtitle');
+                const bodyEl = document.getElementById('modalBody');
+                const confirmBtn = document.getElementById('modalConfirmBtn');
+                const cancelBtn = document.getElementById('modalCancelBtn');
+                const iconEl = document.getElementById('modalIcon');
+                const iconContainer = document.getElementById('modalIconContainer');
+
+                titleEl.innerText = title;
+                subtitleEl.innerText = subtitle;
+                confirmBtn.innerText = confirmText;
+
+                // 根據類型設定圖示與按鈕色彩
+                let iconClass = 'fa-solid fa-circle-info';
+                let iconBgClass = 'bg-indigo-500/20 text-indigo-400';
+                let confirmBtnClass = 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/30';
+
+                if (type === 'error' || type === 'danger') {
+                    iconClass = 'fa-solid fa-triangle-exclamation';
+                    iconBgClass = 'bg-rose-500/20 text-rose-400';
+                    confirmBtnClass = 'bg-rose-600 hover:bg-rose-500 shadow-rose-600/30';
+                } else if (type === 'success') {
+                    iconClass = 'fa-solid fa-circle-check';
+                    iconBgClass = 'bg-emerald-500/20 text-emerald-400';
+                    confirmBtnClass = 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/30';
+                }
+
+                iconEl.className = iconClass;
+                iconContainer.className = `w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${iconBgClass}`;
+                confirmBtn.className = `px-5 py-2 rounded-xl text-xs font-medium text-white transition shadow-lg ${confirmBtnClass}`;
+
+                // 判斷是否需要「取消」按鈕（confirm 或 prompt 模式需要）
+                const needsCancel = (type === 'confirm' || type === 'danger' || isPrompt);
+                if (needsCancel) {
+                    cancelBtn.classList.remove('hidden');
+                } else {
+                    cancelBtn.classList.add('hidden');
+                }
+
+                if (isPrompt) {
+                    bodyEl.innerHTML = `
+                        <p class="mb-2 text-slate-300">${message}</p>
+                        <input type="text" id="modalPromptInput" value="${defaultValue}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+                    `;
+                } else {
+                    bodyEl.innerHTML = `<p>${message.replace(/\n/g, '<br>')}</p>`;
+                }
+
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    modalBox.classList.remove('scale-95');
+                    if (isPrompt) {
+                        const inputEl = document.getElementById('modalPromptInput');
+                        if (inputEl) {
+                            inputEl.focus();
+                            inputEl.select();
+                        }
+                    }
+                }, 10);
+
+                const newConfirmBtn = confirmBtn.cloneNode(true);
+                const newCancelBtn = cancelBtn.cloneNode(true);
+                confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+                cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+                const closeModal = (result) => {
+                    modal.classList.add('opacity-0');
+                    modalBox.classList.add('scale-95');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        resolve(result);
+                    }, 200);
+                };
+
+                newConfirmBtn.addEventListener('click', () => {
+                    if (isPrompt) {
+                        const val = document.getElementById('modalPromptInput').value;
+                        closeModal(val);
+                    } else {
+                        closeModal(true);
+                    }
+                });
+
+                newCancelBtn.addEventListener('click', () => {
+                    closeModal(isPrompt ? null : false);
+                });
+
+                if (isPrompt) {
+                    document.getElementById('modalPromptInput').addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            newConfirmBtn.click();
+                        }
+                    });
+                }
+            });
+        }
+
+        // 複製「我的最愛」到指定目錄功能
+        async function copyFavoriteSongs() {
+            const likedMap = getLikedMap();
+            const likedKeys = Object.keys(likedMap);
+
+            if (likedKeys.length === 0) {
+                await showCustomModal({
+                    title: '提示',
+                    subtitle: '無法進行複製',
+                    message: '目前沒有任何「我的最愛」歌曲可供複製！',
+                    type: 'info'
+                });
+                return;
+            }
+
+            const savedTargetDir = localStorage.getItem('mp3_copy_target_dir') || '';
+            
+            const targetDir = await showCustomModal({
+                title: '複製我的最愛',
+                subtitle: `共選定 ${likedKeys.length} 首收藏歌曲`,
+                message: '請輸入要複製過去的目標資料夾絕對路徑：',
+                type: 'confirm',
+                isPrompt: true,
+                defaultValue: savedTargetDir,
+                confirmText: '開始複製'
+            });
+
+            if (!targetDir || !targetDir.trim()) return;
+
+            const trimmedTargetDir = targetDir.trim();
+            localStorage.setItem('mp3_copy_target_dir', trimmedTargetDir);
+
+            const currentSourceDir = document.getElementById('dirInput').value.trim();
+
+            try {
+                const res = await fetch('/api/mp3/copy-favorites', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sourceDir: currentSourceDir,
+                        targetDir: trimmedTargetDir,
+                        filenames: likedKeys
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    await showCustomModal({
+                        title: '複製完成',
+                        subtitle: '操作已成功執行',
+                        message: `已成功將最愛歌曲複製到指定目錄。\n成功：${data.successCount || likedKeys.length} 首 | 失敗：${data.failCount || 0} 首`,
+                        type: 'success'
+                    });
+                } else {
+                    await showCustomModal({
+                        title: '複製失敗',
+                        subtitle: '發生錯誤',
+                        message: '錯誤原因: ' + (data.error || '未知錯誤'),
+                        type: 'error'
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                await showCustomModal({
+                    title: '連線錯誤',
+                    subtitle: '網路異常',
+                    message: '無法連線至 API 伺服器執行複製',
+                    type: 'error'
+                });
             }
         }
 
@@ -462,10 +670,15 @@
                     <span>全部</span>
                     <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${allFiles.length}</span>
                 </button>
-                <button onclick="filterCategory('我的最愛')" class="cat-btn flex-shrink-0 lg:w-full text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${currentCategory === '我的最愛' ? 'bg-rose-600/20 text-rose-400 border border-rose-500/30' : 'bg-slate-800/60 lg:bg-transparent hover:bg-slate-800 text-slate-300'}" data-cat="我的最愛">
-                    <span class="flex items-center"><i class="fa-solid fa-heart text-rose-500 mr-2"></i> 我的最愛</span>
-                    <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${totalLikedCount}</span>
-                </button>
+                <div class="flex items-center space-x-1 flex-shrink-0 lg:w-full">
+                    <button onclick="filterCategory('我的最愛')" class="cat-btn flex-1 text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${currentCategory === '我的最愛' ? 'bg-rose-600/20 text-rose-400 border border-rose-500/30' : 'bg-slate-800/60 lg:bg-transparent hover:bg-slate-800 text-slate-300'}" data-cat="我的最愛">
+                        <span class="flex items-center"><i class="fa-solid fa-heart text-rose-500 mr-2"></i> 我的最愛</span>
+                        <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${totalLikedCount}</span>
+                    </button>
+                    <button onclick="copyFavoriteSongs()" class="p-2 bg-slate-800 hover:bg-rose-600/30 text-slate-400 hover:text-rose-400 border border-slate-700 rounded-xl transition text-xs" title="複製我的最愛到指定目錄">
+                        <i class="fa-solid fa-folder-arrow-right"></i>
+                    </button>
+                </div>
             `;
 
             categories.forEach(cat => {
@@ -802,16 +1015,36 @@
                 if (data.success) {
                     loadFiles();
                 } else {
-                    alert('修改失敗: ' + data.error);
+                    await showCustomModal({
+                        title: '修改失敗',
+                        subtitle: '操作未完成',
+                        message: data.error || '未知錯誤',
+                        type: 'error'
+                    });
                 }
             } catch (err) {
                 console.error(err);
-                alert('網路錯誤');
+                await showCustomModal({
+                    title: '網路錯誤',
+                    subtitle: '通訊失敗',
+                    message: '無法連線至 API 伺服器',
+                    type: 'error'
+                });
             }
         }
 
+        // 使用自訂 UI 替代原生 confirm 刪除歌曲
         async function deleteSong(fileKey) {
-            if (!confirm(`確定要刪除該檔案嗎？此操作無法復原。`)) return;
+            const confirmed = await showCustomModal({
+                title: '刪除檔案確認',
+                subtitle: '此操作無法復原',
+                message: '確定要從硬碟中刪除這個 MP3 檔案嗎？',
+                type: 'danger',
+                confirmText: '確認刪除'
+            });
+
+            if (!confirmed) return;
+
             const dir = document.getElementById('dirInput').value.trim();
             try {
                 const res = await fetch(`/api/mp3?dir=${encodeURIComponent(dir)}&filename=${encodeURIComponent(fileKey)}`, {
@@ -827,11 +1060,21 @@
                     }
                     loadFiles();
                 } else {
-                    alert('刪除失敗: ' + data.error);
+                    await showCustomModal({
+                        title: '刪除失敗',
+                        subtitle: '操作未完成',
+                        message: data.error || '未知錯誤',
+                        type: 'error'
+                    });
                 }
             } catch (err) {
                 console.error(err);
-                alert('網路錯誤');
+                await showCustomModal({
+                    title: '網路錯誤',
+                    subtitle: '通訊失敗',
+                    message: '無法連線至 API 伺服器',
+                    type: 'error'
+                });
             }
         }
     </script>
