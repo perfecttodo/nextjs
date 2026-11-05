@@ -171,9 +171,8 @@
                         <span>自動</span>
                     </button>
 
-                    <!-- 使用內嵌 SVG 之播放模式按鈕 -->
+                    <!-- 播放模式按鈕 -->
                     <button onclick="togglePlayMode()" id="playModeBtn" class="text-slate-400 hover:text-indigo-400 transition flex items-center justify-center p-1" title="播放模式: 列表循環">
-                        <!-- 預設為列表循環 SVG -->
                         <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
                     </button>
 
@@ -198,9 +197,10 @@
                 </div>
             </div>
 
+            <!-- 音量控制 -->
             <div class="hidden md:flex items-center space-x-3 w-1/4 justify-end">
                 <i class="fa-solid fa-volume-high text-slate-400 text-sm"></i>
-                <input type="range" min="0" max="1" step="0.05" value="1" oninput="audioPlayer.volume = this.value"
+                <input type="range" id="volumeControl" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this.value)"
                         class="w-24 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
             </div>
         </div>
@@ -238,13 +238,13 @@
 
         let currentPage = 1;
         let pageSize = 20;
-        let playMode = 'loop'; // 'loop', 'shuffle', 'single', 'sequence'
+        let playMode = 'loop'; 
         let isAutoMode = false;
         let autoTimer = null;
         let autoCountdownInterval = null;
         let remainingSeconds = 10;
+        let isAutoPlayOnLoad = false; // 紀錄載入時是否自動播放
 
-        // 全域 SVG 圖標庫字典（防止 FontAwesome 圖標缺漏）
         const modeIconsSVG = {
             'loop': `<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>`,
             'shuffle': `<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.45 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>`,
@@ -252,6 +252,9 @@
             'sequence': `<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M5 12h11.17l-4.58-4.59L13 6l6 6-6 6-1.41-1.41L16.17 13H5v-2z"/></svg>`
         };
 
+        const modeNames = { 'loop': '循環', 'shuffle': '隨機', 'single': '單曲', 'sequence': '順序' };
+
+        // 讀取/儲存設定
         function getSavedCategories() {
             try {
                 const saved = localStorage.getItem('mp3_custom_categories');
@@ -259,28 +262,17 @@
             } catch (e) { return ['未分類', '流行', '輕音樂', '工作', '其他']; }
         }
 
-        function saveCategories(cats) {
-            localStorage.setItem('mp3_custom_categories', JSON.stringify(cats));
-        }
+        function saveCategories(cats) { localStorage.setItem('mp3_custom_categories', JSON.stringify(cats)); }
+        function getTagsMap() { try { return JSON.parse(localStorage.getItem('mp3_tags_map') || '{}'); } catch (e) { return {}; } }
+        function saveTagsMap(map) { localStorage.setItem('mp3_tags_map', JSON.stringify(map)); }
+        function getLikedMap() { try { return JSON.parse(localStorage.getItem('mp3_liked_map') || '{}'); } catch (e) { return {}; } }
+        function saveLikedMap(map) { localStorage.setItem('mp3_liked_map', JSON.stringify(map)); }
 
-        function getTagsMap() {
-            try { return JSON.parse(localStorage.getItem('mp3_tags_map') || '{}'); } catch (e) { return {}; }
-        }
-
-        function saveTagsMap(map) {
-            localStorage.setItem('mp3_tags_map', JSON.stringify(map));
-        }
-
-        function getLikedMap() {
-            try { return JSON.parse(localStorage.getItem('mp3_liked_map') || '{}'); } catch (e) { return {}; }
-        }
-
-        function saveLikedMap(map) {
-            localStorage.setItem('mp3_liked_map', JSON.stringify(map));
-        }
-
+        // ==================== 頁面初始還原播放狀態 ====================
         window.addEventListener('DOMContentLoaded', () => {
             categories = getSavedCategories();
+            
+            // 1. 還原 URL 參數
             const params = new URLSearchParams(window.location.search);
             const dirParam = params.get('dir');
             if (dirParam) document.getElementById('dirInput').value = dirParam;
@@ -294,6 +286,34 @@
                 const sizeSelectEl = document.getElementById('pageSizeSelect');
                 if (sizeSelectEl) sizeSelectEl.value = pageSize;
             }
+
+            // 2. 還原播放模式 (Play Mode)
+            const savedPlayMode = localStorage.getItem('mp3_last_play_mode');
+            if (savedPlayMode && modeNames[savedPlayMode]) {
+                playMode = savedPlayMode;
+                document.getElementById('playModeBtn').innerHTML = modeIconsSVG[playMode];
+                document.getElementById('modeText').innerText = modeNames[playMode];
+            }
+
+            // 3. 還原自動模式 (Auto Mode)
+            const savedAutoMode = localStorage.getItem('mp3_last_auto_mode');
+            if (savedAutoMode === 'true') {
+                isAutoMode = true;
+                const btn = document.getElementById('autoModeBtn');
+                btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-400 transition flex items-center space-x-1 shadow-md';
+            }
+
+            // 4. 還原音量
+            const savedVolume = localStorage.getItem('mp3_last_volume');
+            if (savedVolume !== null) {
+                const vol = parseFloat(savedVolume);
+                audioPlayer.volume = vol;
+                const volEl = document.getElementById('volumeControl');
+                if (volEl) volEl.value = vol;
+            }
+
+            // 5. 檢查上次是否在播放狀態
+            isAutoPlayOnLoad = localStorage.getItem('mp3_was_playing') === 'true';
 
             loadFiles(false);
         });
@@ -333,11 +353,55 @@
                     renderTagCloud();
                     renderTable();
                     updatePlayerLikeState();
+
+                    // ==================== 載入後自動還原最後一次播放的歌曲 ====================
+                    restoreLastPlayedSong();
                 } else {
                     await showCustomModal({ title: '載入失敗', message: data.error || '未知錯誤', type: 'error' });
                 }
             } catch (err) {
                 await showCustomModal({ title: '連線錯誤', message: '無法連線至 API 伺服器', type: 'error' });
+            }
+        }
+
+        function restoreLastPlayedSong() {
+            const lastKey = localStorage.getItem('mp3_last_played_key');
+            const lastTitle = localStorage.getItem('mp3_last_played_title');
+            const lastTime = parseFloat(localStorage.getItem('mp3_last_played_time') || '0');
+
+            if (!lastKey || allFiles.length === 0) return;
+
+            const targetFile = allFiles.find(f => (f.relativePath || f.filename) === lastKey);
+            if (targetFile) {
+                currentPlayingFile = lastKey;
+                const dir = document.getElementById('dirInput').value.trim();
+                const streamUrl = `/api/mp3?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(lastKey)}`;
+                
+                audioPlayer.src = streamUrl;
+                document.getElementById('currentSongTitle').innerText = targetFile.displayName || lastTitle;
+                document.getElementById('currentSongCategory').innerText = targetFile.category || '';
+
+                // 設定接續播放時間
+                audioPlayer.addEventListener('loadedmetadata', function onMeta() {
+                    if (!isNaN(audioPlayer.duration) && lastTime < audioPlayer.duration) {
+                        audioPlayer.currentTime = lastTime;
+                    }
+                    audioPlayer.removeEventListener('loadedmetadata', onMeta);
+                });
+
+                updatePlayerLikeState();
+                renderTable();
+
+                // 若刷新前正在播放，嘗試自動播放（需注意瀏覽器 Autoplay 政策限制）
+                if (isAutoPlayOnLoad) {
+                    audioPlayer.play().then(() => {
+                        updatePlayButton();
+                        if (isAutoMode) startAutoTimer(10);
+                    }).catch(err => {
+                        console.log("瀏覽器阻擋自動播放，已恢復暫停狀態:", err);
+                        updatePlayButton();
+                    });
+                }
             }
         }
 
@@ -510,20 +574,15 @@
             });
         }
 
-        // 使用 SVG 重構的播放模式切換
         function togglePlayMode() {
             const modes = ['loop', 'shuffle', 'single', 'sequence'];
-            const modeNames = {
-                'loop': '循環',
-                'shuffle': '隨機',
-                'single': '單曲',
-                'sequence': '順序'
-            };
-
             let currentIdx = modes.indexOf(playMode);
             if (currentIdx === -1) currentIdx = 0;
             let nextIdx = (currentIdx + 1) % modes.length;
             playMode = modes[nextIdx];
+
+            // 儲存播放模式
+            localStorage.setItem('mp3_last_play_mode', playMode);
 
             const btn = document.getElementById('playModeBtn');
             const modeText = document.getElementById('modeText');
@@ -534,6 +593,7 @@
 
         function toggleAutoMode() {
             isAutoMode = !isAutoMode;
+            localStorage.setItem('mp3_last_auto_mode', isAutoMode);
             const btn = document.getElementById('autoModeBtn');
             if (isAutoMode) {
                 btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-400 transition flex items-center space-x-1 shadow-md';
@@ -542,6 +602,11 @@
                 btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1';
                 clearAutoTimer();
             }
+        }
+
+        function changeVolume(val) {
+            audioPlayer.volume = val;
+            localStorage.setItem('mp3_last_volume', val);
         }
 
         function startAutoTimer(seconds) {
@@ -636,9 +701,15 @@
                 document.getElementById('currentSongTitle').innerText = displayName;
                 const fileObj = allFiles.find(f => (f.relativePath || f.filename) === fileKey);
                 document.getElementById('currentSongCategory').innerText = fileObj ? fileObj.category : '';
+                
+                // 儲存播放狀態
+                localStorage.setItem('mp3_last_played_key', fileKey);
+                localStorage.setItem('mp3_last_played_title', displayName);
             } else {
                 if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause();
             }
+
+            localStorage.setItem('mp3_was_playing', !audioPlayer.paused);
 
             updatePlayerLikeState();
             renderTable();
@@ -686,6 +757,7 @@
                 if (playMode === 'sequence') {
                     audioPlayer.pause();
                     currentPlayingFile = null;
+                    localStorage.setItem('mp3_was_playing', 'false');
                     updatePlayerLikeState();
                     renderTable();
                     updatePlayButton();
@@ -718,8 +790,14 @@
                 if (list.length > 0) playSong(list[0].relativePath || list[0].filename, list[0].displayName);
                 return;
             }
-            if (audioPlayer.paused) { audioPlayer.play(); if (isAutoMode) startAutoTimer(10); }
-            else { audioPlayer.pause(); clearAutoTimer(); }
+            if (audioPlayer.paused) { 
+                audioPlayer.play(); 
+                if (isAutoMode) startAutoTimer(10); 
+            } else { 
+                audioPlayer.pause(); 
+                clearAutoTimer(); 
+            }
+            localStorage.setItem('mp3_was_playing', !audioPlayer.paused);
             updatePlayButton();
             renderTable();
         }
@@ -734,10 +812,18 @@
             document.getElementById('progressBar').value = (audioPlayer.currentTime / audioPlayer.duration) * 100;
             document.getElementById('currentTime').innerText = formatTime(audioPlayer.currentTime);
             document.getElementById('durationTime').innerText = formatTime(audioPlayer.duration);
+
+            // 即時定時紀錄當前播放秒數
+            if (currentPlayingFile && !audioPlayer.paused) {
+                localStorage.setItem('mp3_last_played_time', audioPlayer.currentTime);
+            }
         }
 
         function seekAudio(val) {
-            if (!isNaN(audioPlayer.duration)) audioPlayer.currentTime = (val / 100) * audioPlayer.duration;
+            if (!isNaN(audioPlayer.duration)) {
+                audioPlayer.currentTime = (val / 100) * audioPlayer.duration;
+                localStorage.setItem('mp3_last_played_time', audioPlayer.currentTime);
+            }
         }
 
         function formatTime(seconds) {
@@ -775,6 +861,7 @@
                 if (currentPlayingFile === fileKey) {
                     audioPlayer.pause();
                     currentPlayingFile = null;
+                    localStorage.removeItem('mp3_last_played_key');
                     updatePlayerLikeState();
                     clearAutoTimer();
                 }
