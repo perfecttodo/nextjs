@@ -166,11 +166,11 @@
 
             <div class="flex flex-col items-center w-full md:w-2/4 space-y-1">
                 <div class="flex items-center space-x-4">
-                    <button onclick="toggleAutoMode()" id="autoModeBtn" class="text-xs px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1" title="切換自動模式">
+                    <button onclick="toggleAutoMode()" id="autoModeBtn" class="text-xs px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1" title="切換自動模式 (10秒未Like自動下一首)">
                         <i class="fa-solid fa-bolt text-[10px]"></i>
                         <span>自動</span>
                     </button>
-                    <button onclick="togglePlayMode()" id="playModeBtn" class="text-slate-400 hover:text-indigo-400 text-sm transition" title="播放模式">
+                    <button onclick="togglePlayMode()" id="playModeBtn" class="text-slate-400 hover:text-indigo-400 text-sm transition" title="播放模式: 列表循環">
                         <i class="fa-solid fa-repeat"></i>
                     </button>
                     <button onclick="playPrev()" class="text-slate-400 hover:text-white transition" title="上一首"><i class="fa-solid fa-backward-step"></i></button>
@@ -226,7 +226,7 @@
         let allFiles = [];
         let categories = ['未分類', '流行', '輕音樂', '工作', '其他'];
         let currentCategory = '全部';
-        let currentTagFilter = null; // 當前選中的標籤過濾
+        let currentTagFilter = null;
         let currentPlayingFile = null;
         const audioPlayer = document.getElementById('audioPlayer');
 
@@ -238,7 +238,6 @@
         let autoCountdownInterval = null;
         let remainingSeconds = 10;
 
-        // 從 LocalStorage 載入分類與標籤對應
         function getSavedCategories() {
             try {
                 const saved = localStorage.getItem('mp3_custom_categories');
@@ -251,9 +250,7 @@
         }
 
         function getTagsMap() {
-            try {
-                return JSON.parse(localStorage.getItem('mp3_tags_map') || '{}');
-            } catch (e) { return {}; }
+            try { return JSON.parse(localStorage.getItem('mp3_tags_map') || '{}'); } catch (e) { return {}; }
         }
 
         function saveTagsMap(map) {
@@ -264,11 +261,26 @@
             try { return JSON.parse(localStorage.getItem('mp3_liked_map') || '{}'); } catch (e) { return {}; }
         }
 
+        function saveLikedMap(map) {
+            localStorage.setItem('mp3_liked_map', JSON.stringify(map));
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             categories = getSavedCategories();
             const params = new URLSearchParams(window.location.search);
             const dirParam = params.get('dir');
             if (dirParam) document.getElementById('dirInput').value = dirParam;
+            
+            const pageParam = parseInt(params.get('page'));
+            if (!isNaN(pageParam) && pageParam > 0) currentPage = pageParam;
+
+            const sizeParam = parseInt(params.get('pageSize'));
+            if (!isNaN(sizeParam) && sizeParam > 0) {
+                pageSize = sizeParam;
+                const sizeSelectEl = document.getElementById('pageSizeSelect');
+                if (sizeSelectEl) sizeSelectEl.value = pageSize;
+            }
+
             loadFiles(false);
         });
 
@@ -315,7 +327,7 @@
             }
         }
 
-        // ==================== 分類管理功能 ====================
+        // ==================== 分類與標籤管理 ====================
         function addNewCategory() {
             const inputEl = document.getElementById('newCategoryInput');
             const catName = inputEl.value.trim();
@@ -345,19 +357,14 @@
 
             if (!confirmed) return;
 
-            // 將該分類的檔案改回未分類
             allFiles.forEach(f => {
-                if (f.category === catName) {
-                    f.category = '未分類';
-                }
+                if (f.category === catName) f.category = '未分類';
             });
 
             categories = categories.filter(c => c !== catName);
             saveCategories(categories);
 
-            if (currentCategory === catName) {
-                currentCategory = '全部';
-            }
+            if (currentCategory === catName) currentCategory = '全部';
 
             renderCategories();
             renderTable();
@@ -377,7 +384,7 @@
                         <span class="flex items-center"><i class="fa-solid fa-heart text-rose-500 mr-2"></i> 我的最愛</span>
                         <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${totalLikedCount}</span>
                     </button>
-                    <button onclick="copyFavoriteSongs()" class="p-2 bg-slate-800 hover:bg-rose-600/30 text-slate-400 hover:text-rose-400 border border-slate-700 rounded-xl transition text-xs" title="複製我的最愛到指定目錄">
+                    <button onclick="copyFavoriteSongs()" class="p-2 bg-slate-800 hover:bg-rose-600/30 text-slate-400 hover:text-rose-400 border border-slate-700 rounded-xl transition text-xs flex items-center justify-center" title="複製我的最愛到指定目錄">
                         <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 1.259-.25 2.45-.71 3.518a.75.75 0 11-1.38-.586c.382-.897.59-1.91.59-2.932 0-2.112-1.748-3.75-3.937-3.75a3.98 3.98 0 00-3.322 1.77.75.75 0 01-1.238 0A3.98 3.98 0 008.437 4.5C6.248 4.5 4.5 6.138 4.5 8.25c0 3.256 2.052 6.132 4.38 8.16a23.684 23.684 0 003.882 2.871l.013.007.004.002.721 1.32-.721-1.32z"/></svg>
                     </button>
                 </div>
@@ -404,7 +411,7 @@
 
         function filterCategory(cat) {
             currentCategory = cat;
-            currentTagFilter = null; // 清除標籤過濾
+            currentTagFilter = null;
             currentPage = 1;
             updateUrlParams();
             renderCategories();
@@ -412,41 +419,26 @@
             renderTable();
         }
 
-        // ==================== 標籤管理功能 ====================
         function renderTagCloud() {
             const container = document.getElementById('tagCloudContainer');
             const tagsMap = getTagsMap();
-            
-            // 收集所有出現過的標籤與計數
             const tagCounts = {};
+
             Object.values(tagsMap).forEach(tags => {
-                tags.forEach(tag => {
-                    tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-                });
+                tags.forEach(tag => { tagCounts[tag] = (tagCounts[tag] || 0) + 1; });
             });
 
             const uniqueTags = Object.keys(tagCounts);
             if (uniqueTags.length === 0) {
-                container.innerHTML = `<span class="text-[11px] text-slate-500 px-1">尚無任何標籤，點擊歌曲右側可新增</span>`;
+                container.innerHTML = `<span class="text-[11px] text-slate-500 px-1">尚無任何標籤</span>`;
                 return;
             }
 
-            let html = `
-                <span onclick="filterByTag(null)" class="cursor-pointer px-2 py-1 rounded-lg text-[11px] transition ${!currentTagFilter ? 'bg-indigo-600 text-white font-medium' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}">
-                    全部標籤
-                </span>
-            `;
-
+            let html = `<span onclick="filterByTag(null)" class="cursor-pointer px-2 py-1 rounded-lg text-[11px] transition ${!currentTagFilter ? 'bg-indigo-600 text-white font-medium' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}">全部標籤</span>`;
             uniqueTags.forEach(tag => {
                 const isActive = (currentTagFilter === tag);
-                html += `
-                    <span onclick="filterByTag('${tag}')" class="cursor-pointer px-2 py-1 rounded-lg text-[11px] transition flex items-center space-x-1 ${isActive ? 'bg-indigo-600 text-white font-medium' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}">
-                        <span>#${tag}</span>
-                        <span class="text-[9px] opacity-70">(${tagCounts[tag]})</span>
-                    </span>
-                `;
+                html += `<span onclick="filterByTag('${tag}')" class="cursor-pointer px-2 py-1 rounded-lg text-[11px] transition flex items-center space-x-1 ${isActive ? 'bg-indigo-600 text-white font-medium' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}"><span>#${tag}</span><span class="text-[9px] opacity-70">(${tagCounts[tag]})</span></span>`;
             });
-
             container.innerHTML = html;
         }
 
@@ -461,7 +453,6 @@
         async function editSongTags(fileKey, displayName) {
             const tagsMap = getTagsMap();
             const currentTags = tagsMap[fileKey] || [];
-
             const inputTags = await showCustomModal({
                 title: '管理歌曲標籤',
                 subtitle: displayName,
@@ -473,30 +464,19 @@
             });
 
             if (inputTags === null) return;
-
-            const newTags = inputTags.split(',')
-                .map(t => t.trim())
-                .filter(t => t.length > 0);
-
-            if (newTags.length > 0) {
-                tagsMap[fileKey] = [...new Set(newTags)];
-            } else {
-                delete tagsMap[fileKey];
-            }
+            const newTags = inputTags.split(',').map(t => t.trim()).filter(t => t.length > 0);
+            if (newTags.length > 0) tagsMap[fileKey] = [...new Set(newTags)];
+            else delete tagsMap[fileKey];
 
             saveTagsMap(tagsMap);
             loadFiles(false);
         }
 
-        async function manageTagsPrompt() {
-            await showCustomModal({
-                title: '標籤管理提示',
-                message: '你可以在每首歌的表格操作列中點擊「標籤」按鈕，直接為個別歌曲新增或修改標籤。\n點擊左側的標籤即可進行過濾查詢。',
-                type: 'info'
-            });
+        function manageTagsPrompt() {
+            showCustomModal({ title: '標籤管理提示', message: '點擊每首歌右側的「+標籤」按鈕可為該曲目新增或修改標籤，點擊左側標籤即可過濾歌曲。', type: 'info' });
         }
 
-        // ==================== 過濾與表格渲染 ====================
+        // ==================== 播放控制與核心邏輯 ====================
         function getFilteredFiles() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             return allFiles.filter(f => {
@@ -516,21 +496,321 @@
             });
         }
 
+        function togglePlayMode() {
+            const modes = ['loop', 'shuffle', 'single', 'sequence'];
+            const modeNames = {
+                'loop': { icon: 'fa-repeat', text: '循環' },
+                'shuffle': { icon: 'fa-shuffle', text: '隨機' },
+                'single': { icon: 'fa-repeat-1', text: '單曲' },
+                'sequence': { icon: 'fa-arrow-right', text: '順序' }
+            };
+
+            let nextIdx = (modes.indexOf(playMode) + 1) % modes.length;
+            playMode = modes[nextIdx];
+
+            const btn = document.getElementById('playModeBtn');
+            const modeText = document.getElementById('modeText');
+            btn.innerHTML = `<i class="fa-solid ${modeNames[playMode].icon}"></i>`;
+            modeText.innerText = modeNames[playMode].text;
+            btn.title = `播放模式: ${modeNames[playMode].text}`;
+        }
+
+        function toggleAutoMode() {
+            isAutoMode = !isAutoMode;
+            const btn = document.getElementById('autoModeBtn');
+            if (isAutoMode) {
+                btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-400 transition flex items-center space-x-1 shadow-md';
+                if (currentPlayingFile && !audioPlayer.paused) startAutoTimer(10);
+            } else {
+                btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1';
+                clearAutoTimer();
+            }
+        }
+
+        function startAutoTimer(seconds) {
+            clearAutoTimer();
+            if (!isAutoMode) return;
+            remainingSeconds = seconds;
+            updateTimerDisplay(remainingSeconds);
+
+            autoCountdownInterval = setInterval(() => {
+                remainingSeconds--;
+                if (remainingSeconds > 0) updateTimerDisplay(remainingSeconds);
+                else { updateTimerDisplay(0); clearInterval(autoCountdownInterval); }
+            }, 1000);
+
+            autoTimer = setTimeout(() => { if (isAutoMode) playNext(); }, seconds * 1000);
+        }
+
+        function clearAutoTimer() {
+            if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+            if (autoCountdownInterval) { clearInterval(autoCountdownInterval); autoCountdownInterval = null; }
+            const timerText = document.getElementById('autoTimerText');
+            timerText.classList.add('hidden');
+            timerText.innerText = '';
+        }
+
+        function updateTimerDisplay(sec) {
+            const timerText = document.getElementById('autoTimerText');
+            if (!isAutoMode) { timerText.classList.add('hidden'); return; }
+            timerText.classList.remove('hidden');
+            timerText.innerText = `[自動換歌: ${sec}s]`;
+        }
+
+        function toggleLike(fileKey, event) {
+            if (event) event.stopPropagation();
+            const file = allFiles.find(f => (f.relativePath || f.filename) === fileKey);
+            if (!file) return;
+
+            file.isLiked = !file.isLiked;
+            const likedMap = getLikedMap();
+            if (file.isLiked) likedMap[fileKey] = true; else delete likedMap[fileKey];
+            saveLikedMap(likedMap);
+
+            renderCategories();
+            renderTable();
+            if (currentPlayingFile === fileKey) updatePlayerLikeState();
+
+            if (isAutoMode && currentPlayingFile === fileKey && file.isLiked) {
+                clearAutoTimer();
+                const timerText = document.getElementById('autoTimerText');
+                timerText.classList.remove('hidden');
+                timerText.innerText = '[已Like，3秒後換歌...]';
+                autoTimer = setTimeout(() => { if (isAutoMode) playNext(); }, 3000);
+            }
+        }
+
+        function togglePlayerLike() {
+            if (!currentPlayingFile) return;
+            toggleLike(currentPlayingFile);
+        }
+
+        function updatePlayerLikeState() {
+            const btn = document.getElementById('playerLikeBtn');
+            const icon = document.getElementById('playerLikeIcon');
+            if (!currentPlayingFile) { btn.classList.add('hidden'); clearAutoTimer(); return; }
+
+            btn.classList.remove('hidden');
+            const file = allFiles.find(f => (f.relativePath || f.filename) === currentPlayingFile);
+            if (file && file.isLiked) {
+                icon.className = 'fa-solid fa-heart text-rose-500';
+                btn.title = '取消最愛';
+            } else {
+                icon.className = 'fa-regular fa-heart text-slate-500 hover:text-slate-300';
+                btn.title = '加入最愛';
+            }
+        }
+
+        function playSong(fileKey, displayName) {
+            const dir = document.getElementById('dirInput').value.trim();
+            const streamUrl = `/api/mp3?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(fileKey)}`;
+            
+            const filtered = getFilteredFiles();
+            const songIndex = filtered.findIndex(f => (f.relativePath || f.filename) === fileKey);
+            if (songIndex !== -1) {
+                const targetPage = Math.floor(songIndex / pageSize) + 1;
+                if (targetPage !== currentPage) { currentPage = targetPage; renderTable(); }
+            }
+
+            if (currentPlayingFile !== fileKey) {
+                currentPlayingFile = fileKey;
+                audioPlayer.src = streamUrl;
+                audioPlayer.play();
+                document.getElementById('currentSongTitle').innerText = displayName;
+                const fileObj = allFiles.find(f => (f.relativePath || f.filename) === fileKey);
+                document.getElementById('currentSongCategory').innerText = fileObj ? fileObj.category : '';
+            } else {
+                if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause();
+            }
+
+            updatePlayerLikeState();
+            renderTable();
+            updatePlayButton();
+            setTimeout(() => scrollToCurrentSong(fileKey), 50);
+
+            if (isAutoMode && !audioPlayer.paused) startAutoTimer(10);
+            else clearAutoTimer();
+        }
+
+        function scrollToCurrentSong(fileKey) {
+            const rowId = `row-${encodeURIComponent(fileKey).replace(/[%._-]/g, '_')}`;
+            const targetRow = document.getElementById(rowId);
+            if (targetRow) targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function playPrev() {
+            const list = getFilteredFiles();
+            if (list.length === 0) return;
+            const currentIndex = list.findIndex(f => (f.relativePath || f.filename) === currentPlayingFile);
+            let prevIndex = currentIndex - 1;
+            if (prevIndex < 0) prevIndex = list.length - 1;
+            const target = list[prevIndex];
+            playSong(target.relativePath || target.filename, target.displayName);
+        }
+
+        function playNext() {
+            clearAutoTimer();
+            const list = getFilteredFiles();
+            if (list.length === 0) return;
+
+            if (playMode === 'shuffle') {
+                let randomIndex = Math.floor(Math.random() * list.length);
+                if (list.length > 1 && (list[randomIndex].relativePath || list[randomIndex].filename) === currentPlayingFile) {
+                    randomIndex = (randomIndex + 1) % list.length;
+                }
+                const target = list[randomIndex];
+                playSong(target.relativePath || target.filename, target.displayName);
+                return;
+            }
+
+            const currentIndex = list.findIndex(f => (f.relativePath || f.filename) === currentPlayingFile);
+            let nextIndex = currentIndex + 1;
+            if (nextIndex >= list.length) {
+                if (playMode === 'sequence') {
+                    audioPlayer.pause();
+                    currentPlayingFile = null;
+                    updatePlayerLikeState();
+                    renderTable();
+                    updatePlayButton();
+                    return;
+                }
+                nextIndex = 0;
+            }
+            const target = list[nextIndex];
+            playSong(target.relativePath || target.filename, target.displayName);
+        }
+
+        function onAudioEnded() {
+            if (playMode === 'single') { audioPlayer.currentTime = 0; audioPlayer.play(); return; }
+            playNext();
+        }
+
+        function onAudioError() {
+            const titleEl = document.getElementById('currentSongTitle');
+            if (titleEl) titleEl.innerText = "⚠️ 檔案損毀或無法播放，自動跳過...";
+            setTimeout(() => playNext(), 1000);
+        }
+
+        function togglePlay() {
+            if (!audioPlayer.src) {
+                const list = getFilteredFiles();
+                if (list.length > 0) playSong(list[0].relativePath || list[0].filename, list[0].displayName);
+                return;
+            }
+            if (audioPlayer.paused) { audioPlayer.play(); if (isAutoMode) startAutoTimer(10); }
+            else { audioPlayer.pause(); clearAutoTimer(); }
+            updatePlayButton();
+            renderTable();
+        }
+
+        function updatePlayButton() {
+            const btn = document.getElementById('playPauseBtn');
+            btn.innerHTML = audioPlayer.paused ? '<i class="fa-solid fa-play text-xs"></i>' : '<i class="fa-solid fa-pause text-xs"></i>';
+        }
+
+        function updateProgress() {
+            if (isNaN(audioPlayer.duration)) return;
+            document.getElementById('progressBar').value = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            document.getElementById('currentTime').innerText = formatTime(audioPlayer.currentTime);
+            document.getElementById('durationTime').innerText = formatTime(audioPlayer.duration);
+        }
+
+        function seekAudio(val) {
+            if (!isNaN(audioPlayer.duration)) audioPlayer.currentTime = (val / 100) * audioPlayer.duration;
+        }
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        async function changeCategory(fileKey, newCategory) {
+            const dir = document.getElementById('dirInput').value.trim();
+            const res = await fetch('/api/mp3', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dir, filename: fileKey, newCategory })
+            });
+            const data = await res.json();
+            if (data.success) loadFiles(false);
+            else showCustomModal({ title: '修改失敗', message: data.error, type: 'error' });
+        }
+
+        async function deleteSong(fileKey) {
+            const confirmed = await showCustomModal({
+                title: '刪除檔案確認',
+                subtitle: '此操作無法復原',
+                message: '確定要從硬碟中刪除這個 MP3 檔案嗎？',
+                type: 'danger',
+                confirmText: '確認刪除'
+            });
+
+            if (!confirmed) return;
+            const dir = document.getElementById('dirInput').value.trim();
+            const res = await fetch(`/api/mp3?dir=${encodeURIComponent(dir)}&filename=${encodeURIComponent(fileKey)}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                if (currentPlayingFile === fileKey) {
+                    audioPlayer.pause();
+                    currentPlayingFile = null;
+                    updatePlayerLikeState();
+                    clearAutoTimer();
+                }
+                loadFiles(false);
+            } else {
+                showCustomModal({ title: '刪除失敗', message: data.error, type: 'error' });
+            }
+        }
+
+        async function copyFavoriteSongs() {
+            const likedMap = getLikedMap();
+            const likedKeys = Object.keys(likedMap);
+            if (likedKeys.length === 0) {
+                showCustomModal({ title: '提示', message: '目前沒有任何「我的最愛」歌曲可供複製！', type: 'info' });
+                return;
+            }
+
+            const savedTargetDir = localStorage.getItem('mp3_copy_target_dir') || '';
+            const targetDir = await showCustomModal({
+                title: '複製我的最愛',
+                subtitle: `共選定 ${likedKeys.length} 首收藏歌曲`,
+                message: '請輸入要複製過去的目標資料夾絕對路徑：',
+                type: 'confirm',
+                isPrompt: true,
+                defaultValue: savedTargetDir,
+                confirmText: '開始複製'
+            });
+
+            if (!targetDir || !targetDir.trim()) return;
+            const trimmedTargetDir = targetDir.trim();
+            localStorage.setItem('mp3_copy_target_dir', trimmedTargetDir);
+            const currentSourceDir = document.getElementById('dirInput').value.trim();
+
+            const res = await fetch('/api/mp3/copy-favorites', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sourceDir: currentSourceDir, targetDir: trimmedTargetDir, filenames: likedKeys })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showCustomModal({ title: '複製完成', message: `已成功將最愛歌曲複製。\n成功：${data.successCount} 首`, type: 'success' });
+            } else {
+                showCustomModal({ title: '複製失敗', message: data.error, type: 'error' });
+            }
+        }
+
+        function handleSearch() { currentPage = 1; updateUrlParams(); renderTable(); }
+        function goToPage(p) { currentPage = p; updateUrlParams(); renderTable(); }
+        function changePageSize(sz) { pageSize = parseInt(sz); currentPage = 1; updateUrlParams(); renderTable(); }
+
         function renderTable() {
             const tbody = document.getElementById('fileTableBody');
             let filtered = getFilteredFiles();
-
             document.getElementById('fileCountText').innerText = `共 ${filtered.length} 首`;
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="4" class="text-center py-12 text-slate-500">
-                            <i class="fa-solid fa-music text-3xl mb-2 block"></i>
-                            沒有找到符合的 MP3 檔案
-                        </td>
-                    </tr>
-                `;
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-slate-500"><i class="fa-solid fa-music text-3xl mb-2 block"></i>沒有找到符合的 MP3 檔案</td></tr>`;
                 document.getElementById('paginationContainer').innerHTML = '';
                 return;
             }
@@ -552,7 +832,6 @@
                 const safeKey = fileKey.replace(/'/g, "\\'");
                 const safeDisplayName = (file.displayName || file.filename).replace(/'/g, "\\'");
                 const rowId = `row-${encodeURIComponent(fileKey).replace(/[%._-]/g, '_')}`;
-
                 let tagsHtml = (file.tags || []).map(t => `<span class="bg-indigo-950 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[10px]">#${t}</span>`).join(' ');
 
                 html += `
@@ -593,7 +872,16 @@
             renderPagination(totalPages, filtered.length);
         }
 
-        // ==================== Modal 封裝 ====================
+        function renderPagination(totalPages, totalItems) {
+            const container = document.getElementById('paginationContainer');
+            if (totalPages <= 1) {
+                container.innerHTML = `<span class="text-xs text-slate-400">顯示全部 ${totalItems} 筆資料</span>`;
+                return;
+            }
+            container.innerHTML = `<span class="text-xs text-slate-400">頁次 ${currentPage} / ${totalPages} (共 ${totalItems} 筆)</span>`;
+        }
+
+        // Modal 封裝
         function showCustomModal({ title, subtitle = '系統通知', message, type = 'info', isPrompt = false, defaultValue = '', confirmText = '確定' }) {
             return new Promise((resolve) => {
                 const modal = document.getElementById('customModal');
@@ -632,10 +920,7 @@
                 cancelBtn.classList.toggle('hidden', !needsCancel);
 
                 if (isPrompt) {
-                    bodyEl.innerHTML = `
-                        <p class="mb-2 text-slate-300">${message}</p>
-                        <input type="text" id="modalPromptInput" value="${defaultValue}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
-                    `;
+                    bodyEl.innerHTML = `<p class="mb-2 text-slate-300">${message}</p><input type="text" id="modalPromptInput" value="${defaultValue}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">`;
                 } else {
                     bodyEl.innerHTML = `<p>${message.replace(/\n/g, '<br>')}</p>`;
                 }
@@ -674,81 +959,6 @@
                 }
             });
         }
-
-        // 標準播放器與其他基礎互動控制項
-        function toggleLike(fileKey, event) {
-            if (event) event.stopPropagation();
-            const file = allFiles.find(f => (f.relativePath || f.filename) === fileKey);
-            if (!file) return;
-            file.isLiked = !file.isLiked;
-            const likedMap = getLikedMap();
-            if (file.isLiked) likedMap[fileKey] = true; else delete likedMap[fileKey];
-            localStorage.setItem('mp3_liked_map', JSON.stringify(likedMap));
-            renderCategories();
-            renderTable();
-            if (currentPlayingFile === fileKey) updatePlayerLikeState();
-        }
-
-        async function changeCategory(fileKey, newCategory) {
-            const dir = document.getElementById('dirInput').value.trim();
-            const res = await fetch('/api/mp3', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ dir, filename: fileKey, newCategory })
-            });
-            const data = await res.json();
-            if (data.success) loadFiles(false);
-            else showCustomModal({ title: '修改失敗', message: data.error, type: 'error' });
-        }
-
-        function renderPagination(totalPages, totalItems) {
-            const container = document.getElementById('paginationContainer');
-            if (totalPages <= 1) {
-                container.innerHTML = `<span class="text-xs text-slate-400">顯示全部 ${totalItems} 筆資料</span>`;
-                return;
-            }
-            container.innerHTML = `<span class="text-xs text-slate-400">頁次 ${currentPage} / ${totalPages} (共 ${totalItems} 筆)</span>`;
-        }
-
-        function playSong(fileKey, displayName) {
-            const dir = document.getElementById('dirInput').value.trim();
-            const streamUrl = `/api/mp3?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(fileKey)}`;
-            currentPlayingFile = fileKey;
-            audioPlayer.src = streamUrl;
-            audioPlayer.play();
-            document.getElementById('currentSongTitle').innerText = displayName;
-            renderTable();
-            updatePlayButton();
-        }
-
-        function togglePlay() {
-            if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause();
-            updatePlayButton();
-        }
-
-        function updatePlayButton() {
-            document.getElementById('playPauseBtn').innerHTML = audioPlayer.paused ? '<i class="fa-solid fa-play text-xs"></i>' : '<i class="fa-solid fa-pause text-xs"></i>';
-        }
-
-        function updateProgress() {
-            if (isNaN(audioPlayer.duration)) return;
-            document.getElementById('progressBar').value = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-        }
-
-        function seekAudio(val) {
-            if (!isNaN(audioPlayer.duration)) audioPlayer.currentTime = (val / 100) * audioPlayer.duration;
-        }
-
-        function handleSearch() { currentPage = 1; renderTable(); }
-        function goToPage(p) { currentPage = p; renderTable(); }
-        function changePageSize(sz) { pageSize = parseInt(sz); currentPage = 1; renderTable(); }
-        function onAudioEnded() { playSong(); }
-        function onAudioError() {}
-        function toggleAutoMode() {}
-        function togglePlayMode() {}
-        function updatePlayerLikeState() {}
-        function copyFavoriteSongs() {}
-        function deleteSong(key) {}
     </script>
 </body>
 </html>
