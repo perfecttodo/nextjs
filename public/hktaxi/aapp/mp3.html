@@ -170,17 +170,23 @@
                         <i class="fa-solid fa-bolt text-[10px]"></i>
                         <span>自動</span>
                     </button>
-                    <button onclick="togglePlayMode()" id="playModeBtn" class="text-slate-400 hover:text-indigo-400 text-sm transition" title="播放模式: 列表循環">
-                        <i class="fa-solid fa-repeat"></i>
+
+                    <!-- 使用內嵌 SVG 之播放模式按鈕 -->
+                    <button onclick="togglePlayMode()" id="playModeBtn" class="text-slate-400 hover:text-indigo-400 transition flex items-center justify-center p-1" title="播放模式: 列表循環">
+                        <!-- 預設為列表循環 SVG -->
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
                     </button>
+
                     <button onclick="playPrev()" class="text-slate-400 hover:text-white transition" title="上一首"><i class="fa-solid fa-backward-step"></i></button>
                     <button onclick="togglePlay()" id="playPauseBtn" class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg transition">
                         <i class="fa-solid fa-play text-xs"></i>
                     </button>
                     <button onclick="playNext()" class="text-slate-400 hover:text-white transition" title="下一首"><i class="fa-solid fa-forward-step"></i></button>
+                    
                     <button id="playerLikeBtn" onclick="togglePlayerLike()" class="text-slate-500 hover:text-rose-400 transition hidden ml-1 text-base" title="加入最愛">
                         <i id="playerLikeIcon" class="fa-regular fa-heart"></i>
                     </button>
+                    
                     <span id="modeText" class="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded ml-2">循環</span>
                 </div>
                 <div class="w-full flex items-center space-x-3 text-xs text-slate-400">
@@ -232,11 +238,19 @@
 
         let currentPage = 1;
         let pageSize = 20;
-        let playMode = 'loop'; 
+        let playMode = 'loop'; // 'loop', 'shuffle', 'single', 'sequence'
         let isAutoMode = false;
         let autoTimer = null;
         let autoCountdownInterval = null;
         let remainingSeconds = 10;
+
+        // 全域 SVG 圖標庫字典（防止 FontAwesome 圖標缺漏）
+        const modeIconsSVG = {
+            'loop': `<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>`,
+            'shuffle': `<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.45 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>`,
+            'single': `<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/><path d="M13 15h-1.5v-3.5H10V10h3v5z"/></svg>`,
+            'sequence': `<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M5 12h11.17l-4.58-4.59L13 6l6 6-6 6-1.41-1.41L16.17 13H5v-2z"/></svg>`
+        };
 
         function getSavedCategories() {
             try {
@@ -496,23 +510,26 @@
             });
         }
 
+        // 使用 SVG 重構的播放模式切換
         function togglePlayMode() {
             const modes = ['loop', 'shuffle', 'single', 'sequence'];
             const modeNames = {
-                'loop': { icon: 'fa-repeat', text: '循環' },
-                'shuffle': { icon: 'fa-shuffle', text: '隨機' },
-                'single': { icon: 'fa-repeat-1', text: '單曲' },
-                'sequence': { icon: 'fa-arrow-right', text: '順序' }
+                'loop': '循環',
+                'shuffle': '隨機',
+                'single': '單曲',
+                'sequence': '順序'
             };
 
-            let nextIdx = (modes.indexOf(playMode) + 1) % modes.length;
+            let currentIdx = modes.indexOf(playMode);
+            if (currentIdx === -1) currentIdx = 0;
+            let nextIdx = (currentIdx + 1) % modes.length;
             playMode = modes[nextIdx];
 
             const btn = document.getElementById('playModeBtn');
             const modeText = document.getElementById('modeText');
-            btn.innerHTML = `<i class="fa-solid ${modeNames[playMode].icon}"></i>`;
-            modeText.innerText = modeNames[playMode].text;
-            btn.title = `播放模式: ${modeNames[playMode].text}`;
+            btn.innerHTML = modeIconsSVG[playMode];
+            modeText.innerText = modeNames[playMode];
+            btn.title = `播放模式: ${modeNames[playMode]}`;
         }
 
         function toggleAutoMode() {
@@ -681,7 +698,11 @@
         }
 
         function onAudioEnded() {
-            if (playMode === 'single') { audioPlayer.currentTime = 0; audioPlayer.play(); return; }
+            if (playMode === 'single') { 
+                audioPlayer.currentTime = 0; 
+                audioPlayer.play(); 
+                return; 
+            }
             playNext();
         }
 
