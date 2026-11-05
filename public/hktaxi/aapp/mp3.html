@@ -106,11 +106,11 @@
                         <span id="fileCountText" class="text-xs text-slate-400">共 0 首</span>
 
                         <div id="topPaginationBtns" class="flex items-center space-x-1">
-                            <button id="topPrevBtn" onclick="goToPage(currentPage - 1)" disabled class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition">
+                            <button id="topPrevBtn" onclick="goToPage(currentPage - 1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg transition">
                                 <i class="fa-solid fa-chevron-left"></i> 上一頁
                             </button>
                             <span id="topPageIndicator" class="text-xs text-slate-400 font-mono px-1">1 / 1</span>
-                            <button id="topNextBtn" onclick="goToPage(currentPage + 1)" disabled class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition">
+                            <button id="topNextBtn" onclick="goToPage(currentPage + 1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg transition">
                                 下一頁 <i class="fa-solid fa-chevron-right"></i>
                             </button>
                         </div>
@@ -146,6 +146,7 @@
                     </table>
                 </div>
 
+                <!-- 底部完整分頁控制列 -->
                 <div id="paginationContainer" class="px-4 md:px-6 py-3 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-3 bg-slate-950/40 shrink-0"></div>
             </div>
         </div>
@@ -377,7 +378,7 @@
 
                 updatePlayerLikeState();
                 renderTable();
-                updatePlayButton(); // 顯示暫停/播放按鈕狀態
+                updatePlayButton();
             }
         }
 
@@ -879,7 +880,12 @@
 
         function handleSearch() { currentPage = 1; updateUrlParams(); renderTable(); }
         function goToPage(p) { currentPage = p; updateUrlParams(); renderTable(); }
-        function changePageSize(sz) { pageSize = parseInt(sz); currentPage = 1; updateUrlParams(); renderTable(); }
+        function changePageSize(sz) { 
+            pageSize = parseInt(sz); 
+            currentPage = 1; 
+            updateUrlParams(); 
+            renderTable(); 
+        }
 
         function renderTable() {
             const tbody = document.getElementById('fileTableBody');
@@ -889,6 +895,9 @@
             if (filtered.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-slate-500"><i class="fa-solid fa-music text-3xl mb-2 block"></i>沒有找到符合的 MP3 檔案</td></tr>`;
                 document.getElementById('paginationContainer').innerHTML = '';
+                document.getElementById('topPageIndicator').innerText = `1 / 1`;
+                document.getElementById('topPrevBtn').disabled = true;
+                document.getElementById('topNextBtn').disabled = true;
                 return;
             }
 
@@ -949,13 +958,27 @@
             renderPagination(totalPages, filtered.length);
         }
 
+        // 完整修復分頁按鈕渲染與狀態連動
         function renderPagination(totalPages, totalItems) {
             const container = document.getElementById('paginationContainer');
-            if (totalPages <= 1) {
-                container.innerHTML = `<span class="text-xs text-slate-400">顯示全部 ${totalItems} 筆資料</span>`;
-                return;
-            }
-            container.innerHTML = `<span class="text-xs text-slate-400">頁次 ${currentPage} / ${totalPages} (共 ${totalItems} 筆)</span>`;
+            
+            // 同步更新頂部導覽列的分頁狀態
+            document.getElementById('topPageIndicator').innerText = `${currentPage} / ${totalPages}`;
+            document.getElementById('topPrevBtn').disabled = (currentPage <= 1);
+            document.getElementById('topNextBtn').disabled = (currentPage >= totalPages);
+
+            // 渲染底部完整分頁列
+            let html = `
+                <span class="text-xs text-slate-400">顯示第 ${(currentPage - 1) * pageSize + 1} - ${Math.min(currentPage * pageSize, totalItems)} 筆，共 ${totalItems} 筆資料</span>
+                <div class="flex items-center space-x-1.5">
+                    <button onclick="goToPage(1)" ${currentPage === 1 ? 'disabled class="px-2.5 py-1 bg-slate-900 text-slate-600 rounded-lg text-xs cursor-not-allowed"' : 'class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition"'}>首頁</button>
+                    <button onclick="goToPage(currentPage - 1)" ${currentPage === 1 ? 'disabled class="px-2.5 py-1 bg-slate-900 text-slate-600 rounded-lg text-xs cursor-not-allowed"' : 'class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition"'}>上一頁</button>
+                    <span class="text-xs text-indigo-400 font-mono px-2">${currentPage} / ${totalPages}</span>
+                    <button onclick="goToPage(currentPage + 1)" ${currentPage >= totalPages ? 'disabled class="px-2.5 py-1 bg-slate-900 text-slate-600 rounded-lg text-xs cursor-not-allowed"' : 'class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition"'}>下一頁</button>
+                    <button onclick="goToPage(${totalPages})" ${currentPage >= totalPages ? 'disabled class="px-2.5 py-1 bg-slate-900 text-slate-600 rounded-lg text-xs cursor-not-allowed"' : 'class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition"'}>末頁</button>
+                </div>
+            `;
+            container.innerHTML = html;
         }
 
         // Modal 封裝
