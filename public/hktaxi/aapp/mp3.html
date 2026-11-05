@@ -243,7 +243,6 @@
         let autoTimer = null;
         let autoCountdownInterval = null;
         let remainingSeconds = 10;
-        let isAutoPlayOnLoad = false; // 紀錄載入時是否自動播放
 
         const modeIconsSVG = {
             'loop': `<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>`,
@@ -254,7 +253,6 @@
 
         const modeNames = { 'loop': '循環', 'shuffle': '隨機', 'single': '單曲', 'sequence': '順序' };
 
-        // 讀取/儲存設定
         function getSavedCategories() {
             try {
                 const saved = localStorage.getItem('mp3_custom_categories');
@@ -268,11 +266,8 @@
         function getLikedMap() { try { return JSON.parse(localStorage.getItem('mp3_liked_map') || '{}'); } catch (e) { return {}; } }
         function saveLikedMap(map) { localStorage.setItem('mp3_liked_map', JSON.stringify(map)); }
 
-        // ==================== 頁面初始還原播放狀態 ====================
         window.addEventListener('DOMContentLoaded', () => {
             categories = getSavedCategories();
-            
-            // 1. 還原 URL 參數
             const params = new URLSearchParams(window.location.search);
             const dirParam = params.get('dir');
             if (dirParam) document.getElementById('dirInput').value = dirParam;
@@ -287,7 +282,6 @@
                 if (sizeSelectEl) sizeSelectEl.value = pageSize;
             }
 
-            // 2. 還原播放模式 (Play Mode)
             const savedPlayMode = localStorage.getItem('mp3_last_play_mode');
             if (savedPlayMode && modeNames[savedPlayMode]) {
                 playMode = savedPlayMode;
@@ -295,7 +289,6 @@
                 document.getElementById('modeText').innerText = modeNames[playMode];
             }
 
-            // 3. 還原自動模式 (Auto Mode)
             const savedAutoMode = localStorage.getItem('mp3_last_auto_mode');
             if (savedAutoMode === 'true') {
                 isAutoMode = true;
@@ -303,7 +296,6 @@
                 btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-400 transition flex items-center space-x-1 shadow-md';
             }
 
-            // 4. 還原音量
             const savedVolume = localStorage.getItem('mp3_last_volume');
             if (savedVolume !== null) {
                 const vol = parseFloat(savedVolume);
@@ -311,9 +303,6 @@
                 const volEl = document.getElementById('volumeControl');
                 if (volEl) volEl.value = vol;
             }
-
-            // 5. 檢查上次是否在播放狀態
-            isAutoPlayOnLoad = localStorage.getItem('mp3_was_playing') === 'true';
 
             loadFiles(false);
         });
@@ -353,8 +342,6 @@
                     renderTagCloud();
                     renderTable();
                     updatePlayerLikeState();
-
-                    // ==================== 載入後自動還原最後一次播放的歌曲 ====================
                     restoreLastPlayedSong();
                 } else {
                     await showCustomModal({ title: '載入失敗', message: data.error || '未知錯誤', type: 'error' });
@@ -381,7 +368,6 @@
                 document.getElementById('currentSongTitle').innerText = targetFile.displayName || lastTitle;
                 document.getElementById('currentSongCategory').innerText = targetFile.category || '';
 
-                // 設定接續播放時間
                 audioPlayer.addEventListener('loadedmetadata', function onMeta() {
                     if (!isNaN(audioPlayer.duration) && lastTime < audioPlayer.duration) {
                         audioPlayer.currentTime = lastTime;
@@ -391,17 +377,7 @@
 
                 updatePlayerLikeState();
                 renderTable();
-
-                // 若刷新前正在播放，嘗試自動播放（需注意瀏覽器 Autoplay 政策限制）
-                if (isAutoPlayOnLoad) {
-                    audioPlayer.play().then(() => {
-                        updatePlayButton();
-                        if (isAutoMode) startAutoTimer(10);
-                    }).catch(err => {
-                        console.log("瀏覽器阻擋自動播放，已恢復暫停狀態:", err);
-                        updatePlayButton();
-                    });
-                }
+                updatePlayButton(); // 顯示暫停/播放按鈕狀態
             }
         }
 
@@ -581,7 +557,6 @@
             let nextIdx = (currentIdx + 1) % modes.length;
             playMode = modes[nextIdx];
 
-            // 儲存播放模式
             localStorage.setItem('mp3_last_play_mode', playMode);
 
             const btn = document.getElementById('playModeBtn');
@@ -702,14 +677,11 @@
                 const fileObj = allFiles.find(f => (f.relativePath || f.filename) === fileKey);
                 document.getElementById('currentSongCategory').innerText = fileObj ? fileObj.category : '';
                 
-                // 儲存播放狀態
                 localStorage.setItem('mp3_last_played_key', fileKey);
                 localStorage.setItem('mp3_last_played_title', displayName);
             } else {
                 if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause();
             }
-
-            localStorage.setItem('mp3_was_playing', !audioPlayer.paused);
 
             updatePlayerLikeState();
             renderTable();
@@ -757,7 +729,6 @@
                 if (playMode === 'sequence') {
                     audioPlayer.pause();
                     currentPlayingFile = null;
-                    localStorage.setItem('mp3_was_playing', 'false');
                     updatePlayerLikeState();
                     renderTable();
                     updatePlayButton();
@@ -797,7 +768,6 @@
                 audioPlayer.pause(); 
                 clearAutoTimer(); 
             }
-            localStorage.setItem('mp3_was_playing', !audioPlayer.paused);
             updatePlayButton();
             renderTable();
         }
@@ -813,7 +783,6 @@
             document.getElementById('currentTime').innerText = formatTime(audioPlayer.currentTime);
             document.getElementById('durationTime').innerText = formatTime(audioPlayer.duration);
 
-            // 即時定時紀錄當前播放秒數
             if (currentPlayingFile && !audioPlayer.paused) {
                 localStorage.setItem('mp3_last_played_time', audioPlayer.currentTime);
             }
