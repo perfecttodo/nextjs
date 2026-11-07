@@ -335,7 +335,14 @@
                     if (lastPauseTime > 0 && (now - lastPauseTime < PAUSE_TO_PLAY_DELAY)) {
                         // 達成條件：「暫停 -> 900ms 內快速播放」序列 -> 觸發 Like！
                         lastPauseTime = 0; // 重置計時
-                        togglePlayerLike();
+                        // 檢查當前播放的檔案是否已存在於最愛清單中
+                        if (currentPlayingFile) {
+                            const file = allFiles.find(f => (f.relativePath || f.filename) === currentPlayingFile);
+                            // 關鍵修改：只有在「尚未 Like」的情況下才執行 Like，實現「只能 Like、不能 Unlike」
+                            if (file && !file.isLiked) {
+                                togglePlayerLike();
+                            }
+                        }
                         
                         // 保持音樂繼續播放
                         if (audioPlayer.paused) {
