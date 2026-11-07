@@ -245,7 +245,7 @@
         let autoCountdownInterval = null;
         let remainingSeconds = 10;
 
-        // 藍牙「暫停 -> 快速播放」序列檢測變數 (已調整為 900ms)
+        // 藍牙「暫停 -> 快速播放」序列檢測變數 (900ms)
         let lastPauseTime = 0;
         const PAUSE_TO_PLAY_DELAY = 900; 
 
@@ -315,12 +315,11 @@
             loadFiles(false);
         });
 
-        // ==================== 藍牙 Media Session (實現「暫停後 900ms 內快速播放」觸發 Like) ====================
+        // ==================== 藍牙 Media Session ====================
         function initMediaSession() {
             if ('mediaSession' in navigator) {
-                // 1. 藍牙按下 Pause (暫停)
                 navigator.mediaSession.setActionHandler('pause', () => {
-                    lastPauseTime = Date.now(); // 記錄按下暫停的時間點
+                    lastPauseTime = Date.now();
                     if (!audioPlayer.paused) {
                         audioPlayer.pause();
                         clearAutoTimer();
@@ -328,23 +327,16 @@
                     }
                 });
 
-                // 2. 藍牙按下 Play (播放)
                 navigator.mediaSession.setActionHandler('play', () => {
                     const now = Date.now();
-                    // 檢查是否在 900ms 內剛按過暫停
                     if (lastPauseTime > 0 && (now - lastPauseTime < PAUSE_TO_PLAY_DELAY)) {
-                        // 達成條件：「暫停 -> 900ms 內快速播放」序列 -> 觸發 Like！
-                        lastPauseTime = 0; // 重置計時
-                        // 檢查當前播放的檔案是否已存在於最愛清單中
+                        lastPauseTime = 0;
                         if (currentPlayingFile) {
                             const file = allFiles.find(f => (f.relativePath || f.filename) === currentPlayingFile);
-                            // 關鍵修改：只有在「尚未 Like」的情況下才執行 Like，實現「只能 Like、不能 Unlike」
                             if (file && !file.isLiked) {
                                 togglePlayerLike();
                             }
                         }
-                        
-                        // 保持音樂繼續播放
                         if (audioPlayer.paused) {
                             audioPlayer.play();
                             updatePlayButton();
@@ -353,7 +345,6 @@
                         return;
                     }
 
-                    // 一般正常的播放操作
                     lastPauseTime = 0;
                     if (audioPlayer.paused) {
                         audioPlayer.play();
@@ -367,7 +358,6 @@
             }
         }
 
-        // 綁定鍵盤快捷鍵 (L 鍵切換 Like，空白鍵播放/暫停)
         function initKeyboardShortcuts() {
             window.addEventListener('keydown', (e) => {
                 if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
@@ -442,7 +432,8 @@
         function restoreLastPlayedSong() {
             const lastKey = localStorage.getItem('mp3_last_played_key');
             const lastTitle = localStorage.getItem('mp3_last_played_title');
-            const lastTime = parseFloat(localStorage.getItem('mp3_last_played_time') || '0');
+            // 效能優化：優先從 sessionStorage 讀取進度
+            const lastTime = parseFloat(sessionStorage.getItem('mp3_last_played_time') || localStorage.getItem('mp3_last_played_time') || '0');
 
             if (!lastKey || allFiles.length === 0) return;
 
@@ -880,15 +871,16 @@
             document.getElementById('currentTime').innerText = formatTime(audioPlayer.currentTime);
             document.getElementById('durationTime').innerText = formatTime(audioPlayer.duration);
 
+            // 效能優化：改存入 sessionStorage，大幅減少磁碟寫入負擔
             if (currentPlayingFile && !audioPlayer.paused) {
-                localStorage.setItem('mp3_last_played_time', audioPlayer.currentTime);
+                sessionStorage.setItem('mp3_last_played_time', audioPlayer.currentTime);
             }
         }
 
         function seekAudio(val) {
             if (!isNaN(audioPlayer.duration)) {
                 audioPlayer.currentTime = (val / 100) * audioPlayer.duration;
-                localStorage.setItem('mp3_last_played_time', audioPlayer.currentTime);
+                sessionStorage.setItem('mp3_last_played_time', audioPlayer.currentTime);
             }
         }
 
@@ -928,6 +920,7 @@
                     audioPlayer.pause();
                     currentPlayingFile = null;
                     localStorage.removeItem('mp3_last_played_key');
+                    sessionStorage.removeItem('mp3_last_played_time');
                     updatePlayerLikeState();
                     clearAutoTimer();
                 }
