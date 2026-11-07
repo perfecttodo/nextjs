@@ -245,9 +245,9 @@
         let autoCountdownInterval = null;
         let remainingSeconds = 10;
 
-        // 藍牙「暫停 -> 快速播放」序列檢測變數
+        // 藍牙「暫停 -> 快速播放」序列檢測變數 (已調整為 900ms)
         let lastPauseTime = 0;
-        const PAUSE_TO_PLAY_DELAY = 900; // 300毫秒內
+        const PAUSE_TO_PLAY_DELAY = 900; 
 
         const modeIconsSVG = {
             'loop': `<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>`,
@@ -315,7 +315,7 @@
             loadFiles(false);
         });
 
-        // ==================== 藍牙 Media Session (實現「暫停後快速播放」觸發 Like) ====================
+        // ==================== 藍牙 Media Session (實現「暫停後 900ms 內快速播放」觸發 Like) ====================
         function initMediaSession() {
             if ('mediaSession' in navigator) {
                 // 1. 藍牙按下 Pause (暫停)
@@ -331,10 +331,9 @@
                 // 2. 藍牙按下 Play (播放)
                 navigator.mediaSession.setActionHandler('play', () => {
                     const now = Date.now();
-                    // 檢查是否在 300ms 內剛按過暫停
-                    console.log(now - lastPauseTime )
+                    // 檢查是否在 900ms 內剛按過暫停
                     if (lastPauseTime > 0 && (now - lastPauseTime < PAUSE_TO_PLAY_DELAY)) {
-                        // 達成條件：「暫停 -> 快速播放」序列 -> 觸發 Like！
+                        // 達成條件：「暫停 -> 900ms 內快速播放」序列 -> 觸發 Like！
                         lastPauseTime = 0; // 重置計時
                         togglePlayerLike();
                         
