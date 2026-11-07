@@ -305,8 +305,65 @@
                 if (volEl) volEl.value = vol;
             }
 
+            // ==================== 初始化 Media Session 藍牙/多媒體鍵綁定 ====================
+            initMediaSession();
+
             loadFiles(false);
         });
+
+        // ==================== 藍牙與硬體媒體控制整合 (Media Session API) ====================
+        function initMediaSession() {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.setActionHandler('play', function() {
+                    if (audioPlayer.paused) {
+                        audioPlayer.play();
+                        updatePlayButton();
+                        if (isAutoMode) startAutoTimer(10);
+                    }
+                });
+
+                navigator.mediaSession.setActionHandler('pause', function() {
+                    if (!audioPlayer.paused) {
+                        audioPlayer.pause();
+                        clearAutoTimer();
+                        updatePlayButton();
+                    }
+                });
+
+                navigator.mediaSession.setActionHandler('previoustrack', function() {
+                    playPrev();
+                });
+
+                navigator.mediaSession.setActionHandler('nexttrack', function() {
+                    playNext();
+                });
+
+                // 支援藍牙耳機上的快進 / 快退
+                navigator.mediaSession.setActionHandler('seekbackward', function(details) {
+                    audioPlayer.currentTime = Math.max(audioPlayer.currentTime - (details.seekOffset || 10), 0);
+                });
+
+                navigator.mediaSession.setActionHandler('seekforward', function(details) {
+                    audioPlayer.currentTime = Math.min(audioPlayer.currentTime + (details.seekOffset || 10), audioPlayer.duration);
+                });
+            }
+        }
+
+        function updateMediaSessionMetadata(title) {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: title || '未知曲目',
+                    artist: 'MP3 雲端管理系統',
+                    album: document.getElementById('currentSongCategory').innerText || '播放清單',
+                    artwork: [
+                        { src: 'https://cdn-icons-png.flaticon.com/512/3388/3388823.png', sizes: '96x96', type: 'image/png' },
+                        { src: 'https://cdn-icons-png.flaticon.com/512/3388/3388823.png', sizes: '128x128', type: 'image/png' },
+                        { src: 'https://cdn-icons-png.flaticon.com/512/3388/3388823.png', sizes: '192x192', type: 'image/png' },
+                        { src: 'https://cdn-icons-png.flaticon.com/512/3388/3388823.png', sizes: '512x512', type: 'image/png' }
+                    ]
+                });
+            }
+        }
 
         function updateUrlParams() {
             const dir = document.getElementById('dirInput').value.trim();
@@ -366,8 +423,11 @@
                 const streamUrl = `/api/mp3?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(lastKey)}`;
                 
                 audioPlayer.src = streamUrl;
-                document.getElementById('currentSongTitle').innerText = targetFile.displayName || lastTitle;
+                const displayName = targetFile.displayName || lastTitle;
+                document.getElementById('currentSongTitle').innerText = displayName;
                 document.getElementById('currentSongCategory').innerText = targetFile.category || '';
+
+                updateMediaSessionMetadata(displayName);
 
                 audioPlayer.addEventListener('loadedmetadata', function onMeta() {
                     if (!isNaN(audioPlayer.duration) && lastTime < audioPlayer.duration) {
@@ -678,6 +738,9 @@
                 const fileObj = allFiles.find(f => (f.relativePath || f.filename) === fileKey);
                 document.getElementById('currentSongCategory').innerText = fileObj ? fileObj.category : '';
                 
+                // 更新 Media Session 藍牙歌曲資訊
+                updateMediaSessionMetadata(displayName);
+
                 localStorage.setItem('mp3_last_played_key', fileKey);
                 localStorage.setItem('mp3_last_played_title', displayName);
             } else {
@@ -776,6 +839,11 @@
         function updatePlayButton() {
             const btn = document.getElementById('playPauseBtn');
             btn.innerHTML = audioPlayer.paused ? '<i class="fa-solid fa-play text-xs"></i>' : '<i class="fa-solid fa-pause text-xs"></i>';
+
+            // 同步更新 MediaSession 播放狀態，讓藍牙設備知道目前是播放中還是暫停
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = audioPlayer.paused ? 'paused' : 'playing';
+            }
         }
 
         function updateProgress() {
@@ -958,16 +1026,13 @@
             renderPagination(totalPages, filtered.length);
         }
 
-        // 完整修復分頁按鈕渲染與狀態連動
         function renderPagination(totalPages, totalItems) {
             const container = document.getElementById('paginationContainer');
             
-            // 同步更新頂部導覽列的分頁狀態
             document.getElementById('topPageIndicator').innerText = `${currentPage} / ${totalPages}`;
             document.getElementById('topPrevBtn').disabled = (currentPage <= 1);
             document.getElementById('topNextBtn').disabled = (currentPage >= totalPages);
 
-            // 渲染底部完整分頁列
             let html = `
                 <span class="text-xs text-slate-400">顯示第 ${(currentPage - 1) * pageSize + 1} - ${Math.min(currentPage * pageSize, totalItems)} 筆，共 ${totalItems} 筆資料</span>
                 <div class="flex items-center space-x-1.5">

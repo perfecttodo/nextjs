@@ -1,6 +1,10 @@
 import { NextResponse, NextRequest } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execPromise = promisify(exec);
 
 interface CopyFavoritesRequest {
     sourceDir?: string;
@@ -44,7 +48,7 @@ export async function POST(request: NextRequest) {
         let failCount = 0;
         const errors: string[] = [];
 
-        // 3. 迴圈複製檔案
+        // 3. 迴圈處理檔案（轉碼或複製）
         for (const fileKey of filenames) {
             try {
                 let srcFilePath = fileKey;
@@ -58,14 +62,32 @@ export async function POST(request: NextRequest) {
                     continue;
                 }
 
-                const fileName = path.basename(srcFilePath);
-                const destFilePath = path.join(targetDir, fileName);
+                const originalExt = path.extname(srcFilePath).toLowerCase();
+                const baseName = path.basename(srcFilePath, originalExt);
+                
+                // 決定目標檔案名稱與路徑
+                // 如果原本就是 .mp3，可以直接複製；若不是，副檔名改為 .mp3
+                const isMp3 = originalExt === '.mp3';
+                const targetExt = isMp3 ? originalExt : '.mp3';
+                const destFileName = `${baseName}${targetExt}`;
+                const destFilePath = path.join(targetDir, destFileName);
 
-                fs.copyFileSync(srcFilePath, destFilePath);
+                if (isMp3) {
+                    // 如果本身就是 mp3，直接用複製即可
+                    fs.copyFileSync(srcFilePath, destFilePath);
+                } else {
+                    // 如果不是 mp3，使用 ffmpeg 進行轉碼
+                    // -y 參數代表如果目標檔案已存在則直接覆蓋
+                    // 常用設定: -codec:a libmp3lame -qscale:a 2 (高品質變動位元率 VBR) 或 -b:a 192k (固定位元率)
+                    const ffmpegCommand = `ffmpeg -y -i "${srcFilePath}" -codec:a libmp3lame -b:a 192k "${destFilePath}"`;
+                    
+                    await execPromise(ffmpegCommand);
+                }
+
                 successCount++;
             } catch (err: any) {
                 failCount++;
-                errors.push(`檔案 ${fileKey} 複製失敗: ${err.message}`);
+                errors.push(`檔案 ${fileKey} 處理失敗: ${err.message}`);
             }
         }
 
@@ -77,7 +99,7 @@ export async function POST(request: NextRequest) {
         });
 
     } catch (err: any) {
-        console.error('Copy favorites API error:', err);
+        console.error('Copy/Convert favorites API error:', err);
         return NextResponse.json(
             { success: false, error: err.message || '伺服器內部錯誤' },
             { status: 500 }
