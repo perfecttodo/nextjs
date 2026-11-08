@@ -177,11 +177,11 @@
                         <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
                     </button>
 
-                    <button onclick="playPrev()" class="text-slate-400 hover:text-white transition" title="上一首"><i class="fa-solid fa-backward-step"></i></button>
-                    <button onclick="togglePlay()" id="playPauseBtn" class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg transition">
+                    <button onclick="playPrev()" class="text-slate-400 hover:text-white transition" title="上一首 (快捷鍵: P)"><i class="fa-solid fa-backward-step"></i></button>
+                    <button onclick="togglePlay()" id="playPauseBtn" class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg transition" title="播放/暫停 (快捷鍵: 空白鍵)">
                         <i class="fa-solid fa-play text-xs"></i>
                     </button>
-                    <button onclick="playNext()" class="text-slate-400 hover:text-white transition" title="下一首"><i class="fa-solid fa-forward-step"></i></button>
+                    <button onclick="playNext()" class="text-slate-400 hover:text-white transition" title="下一首 (快捷鍵: N)"><i class="fa-solid fa-forward-step"></i></button>
                     
                     <button id="playerLikeBtn" onclick="togglePlayerLike()" class="text-slate-500 hover:text-rose-400 transition hidden ml-1 text-base" title="加入最愛 (快捷鍵: L)">
                         <i id="playerLikeIcon" class="fa-regular fa-heart"></i>
@@ -291,7 +291,7 @@
             if (savedPlayMode && modeNames[savedPlayMode]) {
                 playMode = savedPlayMode;
                 document.getElementById('playModeBtn').innerHTML = modeIconsSVG[playMode];
-                document.getElementById('modeText').innerText = modeNames[playMode];
+                document.getElementById('modeText').innerText = modeNames[savedPlayMode];
             }
 
             const savedAutoMode = localStorage.getItem('mp3_last_auto_mode');
@@ -358,12 +358,20 @@
             }
         }
 
+        // ==================== 鍵盤快捷鍵 (新增 n 下一首、p 上一首) ====================
         function initKeyboardShortcuts() {
             window.addEventListener('keydown', (e) => {
                 if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
 
-                if (e.key.toLowerCase() === 'l') {
+                const key = e.key.toLowerCase();
+                if (key === 'l') {
                     togglePlayerLike();
+                } else if (key === 'n') {
+                    e.preventDefault();
+                    playNext();
+                } else if (key === 'p') {
+                    e.preventDefault();
+                    playPrev();
                 } else if (e.code === 'Space') {
                     e.preventDefault();
                     togglePlay();
@@ -432,7 +440,6 @@
         function restoreLastPlayedSong() {
             const lastKey = localStorage.getItem('mp3_last_played_key');
             const lastTitle = localStorage.getItem('mp3_last_played_title');
-            // 效能優化：優先從 sessionStorage 讀取進度
             const lastTime = parseFloat(sessionStorage.getItem('mp3_last_played_time') || localStorage.getItem('mp3_last_played_time') || '0');
 
             if (!lastKey || allFiles.length === 0) return;
@@ -871,7 +878,6 @@
             document.getElementById('currentTime').innerText = formatTime(audioPlayer.currentTime);
             document.getElementById('durationTime').innerText = formatTime(audioPlayer.duration);
 
-            // 效能優化：改存入 sessionStorage，大幅減少磁碟寫入負擔
             if (currentPlayingFile && !audioPlayer.paused) {
                 sessionStorage.setItem('mp3_last_played_time', audioPlayer.currentTime);
             }
