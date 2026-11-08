@@ -331,31 +331,6 @@
 
     // 4. 攔截並覆寫核心邏輯 (對應各自獨立的 Key)
     function overrideCoreFunctions() {
-        window.toggleLike = function(fileKey, event) {
-            if (event) event.stopPropagation();
-            
-            const userLikes = getUserLikesMap(currentUser);
-
-            // 只能 Like，不允許 Unlike
-            if (!userLikes[fileKey]) {
-                userLikes[fileKey] = true;
-                saveUserLikesMap(currentUser, userLikes);
-
-                if (typeof window.loadFiles === 'function') {
-                    window.loadFiles(false);
-                }
-
-                if (window.isAutoMode && window.currentPlayingFile === fileKey) {
-                    if (typeof window.clearAutoTimer === 'function') window.clearAutoTimer();
-                    const timerText = document.getElementById('autoTimerText');
-                    if (timerText) {
-                        timerText.classList.remove('hidden');
-                        timerText.innerText = '[已Like，3秒後換歌...]';
-                    }
-                    window.autoTimer = setTimeout(() => { if (window.isAutoMode && typeof window.playNext === 'function') window.playNext(); }, 3000);
-                }
-            }
-        };
 
         window.getLikedMap = function() {
             return getUserLikesMap(currentUser);
