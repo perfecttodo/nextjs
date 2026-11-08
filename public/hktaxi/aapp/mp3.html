@@ -38,7 +38,7 @@
         <div class="flex items-center space-x-3 w-full md:w-auto max-w-xl">
             <input type="text" id="dirInput" placeholder="輸入資料夾絕對路徑..." 
                 class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500 flex-1 md:w-80">
-            <button onclick="loadFiles(true)" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-1.5 rounded-lg text-sm font-medium transition shadow-md whitespace-nowrap">
+            <button onclick="loadFiles(true)" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-1.5 rounded-lg text-sm font-medium transition shadow-md whitespace-nowrap" title="重新載入 (快捷鍵: R)">
                 <i class="fa-solid fa-rotate mr-1.5"></i> 載入
             </button>
         </div>
@@ -358,7 +358,7 @@
             }
         }
 
-        // ==================== 鍵盤快捷鍵 (新增 n 下一首、p 上一首) ====================
+        // ==================== 鍵盤快捷鍵 (L, N, P, R, 空白鍵) ====================
         function initKeyboardShortcuts() {
             window.addEventListener('keydown', (e) => {
                 if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
@@ -372,6 +372,9 @@
                 } else if (key === 'p') {
                     e.preventDefault();
                     playPrev();
+                } else if (key === 'r') {
+                    e.preventDefault();
+                    loadFiles(false); // 重新載入列表
                 } else if (e.code === 'Space') {
                     e.preventDefault();
                     togglePlay();
