@@ -18,121 +18,173 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.4); border-radius: 9999px; transition: background 0.2s ease; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.6); }
+
+        #mobileDrawer {
+            transition: transform 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 h-screen flex flex-col overflow-hidden">
 
     <!-- 頂部導覽列 -->
-    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur shrink-0 px-4 md:px-6 py-3 flex flex-col md:flex-row items-center justify-between gap-3 z-20">
-        <div class="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-start">
-            <div class="flex items-center space-x-3">
-                <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/35">
-                    <i class="fa-solid fa-headphones-simple text-lg"></i>
+    <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur shrink-0 px-3 md:px-6 py-2.5 flex items-center justify-between gap-3 z-30">
+        <div class="flex items-center space-x-2.5">
+            <button onclick="toggleMobileDrawer(true)" class="lg:hidden p-2 rounded-xl bg-slate-800/80 text-indigo-400 hover:text-white transition" title="開啟選單與分類">
+                <i class="fa-solid fa-bars text-base"></i>
+            </button>
+            
+            <div class="flex items-center space-x-2">
+                <div class="bg-indigo-600 p-1.5 rounded-lg text-white shadow-lg shadow-indigo-500/35 hidden sm:flex">
+                    <i class="fa-solid fa-headphones-simple text-sm"></i>
                 </div>
                 <div>
-                    <h1 class="text-base md:text-lg font-bold tracking-wide">MP3 雲端管理</h1>
-                    <p class="text-[11px] text-slate-400">即時串流、分類與標籤管理</p>
+                    <h1 class="text-xs md:text-base font-bold tracking-wide truncate">MP3 雲端管理</h1>
+                    <p class="text-[10px] text-slate-400 hidden sm:block">即時串流、分類與標籤管理</p>
                 </div>
             </div>
         </div>
-        <div class="flex items-center space-x-3 w-full md:w-auto max-w-xl">
-            <input type="text" id="dirInput" placeholder="輸入資料夾絕對路徑..." 
-                class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500 flex-1 md:w-80">
-            <button onclick="loadFiles(true)" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-1.5 rounded-lg text-sm font-medium transition shadow-md whitespace-nowrap" title="重新載入 (快捷鍵: R)">
-                <i class="fa-solid fa-rotate mr-1.5"></i> 載入
+
+        <!-- 桌面端路徑輸入與載入 -->
+        <div class="flex items-center space-x-2">
+            <div class="hidden md:flex items-center space-x-2">
+                <input type="text" id="dirInput" placeholder="輸入資料夾絕對路徑..." 
+                    class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500 w-72 lg:w-96">
+                <button onclick="loadFiles(true)" class="bg-indigo-600 hover:bg-indigo-500 px-3.5 py-1.5 rounded-lg text-xs font-medium transition shadow-md whitespace-nowrap">
+                    <i class="fa-solid fa-rotate mr-1"></i> 載入
+                </button>
+            </div>
+            <button onclick="loadFiles(false)" class="md:hidden bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white p-2 rounded-xl text-xs transition" title="重新載入">
+                <i class="fa-solid fa-rotate"></i>
             </button>
         </div>
     </header>
 
-    <!-- 主要內容區 -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-hidden pb-24">
+    <!-- 側邊欄背景遮罩 (手機版) -->
+    <div id="mobileDrawerBackdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden lg:hidden opacity-0 transition-opacity duration-300" onclick="toggleMobileDrawer(false)"></div>
+
+    <!-- 主體內容容器 (使用 flex 左右並排，桌面端固定左側欄寬度，右側清單自動佔滿剩餘空間) -->
+    <div class="flex-1 max-w-[1920px] w-full mx-auto p-2 sm:p-4 md:p-6 flex gap-4 overflow-hidden pb-20">
         
-        <!-- 左側：分類、標籤與搜尋 -->
-        <div class="lg:col-span-1 space-y-4 flex flex-col shrink-0 overflow-y-auto pr-1">
-            <!-- 分類區塊 -->
-            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl">
-                <div class="flex items-center justify-between mb-3 px-1">
-                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">分類標籤</h2>
-                    <span id="count-badge" class="text-xs text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-500/30">0 首</span>
-                </div>
-                <div id="categoryFilters" class="flex lg:flex-col space-x-2 lg:space-x-0 lg:space-y-1.5 overflow-x-auto lg:overflow-visible no-scrollbar pb-1 lg:pb-0 mb-3">
-                    <!-- 動態載入分類 -->
-                </div>
-                <!-- 新增分類輸入框 -->
-                <div class="flex items-center space-x-1.5 pt-2 border-t border-slate-800">
-                    <input type="text" id="newCategoryInput" placeholder="新分類名稱..." 
-                        class="bg-slate-800 border border-slate-700 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 flex-1 text-slate-200"
-                        onkeydown="if(event.key==='Enter') addNewCategory()">
-                    <button onclick="addNewCategory()" class="bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700 px-3 py-1.5 rounded-xl text-xs transition" title="新增分類">
-                        <i class="fa-solid fa-plus"></i>
-                    </button>
-                </div>
+        <!-- 左側邊欄 (手機版為滑出抽屜，桌面端固定為 72 或 80 寬度) -->
+        <aside id="mobileDrawer" class="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-slate-900 border-r border-slate-800 z-50 transform -translate-x-full lg:translate-x-0 lg:static lg:w-72 xl:w-80 lg:bg-transparent lg:border-none flex flex-col h-full shadow-2xl lg:shadow-none shrink-0 overflow-y-auto">
+            
+            <!-- 手機抽屜頂部標題列 -->
+            <div class="flex items-center justify-between p-4 border-b border-slate-800 lg:hidden shrink-0">
+                <h3 class="font-bold text-sm text-slate-200 flex items-center">
+                    <i class="fa-solid fa-sliders text-indigo-400 mr-2"></i> 控制與分類選單
+                </h3>
+                <button onclick="toggleMobileDrawer(false)" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
             </div>
 
-            <!-- 標籤雲過濾區塊 -->
-            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl">
-                <div class="flex items-center justify-between mb-2.5 px-1">
-                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">標籤過濾</h2>
-                    <button onclick="manageTagsPrompt()" class="text-[11px] text-indigo-400 hover:underline"><i class="fa-solid fa-gear mr-1"></i>管理</button>
+            <!-- 側邊欄內容區塊 (內部獨立卷軸) -->
+            <div id="sidebarContentWrapper" class="flex-1 space-y-3 p-4 lg:p-0 overflow-y-auto pr-1">
+                
+                <!-- 手機版路徑輸入 -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-xl lg:hidden">
+                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-1">資料夾路徑</h2>
+                    <div class="space-y-2">
+                        <input type="text" id="dirInputMobile" placeholder="輸入資料夾絕對路徑..." 
+                            class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500 text-slate-200">
+                        <button onclick="syncDirAndLoad()" class="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-xl text-xs font-medium transition shadow-md text-white">
+                            <i class="fa-solid fa-folder-open mr-1.5"></i> 載入此路徑檔案
+                        </button>
+                    </div>
                 </div>
-                <div id="tagCloudContainer" class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
-                    <!-- 動態標籤 -->
+
+                <!-- 分類區塊 -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-xl">
+                    <div class="flex items-center justify-between mb-2.5 px-1">
+                        <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">分類標籤</h2>
+                        <span id="count-badge" class="text-xs text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-500/30">0 首</span>
+                    </div>
+                    <div id="categoryFilters" class="flex flex-col space-y-1.5 overflow-y-auto no-scrollbar pb-1 mb-2.5">
+                        <!-- 動態載入分類 -->
+                    </div>
+                    <!-- 新增分類輸入框 -->
+                    <div class="flex items-center space-x-1.5 pt-2 border-t border-slate-800/80">
+                        <input type="text" id="newCategoryInput" placeholder="新分類名稱..." 
+                            class="bg-slate-800 border border-slate-700 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 flex-1 text-slate-200"
+                            onkeydown="if(event.key==='Enter') addNewCategory()">
+                        <button onclick="addNewCategory()" class="bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700 px-3 py-1.5 rounded-xl text-xs transition" title="新增分類">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 標籤雲過濾區塊 -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-xl">
+                    <div class="flex items-center justify-between mb-2 px-1">
+                        <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">標籤過濾</h2>
+                        <button onclick="manageTagsPrompt()" class="text-[11px] text-indigo-400 hover:underline"><i class="fa-solid fa-gear mr-1"></i>管理</button>
+                    </div>
+                    <div id="tagCloudContainer" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+                        <!-- 動態標籤 -->
+                    </div>
+                </div>
+
+                <!-- 快速搜尋 -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-xl">
+                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-1">快速搜尋</h2>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </span>
+                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜尋歌名或目錄..." 
+                            class="w-full bg-slate-800/80 border border-slate-700 text-xs rounded-xl pl-9 pr-3 py-2 focus:outline-none focus:border-indigo-500 text-slate-200">
+                    </div>
                 </div>
             </div>
+        </aside>
 
-            <!-- 快速搜尋 -->
-            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl">
-                <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5 px-1">快速搜尋</h2>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
-                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                    </span>
-                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜尋歌名或目錄..." 
-                        class="w-full bg-slate-800/80 border border-slate-700 text-sm rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:border-indigo-500 text-slate-200">
-                </div>
-            </div>
-        </div>
-
-        <!-- 右側：MP3 檔案列表與分頁 -->
-        <div class="lg:col-span-3 flex flex-col h-full overflow-hidden">
-            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-xl flex flex-col h-full overflow-hidden">
+        <!-- 檔案列表主區域 (flex-1 自動佔滿剩餘寬度，絕對不會被擠壓消失) -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl flex flex-col h-full overflow-hidden">
                 
                 <!-- 表格標題列 -->
-                <div class="px-4 md:px-6 py-3.5 border-b border-slate-800 flex justify-between items-center shrink-0 flex-wrap gap-2">
-                    <h2 class="font-semibold text-slate-200 flex items-center text-sm md:text-base">
-                        <i class="fa-solid fa-list-music mr-2 text-indigo-400"></i> 檔案列表
-                    </h2>
-                    <div class="flex items-center space-x-3">
+                <div class="px-3 md:px-5 py-3 border-b border-slate-800 flex justify-between items-center shrink-0 flex-wrap gap-2">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="toggleMobileDrawer(true)" class="lg:hidden text-indigo-400 bg-indigo-950/50 border border-indigo-500/30 px-2.5 py-1 rounded-lg text-xs font-medium flex items-center space-x-1">
+                            <i class="fa-solid fa-filter"></i>
+                            <span>分類與篩選</span>
+                        </button>
+                        <h2 class="font-semibold text-slate-200 hidden sm:flex items-center text-sm md:text-base">
+                            <i class="fa-solid fa-list-music mr-2 text-indigo-400"></i> 檔案列表
+                        </h2>
+                    </div>
+
+                    <div class="flex items-center space-x-2.5">
                         <span id="fileCountText" class="text-xs text-slate-400">共 0 首</span>
 
                         <div id="topPaginationBtns" class="flex items-center space-x-1">
-                            <button id="topPrevBtn" onclick="goToPage(currentPage - 1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg transition">
-                                <i class="fa-solid fa-chevron-left"></i> 上一頁
+                            <button id="topPrevBtn" onclick="goToPage(currentPage - 1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg transition disabled:opacity-40">
+                                <i class="fa-solid fa-chevron-left"></i>
                             </button>
                             <span id="topPageIndicator" class="text-xs text-slate-400 font-mono px-1">1 / 1</span>
-                            <button id="topNextBtn" onclick="goToPage(currentPage + 1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg transition">
-                                下一頁 <i class="fa-solid fa-chevron-right"></i>
+                            <button id="topNextBtn" onclick="goToPage(currentPage + 1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg transition disabled:opacity-40">
+                                <i class="fa-solid fa-chevron-right"></i>
                             </button>
                         </div>
 
                         <select id="pageSizeSelect" onchange="changePageSize(this.value)" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-300 focus:outline-none">
-                            <option value="10">10 筆/頁</option>
-                            <option value="20" selected>20 筆/頁</option>
-                            <option value="50">50 筆/頁</option>
-                            <option value="100">100 筆/頁</option>
+                            <option value="10">10 筆</option>
+                            <option value="20" selected>20 筆</option>
+                            <option value="50">50 筆</option>
+                            <option value="100">100 筆</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- 表格本體 -->
+                <!-- 表格本體 (內部滾動) -->
                 <div id="tableContainer" class="flex-1 overflow-y-auto">
                     <table class="w-full text-left border-collapse">
-                        <thead class="sticky top-0 bg-slate-950/90 backdrop-blur z-10">
+                        <thead class="sticky top-0 bg-slate-950/95 backdrop-blur z-10">
                             <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
-                                <th class="py-3 px-4 md:px-6">狀態 / 歌名與路徑</th>
-                                <th class="py-3 px-3 md:px-4">分類 / 標籤</th>
-                                <th class="py-3 px-3 md:px-4">大小</th>
-                                <th class="py-3 px-4 md:px-6 text-right">操作</th>
+                                <th class="py-3 px-3 md:px-6">狀態 / 歌名與路徑</th>
+                                <th class="py-3 px-2 md:px-4">分類</th>
+                                <th class="py-3 px-2 md:px-4 hidden sm:table-cell">大小</th>
+                                <th class="py-3 px-3 md:px-6 text-right">操作</th>
                             </tr>
                         </thead>
                         <tbody id="fileTableBody" class="divide-y divide-slate-800/60 text-sm">
@@ -147,60 +199,58 @@
                 </div>
 
                 <!-- 底部完整分頁控制列 -->
-                <div id="paginationContainer" class="px-4 md:px-6 py-3 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-3 bg-slate-950/40 shrink-0"></div>
+                <div id="paginationContainer" class="px-3 md:px-6 py-2.5 border-t border-slate-800/80 flex items-center justify-between bg-slate-950/40 shrink-0 text-xs"></div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
     <!-- 底部固定音訊播放器 -->
-    <footer class="fixed bottom-0 left-0 right-0 bg-slate-900/98 backdrop-blur-md border-t border-slate-800 p-3 shadow-2xl z-50">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+    <footer class="fixed bottom-0 left-0 right-0 bg-slate-900/98 backdrop-blur-md border-t border-slate-800 p-2.5 md:p-3 shadow-2xl z-50">
+        <div class="max-w-[1920px] mx-auto flex flex-col md:flex-row items-center justify-between gap-2 md:gap-4">
             <div class="flex items-center space-x-3 w-full md:w-1/4">
-                <div class="w-10 h-10 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 flex-shrink-0">
+                <div class="w-9 h-9 md:w-10 md:h-10 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 flex-shrink-0">
                     <i id="playerIcon" class="fa-solid fa-music"></i>
                 </div>
                 <div class="overflow-hidden">
                     <div id="currentSongTitle" class="text-xs md:text-sm font-medium truncate text-slate-200">尚未選擇播放歌曲</div>
-                    <div id="currentSongCategory" class="text-xs text-indigo-400">就緒</div>
+                    <div id="currentSongCategory" class="text-[10px] md:text-xs text-indigo-400">就緒</div>
                 </div>
             </div>
 
             <div class="flex flex-col items-center w-full md:w-2/4 space-y-1">
-                <div class="flex items-center space-x-4">
-                    <button onclick="toggleAutoMode()" id="autoModeBtn" class="text-xs px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1" title="切換自動模式 (10秒未Like自動下一首)">
+                <div class="flex items-center space-x-3 md:space-x-4">
+                    <button onclick="toggleAutoMode()" id="autoModeBtn" class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1" title="自動下一首">
                         <i class="fa-solid fa-bolt text-[10px]"></i>
                         <span>自動</span>
                     </button>
 
-                    <!-- 播放模式按鈕 -->
-                    <button onclick="togglePlayMode()" id="playModeBtn" class="text-slate-400 hover:text-indigo-400 transition flex items-center justify-center p-1" title="播放模式: 列表循環">
+                    <button onclick="togglePlayMode()" id="playModeBtn" class="text-slate-400 hover:text-indigo-400 transition p-1" title="播放模式">
                         <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
                     </button>
 
-                    <button onclick="playPrev()" class="text-slate-400 hover:text-white transition" title="上一首 (快捷鍵: P)"><i class="fa-solid fa-backward-step"></i></button>
-                    <button onclick="togglePlay()" id="playPauseBtn" class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg transition" title="播放/暫停 (快捷鍵: 空白鍵)">
+                    <button onclick="playPrev()" class="text-slate-400 hover:text-white transition p-1" title="上一首"><i class="fa-solid fa-backward-step"></i></button>
+                    <button onclick="togglePlay()" id="playPauseBtn" class="w-9 h-9 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg transition" title="播放/暫停">
                         <i class="fa-solid fa-play text-xs"></i>
                     </button>
-                    <button onclick="playNext()" class="text-slate-400 hover:text-white transition" title="下一首 (快捷鍵: N)"><i class="fa-solid fa-forward-step"></i></button>
+                    <button onclick="playNext()" class="text-slate-400 hover:text-white transition p-1" title="下一首"><i class="fa-solid fa-forward-step"></i></button>
                     
-                    <!-- Like 按鈕 -->
-                    <button id="playerLikeBtn" onclick="togglePlayerLike()" class="text-slate-500 hover:text-rose-400 transition flex items-center justify-center text-base" title="加入最愛 (快捷鍵: L)">
+                    <button id="playerLikeBtn" onclick="togglePlayerLike()" class="text-slate-500 hover:text-rose-400 transition p-1 text-base" title="加入最愛">
                         <i id="playerLikeIcon" class="fa-regular fa-heart"></i>
                     </button>
 
-                    <!-- Dislike 按鈕 -->
-                    <button id="playerDislikeBtn" onclick="togglePlayerDislike()" class="text-slate-500 hover:text-amber-400 transition flex items-center justify-center text-base" title="隱藏/Dislike 歌曲">
+                    <button id="playerDislikeBtn" onclick="togglePlayerDislike()" class="text-slate-500 hover:text-amber-400 transition p-1 text-base" title="隱藏歌曲">
                         <i id="playerDislikeIcon" class="fa-regular fa-thumbs-down"></i>
                     </button>
                     
-                    <span id="modeText" class="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded ml-2">循環</span>
+                    <span id="modeText" class="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded ml-1">循環</span>
                 </div>
-                <div class="w-full flex items-center space-x-3 text-xs text-slate-400">
+                
+                <div class="w-full flex items-center space-x-2 text-[11px] text-slate-400">
                     <span id="currentTime">00:00</span>
                     <input type="range" id="progressBar" value="0" max="100" step="0.1" onchange="seekAudio(this.value)"
                         class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
                     <span id="durationTime">00:00</span>
-                    <span id="autoTimerText" class="text-[11px] text-amber-400 font-mono hidden whitespace-nowrap"></span>
+                    <span id="autoTimerText" class="text-[10px] text-amber-400 font-mono hidden whitespace-nowrap"></span>
                 </div>
             </div>
 
@@ -208,7 +258,7 @@
             <div class="hidden md:flex items-center space-x-3 w-1/4 justify-end">
                 <i class="fa-solid fa-volume-high text-slate-400 text-sm"></i>
                 <input type="range" id="volumeControl" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this.value)"
-                        class="w-24 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                        class="w-28 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
             </div>
         </div>
     </footer>
@@ -233,7 +283,6 @@
         </div>
     </div>
 
-    <!-- 🔴 已恢復 onerror="onAudioError()" 屬性 -->
     <audio id="audioPlayer" ontimeupdate="updateProgress()" onended="onAudioEnded()" onerror="onAudioError()"></audio>
 
     <script>
@@ -264,6 +313,29 @@
 
         const modeNames = { 'loop': '循環', 'shuffle': '隨機', 'single': '單曲', 'sequence': '順序' };
 
+        function toggleMobileDrawer(open) {
+            const drawer = document.getElementById('mobileDrawer');
+            const backdrop = document.getElementById('mobileDrawerBackdrop');
+            if (open) {
+                drawer.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+                setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+            } else {
+                drawer.classList.add('-translate-x-full');
+                backdrop.classList.add('opacity-0');
+                setTimeout(() => backdrop.classList.add('hidden'), 300);
+            }
+        }
+
+        function syncDirAndLoad() {
+            const mobileInput = document.getElementById('dirInputMobile').value.trim();
+            if (mobileInput) {
+                document.getElementById('dirInput').value = mobileInput;
+            }
+            toggleMobileDrawer(false);
+            loadFiles(true);
+        }
+
         function getSavedCategories() {
             try {
                 const saved = localStorage.getItem('mp3_custom_categories');
@@ -274,10 +346,8 @@
         function saveCategories(cats) { localStorage.setItem('mp3_custom_categories', JSON.stringify(cats)); }
         function getTagsMap() { try { return JSON.parse(localStorage.getItem('mp3_tags_map') || '{}'); } catch (e) { return {}; } }
         function saveTagsMap(map) { localStorage.setItem('mp3_tags_map', JSON.stringify(map)); }
-        
         function getLikedMap() { try { return JSON.parse(localStorage.getItem('mp3_liked_map') || '{}'); } catch (e) { return {}; } }
         function saveLikedMap(map) { localStorage.setItem('mp3_liked_map', JSON.stringify(map)); }
-        
         function getDislikedMap() { try { return JSON.parse(localStorage.getItem('mp3_disliked_map') || '{}'); } catch (e) { return {}; } }
         function saveDislikedMap(map) { localStorage.setItem('mp3_disliked_map', JSON.stringify(map)); }
 
@@ -285,7 +355,10 @@
             categories = getSavedCategories();
             const params = new URLSearchParams(window.location.search);
             const dirParam = params.get('dir');
-            if (dirParam) document.getElementById('dirInput').value = dirParam;
+            if (dirParam) {
+                document.getElementById('dirInput').value = dirParam;
+                document.getElementById('dirInputMobile').value = dirParam;
+            }
             
             const pageParam = parseInt(params.get('page'));
             if (!isNaN(pageParam) && pageParam > 0) currentPage = pageParam;
@@ -308,7 +381,7 @@
             if (savedAutoMode === 'true') {
                 isAutoMode = true;
                 const btn = document.getElementById('autoModeBtn');
-                btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-400 transition flex items-center space-x-1 shadow-md';
+                btn.className = 'text-[11px] px-2.5 py-1 rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-400 transition flex items-center space-x-1 shadow-md';
             }
 
             const savedVolume = localStorage.getItem('mp3_last_volume');
@@ -410,6 +483,7 @@
 
         async function loadFiles(resetPage = false) {
             const dir = document.getElementById('dirInput').value.trim();
+            document.getElementById('dirInputMobile').value = dir;
             if (resetPage) currentPage = 1;
             updateUrlParams();
 
@@ -487,17 +561,17 @@
             const validFilesCount = allFiles.filter(f => !f.isDisliked).length;
 
             let html = `
-                <button onclick="filterCategory('全部')" class="cat-btn flex-shrink-0 lg:w-full text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${currentCategory === '全部' && !currentTagFilter ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'bg-slate-800/60 lg:bg-transparent hover:bg-slate-800 text-slate-300'}">
+                <button onclick="filterCategory('全部'); toggleMobileDrawer(false);" class="cat-btn w-full text-left px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center justify-between ${currentCategory === '全部' && !currentTagFilter ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300'}">
                     <span>全部</span>
                     <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${validFilesCount}</span>
                 </button>
-                <div class="flex items-center space-x-1 flex-shrink-0 lg:w-full">
-                    <button onclick="filterCategory('我的最愛')" class="cat-btn flex-1 text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${currentCategory === '我的最愛' && !currentTagFilter ? 'bg-rose-600/20 text-rose-400 border border-rose-500/30' : 'bg-slate-800/60 lg:bg-transparent hover:bg-slate-800 text-slate-300'}">
+                <div class="flex items-center space-x-1 w-full">
+                    <button onclick="filterCategory('我的最愛'); toggleMobileDrawer(false);" class="cat-btn flex-1 text-left px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center justify-between ${currentCategory === '我的最愛' && !currentTagFilter ? 'bg-rose-600/20 text-rose-400 border border-rose-500/30' : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300'}">
                         <span class="flex items-center"><i class="fa-solid fa-heart text-rose-500 mr-2"></i> 我的最愛</span>
                         <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${totalLikedCount}</span>
                     </button>
                 </div>
-                <button onclick="filterCategory('Dislike')" class="cat-btn flex-shrink-0 lg:w-full text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${currentCategory === 'Dislike' && !currentTagFilter ? 'bg-amber-600/20 text-amber-400 border border-amber-500/30' : 'bg-slate-800/60 lg:bg-transparent hover:bg-slate-800 text-slate-300'}">
+                <button onclick="filterCategory('Dislike'); toggleMobileDrawer(false);" class="cat-btn w-full text-left px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center justify-between ${currentCategory === 'Dislike' && !currentTagFilter ? 'bg-amber-600/20 text-amber-400 border border-amber-500/30' : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300'}">
                     <span class="flex items-center"><i class="fa-solid fa-thumbs-down text-amber-400 mr-2"></i> 已隱藏 (Dislike)</span>
                     <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${totalDislikedCount}</span>
                 </button>
@@ -509,12 +583,12 @@
                 const canDelete = (cat !== '未分類');
 
                 html += `
-                    <div class="flex items-center space-x-1 flex-shrink-0 lg:w-full group">
-                        <button onclick="filterCategory('${cat}')" class="cat-btn flex-1 text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${isActive ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'bg-slate-800/60 lg:bg-transparent hover:bg-slate-800 text-slate-300'}">
+                    <div class="flex items-center space-x-1 w-full group">
+                        <button onclick="filterCategory('${cat}'); toggleMobileDrawer(false);" class="cat-btn flex-1 text-left px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center justify-between ${isActive ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300'}">
                             <span>${cat}</span>
                             <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${count}</span>
                         </button>
-                        ${canDelete ? `<button onclick="deleteCategory('${cat}')" class="opacity-0 group-hover:opacity-100 p-1.5 text-slate-500 hover:text-rose-400 text-xs transition" title="刪除分類"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                        ${canDelete ? `<button onclick="deleteCategory('${cat}')" class="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-rose-400 text-xs transition" title="刪除分類"><i class="fa-solid fa-xmark"></i></button>` : ''}
                     </div>
                 `;
             });
@@ -641,10 +715,10 @@
             btn.classList.remove('hidden');
             const file = allFiles.find(f => (f.relativePath || f.filename) === currentPlayingFile);
             if (file && file.isLiked) {
-                btn.className = 'text-rose-500 hover:text-rose-400 transition flex items-center justify-center text-base';
+                btn.className = 'text-rose-500 hover:text-rose-400 transition p-1 text-base';
                 icon.className = 'fa-solid fa-heart';
             } else {
-                btn.className = 'text-slate-500 hover:text-rose-400 transition flex items-center justify-center text-base';
+                btn.className = 'text-slate-500 hover:text-rose-400 transition p-1 text-base';
                 icon.className = 'fa-regular fa-heart';
             }
         }
@@ -659,10 +733,10 @@
             btn.classList.remove('hidden');
             const file = allFiles.find(f => (f.relativePath || f.filename) === currentPlayingFile);
             if (file && file.isDisliked) {
-                btn.className = 'text-amber-400 hover:text-amber-300 transition flex items-center justify-center text-base';
+                btn.className = 'text-amber-400 hover:text-amber-300 transition p-1 text-base';
                 icon.className = 'fa-solid fa-thumbs-down';
             } else {
-                btn.className = 'text-slate-500 hover:text-amber-400 transition flex items-center justify-center text-base';
+                btn.className = 'text-slate-500 hover:text-amber-400 transition p-1 text-base';
                 icon.className = 'fa-regular fa-thumbs-down';
             }
         }
@@ -704,25 +778,25 @@
 
                 html += `
                     <tr id="row-${safeIdKey}" class="transition ${rowBg}">
-                        <td class="py-3 px-4 md:px-6">
-                            <div class="flex items-center space-x-3">
+                        <td class="py-2.5 px-3 md:px-5">
+                            <div class="flex items-center space-x-2.5">
                                 <button onclick="playAudio('${encodeURIComponent(key)}')" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white flex items-center justify-center transition shrink-0">
                                     <i class="fa-solid ${isPlaying && !audioPlayer.paused ? 'fa-pause' : 'fa-play'} text-xs"></i>
                                 </button>
                                 <div class="overflow-hidden">
-                                    <div class="font-medium text-slate-200 truncate max-w-xs md:max-w-md flex items-center" title="${f.filename}">
+                                    <div class="font-medium text-slate-200 truncate max-w-[240px] sm:max-w-md lg:max-w-xl flex items-center text-xs sm:text-sm" title="${f.filename}">
                                         <span>${f.displayName || f.filename}</span>
                                     </div>
-                                    <div class="text-[11px] text-slate-500 truncate max-w-xs">${f.relativePath || ''}</div>
+                                    <div class="text-[10px] text-slate-500 truncate max-w-[200px] sm:max-w-sm lg:max-w-md">${f.relativePath || ''}</div>
                                 </div>
                             </div>
                         </td>
-                        <td class="py-3 px-3 md:px-4">
+                        <td class="py-2.5 px-2 md:px-4">
                             <span class="text-xs bg-slate-800 px-2 py-1 rounded-md text-slate-300">${f.category || '未分類'}</span>
                         </td>
-                        <td class="py-3 px-3 md:px-4 text-xs font-mono text-slate-400">${f.sizeFormatted || '未知'}</td>
-                        <td class="py-3 px-4 md:px-6 text-right">
-                            <div class="flex items-center justify-end space-x-2">
+                        <td class="py-2.5 px-2 md:px-4 text-xs font-mono text-slate-400 hidden sm:table-cell">${f.sizeFormatted || '未知'}</td>
+                        <td class="py-2.5 px-3 md:px-5 text-right">
+                            <div class="flex items-center justify-end space-x-1.5 sm:space-x-2">
                                 <button onclick="toggleFileLike('${key}')" class="p-1.5 rounded-lg transition ${f.isLiked ? 'text-rose-500 hover:text-rose-400' : 'text-slate-500 hover:text-slate-300'}" title="${f.isLiked ? '取消最愛' : '加入最愛'}">
                                     <i class="${f.isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
                                 </button>
@@ -753,11 +827,11 @@
             let html = `
                 <div class="text-xs text-slate-400">第 ${currentPage} / ${totalPages} 頁</div>
                 <div class="flex items-center space-x-1">
-                    <button onclick="goToPage(1)" ${currentPage <= 1 ? 'disabled' : ''} class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs transition">首頁</button>
-                    <button onclick="goToPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''} class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs transition">上一頁</button>
-                    <span class="px-3 py-1.5 text-xs font-mono text-indigo-400">${currentPage}</span>
-                    <button onclick="goToPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''} class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs transition">下一頁</button>
-                    <button onclick="goToPage(${totalPages})" ${currentPage >= totalPages ? 'disabled' : ''} class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs transition">末頁</button>
+                    <button onclick="goToPage(1)" ${currentPage <= 1 ? 'disabled' : ''} class="px-2 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs transition">首頁</button>
+                    <button onclick="goToPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''} class="px-2 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs transition">上一頁</button>
+                    <span class="px-2 py-1 text-xs font-mono text-indigo-400">${currentPage}</span>
+                    <button onclick="goToPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''} class="px-2 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs transition">下一頁</button>
+                    <button onclick="goToPage(${totalPages})" ${currentPage >= totalPages ? 'disabled' : ''} class="px-2 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs transition">末頁</button>
                 </div>
             `;
             container.innerHTML = html;
@@ -877,10 +951,10 @@
 
             const btn = document.getElementById('autoModeBtn');
             if (isAutoMode) {
-                btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-400 transition flex items-center space-x-1 shadow-md';
+                btn.className = 'text-[11px] px-2.5 py-1 rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-400 transition flex items-center space-x-1 shadow-md';
                 if (!audioPlayer.paused) startAutoTimer(10);
             } else {
-                btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1';
+                btn.className = 'text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1';
                 clearAutoTimer();
             }
         }
@@ -919,13 +993,10 @@
             }
         }
 
-        // 🔴 強化後的播放錯誤自動下一首處理函式
         function onAudioError() {
-            console.warn('音訊載入或串流播放錯誤，自動切換至下一首...');
+            console.warn('音訊載入錯誤，自動切換至下一首...');
             clearAutoTimer();
-            setTimeout(() => {
-                playNext();
-            }, 500); // 延遲 500ms 避免無限迴圈報錯
+            setTimeout(() => { playNext(); }, 500);
         }
 
         function updateProgress() {
@@ -1052,28 +1123,28 @@
         }
 
         function injectUserUI() {
-            const headerFlex = document.querySelector('header');
-            if (!headerFlex) return;
+            const drawerContent = document.getElementById('sidebarContentWrapper');
+            if (!drawerContent) return;
 
-            const userToolbar = document.createElement('div');
-            userToolbar.className = 'flex items-center space-x-2 bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded-xl shadow-inner';
-            userToolbar.innerHTML = `
-                <div class="flex items-center space-x-1.5 text-xs text-indigo-400">
-                    <i class="fa-solid fa-user-shield"></i>
-                    <span class="text-slate-300">用戶:</span>
+            const userSection = document.createElement('div');
+            userSection.className = 'bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-xl mb-3';
+            userSection.innerHTML = `
+                <div class="flex items-center justify-between mb-2 px-1">
+                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-user-shield text-indigo-400 mr-1.5"></i> 多用戶管理
+                    </h2>
+                    <button onclick="window.pluginOpenManageModal()" class="text-[11px] text-indigo-400 hover:underline"><i class="fa-solid fa-gear mr-1"></i>管理</button>
                 </div>
-                <select id="pluginUserSelect" onchange="window.pluginSwitchUser(this.value)" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-indigo-500 font-medium">
-                    ${usersList.map(u => `<option value="${u}" ${u === currentUser ? 'selected' : ''}>${u}</option>`).join('')}
-                </select>
-                <button onclick="window.pluginOpenManageModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-600 px-2 py-1 rounded-lg text-xs transition" title="用戶管理 (改名/刪除/合併/遷移)">
-                    <i class="fa-solid fa-gear"></i>
-                </button>
-                <button onclick="window.pluginPromptAddUser()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-lg text-xs transition shadow" title="登記新用戶">
-                    <i class="fa-solid fa-user-plus mr-1"></i> 新增
-                </button>
+                <div class="flex items-center space-x-2">
+                    <select id="pluginUserSelect" onchange="window.pluginSwitchUser(this.value)" class="bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:border-indigo-500 font-medium flex-1">
+                        ${usersList.map(u => `<option value="${u}" ${u === currentUser ? 'selected' : ''}>${u}</option>`).join('')}
+                    </select>
+                    <button onclick="window.pluginPromptAddUser()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1.5 rounded-xl text-xs transition shadow" title="新增用戶">
+                        <i class="fa-solid fa-user-plus"></i>
+                    </button>
+                </div>
             `;
-
-            headerFlex.appendChild(userToolbar);
+            drawerContent.insertBefore(userSection, drawerContent.firstChild);
         }
 
         window.pluginSwitchUser = function(username) {
@@ -1143,13 +1214,13 @@
                                 ${isCurrent ? '<span class="ml-2 text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full">當前</span>' : ''}
                                 ${isDefault ? '<span class="ml-2 text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">系統預設</span>' : ''}
                             </div>
-                            <div class="text-xs text-slate-400 mt-0.5">已收藏 ${likeCount} 首歌 (Key: ${getStorageKeyForUser(u)})</div>
+                            <div class="text-xs text-slate-400 mt-0.5">已收藏 ${likeCount} 首歌</div>
                         </div>
                         <div class="flex items-center space-x-1.5">
-                            ${!isDefault ? `<button onclick="window.pluginRenameUser('${u}')" class="px-2.5 py-1 bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white rounded-lg text-xs transition" title="更改名稱">改名</button>` : ''}
-                            <button onclick="window.pluginExportUser('${u}')" class="px-2.5 py-1 bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white rounded-lg text-xs transition" title="匯出Like資料">匯出</button>
-                            <button onclick="window.pluginMergeUserPrompt('${u}')" class="px-2.5 py-1 bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white rounded-lg text-xs transition" title="合併到其他用戶">合併</button>
-                            ${!isDefault && usersList.length > 1 ? `<button onclick="window.pluginDeleteUser('${u}')" class="px-2.5 py-1 bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white rounded-lg text-xs transition" title="刪除用戶">刪除</button>` : ''}
+                            ${!isDefault ? `<button onclick="window.pluginRenameUser('${u}')" class="px-2.5 py-1 bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white rounded-lg text-xs transition">改名</button>` : ''}
+                            <button onclick="window.pluginExportUser('${u}')" class="px-2.5 py-1 bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white rounded-lg text-xs transition">匯出</button>
+                            <button onclick="window.pluginMergeUserPrompt('${u}')" class="px-2.5 py-1 bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white rounded-lg text-xs transition">合併</button>
+                            ${!isDefault && usersList.length > 1 ? `<button onclick="window.pluginDeleteUser('${u}')" class="px-2.5 py-1 bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white rounded-lg text-xs transition">刪除</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -1159,7 +1230,7 @@
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl flex flex-col max-h-[85vh]">
                     <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
                         <h3 class="text-base font-bold text-slate-100 flex items-center">
-                            <i class="fa-solid fa-users-gear text-indigo-400 mr-2"></i> 用戶管理中心 (獨立 Key 儲存架構)
+                            <i class="fa-solid fa-users-gear text-indigo-400 mr-2"></i> 用戶管理中心
                         </h3>
                         <button onclick="document.getElementById('pluginUserManageModal').remove()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
                     </div>
@@ -1217,7 +1288,7 @@
                 alert('「預設用戶」不能被刪除！');
                 return;
             }
-            if (!confirm(`確定要刪除用戶「${username}」嗎？其獨立的 Like 記錄檔將被移除。`)) return;
+            if (!confirm(`確定要刪除用戶「${username}」嗎？`)) return;
 
             usersList = usersList.filter(u => u !== username);
             localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
@@ -1300,7 +1371,7 @@
             }
 
             const target = targetUser.trim();
-            if (!confirm(`確定要將「${sourceUser}」的所有 Like 合併到「${target}」嗎？合併後「${sourceUser}」將被刪除。`)) return;
+            if (!confirm(`確定要將「${sourceUser}」的所有 Like 合併到「${target}」嗎？`)) return;
 
             const sourceLikes = getUserLikesMap(sourceUser);
             const targetLikes = getUserLikesMap(target);
@@ -1322,7 +1393,7 @@
 
             refreshUserSelects();
             window.pluginOpenManageModal();
-            alert(`成功將 「${sourceUser}」 合併至 「${target}」！`);
+            alert(`成功合併至 「${target}」！`);
             if (typeof window.loadFiles === 'function') window.loadFiles(false);
         };
 
@@ -1351,12 +1422,12 @@
                                 });
 
                                 if (likedUsers.length > 0) {
-                                    const titleContainer = row.querySelector('.flex.items-center.space-x-3');
+                                    const titleContainer = row.querySelector('.flex.items-center.space-x-2.5');
                                     if (titleContainer && !titleContainer.querySelector('.plugin-likes-badge')) {
                                         const badge = document.createElement('span');
                                         badge.className = 'plugin-likes-badge text-[10px] text-rose-400 bg-rose-950/40 border border-rose-500/30 px-1.5 py-0.5 rounded ml-2';
                                         badge.title = `按讚用戶: ${likedUsers.join(', ')}`;
-                                        badge.innerHTML = `<i class="fa-solid fa-heart mr-1"></i>${likedUsers.length} (${likedUsers.join(', ')})`;
+                                        badge.innerHTML = `<i class="fa-solid fa-heart mr-1"></i>${likedUsers.length}`;
                                         titleContainer.appendChild(badge);
                                     }
                                 }
