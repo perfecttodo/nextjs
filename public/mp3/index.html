@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MP3 智慧管理與分類系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -18,170 +18,121 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.4); border-radius: 9999px; transition: background 0.2s ease; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.6); }
-
-        #mobileDrawer {
-            transition: transform 0.3s ease-in-out;
-        }
-
-        /* 播放器底部安全區（iPhone 小黑條） */
-        footer.player-bar {
-            padding-bottom: calc(0.625rem + env(safe-area-inset-bottom, 0px));
-        }
-        @media (min-width: 768px) {
-            footer.player-bar {
-                padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
-            }
-        }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 h-screen flex flex-col overflow-hidden" style="height: 100dvh;">
+<body class="bg-slate-950 text-slate-100 h-screen flex flex-col overflow-hidden">
 
     <!-- 頂部導覽列 -->
-    <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur shrink-0 px-3 md:px-6 py-2.5 flex items-center justify-between gap-3 z-30">
-        <div class="flex items-center space-x-2.5">
-            <button onclick="toggleMobileDrawer(true)" class="lg:hidden p-2 rounded-xl bg-slate-800/80 text-indigo-400 hover:text-white transition" title="開啟選單與分類">
-                <i class="fa-solid fa-bars text-base"></i>
-            </button>
-            
-            <div class="flex items-center space-x-2">
-                <div class="bg-indigo-600 p-1.5 rounded-lg text-white shadow-lg shadow-indigo-500/35 hidden sm:flex">
-                    <i class="fa-solid fa-headphones-simple text-sm"></i>
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur shrink-0 px-4 md:px-6 py-3 flex flex-col md:flex-row items-center justify-between gap-3 z-20">
+        <div class="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-start">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/35">
+                    <i class="fa-solid fa-headphones-simple text-lg"></i>
                 </div>
                 <div>
-                    <h1 class="text-xs md:text-base font-bold tracking-wide truncate">MP3 雲端管理</h1>
-                    <p class="text-[10px] text-slate-400 hidden sm:block">即時串流、分類與標籤管理</p>
+                    <h1 class="text-base md:text-lg font-bold tracking-wide">MP3 雲端管理</h1>
+                    <p class="text-[11px] text-slate-400">即時串流、分類與標籤管理</p>
                 </div>
             </div>
         </div>
-
-        <!-- 桌面端路徑輸入與載入 -->
-        <div class="flex items-center space-x-2">
-            <div class="hidden md:flex items-center space-x-2">
-                <input type="text" id="dirInput" placeholder="輸入資料夾絕對路徑..." 
-                    class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500 w-72 lg:w-96">
-                <button onclick="loadFiles(true)" class="bg-indigo-600 hover:bg-indigo-500 px-3.5 py-1.5 rounded-lg text-xs font-medium transition shadow-md whitespace-nowrap">
-                    <i class="fa-solid fa-rotate mr-1"></i> 載入
-                </button>
-            </div>
-            <button onclick="loadFiles(false)" class="md:hidden bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white p-2 rounded-xl text-xs transition" title="重新載入">
-                <i class="fa-solid fa-rotate"></i>
+        <div class="flex items-center space-x-3 w-full md:w-auto max-w-xl">
+            <input type="text" id="dirInput" placeholder="輸入資料夾絕對路徑..." 
+                class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500 flex-1 md:w-80">
+            <button onclick="loadFiles(true)" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-1.5 rounded-lg text-sm font-medium transition shadow-md whitespace-nowrap" title="重新載入 (快捷鍵: R)">
+                <i class="fa-solid fa-rotate mr-1.5"></i> 載入
             </button>
         </div>
     </header>
 
-    <!-- 側邊欄背景遮罩 -->
-    <div id="mobileDrawerBackdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden lg:hidden opacity-0 transition-opacity duration-300" onclick="toggleMobileDrawer(false)"></div>
-
-    <!-- 主體內容容器（flex-1 + min-h-0，為下方播放器留出精確空間） -->
-    <div class="flex-1 min-h-0 max-w-[1920px] w-full mx-auto p-2 sm:p-4 md:p-6 flex gap-4 overflow-hidden">
+    <!-- 主要內容區 -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-hidden pb-24">
         
-        <!-- 左側邊欄 -->
-        <aside id="mobileDrawer" class="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-slate-900 border-r border-slate-800 z-50 transform -translate-x-full lg:translate-x-0 lg:static lg:w-72 xl:w-80 lg:bg-transparent lg:border-none flex flex-col h-full shadow-2xl lg:shadow-none shrink-0 overflow-hidden">
-            
-            <div class="flex items-center justify-between p-4 border-b border-slate-800 lg:hidden shrink-0">
-                <h3 class="font-bold text-sm text-slate-200 flex items-center">
-                    <i class="fa-solid fa-sliders text-indigo-400 mr-2"></i> 控制與分類選單
-                </h3>
-                <button onclick="toggleMobileDrawer(false)" class="text-slate-400 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <div id="sidebarContentWrapper" class="flex-1 space-y-3 p-4 lg:p-0 overflow-y-auto pr-1">
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-xl lg:hidden">
-                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-1">資料夾路徑</h2>
-                    <div class="space-y-2">
-                        <input type="text" id="dirInputMobile" placeholder="輸入資料夾絕對路徑..." 
-                            class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500 text-slate-200">
-                        <button onclick="syncDirAndLoad()" class="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-xl text-xs font-medium transition shadow-md text-white">
-                            <i class="fa-solid fa-folder-open mr-1.5"></i> 載入此路徑檔案
-                        </button>
-                    </div>
+        <!-- 左側：分類、標籤與搜尋 -->
+        <div class="lg:col-span-1 space-y-4 flex flex-col shrink-0 overflow-y-auto pr-1">
+            <!-- 分類區塊 -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl">
+                <div class="flex items-center justify-between mb-3 px-1">
+                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">分類標籤</h2>
+                    <span id="count-badge" class="text-xs text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-500/30">0 首</span>
                 </div>
-
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-xl">
-                    <div class="flex items-center justify-between mb-2.5 px-1">
-                        <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">分類標籤</h2>
-                        <span id="count-badge" class="text-xs text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-500/30">0 首</span>
-                    </div>
-                    <div id="categoryFilters" class="flex flex-col space-y-1.5 overflow-y-auto no-scrollbar pb-1 mb-2.5"></div>
-                    <div class="flex items-center space-x-1.5 pt-2 border-t border-slate-800/80">
-                        <input type="text" id="newCategoryInput" placeholder="新分類名稱..." 
-                            class="bg-slate-800 border border-slate-700 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 flex-1 text-slate-200"
-                            onkeydown="if(event.key==='Enter') addNewCategory()">
-                        <button onclick="addNewCategory()" class="bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700 px-3 py-1.5 rounded-xl text-xs transition" title="新增分類">
-                            <i class="fa-solid fa-plus"></i>
-                        </button>
-                    </div>
+                <div id="categoryFilters" class="flex lg:flex-col space-x-2 lg:space-x-0 lg:space-y-1.5 overflow-x-auto lg:overflow-visible no-scrollbar pb-1 lg:pb-0 mb-3">
+                    <!-- 動態載入分類 -->
                 </div>
-
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-xl">
-                    <div class="flex items-center justify-between mb-2 px-1">
-                        <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">標籤過濾</h2>
-                        <button onclick="manageTagsPrompt()" class="text-[11px] text-indigo-400 hover:underline"><i class="fa-solid fa-gear mr-1"></i>管理</button>
-                    </div>
-                    <div id="tagCloudContainer" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto"></div>
-                </div>
-
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-xl">
-                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-1">快速搜尋</h2>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
-                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                        </span>
-                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜尋歌名或目錄..." 
-                            class="w-full bg-slate-800/80 border border-slate-700 text-xs rounded-xl pl-9 pr-3 py-2 focus:outline-none focus:border-indigo-500 text-slate-200">
-                    </div>
+                <!-- 新增分類輸入框 -->
+                <div class="flex items-center space-x-1.5 pt-2 border-t border-slate-800">
+                    <input type="text" id="newCategoryInput" placeholder="新分類名稱..." 
+                        class="bg-slate-800 border border-slate-700 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 flex-1 text-slate-200"
+                        onkeydown="if(event.key==='Enter') addNewCategory()">
+                    <button onclick="addNewCategory()" class="bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700 px-3 py-1.5 rounded-xl text-xs transition" title="新增分類">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
                 </div>
             </div>
-        </aside>
 
-        <!-- 檔案列表主區域 -->
-        <main class="flex-1 flex flex-col min-h-0 overflow-hidden min-w-0">
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl flex flex-col flex-1 min-h-0 overflow-hidden">
+            <!-- 標籤雲過濾區塊 -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl">
+                <div class="flex items-center justify-between mb-2.5 px-1">
+                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">標籤過濾</h2>
+                    <button onclick="manageTagsPrompt()" class="text-[11px] text-indigo-400 hover:underline"><i class="fa-solid fa-gear mr-1"></i>管理</button>
+                </div>
+                <div id="tagCloudContainer" class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
+                    <!-- 動態標籤 -->
+                </div>
+            </div>
+
+            <!-- 快速搜尋 -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl">
+                <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5 px-1">快速搜尋</h2>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
+                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                    </span>
+                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜尋歌名或目錄..." 
+                        class="w-full bg-slate-800/80 border border-slate-700 text-sm rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:border-indigo-500 text-slate-200">
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側：MP3 檔案列表與分頁 -->
+        <div class="lg:col-span-3 flex flex-col h-full overflow-hidden">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-xl flex flex-col h-full overflow-hidden">
                 
                 <!-- 表格標題列 -->
-                <div class="px-3 md:px-5 py-3 border-b border-slate-800 flex justify-between items-center shrink-0 flex-wrap gap-2">
-                    <div class="flex items-center space-x-2">
-                        <button onclick="toggleMobileDrawer(true)" class="lg:hidden text-indigo-400 bg-indigo-950/50 border border-indigo-500/30 px-2.5 py-1 rounded-lg text-xs font-medium flex items-center space-x-1">
-                            <i class="fa-solid fa-filter"></i>
-                            <span>分類與篩選</span>
-                        </button>
-                        <h2 class="font-semibold text-slate-200 hidden sm:flex items-center text-sm md:text-base">
-                            <i class="fa-solid fa-list-music mr-2 text-indigo-400"></i> 檔案列表
-                        </h2>
-                    </div>
-
-                    <div class="flex items-center space-x-2">
+                <div class="px-4 md:px-6 py-3.5 border-b border-slate-800 flex justify-between items-center shrink-0 flex-wrap gap-2">
+                    <h2 class="font-semibold text-slate-200 flex items-center text-sm md:text-base">
+                        <i class="fa-solid fa-list-music mr-2 text-indigo-400"></i> 檔案列表
+                    </h2>
+                    <div class="flex items-center space-x-3">
                         <span id="fileCountText" class="text-xs text-slate-400">共 0 首</span>
 
                         <div id="topPaginationBtns" class="flex items-center space-x-1">
-                            <button id="topPrevBtn" onclick="goToPage(currentPage - 1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg transition disabled:opacity-40">
-                                <i class="fa-solid fa-chevron-left"></i>
+                            <button id="topPrevBtn" onclick="goToPage(currentPage - 1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg transition">
+                                <i class="fa-solid fa-chevron-left"></i> 上一頁
                             </button>
                             <span id="topPageIndicator" class="text-xs text-slate-400 font-mono px-1">1 / 1</span>
-                            <button id="topNextBtn" onclick="goToPage(currentPage + 1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg transition disabled:opacity-40">
-                                <i class="fa-solid fa-chevron-right"></i>
+                            <button id="topNextBtn" onclick="goToPage(currentPage + 1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg transition">
+                                下一頁 <i class="fa-solid fa-chevron-right"></i>
                             </button>
                         </div>
 
                         <select id="pageSizeSelect" onchange="changePageSize(this.value)" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-300 focus:outline-none">
-                            <option value="10">10</option>
-                            <option value="20" selected>20</option>
-                            <option value="50">50</option>
+                            <option value="10">10 筆/頁</option>
+                            <option value="20" selected>20 筆/頁</option>
+                            <option value="50">50 筆/頁</option>
+                            <option value="100">100 筆/頁</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- 檔案列表表格 -->
-                <div id="tableContainer" class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-                    <table class="w-full text-left border-collapse table-fixed">
-                        <thead class="sticky top-0 bg-slate-950/95 backdrop-blur z-10 hidden md:table-header-group">
+                <!-- 表格本體 -->
+                <div id="tableContainer" class="flex-1 overflow-y-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="sticky top-0 bg-slate-950/90 backdrop-blur z-10">
                             <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
-                                <th class="py-2.5 px-3 md:px-5 w-auto">歌名與路徑</th>
-                                <th class="py-2.5 px-2 md:px-4 w-28">分類</th>
-                                <th class="py-2.5 px-2 md:px-4 w-20 hidden lg:table-cell">大小</th>
-                                <th class="py-2.5 px-3 md:px-5 text-right w-32">操作</th>
+                                <th class="py-3 px-4 md:px-6">狀態 / 歌名與路徑</th>
+                                <th class="py-3 px-3 md:px-4">分類 / 標籤</th>
+                                <th class="py-3 px-3 md:px-4">大小</th>
+                                <th class="py-3 px-4 md:px-6 text-right">操作</th>
                             </tr>
                         </thead>
                         <tbody id="fileTableBody" class="divide-y divide-slate-800/60 text-sm">
@@ -196,58 +147,54 @@
                 </div>
 
                 <!-- 底部完整分頁控制列 -->
-                <div id="paginationContainer" class="px-3 md:px-6 py-2.5 border-t border-slate-800/80 flex items-center justify-between bg-slate-950/40 shrink-0 text-xs"></div>
+                <div id="paginationContainer" class="px-4 md:px-6 py-3 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-3 bg-slate-950/40 shrink-0"></div>
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
 
-    <!-- 底部音訊播放器（改為常規流式佈局，緊貼內容下方，永不遮擋列表） -->
-    <footer class="shrink-0 relative z-30 bg-slate-900 border-t border-slate-800 p-2.5 md:p-3 shadow-2xl player-bar">
-        <div class="max-w-[1920px] mx-auto flex flex-col md:flex-row items-center justify-between gap-2 md:gap-4">
+    <!-- 底部固定音訊播放器 -->
+    <footer class="fixed bottom-0 left-0 right-0 bg-slate-900/98 backdrop-blur-md border-t border-slate-800 p-3 shadow-2xl z-50">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
             <div class="flex items-center space-x-3 w-full md:w-1/4">
-                <div class="w-9 h-9 md:w-10 md:h-10 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 flex-shrink-0">
+                <div class="w-10 h-10 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 flex-shrink-0">
                     <i id="playerIcon" class="fa-solid fa-music"></i>
                 </div>
                 <div class="overflow-hidden">
                     <div id="currentSongTitle" class="text-xs md:text-sm font-medium truncate text-slate-200">尚未選擇播放歌曲</div>
-                    <div id="currentSongCategory" class="text-[10px] md:text-xs text-indigo-400">就緒</div>
+                    <div id="currentSongCategory" class="text-xs text-indigo-400">就緒</div>
                 </div>
             </div>
 
             <div class="flex flex-col items-center w-full md:w-2/4 space-y-1">
-                <div class="flex items-center space-x-3 md:space-x-4">
-                    <button onclick="toggleAutoMode()" id="autoModeBtn" class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1" title="自動下一首">
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleAutoMode()" id="autoModeBtn" class="text-xs px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1" title="切換自動模式 (10秒未Like自動下一首)">
                         <i class="fa-solid fa-bolt text-[10px]"></i>
                         <span>自動</span>
                     </button>
 
-                    <button onclick="togglePlayMode()" id="playModeBtn" class="text-slate-400 hover:text-indigo-400 transition p-1" title="播放模式">
+                    <!-- 播放模式按鈕 -->
+                    <button onclick="togglePlayMode()" id="playModeBtn" class="text-slate-400 hover:text-indigo-400 transition flex items-center justify-center p-1" title="播放模式: 列表循環">
                         <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
                     </button>
 
-                    <button onclick="playPrev()" class="text-slate-400 hover:text-white transition p-1" title="上一首"><i class="fa-solid fa-backward-step"></i></button>
-                    <button onclick="togglePlay()" id="playPauseBtn" class="w-9 h-9 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg transition" title="播放/暫停">
+                    <button onclick="playPrev()" class="text-slate-400 hover:text-white transition" title="上一首 (快捷鍵: P)"><i class="fa-solid fa-backward-step"></i></button>
+                    <button onclick="togglePlay()" id="playPauseBtn" class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg transition" title="播放/暫停 (快捷鍵: 空白鍵)">
                         <i class="fa-solid fa-play text-xs"></i>
                     </button>
-                    <button onclick="playNext()" class="text-slate-400 hover:text-white transition p-1" title="下一首"><i class="fa-solid fa-forward-step"></i></button>
+                    <button onclick="playNext()" class="text-slate-400 hover:text-white transition" title="下一首 (快捷鍵: N)"><i class="fa-solid fa-forward-step"></i></button>
                     
-                    <button id="playerLikeBtn" onclick="togglePlayerLike()" class="text-slate-500 hover:text-rose-400 transition p-1 text-base" title="加入最愛">
+                    <button id="playerLikeBtn" onclick="togglePlayerLike()" class="text-slate-500 hover:text-rose-400 transition hidden ml-1 text-base" title="加入最愛 (快捷鍵: L)">
                         <i id="playerLikeIcon" class="fa-regular fa-heart"></i>
                     </button>
-
-                    <button id="playerDislikeBtn" onclick="togglePlayerDislike()" class="text-slate-500 hover:text-amber-400 transition p-1 text-base" title="隱藏歌曲">
-                        <i id="playerDislikeIcon" class="fa-regular fa-thumbs-down"></i>
-                    </button>
                     
-                    <span id="modeText" class="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded ml-1">循環</span>
+                    <span id="modeText" class="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded ml-2">循環</span>
                 </div>
-                
-                <div class="w-full flex items-center space-x-2 text-[11px] text-slate-400">
+                <div class="w-full flex items-center space-x-3 text-xs text-slate-400">
                     <span id="currentTime">00:00</span>
                     <input type="range" id="progressBar" value="0" max="100" step="0.1" onchange="seekAudio(this.value)"
                         class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
                     <span id="durationTime">00:00</span>
-                    <span id="autoTimerText" class="text-[10px] text-amber-400 font-mono hidden whitespace-nowrap"></span>
+                    <span id="autoTimerText" class="text-[11px] text-amber-400 font-mono hidden whitespace-nowrap"></span>
                 </div>
             </div>
 
@@ -255,7 +202,7 @@
             <div class="hidden md:flex items-center space-x-3 w-1/4 justify-end">
                 <i class="fa-solid fa-volume-high text-slate-400 text-sm"></i>
                 <input type="range" id="volumeControl" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this.value)"
-                        class="w-28 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                        class="w-24 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
             </div>
         </div>
     </footer>
@@ -298,6 +245,7 @@
         let autoCountdownInterval = null;
         let remainingSeconds = 10;
 
+        // 藍牙「暫停 -> 快速播放」序列檢測變數 (900ms)
         let lastPauseTime = 0;
         const PAUSE_TO_PLAY_DELAY = 900; 
 
@@ -309,29 +257,6 @@
         };
 
         const modeNames = { 'loop': '循環', 'shuffle': '隨機', 'single': '單曲', 'sequence': '順序' };
-
-        function toggleMobileDrawer(open) {
-            const drawer = document.getElementById('mobileDrawer');
-            const backdrop = document.getElementById('mobileDrawerBackdrop');
-            if (open) {
-                drawer.classList.remove('-translate-x-full');
-                backdrop.classList.remove('hidden');
-                setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
-            } else {
-                drawer.classList.add('-translate-x-full');
-                backdrop.classList.add('opacity-0');
-                setTimeout(() => backdrop.classList.add('hidden'), 300);
-            }
-        }
-
-        function syncDirAndLoad() {
-            const mobileInput = document.getElementById('dirInputMobile').value.trim();
-            if (mobileInput) {
-                document.getElementById('dirInput').value = mobileInput;
-            }
-            toggleMobileDrawer(false);
-            loadFiles(true);
-        }
 
         function getSavedCategories() {
             try {
@@ -345,17 +270,12 @@
         function saveTagsMap(map) { localStorage.setItem('mp3_tags_map', JSON.stringify(map)); }
         function getLikedMap() { try { return JSON.parse(localStorage.getItem('mp3_liked_map') || '{}'); } catch (e) { return {}; } }
         function saveLikedMap(map) { localStorage.setItem('mp3_liked_map', JSON.stringify(map)); }
-        function getDislikedMap() { try { return JSON.parse(localStorage.getItem('mp3_disliked_map') || '{}'); } catch (e) { return {}; } }
-        function saveDislikedMap(map) { localStorage.setItem('mp3_disliked_map', JSON.stringify(map)); }
 
         window.addEventListener('DOMContentLoaded', () => {
             categories = getSavedCategories();
             const params = new URLSearchParams(window.location.search);
             const dirParam = params.get('dir');
-            if (dirParam) {
-                document.getElementById('dirInput').value = dirParam;
-                document.getElementById('dirInputMobile').value = dirParam;
-            }
+            if (dirParam) document.getElementById('dirInput').value = dirParam;
             
             const pageParam = parseInt(params.get('page'));
             if (!isNaN(pageParam) && pageParam > 0) currentPage = pageParam;
@@ -378,7 +298,7 @@
             if (savedAutoMode === 'true') {
                 isAutoMode = true;
                 const btn = document.getElementById('autoModeBtn');
-                btn.className = 'text-[11px] px-2.5 py-1 rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-400 transition flex items-center space-x-1 shadow-md';
+                btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-400 transition flex items-center space-x-1 shadow-md';
             }
 
             const savedVolume = localStorage.getItem('mp3_last_volume');
@@ -391,9 +311,11 @@
 
             initMediaSession();
             initKeyboardShortcuts();
+
             loadFiles(false);
         });
 
+        // ==================== 藍牙 Media Session ====================
         function initMediaSession() {
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.setActionHandler('pause', () => {
@@ -436,6 +358,7 @@
             }
         }
 
+        // ==================== 鍵盤快捷鍵 (L, N, P, R, 空白鍵) ====================
         function initKeyboardShortcuts() {
             window.addEventListener('keydown', (e) => {
                 if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
@@ -451,7 +374,7 @@
                     playPrev();
                 } else if (key === 'r') {
                     e.preventDefault();
-                    loadFiles(false);
+                    loadFiles(false); // 重新載入列表
                 } else if (e.code === 'Space') {
                     e.preventDefault();
                     togglePlay();
@@ -464,7 +387,11 @@
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: title || '未知曲目',
                     artist: 'MP3 雲端管理系統',
-                    album: document.getElementById('currentSongCategory').innerText || '播放清單'
+                    album: document.getElementById('currentSongCategory').innerText || '播放清單',
+                    artwork: [
+                        { src: 'https://cdn-icons-png.flaticon.com/512/3388/3388823.png', sizes: '96x96', type: 'image/png' },
+                        { src: 'https://cdn-icons-png.flaticon.com/512/3388/3388823.png', sizes: '512x512', type: 'image/png' }
+                    ]
                 });
             }
         }
@@ -480,7 +407,6 @@
 
         async function loadFiles(resetPage = false) {
             const dir = document.getElementById('dirInput').value.trim();
-            document.getElementById('dirInputMobile').value = dir;
             if (resetPage) currentPage = 1;
             updateUrlParams();
 
@@ -490,7 +416,6 @@
                 
                 if (data.success) {
                     const likedMap = getLikedMap();
-                    const dislikedMap = getDislikedMap();
                     const tagsMap = getTagsMap();
 
                     allFiles = data.files.map(f => {
@@ -498,7 +423,6 @@
                         return {
                             ...f,
                             isLiked: !!likedMap[key],
-                            isDisliked: !!dislikedMap[key],
                             tags: tagsMap[key] || []
                         };
                     });
@@ -507,7 +431,6 @@
                     renderTagCloud();
                     renderTable();
                     updatePlayerLikeState();
-                    updatePlayerDislikeState();
                     restoreLastPlayedSong();
                 } else {
                     await showCustomModal({ title: '載入失敗', message: data.error || '未知錯誤', type: 'error' });
@@ -545,52 +468,91 @@
                 });
 
                 updatePlayerLikeState();
-                updatePlayerDislikeState();
                 renderTable();
                 updatePlayButton();
             }
         }
 
+        // ==================== 分類與標籤管理 ====================
+        function addNewCategory() {
+            const inputEl = document.getElementById('newCategoryInput');
+            const catName = inputEl.value.trim();
+            if (!catName) return;
+
+            if (categories.includes(catName)) {
+                showCustomModal({ title: '提示', message: '此分類名稱已存在！', type: 'info' });
+                return;
+            }
+
+            categories.push(catName);
+            saveCategories(categories);
+            inputEl.value = '';
+            renderCategories();
+            renderTable();
+        }
+
+        async function deleteCategory(catName) {
+            if (catName === '未分類' || catName === '全部' || catName === '我的最愛') return;
+
+            const confirmed = await showCustomModal({
+                title: '刪除分類',
+                message: `確定要刪除分類「${catName}」嗎？\n原先屬於此分類的歌曲將自動歸為「未分類」。`,
+                type: 'danger',
+                confirmText: '確認刪除'
+            });
+
+            if (!confirmed) return;
+
+            allFiles.forEach(f => {
+                if (f.category === catName) f.category = '未分類';
+            });
+
+            categories = categories.filter(c => c !== catName);
+            saveCategories(categories);
+
+            if (currentCategory === catName) currentCategory = '全部';
+
+            renderCategories();
+            renderTable();
+        }
+
         function renderCategories() {
             const container = document.getElementById('categoryFilters');
             const totalLikedCount = allFiles.filter(f => f.isLiked).length;
-            const totalDislikedCount = allFiles.filter(f => f.isDisliked).length;
-            const validFilesCount = allFiles.filter(f => !f.isDisliked).length;
 
             let html = `
-                <button onclick="filterCategory('全部'); toggleMobileDrawer(false);" class="cat-btn w-full text-left px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center justify-between ${currentCategory === '全部' && !currentTagFilter ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300'}">
+                <button onclick="filterCategory('全部')" class="cat-btn flex-shrink-0 lg:w-full text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${currentCategory === '全部' && !currentTagFilter ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'bg-slate-800/60 lg:bg-transparent hover:bg-slate-800 text-slate-300'}">
                     <span>全部</span>
-                    <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${validFilesCount}</span>
+                    <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${allFiles.length}</span>
                 </button>
-                <div class="flex items-center space-x-1 w-full">
-                    <button onclick="filterCategory('我的最愛'); toggleMobileDrawer(false);" class="cat-btn flex-1 text-left px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center justify-between ${currentCategory === '我的最愛' && !currentTagFilter ? 'bg-rose-600/20 text-rose-400 border border-rose-500/30' : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300'}">
+                <div class="flex items-center space-x-1 flex-shrink-0 lg:w-full">
+                    <button onclick="filterCategory('我的最愛')" class="cat-btn flex-1 text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${currentCategory === '我的最愛' && !currentTagFilter ? 'bg-rose-600/20 text-rose-400 border border-rose-500/30' : 'bg-slate-800/60 lg:bg-transparent hover:bg-slate-800 text-slate-300'}">
                         <span class="flex items-center"><i class="fa-solid fa-heart text-rose-500 mr-2"></i> 我的最愛</span>
                         <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${totalLikedCount}</span>
                     </button>
+                    <button onclick="copyFavoriteSongs()" class="p-2 bg-slate-800 hover:bg-rose-600/30 text-slate-400 hover:text-rose-400 border border-slate-700 rounded-xl transition text-xs flex items-center justify-center" title="複製我的最愛到指定目錄">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 1.259-.25 2.45-.71 3.518a.75.75 0 11-1.38-.586c.382-.897.59-1.91.59-2.932 0-2.112-1.748-3.75-3.937-3.75a3.98 3.98 0 00-3.322 1.77.75.75 0 01-1.238 0A3.98 3.98 0 008.437 4.5C6.248 4.5 4.5 6.138 4.5 8.25c0 3.256 2.052 6.132 4.38 8.16a23.684 23.684 0 003.882 2.871l.013.007.004.002.721 1.32-.721-1.32z"/></svg>
+                    </button>
                 </div>
-                <button onclick="filterCategory('Dislike'); toggleMobileDrawer(false);" class="cat-btn w-full text-left px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center justify-between ${currentCategory === 'Dislike' && !currentTagFilter ? 'bg-amber-600/20 text-amber-400 border border-amber-500/30' : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300'}">
-                    <span class="flex items-center"><i class="fa-solid fa-thumbs-down text-amber-400 mr-2"></i> 已隱藏 (Dislike)</span>
-                    <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${totalDislikedCount}</span>
-                </button>
             `;
 
             categories.forEach(cat => {
-                const count = allFiles.filter(f => f.category === cat && !f.isDisliked).length;
+                const count = allFiles.filter(f => f.category === cat).length;
                 const isActive = (currentCategory === cat && !currentTagFilter);
                 const canDelete = (cat !== '未分類');
 
                 html += `
-                    <div class="flex items-center space-x-1 w-full group">
-                        <button onclick="filterCategory('${cat}'); toggleMobileDrawer(false);" class="cat-btn flex-1 text-left px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center justify-between ${isActive ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300'}">
+                    <div class="flex items-center space-x-1 flex-shrink-0 lg:w-full group">
+                        <button onclick="filterCategory('${cat}')" class="cat-btn flex-1 text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${isActive ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'bg-slate-800/60 lg:bg-transparent hover:bg-slate-800 text-slate-300'}">
                             <span>${cat}</span>
                             <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${count}</span>
                         </button>
-                        ${canDelete ? `<button onclick="deleteCategory('${cat}')" class="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-rose-400 text-xs transition" title="刪除分類"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                        ${canDelete ? `<button onclick="deleteCategory('${cat}')" class="opacity-0 group-hover:opacity-100 p-1.5 text-slate-500 hover:text-rose-400 text-xs transition" title="刪除分類"><i class="fa-solid fa-xmark"></i></button>` : ''}
                     </div>
                 `;
             });
             container.innerHTML = html;
-            document.getElementById('count-badge').innerText = `${validFilesCount} 首`;
+            document.getElementById('count-badge').innerText = `${allFiles.length} 首`;
         }
 
         function filterCategory(cat) {
@@ -603,870 +565,597 @@
             renderTable();
         }
 
-        function getFilteredFiles() {
-            const query = (document.getElementById('searchInput').value || '').trim().toLowerCase();
-            return allFiles.filter(f => {
-                const key = f.relativePath || f.filename;
-                const matchSearch = !query || f.filename.toLowerCase().includes(query) || (f.relativePath && f.relativePath.toLowerCase().includes(query));
-                const matchTag = !currentTagFilter || (f.tags && f.tags.includes(currentTagFilter));
+        function renderTagCloud() {
+            const container = document.getElementById('tagCloudContainer');
+            const tagsMap = getTagsMap();
+            const tagCounts = {};
 
-                if (currentCategory === 'Dislike') {
-                    return f.isDisliked && matchSearch && matchTag;
-                }
-                
-                if (f.isDisliked) return false;
-
-                if (currentCategory === '我的最愛') {
-                    return f.isLiked && matchSearch && matchTag;
-                }
-
-                if (currentCategory !== '全部') {
-                    return f.category === currentCategory && matchSearch && matchTag;
-                }
-
-                return matchSearch && matchTag;
+            Object.values(tagsMap).forEach(tags => {
+                tags.forEach(tag => { tagCounts[tag] = (tagCounts[tag] || 0) + 1; });
             });
-        }
 
-        function handleSearch() {
-            currentPage = 1;
-            renderTable();
-        }
-
-        function toggleFileLike(key) {
-            const file = allFiles.find(f => (f.relativePath || f.filename) === key);
-            if (!file) return;
-
-            file.isLiked = !file.isLiked;
-            if (file.isLiked && file.isDisliked) {
-                file.isDisliked = false;
-                const dislikedMap = getDislikedMap();
-                delete dislikedMap[key];
-                saveDislikedMap(dislikedMap);
-            }
-
-            const likedMap = getLikedMap();
-            if (file.isLiked) likedMap[key] = true;
-            else delete likedMap[key];
-            saveLikedMap(likedMap);
-
-            if (currentPlayingFile === key) {
-                updatePlayerLikeState();
-                updatePlayerDislikeState();
-            }
-
-            renderCategories();
-            renderTable();
-        }
-
-        function toggleFileDislike(key) {
-            const file = allFiles.find(f => (f.relativePath || f.filename) === key);
-            if (!file) return;
-
-            file.isDisliked = !file.isDisliked;
-            const dislikedMap = getDislikedMap();
-
-            if (file.isDisliked) {
-                dislikedMap[key] = true;
-                if (file.isLiked) {
-                    file.isLiked = false;
-                    const likedMap = getLikedMap();
-                    delete likedMap[key];
-                    saveLikedMap(likedMap);
-                }
-            } else {
-                delete dislikedMap[key];
-            }
-
-            saveDislikedMap(dislikedMap);
-
-            if (currentPlayingFile === key) {
-                updatePlayerLikeState();
-                updatePlayerDislikeState();
-                if (file.isDisliked && !audioPlayer.paused) {
-                    playNext();
-                }
-            }
-
-            renderCategories();
-            renderTable();
-        }
-
-        function togglePlayerLike() {
-            if (!currentPlayingFile) return;
-            toggleFileLike(currentPlayingFile);
-        }
-
-        function togglePlayerDislike() {
-            if (!currentPlayingFile) return;
-            toggleFileDislike(currentPlayingFile);
-        }
-
-        function updatePlayerLikeState() {
-            const btn = document.getElementById('playerLikeBtn');
-            const icon = document.getElementById('playerLikeIcon');
-            if (!currentPlayingFile) {
-                btn.classList.add('hidden');
-                return;
-            }
-            btn.classList.remove('hidden');
-            const file = allFiles.find(f => (f.relativePath || f.filename) === currentPlayingFile);
-            if (file && file.isLiked) {
-                btn.className = 'text-rose-500 hover:text-rose-400 transition p-1 text-base';
-                icon.className = 'fa-solid fa-heart';
-            } else {
-                btn.className = 'text-slate-500 hover:text-rose-400 transition p-1 text-base';
-                icon.className = 'fa-regular fa-heart';
-            }
-        }
-
-        function updatePlayerDislikeState() {
-            const btn = document.getElementById('playerDislikeBtn');
-            const icon = document.getElementById('playerDislikeIcon');
-            if (!currentPlayingFile) {
-                btn.classList.add('hidden');
-                return;
-            }
-            btn.classList.remove('hidden');
-            const file = allFiles.find(f => (f.relativePath || f.filename) === currentPlayingFile);
-            if (file && file.isDisliked) {
-                btn.className = 'text-amber-400 hover:text-amber-300 transition p-1 text-base';
-                icon.className = 'fa-solid fa-thumbs-down';
-            } else {
-                btn.className = 'text-slate-500 hover:text-amber-400 transition p-1 text-base';
-                icon.className = 'fa-regular fa-thumbs-down';
-            }
-        }
-
-        function renderTable() {
-            const filtered = getFilteredFiles();
-            const total = filtered.length;
-            const totalPages = Math.ceil(total / pageSize) || 1;
-
-            if (currentPage > totalPages) currentPage = totalPages;
-
-            document.getElementById('fileCountText').innerText = `共 ${total} 首`;
-            document.getElementById('topPageIndicator').innerText = `${currentPage} / ${totalPages}`;
-            document.getElementById('topPrevBtn').disabled = (currentPage <= 1);
-            document.getElementById('topNextBtn').disabled = (currentPage >= totalPages);
-
-            const startIdx = (currentPage - 1) * pageSize;
-            const pageFiles = filtered.slice(startIdx, startIdx + pageSize);
-
-            const tbody = document.getElementById('fileTableBody');
-            if (pageFiles.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="4" class="text-center py-12 text-slate-500">
-                            <i class="fa-solid fa-compact-disc text-3xl mb-2 block"></i>
-                            此分類目前沒有歌曲
-                        </td>
-                    </tr>`;
-                renderPagination(totalPages);
+            const uniqueTags = Object.keys(tagCounts);
+            if (uniqueTags.length === 0) {
+                container.innerHTML = `<span class="text-[11px] text-slate-500 px-1">尚無任何標籤</span>`;
                 return;
             }
 
-            let html = '';
-            pageFiles.forEach(f => {
-                const key = f.relativePath || f.filename;
-                const safeIdKey = encodeURIComponent(key).replace(/[%._-]/g, '_');
-                const isPlaying = (currentPlayingFile === key);
-                const rowBg = isPlaying ? 'bg-indigo-950/40 border-l-4 border-indigo-500' : 'hover:bg-slate-800/40';
-
-                html += `
-                    <tr id="row-${safeIdKey}" class="transition ${rowBg}">
-                        <!-- 歌名與路徑 (桌面與手機共用主欄位) -->
-                        <td class="py-3 px-3 md:py-2.5 md:px-5 truncate" colspan="4">
-                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
-                                
-                                <!-- 左側：播放器與歌名資訊 -->
-                                <div class="flex items-center space-x-2.5 min-w-0 flex-1">
-                                    <button onclick="playAudio('${encodeURIComponent(key)}')" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white flex items-center justify-center transition shrink-0 shadow">
-                                        <i class="fa-solid ${isPlaying && !audioPlayer.paused ? 'fa-pause' : 'fa-play'} text-xs"></i>
-                                    </button>
-                                    <div class="min-w-0 flex-1">
-                                        <div class="font-medium text-slate-200 truncate text-xs sm:text-sm" title="${f.filename}">
-                                            <span>${f.displayName || f.filename}</span>
-                                        </div>
-                                        <div class="text-[10px] text-slate-500 truncate mt-0.5" title="${f.relativePath || ''}">${f.relativePath || ''}</div>
-                                    </div>
-                                </div>
-
-                                <!-- 桌面端欄位：分類 -->
-                                <div class="hidden md:block w-28 shrink-0 truncate">
-                                    <span class="text-xs bg-slate-800 px-2 py-1 rounded-md text-slate-300 truncate inline-block max-w-full">${f.category || '未分類'}</span>
-                                </div>
-
-                                <!-- 桌面端欄位：大小 -->
-                                <div class="hidden lg:block w-20 shrink-0 text-xs font-mono text-slate-400 truncate">
-                                    ${f.sizeFormatted || '未知'}
-                                </div>
-
-                                <!-- 響應式底部/右側區塊：手機端顯示在底部（分類 + 操作按鈕），桌面端顯示在右側 -->
-                                <div class="flex items-center justify-between md:justify-end gap-2 pt-2 md:pt-0 border-t border-slate-800/60 md:border-t-0 shrink-0">
-                                    <!-- 手機端才顯示的分類標籤（位於底部左側） -->
-                                    <div class="md:hidden flex items-center space-x-1.5">
-                                        <span class="text-[10px] bg-slate-800/90 text-indigo-400 px-2 py-0.5 rounded border border-slate-700/60">
-                                            ${f.category || '未分類'}
-                                        </span>
-                                        <span class="text-[10px] font-mono text-slate-500">
-                                            ${f.sizeFormatted || ''}
-                                        </span>
-                                    </div>
-
-                                    <!-- 操作按鈕 (Like / Dislike) -->
-                                    <div class="flex items-center space-x-1">
-                                        <button onclick="toggleFileLike('${key}')" class="p-1.5 rounded-lg transition ${f.isLiked ? 'text-rose-500 hover:text-rose-400' : 'text-slate-500 hover:text-slate-300'}" title="${f.isLiked ? '取消最愛' : '加入最愛'}">
-                                            <i class="${f.isLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm md:text-base"></i>
-                                        </button>
-                                        <button onclick="toggleFileDislike('${key}')" class="p-1.5 rounded-lg transition ${f.isDisliked ? 'text-amber-400 hover:text-amber-300' : 'text-slate-500 hover:text-slate-300'}" title="${f.isDisliked ? '取消隱藏' : '隱藏此歌曲'}">
-                                            <i class="${f.isDisliked ? 'fa-solid' : 'fa-regular'} fa-thumbs-down text-sm md:text-base"></i>
-                                        </button>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </td>
-                    </tr>
-                `;
+            let html = `<span onclick="filterByTag(null)" class="cursor-pointer px-2 py-1 rounded-lg text-[11px] transition ${!currentTagFilter ? 'bg-indigo-600 text-white font-medium' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}">全部標籤</span>`;
+            uniqueTags.forEach(tag => {
+                const isActive = (currentTagFilter === tag);
+                html += `<span onclick="filterByTag('${tag}')" class="cursor-pointer px-2 py-1 rounded-lg text-[11px] transition flex items-center space-x-1 ${isActive ? 'bg-indigo-600 text-white font-medium' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}"><span>#${tag}</span><span class="text-[9px] opacity-70">(${tagCounts[tag]})</span></span>`;
             });
-            tbody.innerHTML = html;
-            renderPagination(totalPages);
-            
-            if (currentPlayingFile) {
-                const safeCurrentId = encodeURIComponent(currentPlayingFile).replace(/[%._-]/g, '_');
-                const activeRow = document.getElementById(`row-${safeCurrentId}`);
-                if (activeRow) {
-                    activeRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-            }
-        }
-
-        function renderPagination(totalPages) {
-            const container = document.getElementById('paginationContainer');
-            if (!container) return;
-
-            let html = `
-                <div class="text-xs text-slate-400">第 ${currentPage} / ${totalPages} 頁</div>
-                <div class="flex items-center space-x-1">
-                    <button onclick="goToPage(1)" ${currentPage <= 1 ? 'disabled' : ''} class="px-2 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs transition">首頁</button>
-                    <button onclick="goToPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''} class="px-2 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs transition">上一頁</button>
-                    <span class="px-2 py-1 text-xs font-mono text-indigo-400">${currentPage}</span>
-                    <button onclick="goToPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''} class="px-2 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs transition">下一頁</button>
-                    <button onclick="goToPage(${totalPages})" ${currentPage >= totalPages ? 'disabled' : ''} class="px-2 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs transition">末頁</button>
-                </div>
-            `;
             container.innerHTML = html;
         }
 
-        function goToPage(page) {
-            currentPage = page;
-            updateUrlParams();
-            renderTable();
-        }
-
-        function changePageSize(val) {
-            pageSize = parseInt(val);
+        function filterByTag(tag) {
+            currentTagFilter = tag;
             currentPage = 1;
-            updateUrlParams();
+            renderCategories();
+            renderTagCloud();
             renderTable();
         }
 
-        function playAudio(encodedKey) {
-            const key = decodeURIComponent(encodedKey);
-            const dir = document.getElementById('dirInput').value.trim();
-            const file = allFiles.find(f => (f.relativePath || f.filename) === key);
-            if (!file) return;
+        async function editSongTags(fileKey, displayName) {
+            const tagsMap = getTagsMap();
+            const currentTags = tagsMap[fileKey] || [];
+            const inputTags = await showCustomModal({
+                title: '管理歌曲標籤',
+                subtitle: displayName,
+                message: '請輸入標籤（多個標籤請用半形逗號 , 隔開）：',
+                type: 'confirm',
+                isPrompt: true,
+                defaultValue: currentTags.join(', '),
+                confirmText: '儲存標籤'
+            });
 
-            currentPlayingFile = key;
-            localStorage.setItem('mp3_last_played_key', key);
-            localStorage.setItem('mp3_last_played_title', file.displayName || file.filename);
+            if (inputTags === null) return;
+            const newTags = inputTags.split(',').map(t => t.trim()).filter(t => t.length > 0);
+            if (newTags.length > 0) tagsMap[fileKey] = [...new Set(newTags)];
+            else delete tagsMap[fileKey];
 
-            const streamUrl = `/api/mp3?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(key)}`;
-            audioPlayer.src = streamUrl;
-            audioPlayer.play();
-
-            document.getElementById('currentSongTitle').innerText = file.displayName || file.filename;
-            document.getElementById('currentSongCategory').innerText = file.category || '';
-            updateMediaSessionMetadata(file.displayName || file.filename);
-
-            updatePlayerLikeState();
-            updatePlayerDislikeState();
-            renderTable();
-            updatePlayButton();
-
-            if (isAutoMode) startAutoTimer(10);
+            saveTagsMap(tagsMap);
+            loadFiles(false);
         }
 
-        function togglePlay() {
-            if (!audioPlayer.src) {
-                const filtered = getFilteredFiles();
-                if (filtered.length > 0) {
-                    const key = filtered[0].relativePath || filtered[0].filename;
-                    playAudio(encodeURIComponent(key));
+        function manageTagsPrompt() {
+            showCustomModal({ title: '標籤管理提示', message: '點擊每首歌右側的「+標籤」按鈕可為該曲目新增或修改標籤，點擊左側標籤即可過濾歌曲。', type: 'info' });
+        }
+
+        // ==================== 播放控制與核心邏輯 ====================
+        function getFilteredFiles() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            return allFiles.filter(f => {
+                let matchCat = true;
+                if (currentTagFilter) {
+                    matchCat = f.tags && f.tags.includes(currentTagFilter);
+                } else if (currentCategory === '我的最愛') {
+                    matchCat = f.isLiked;
+                } else if (currentCategory !== '全部') {
+                    matchCat = (f.category === currentCategory);
                 }
-                return;
-            }
 
-            if (audioPlayer.paused) {
-                audioPlayer.play();
-                if (isAutoMode) startAutoTimer(10);
-            } else {
-                audioPlayer.pause();
-                clearAutoTimer();
-            }
-            updatePlayButton();
-        }
-
-        function updatePlayButton() {
-            const btn = document.getElementById('playPauseBtn');
-            if (audioPlayer.paused) {
-                btn.innerHTML = `<i class="fa-solid fa-play text-xs"></i>`;
-            } else {
-                btn.innerHTML = `<i class="fa-solid fa-pause text-xs"></i>`;
-            }
-        }
-
-        function playNext() {
-            const filtered = getFilteredFiles();
-            if (filtered.length === 0) return;
-
-            let idx = filtered.findIndex(f => (f.relativePath || f.filename) === currentPlayingFile);
-            if (playMode === 'shuffle') {
-                idx = Math.floor(Math.random() * filtered.length);
-            } else {
-                idx = (idx + 1) % filtered.length;
-            }
-
-            const nextFile = filtered[idx];
-            if (nextFile) {
-                playAudio(encodeURIComponent(nextFile.relativePath || nextFile.filename));
-            }
-        }
-
-        function playPrev() {
-            const filtered = getFilteredFiles();
-            if (filtered.length === 0) return;
-
-            let idx = filtered.findIndex(f => (f.relativePath || f.filename) === currentPlayingFile);
-            idx = (idx - 1 + filtered.length) % filtered.length;
-
-            const prevFile = filtered[idx];
-            if (prevFile) {
-                playAudio(encodeURIComponent(prevFile.relativePath || prevFile.filename));
-            }
+                const targetKey = f.relativePath || f.filename;
+                const matchKey = (f.displayName || f.filename).toLowerCase().includes(keyword) || 
+                                 targetKey.toLowerCase().includes(keyword);
+                return matchCat && matchKey;
+            });
         }
 
         function togglePlayMode() {
             const modes = ['loop', 'shuffle', 'single', 'sequence'];
-            const curIdx = modes.indexOf(playMode);
-            playMode = modes[(curIdx + 1) % modes.length];
+            let currentIdx = modes.indexOf(playMode);
+            if (currentIdx === -1) currentIdx = 0;
+            let nextIdx = (currentIdx + 1) % modes.length;
+            playMode = modes[nextIdx];
+
             localStorage.setItem('mp3_last_play_mode', playMode);
 
-            document.getElementById('playModeBtn').innerHTML = modeIconsSVG[playMode];
-            document.getElementById('modeText').innerText = modeNames[playMode];
+            const btn = document.getElementById('playModeBtn');
+            const modeText = document.getElementById('modeText');
+            btn.innerHTML = modeIconsSVG[playMode];
+            modeText.innerText = modeNames[playMode];
+            btn.title = `播放模式: ${modeNames[playMode]}`;
         }
 
         function toggleAutoMode() {
             isAutoMode = !isAutoMode;
             localStorage.setItem('mp3_last_auto_mode', isAutoMode);
-
             const btn = document.getElementById('autoModeBtn');
             if (isAutoMode) {
-                btn.className = 'text-[11px] px-2.5 py-1 rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-400 transition flex items-center space-x-1 shadow-md';
-                if (!audioPlayer.paused) startAutoTimer(10);
+                btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-400 transition flex items-center space-x-1 shadow-md';
+                if (currentPlayingFile && !audioPlayer.paused) startAutoTimer(10);
             } else {
-                btn.className = 'text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1';
+                btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1';
                 clearAutoTimer();
             }
         }
 
-        function startAutoTimer(seconds) {
-            clearAutoTimer();
-            remainingSeconds = seconds;
-            const timerEl = document.getElementById('autoTimerText');
-            timerEl.classList.remove('hidden');
-            timerEl.innerText = `${remainingSeconds}s`;
-
-            autoCountdownInterval = setInterval(() => {
-                remainingSeconds--;
-                if (remainingSeconds <= 0) {
-                    clearAutoTimer();
-                    playNext();
-                } else {
-                    timerEl.innerText = `${remainingSeconds}s`;
-                }
-            }, 1000);
-        }
-
-        function clearAutoTimer() {
-            if (autoCountdownInterval) clearInterval(autoCountdownInterval);
-            autoCountdownInterval = null;
-            const timerEl = document.getElementById('autoTimerText');
-            if (timerEl) timerEl.classList.add('hidden');
-        }
-
-        function onAudioEnded() {
-            if (playMode === 'single') {
-                audioPlayer.currentTime = 0;
-                audioPlayer.play();
-            } else {
-                playNext();
-            }
-        }
-
-        function onAudioError() {
-            console.warn('音訊載入錯誤，自動切換至下一首...');
-            clearAutoTimer();
-            setTimeout(() => { playNext(); }, 500);
-        }
-
-        function updateProgress() {
-            if (!isNaN(audioPlayer.currentTime)) {
-                sessionStorage.setItem('mp3_last_played_time', audioPlayer.currentTime);
-                const cur = audioPlayer.currentTime;
-                const dur = audioPlayer.duration || 0;
-
-                document.getElementById('currentTime').innerText = formatTime(cur);
-                document.getElementById('durationTime').innerText = formatTime(dur);
-                if (dur > 0) {
-                    document.getElementById('progressBar').value = (cur / dur) * 100;
-                }
-            }
-        }
-
-        function seekAudio(percent) {
-            if (!isNaN(audioPlayer.duration)) {
-                audioPlayer.currentTime = (percent / 100) * audioPlayer.duration;
-            }
-        }
-
         function changeVolume(val) {
-            audioPlayer.volume = parseFloat(val);
+            audioPlayer.volume = val;
             localStorage.setItem('mp3_last_volume', val);
         }
 
-        function formatTime(sec) {
-            const m = Math.floor(sec / 60);
-            const s = Math.floor(sec % 60);
-            return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+        function startAutoTimer(seconds) {
+            clearAutoTimer();
+            if (!isAutoMode) return;
+            remainingSeconds = seconds;
+            updateTimerDisplay(remainingSeconds);
+
+            autoCountdownInterval = setInterval(() => {
+                remainingSeconds--;
+                if (remainingSeconds > 0) updateTimerDisplay(remainingSeconds);
+                else { updateTimerDisplay(0); clearInterval(autoCountdownInterval); }
+            }, 1000);
+
+            autoTimer = setTimeout(() => { if (isAutoMode) playNext(); }, seconds * 1000);
         }
 
-        function renderTagCloud() {}
-        function manageTagsPrompt() {}
+        function clearAutoTimer() {
+            if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+            if (autoCountdownInterval) { clearInterval(autoCountdownInterval); autoCountdownInterval = null; }
+            const timerText = document.getElementById('autoTimerText');
+            timerText.classList.add('hidden');
+            timerText.innerText = '';
+        }
 
-        function showCustomModal({ title, message, type = 'info', confirmText = '確定', cancelText = '取消' }) {
+        function updateTimerDisplay(sec) {
+            const timerText = document.getElementById('autoTimerText');
+            if (!isAutoMode) { timerText.classList.add('hidden'); return; }
+            timerText.classList.remove('hidden');
+            timerText.innerText = `[自動換歌: ${sec}s]`;
+        }
+
+        function toggleLike(fileKey, event) {
+            if (event) event.stopPropagation();
+            const file = allFiles.find(f => (f.relativePath || f.filename) === fileKey);
+            if (!file) return;
+
+            file.isLiked = !file.isLiked;
+            const likedMap = getLikedMap();
+            if (file.isLiked) likedMap[fileKey] = true; else delete likedMap[fileKey];
+            saveLikedMap(likedMap);
+
+            renderCategories();
+            renderTable();
+            if (currentPlayingFile === fileKey) updatePlayerLikeState();
+
+            if (isAutoMode && currentPlayingFile === fileKey && file.isLiked) {
+                clearAutoTimer();
+                const timerText = document.getElementById('autoTimerText');
+                timerText.classList.remove('hidden');
+                timerText.innerText = '[已Like，3秒後換歌...]';
+                autoTimer = setTimeout(() => { if (isAutoMode) playNext(); }, 3000);
+            }
+        }
+
+        function togglePlayerLike() {
+            if (!currentPlayingFile) return;
+            toggleLike(currentPlayingFile);
+        }
+
+        function updatePlayerLikeState() {
+            const btn = document.getElementById('playerLikeBtn');
+            const icon = document.getElementById('playerLikeIcon');
+            if (!currentPlayingFile) { btn.classList.add('hidden'); clearAutoTimer(); return; }
+
+            btn.classList.remove('hidden');
+            const file = allFiles.find(f => (f.relativePath || f.filename) === currentPlayingFile);
+            if (file && file.isLiked) {
+                icon.className = 'fa-solid fa-heart text-rose-500';
+                btn.title = '取消最愛 (快捷鍵: L)';
+            } else {
+                icon.className = 'fa-regular fa-heart text-slate-500 hover:text-slate-300';
+                btn.title = '加入最愛 (快捷鍵: L)';
+            }
+        }
+
+        function playSong(fileKey, displayName) {
+            const dir = document.getElementById('dirInput').value.trim();
+            const streamUrl = `/api/mp3?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(fileKey)}`;
+            
+            const filtered = getFilteredFiles();
+            const songIndex = filtered.findIndex(f => (f.relativePath || f.filename) === fileKey);
+            if (songIndex !== -1) {
+                const targetPage = Math.floor(songIndex / pageSize) + 1;
+                if (targetPage !== currentPage) { currentPage = targetPage; renderTable(); }
+            }
+
+            if (currentPlayingFile !== fileKey) {
+                currentPlayingFile = fileKey;
+                audioPlayer.src = streamUrl;
+                audioPlayer.play();
+                document.getElementById('currentSongTitle').innerText = displayName;
+                const fileObj = allFiles.find(f => (f.relativePath || f.filename) === fileKey);
+                document.getElementById('currentSongCategory').innerText = fileObj ? fileObj.category : '';
+                
+                updateMediaSessionMetadata(displayName);
+
+                localStorage.setItem('mp3_last_played_key', fileKey);
+                localStorage.setItem('mp3_last_played_title', displayName);
+            } else {
+                if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause();
+            }
+
+            updatePlayerLikeState();
+            renderTable();
+            updatePlayButton();
+            setTimeout(() => scrollToCurrentSong(fileKey), 50);
+
+            if (isAutoMode && !audioPlayer.paused) startAutoTimer(10);
+            else clearAutoTimer();
+        }
+
+        function scrollToCurrentSong(fileKey) {
+            const rowId = `row-${encodeURIComponent(fileKey).replace(/[%._-]/g, '_')}`;
+            const targetRow = document.getElementById(rowId);
+            if (targetRow) targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function playPrev() {
+            const list = getFilteredFiles();
+            if (list.length === 0) return;
+            const currentIndex = list.findIndex(f => (f.relativePath || f.filename) === currentPlayingFile);
+            let prevIndex = currentIndex - 1;
+            if (prevIndex < 0) prevIndex = list.length - 1;
+            const target = list[prevIndex];
+            playSong(target.relativePath || target.filename, target.displayName);
+        }
+
+        function playNext() {
+            clearAutoTimer();
+            const list = getFilteredFiles();
+            if (list.length === 0) return;
+
+            if (playMode === 'shuffle') {
+                let randomIndex = Math.floor(Math.random() * list.length);
+                if (list.length > 1 && (list[randomIndex].relativePath || list[randomIndex].filename) === currentPlayingFile) {
+                    randomIndex = (randomIndex + 1) % list.length;
+                }
+                const target = list[randomIndex];
+                playSong(target.relativePath || target.filename, target.displayName);
+                return;
+            }
+
+            const currentIndex = list.findIndex(f => (f.relativePath || f.filename) === currentPlayingFile);
+            let nextIndex = currentIndex + 1;
+            if (nextIndex >= list.length) {
+                if (playMode === 'sequence') {
+                    audioPlayer.pause();
+                    currentPlayingFile = null;
+                    updatePlayerLikeState();
+                    renderTable();
+                    updatePlayButton();
+                    return;
+                }
+                nextIndex = 0;
+            }
+            const target = list[nextIndex];
+            playSong(target.relativePath || target.filename, target.displayName);
+        }
+
+        function onAudioEnded() {
+            if (playMode === 'single') { 
+                audioPlayer.currentTime = 0; 
+                audioPlayer.play(); 
+                return; 
+            }
+            playNext();
+        }
+
+        function onAudioError() {
+            const titleEl = document.getElementById('currentSongTitle');
+            if (titleEl) titleEl.innerText = "⚠️ 檔案損毀或無法播放，自動跳過...";
+            setTimeout(() => playNext(), 1000);
+        }
+
+        function togglePlay() {
+            if (!audioPlayer.src) {
+                const list = getFilteredFiles();
+                if (list.length > 0) playSong(list[0].relativePath || list[0].filename, list[0].displayName);
+                return;
+            }
+            if (audioPlayer.paused) { 
+                audioPlayer.play(); 
+                if (isAutoMode) startAutoTimer(10); 
+            } else { 
+                audioPlayer.pause(); 
+                clearAutoTimer(); 
+            }
+            updatePlayButton();
+            renderTable();
+        }
+
+        function updatePlayButton() {
+            const btn = document.getElementById('playPauseBtn');
+            btn.innerHTML = audioPlayer.paused ? '<i class="fa-solid fa-play text-xs"></i>' : '<i class="fa-solid fa-pause text-xs"></i>';
+
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = audioPlayer.paused ? 'paused' : 'playing';
+            }
+        }
+
+        function updateProgress() {
+            if (isNaN(audioPlayer.duration)) return;
+            document.getElementById('progressBar').value = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            document.getElementById('currentTime').innerText = formatTime(audioPlayer.currentTime);
+            document.getElementById('durationTime').innerText = formatTime(audioPlayer.duration);
+
+            if (currentPlayingFile && !audioPlayer.paused) {
+                sessionStorage.setItem('mp3_last_played_time', audioPlayer.currentTime);
+            }
+        }
+
+        function seekAudio(val) {
+            if (!isNaN(audioPlayer.duration)) {
+                audioPlayer.currentTime = (val / 100) * audioPlayer.duration;
+                sessionStorage.setItem('mp3_last_played_time', audioPlayer.currentTime);
+            }
+        }
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        async function changeCategory(fileKey, newCategory) {
+            const dir = document.getElementById('dirInput').value.trim();
+            const res = await fetch('/api/mp3', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dir, filename: fileKey, newCategory })
+            });
+            const data = await res.json();
+            if (data.success) loadFiles(false);
+            else showCustomModal({ title: '修改失敗', message: data.error, type: 'error' });
+        }
+
+        async function deleteSong(fileKey) {
+            const confirmed = await showCustomModal({
+                title: '刪除檔案確認',
+                subtitle: '此操作無法復原',
+                message: '確定要從硬碟中刪除這個 MP3 檔案嗎？',
+                type: 'danger',
+                confirmText: '確認刪除'
+            });
+
+            if (!confirmed) return;
+            const dir = document.getElementById('dirInput').value.trim();
+            const res = await fetch(`/api/mp3?dir=${encodeURIComponent(dir)}&filename=${encodeURIComponent(fileKey)}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                if (currentPlayingFile === fileKey) {
+                    audioPlayer.pause();
+                    currentPlayingFile = null;
+                    localStorage.removeItem('mp3_last_played_key');
+                    sessionStorage.removeItem('mp3_last_played_time');
+                    updatePlayerLikeState();
+                    clearAutoTimer();
+                }
+                loadFiles(false);
+            } else {
+                showCustomModal({ title: '刪除失敗', message: data.error, type: 'error' });
+            }
+        }
+
+        async function copyFavoriteSongs() {
+            const likedMap = getLikedMap();
+            const likedKeys = Object.keys(likedMap);
+            if (likedKeys.length === 0) {
+                showCustomModal({ title: '提示', message: '目前沒有任何「我的最愛」歌曲可供複製！', type: 'info' });
+                return;
+            }
+
+            const savedTargetDir = localStorage.getItem('mp3_copy_target_dir') || '';
+            const targetDir = await showCustomModal({
+                title: '複製我的最愛',
+                subtitle: `共選定 ${likedKeys.length} 首收藏歌曲`,
+                message: '請輸入要複製過去的目標資料夾絕對路徑：',
+                type: 'confirm',
+                isPrompt: true,
+                defaultValue: savedTargetDir,
+                confirmText: '開始複製'
+            });
+
+            if (!targetDir || !targetDir.trim()) return;
+            const trimmedTargetDir = targetDir.trim();
+            localStorage.setItem('mp3_copy_target_dir', trimmedTargetDir);
+            const currentSourceDir = document.getElementById('dirInput').value.trim();
+
+            const res = await fetch('/api/mp3/copy-favorites', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sourceDir: currentSourceDir, targetDir: trimmedTargetDir, filenames: likedKeys })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showCustomModal({ title: '複製完成', message: `已成功將最愛歌曲複製。\n成功：${data.successCount} 首`, type: 'success' });
+            } else {
+                showCustomModal({ title: '複製失敗', message: data.error, type: 'error' });
+            }
+        }
+
+        function handleSearch() { currentPage = 1; updateUrlParams(); renderTable(); }
+        function goToPage(p) { currentPage = p; updateUrlParams(); renderTable(); }
+        function changePageSize(sz) { 
+            pageSize = parseInt(sz); 
+            currentPage = 1; 
+            updateUrlParams(); 
+            renderTable(); 
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('fileTableBody');
+            let filtered = getFilteredFiles();
+            document.getElementById('fileCountText').innerText = `共 ${filtered.length} 首`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-slate-500"><i class="fa-solid fa-music text-3xl mb-2 block"></i>沒有找到符合的 MP3 檔案</td></tr>`;
+                document.getElementById('paginationContainer').innerHTML = '';
+                document.getElementById('topPageIndicator').innerText = `1 / 1`;
+                document.getElementById('topPrevBtn').disabled = true;
+                document.getElementById('topNextBtn').disabled = true;
+                return;
+            }
+
+            const totalPages = Math.ceil(filtered.length / pageSize);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIdx = (currentPage - 1) * pageSize;
+            const pageItems = filtered.slice(startIdx, startIdx + pageSize);
+
+            let html = '';
+            pageItems.forEach(file => {
+                const fileKey = file.relativePath || file.filename;
+                const isPlaying = currentPlayingFile === fileKey;
+                const sizeMb = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+                let catOptions = categories.map(c => `<option value="${c}" ${c === file.category ? 'selected' : ''}>${c}</option>`).join('');
+
+                const safeKey = fileKey.replace(/'/g, "\\'");
+                const safeDisplayName = (file.displayName || file.filename).replace(/'/g, "\\'");
+                const rowId = `row-${encodeURIComponent(fileKey).replace(/[%._-]/g, '_')}`;
+                let tagsHtml = (file.tags || []).map(t => `<span class="bg-indigo-950 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[10px]">#${t}</span>`).join(' ');
+
+                html += `
+                    <tr id="${rowId}" class="hover:bg-slate-900/50 transition ${isPlaying ? 'bg-indigo-950/20 border-l-4 border-indigo-500' : ''}">
+                        <td class="py-3 px-4 md:px-6 flex items-center space-x-3">
+                            <button onclick="playSong('${safeKey}', '${safeDisplayName}')" class="w-9 h-9 rounded-lg ${isPlaying ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-indigo-400 hover:bg-indigo-600 hover:text-white'} flex items-center justify-center transition shadow flex-shrink-0">
+                                <i class="fa-solid ${isPlaying && !audioPlayer.paused ? 'fa-pause' : 'fa-play'} text-xs"></i>
+                            </button>
+                            <div class="overflow-hidden flex-1">
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-medium text-slate-200 truncate max-w-[180px] md:max-w-md" title="${safeDisplayName}">${file.displayName}</span>
+                                    <button onclick="toggleLike('${safeKey}', event)" class="text-xs transition ${file.isLiked ? 'text-rose-500 hover:text-rose-400' : 'text-slate-600 hover:text-slate-400'}" title="最愛">
+                                        <i class="${file.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}"></i>
+                                    </button>
+                                </div>
+                                ${file.relativePath && file.relativePath !== file.filename ? `<div class="text-[11px] text-slate-500 truncate max-w-[200px] md:max-w-md">${file.relativePath}</div>` : ''}
+                            </div>
+                        </td>
+                        <td class="py-3 px-3 md:px-4 space-y-1.5">
+                            <select onchange="changeCategory('${safeKey}', this.value)" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-300 focus:outline-none focus:border-indigo-500 block">
+                                ${catOptions}
+                            </select>
+                            <div class="flex flex-wrap gap-1 items-center">
+                                ${tagsHtml}
+                                <button onclick="editSongTags('${safeKey}', '${safeDisplayName}')" class="text-[10px] text-slate-500 hover:text-indigo-400 px-1 border border-dashed border-slate-700 rounded" title="編輯標籤">+標籤</button>
+                            </div>
+                        </td>
+                        <td class="py-3 px-3 md:px-4 text-xs text-slate-400 whitespace-nowrap">${sizeMb}</td>
+                        <td class="py-3 px-4 md:px-6 text-right">
+                            <button onclick="deleteSong('${safeKey}')" class="text-slate-500 hover:text-rose-400 p-1.5 transition" title="刪除檔案">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+            renderPagination(totalPages, filtered.length);
+        }
+
+        function renderPagination(totalPages, totalItems) {
+            const container = document.getElementById('paginationContainer');
+            
+            document.getElementById('topPageIndicator').innerText = `${currentPage} / ${totalPages}`;
+            document.getElementById('topPrevBtn').disabled = (currentPage <= 1);
+            document.getElementById('topNextBtn').disabled = (currentPage >= totalPages);
+
+            let html = `
+                <span class="text-xs text-slate-400">顯示第 ${(currentPage - 1) * pageSize + 1} - ${Math.min(currentPage * pageSize, totalItems)} 筆，共 ${totalItems} 筆資料</span>
+                <div class="flex items-center space-x-1.5">
+                    <button onclick="goToPage(1)" ${currentPage === 1 ? 'disabled class="px-2.5 py-1 bg-slate-900 text-slate-600 rounded-lg text-xs cursor-not-allowed"' : 'class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition"'}>首頁</button>
+                    <button onclick="goToPage(currentPage - 1)" ${currentPage === 1 ? 'disabled class="px-2.5 py-1 bg-slate-900 text-slate-600 rounded-lg text-xs cursor-not-allowed"' : 'class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition"'}>上一頁</button>
+                    <span class="text-xs text-indigo-400 font-mono px-2">${currentPage} / ${totalPages}</span>
+                    <button onclick="goToPage(currentPage + 1)" ${currentPage >= totalPages ? 'disabled class="px-2.5 py-1 bg-slate-900 text-slate-600 rounded-lg text-xs cursor-not-allowed"' : 'class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition"'}>下一頁</button>
+                    <button onclick="goToPage(${totalPages})" ${currentPage >= totalPages ? 'disabled class="px-2.5 py-1 bg-slate-900 text-slate-600 rounded-lg text-xs cursor-not-allowed"' : 'class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition"'}>末頁</button>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        // Modal 封裝
+        function showCustomModal({ title, subtitle = '系統通知', message, type = 'info', isPrompt = false, defaultValue = '', confirmText = '確定' }) {
             return new Promise((resolve) => {
                 const modal = document.getElementById('customModal');
                 const modalBox = document.getElementById('modalBox');
                 const titleEl = document.getElementById('modalTitle');
+                const subtitleEl = document.getElementById('modalSubtitle');
                 const bodyEl = document.getElementById('modalBody');
                 const confirmBtn = document.getElementById('modalConfirmBtn');
                 const cancelBtn = document.getElementById('modalCancelBtn');
+                const iconEl = document.getElementById('modalIcon');
+                const iconContainer = document.getElementById('modalIconContainer');
 
                 titleEl.innerText = title;
-                bodyEl.innerText = message;
+                subtitleEl.innerText = subtitle;
                 confirmBtn.innerText = confirmText;
 
-                if (type === 'danger' || type === 'confirm') {
-                    cancelBtn.classList.remove('hidden');
-                    cancelBtn.innerText = cancelText;
+                let iconClass = 'fa-solid fa-circle-info';
+                let iconBgClass = 'bg-indigo-500/20 text-indigo-400';
+                let confirmBtnClass = 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/30';
+
+                if (type === 'error' || type === 'danger') {
+                    iconClass = 'fa-solid fa-triangle-exclamation';
+                    iconBgClass = 'bg-rose-500/20 text-rose-400';
+                    confirmBtnClass = 'bg-rose-600 hover:bg-rose-500 shadow-rose-600/30';
+                } else if (type === 'success') {
+                    iconClass = 'fa-solid fa-circle-check';
+                    iconBgClass = 'bg-emerald-500/20 text-emerald-400';
+                    confirmBtnClass = 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/30';
+                }
+
+                iconEl.className = iconClass;
+                iconContainer.className = `w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${iconBgClass}`;
+                confirmBtn.className = `px-5 py-2 rounded-xl text-xs font-medium text-white transition shadow-lg ${confirmBtnClass}`;
+
+                const needsCancel = (type === 'confirm' || type === 'danger' || isPrompt);
+                cancelBtn.classList.toggle('hidden', !needsCancel);
+
+                if (isPrompt) {
+                    bodyEl.innerHTML = `<p class="mb-2 text-slate-300">${message}</p><input type="text" id="modalPromptInput" value="${defaultValue}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">`;
                 } else {
-                    cancelBtn.classList.add('hidden');
+                    bodyEl.innerHTML = `<p>${message.replace(/\n/g, '<br>')}</p>`;
                 }
 
                 modal.classList.remove('hidden');
                 setTimeout(() => {
                     modal.classList.remove('opacity-0');
                     modalBox.classList.remove('scale-95');
+                    if (isPrompt) {
+                        const inputEl = document.getElementById('modalPromptInput');
+                        if (inputEl) { inputEl.focus(); inputEl.select(); }
+                    }
                 }, 10);
 
-                confirmBtn.onclick = () => {
+                const newConfirmBtn = confirmBtn.cloneNode(true);
+                const newCancelBtn = cancelBtn.cloneNode(true);
+                confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+                cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+                const closeModal = (result) => {
                     modal.classList.add('opacity-0');
                     modalBox.classList.add('scale-95');
-                    setTimeout(() => { modal.classList.add('hidden'); resolve(true); }, 200);
+                    setTimeout(() => { modal.classList.add('hidden'); resolve(result); }, 200);
                 };
 
-                cancelBtn.onclick = () => {
-                    modal.classList.add('opacity-0');
-                    modalBox.classList.add('scale-95');
-                    setTimeout(() => { modal.classList.add('hidden'); resolve(false); }, 200);
-                };
-            });
-        }
-    </script>
-
-    <!-- ==================== 多用戶外挂 (完整整合版) ==================== -->
-    <script>
-    (function() {
-        const STORAGE_KEYS = {
-            USERS: 'mp3_plugin_users_list',
-            CURRENT_USER: 'mp3_plugin_current_user',
-            DEFAULT_USER_NAME: '預設用戶'
-        };
-
-        let usersList = ['預設用戶'];
-        let currentUser = '預設用戶';
-
-        function initPluginStorage() {
-            const savedUsers = localStorage.getItem(STORAGE_KEYS.USERS);
-            if (savedUsers) {
-                try { usersList = JSON.parse(savedUsers); } catch(e) {}
-            } else {
-                localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
-            }
-
-            const lastUser = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
-            if (lastUser && usersList.includes(lastUser)) {
-                currentUser = lastUser;
-            } else {
-                currentUser = usersList[0];
-                localStorage.setItem(STORAGE_KEYS.CURRENT_USER, currentUser);
-            }
-        }
-
-        function getStorageKeyForUser(username) {
-            if (username === STORAGE_KEYS.DEFAULT_USER_NAME) {
-                return 'mp3_liked_map';
-            }
-            return `mp3_${username}_liked_map`;
-        }
-
-        function getUserLikesMap(username) {
-            const key = getStorageKeyForUser(username);
-            try {
-                return JSON.parse(localStorage.getItem(key) || '{}');
-            } catch(e) { return {}; }
-        }
-
-        function saveUserLikesMap(username, map) {
-            const key = getStorageKeyForUser(username);
-            localStorage.setItem(key, JSON.stringify(map));
-        }
-
-        function injectUserUI() {
-            const drawerContent = document.getElementById('sidebarContentWrapper');
-            if (!drawerContent) return;
-
-            const userSection = document.createElement('div');
-            userSection.className = 'bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-xl mb-3';
-            userSection.innerHTML = `
-                <div class="flex items-center justify-between mb-2 px-1">
-                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center">
-                        <i class="fa-solid fa-user-shield text-indigo-400 mr-1.5"></i> 多用戶管理
-                    </h2>
-                    <button onclick="window.pluginOpenManageModal()" class="text-[11px] text-indigo-400 hover:underline"><i class="fa-solid fa-gear mr-1"></i>管理</button>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <select id="pluginUserSelect" onchange="window.pluginSwitchUser(this.value)" class="bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:border-indigo-500 font-medium flex-1">
-                        ${usersList.map(u => `<option value="${u}" ${u === currentUser ? 'selected' : ''}>${u}</option>`).join('')}
-                    </select>
-                    <button onclick="window.pluginPromptAddUser()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1.5 rounded-xl text-xs transition shadow" title="新增用戶">
-                        <i class="fa-solid fa-user-plus"></i>
-                    </button>
-                </div>
-            `;
-            drawerContent.insertBefore(userSection, drawerContent.firstChild);
-        }
-
-        window.pluginSwitchUser = function(username) {
-            currentUser = username;
-            localStorage.setItem(STORAGE_KEYS.CURRENT_USER, username);
-            if (typeof window.loadFiles === 'function') {
-                window.loadFiles(false);
-            }
-        };
-
-        window.pluginPromptAddUser = async function() {
-            if (typeof window.showCustomModal === 'function') {
-                const newName = await window.showCustomModal({
-                    title: '登記新用戶',
-                    message: '請輸入新用戶名稱（無需密碼）：',
-                    type: 'confirm',
-                    isPrompt: true,
-                    defaultValue: '',
-                    confirmText: '新增並切換'
+                newConfirmBtn.addEventListener('click', () => {
+                    closeModal(isPrompt ? document.getElementById('modalPromptInput').value : true);
                 });
-
-                if (!newName || !newName.trim()) return;
-                const trimmed = newName.trim();
-
-                if (trimmed === STORAGE_KEYS.DEFAULT_USER_NAME) {
-                    alert('「預設用戶」為系統保留名稱！');
-                    return;
+                newCancelBtn.addEventListener('click', () => {
+                    closeModal(isPrompt ? null : false);
+                });
+                if (isPrompt) {
+                    document.getElementById('modalPromptInput').addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') newConfirmBtn.click();
+                    });
                 }
-
-                if (!usersList.includes(trimmed)) {
-                    usersList.push(trimmed);
-                    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
-                }
-                
-                refreshUserSelects();
-                window.pluginSwitchUser(trimmed);
-            }
-        };
-
-        function refreshUserSelects() {
-            const selectEl = document.getElementById('pluginUserSelect');
-            if (selectEl) {
-                selectEl.innerHTML = usersList.map(u => `<option value="${u}" ${u === currentUser ? 'selected' : ''}>${u}</option>`).join('');
-            }
-        }
-
-        window.pluginOpenManageModal = function() {
-            let modal = document.getElementById('pluginUserManageModal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'pluginUserManageModal';
-                modal.className = 'fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center';
-                document.body.appendChild(modal);
-            }
-
-            let usersHtml = usersList.map(u => {
-                const userLikes = getUserLikesMap(u);
-                const likeCount = Object.keys(userLikes).length;
-                const isCurrent = u === currentUser;
-                const isDefault = u === STORAGE_KEYS.DEFAULT_USER_NAME;
-
-                return `
-                    <div class="flex items-center justify-between bg-slate-900 border border-slate-800 p-3 rounded-xl">
-                        <div>
-                            <div class="font-semibold text-sm text-slate-200 flex items-center">
-                                ${u} 
-                                ${isCurrent ? '<span class="ml-2 text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full">當前</span>' : ''}
-                                ${isDefault ? '<span class="ml-2 text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">系統預設</span>' : ''}
-                            </div>
-                            <div class="text-xs text-slate-400 mt-0.5">已收藏 ${likeCount} 首歌</div>
-                        </div>
-                        <div class="flex items-center space-x-1.5">
-                            ${!isDefault ? `<button onclick="window.pluginRenameUser('${u}')" class="px-2.5 py-1 bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white rounded-lg text-xs transition">改名</button>` : ''}
-                            <button onclick="window.pluginExportUser('${u}')" class="px-2.5 py-1 bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white rounded-lg text-xs transition">匯出</button>
-                            <button onclick="window.pluginMergeUserPrompt('${u}')" class="px-2.5 py-1 bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white rounded-lg text-xs transition">合併</button>
-                            ${!isDefault && usersList.length > 1 ? `<button onclick="window.pluginDeleteUser('${u}')" class="px-2.5 py-1 bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white rounded-lg text-xs transition">刪除</button>` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            modal.innerHTML = `
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl flex flex-col max-h-[85dvh]">
-                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
-                        <h3 class="text-base font-bold text-slate-100 flex items-center">
-                            <i class="fa-solid fa-users-gear text-indigo-400 mr-2"></i> 用戶管理中心
-                        </h3>
-                        <button onclick="document.getElementById('pluginUserManageModal').remove()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                    
-                    <div class="space-y-3 overflow-y-auto flex-1 pr-1 mb-4">
-                        ${usersHtml}
-                    </div>
-
-                    <div class="pt-3 border-t border-slate-800 flex items-center justify-between">
-                        <button onclick="window.pluginImportUserPrompt()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-xl transition">
-                            <i class="fa-solid fa-file-import mr-1"></i> 匯入用戶資料
-                        </button>
-                        <button onclick="document.getElementById('pluginUserManageModal').remove()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white rounded-xl transition">
-                            關閉
-                        </button>
-                    </div>
-                </div>
-            `;
-        };
-
-        window.pluginRenameUser = async function(oldName) {
-            if (oldName === STORAGE_KEYS.DEFAULT_USER_NAME) return;
-            const newName = prompt(`請輸入「${oldName}」的新名稱：`, oldName);
-            if (!newName || !newName.trim() || newName.trim() === oldName) return;
-            const trimmed = newName.trim();
-
-            if (trimmed === STORAGE_KEYS.DEFAULT_USER_NAME || usersList.includes(trimmed)) {
-                alert('此用戶名稱無效或已存在！');
-                return;
-            }
-
-            const oldKey = getStorageKeyForUser(oldName);
-            const newKey = getStorageKeyForUser(trimmed);
-            const data = localStorage.getItem(oldKey);
-            if (data) {
-                localStorage.setItem(newKey, data);
-                localStorage.removeItem(oldKey);
-            }
-
-            usersList = usersList.map(u => u === oldName ? trimmed : u);
-            localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
-
-            if (currentUser === oldName) {
-                currentUser = trimmed;
-                localStorage.setItem(STORAGE_KEYS.CURRENT_USER, currentUser);
-            }
-
-            refreshUserSelects();
-            window.pluginOpenManageModal();
-            if (typeof window.loadFiles === 'function') window.loadFiles(false);
-        };
-
-        window.pluginDeleteUser = async function(username) {
-            if (username === STORAGE_KEYS.DEFAULT_USER_NAME) {
-                alert('「預設用戶」不能被刪除！');
-                return;
-            }
-            if (!confirm(`確定要刪除用戶「${username}」嗎？`)) return;
-
-            usersList = usersList.filter(u => u !== username);
-            localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
-
-            const key = getStorageKeyForUser(username);
-            localStorage.removeItem(key);
-
-            if (currentUser === username) {
-                currentUser = STORAGE_KEYS.DEFAULT_USER_NAME;
-                localStorage.setItem(STORAGE_KEYS.CURRENT_USER, currentUser);
-            }
-
-            refreshUserSelects();
-            window.pluginOpenManageModal();
-            if (typeof window.loadFiles === 'function') window.loadFiles(false);
-        };
-
-        window.pluginExportUser = function(username) {
-            const likes = getUserLikesMap(username);
-            const userData = { username, likes };
-
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(userData, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `mp3_user_${username}_liked_map.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        };
-
-        window.pluginImportUserPrompt = function() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = e => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = event => {
-                    try {
-                        const imported = JSON.parse(event.target.result);
-                        if (!imported.username || !imported.likes) {
-                            alert('匯入失敗：檔案格式不正確！');
-                            return;
-                        }
-
-                        let targetUser = imported.username;
-                        if (targetUser === STORAGE_KEYS.DEFAULT_USER_NAME || usersList.includes(targetUser)) {
-                            targetUser = targetUser + '_import_' + Date.now().toString().slice(-4);
-                        }
-
-                        usersList.push(targetUser);
-                        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
-                        saveUserLikesMap(targetUser, imported.likes);
-
-                        refreshUserSelects();
-                        window.pluginOpenManageModal();
-                        alert(`成功匯入用戶「${targetUser}」！`);
-                        if (typeof window.loadFiles === 'function') window.loadFiles(false);
-                    } catch(err) {
-                        alert('解析 JSON 檔案失敗！');
-                    }
-                };
-                reader.readAsText(file);
-            };
-            input.click();
-        };
-
-        window.pluginMergeUserPrompt = function(sourceUser) {
-            const otherUsers = usersList.filter(u => u !== sourceUser);
-            if (otherUsers.length === 0) {
-                alert('沒有其他用戶可供合併！');
-                return;
-            }
-
-            const targetUser = prompt(`請選擇要將「${sourceUser}」的 Like 記錄合併到哪一個用戶？\n現有其他用戶：${otherUsers.join(', ')}`);
-            if (!targetUser || !otherUsers.includes(targetUser.trim())) {
-                if (targetUser) alert('輸入的目標用戶不存在！');
-                return;
-            }
-
-            const target = targetUser.trim();
-            if (!confirm(`確定要將「${sourceUser}」的所有 Like 合併到「${target}」嗎？`)) return;
-
-            const sourceLikes = getUserLikesMap(sourceUser);
-            const targetLikes = getUserLikesMap(target);
-
-            Object.keys(sourceLikes).forEach(songKey => {
-                targetLikes[songKey] = true;
             });
-
-            saveUserLikesMap(target, targetLikes);
-            localStorage.removeItem(getStorageKeyForUser(sourceUser));
-
-            usersList = usersList.filter(u => u !== sourceUser);
-            localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
-
-            if (currentUser === sourceUser) {
-                currentUser = target;
-                localStorage.setItem(STORAGE_KEYS.CURRENT_USER, currentUser);
-            }
-
-            refreshUserSelects();
-            window.pluginOpenManageModal();
-            alert(`成功合併至 「${target}」！`);
-            if (typeof window.loadFiles === 'function') window.loadFiles(false);
-        };
-
-        function overrideCoreFunctions() {
-            window.getLikedMap = function() {
-                return getUserLikesMap(currentUser);
-            };
-
-            const originalRenderTable = window.renderTable;
-            if (typeof originalRenderTable === 'function') {
-                window.renderTable = function() {
-                    originalRenderTable();
-                    
-                    if (window.allFiles && window.allFiles.length > 0) {
-                        window.allFiles.forEach(file => {
-                            const fileKey = file.relativePath || file.filename;
-                            const safeIdKey = encodeURIComponent(fileKey).replace(/[%._-]/g, '_');
-                            const row = document.getElementById(`row-${safeIdKey}`);
-                            if (row) {
-                                const likedUsers = [];
-                                usersList.forEach(u => {
-                                    const map = getUserLikesMap(u);
-                                    if (map && map[fileKey]) {
-                                        likedUsers.push(u);
-                                    }
-                                });
-
-                                if (likedUsers.length > 0) {
-                                    const titleContainer = row.querySelector('.flex.items-center.space-x-2.5');
-                                    if (titleContainer && !titleContainer.querySelector('.plugin-likes-badge')) {
-                                        const badge = document.createElement('span');
-                                        badge.className = 'plugin-likes-badge text-[10px] text-rose-400 bg-rose-950/40 border border-rose-500/30 px-1.5 py-0.5 rounded ml-2';
-                                        badge.title = `按讚用戶: ${likedUsers.join(', ')}`;
-                                        badge.innerHTML = `<i class="fa-solid fa-heart mr-1"></i>${likedUsers.length}`;
-                                        titleContainer.appendChild(badge);
-                                    }
-                                }
-                            }
-                        });
-                    }
-                };
-            }
         }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            initPluginStorage();
-            injectUserUI();
-            setTimeout(overrideCoreFunctions, 100);
-        });
-
-    })();
     </script>
+    <!-- 引入多用戶外掛插件 --> 
+    <script src="multi-user-plugin.js"></script>
 </body>
 </html>
