@@ -163,15 +163,16 @@
                     </div>
                 </div>
 
-                <!-- 檔案列表表格 (使用 table-fixed 防止欄位被文字撐開爆版) -->
+                <!-- 檔案列表表格 (寬螢幕維持傳統表格，窄螢幕自動安全轉化為區塊堆疊) -->
                 <div id="tableContainer" class="flex-1 overflow-y-auto overflow-x-hidden">
                     <table class="w-full text-left border-collapse table-fixed">
-                        <thead class="sticky top-0 bg-slate-950/95 backdrop-blur z-10">
+                        <!-- 標題列表：僅在中大型螢幕 (md) 顯示 -->
+                        <thead class="sticky top-0 bg-slate-950/95 backdrop-blur z-10 hidden md:table-header-group">
                             <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
                                 <th class="py-2.5 px-3 md:px-5 w-auto">歌名與路徑</th>
-                                <th class="py-2.5 px-2 md:px-4 hidden md:table-cell w-28">分類</th>
-                                <th class="py-2.5 px-2 md:px-4 hidden lg:table-cell w-20">大小</th>
-                                <th class="py-2.5 px-3 md:px-5 text-right w-24">操作</th>
+                                <th class="py-2.5 px-2 md:px-4 w-28">分類</th>
+                                <th class="py-2.5 px-2 md:px-4 w-20 hidden lg:table-cell">大小</th>
+                                <th class="py-2.5 px-3 md:px-5 text-right w-32">操作</th>
                             </tr>
                         </thead>
                         <tbody id="fileTableBody" class="divide-y divide-slate-800/60 text-sm">
@@ -765,37 +766,57 @@
 
                 html += `
                     <tr id="row-${safeIdKey}" class="transition ${rowBg}">
-                        <!-- 歌名與路徑 (使用 truncate 嚴格限制超出寬度並隱藏分類標籤，避免撐開表格) -->
-                        <td class="py-2.5 px-3 md:px-5 truncate">
-                            <div class="flex items-center space-x-2.5 min-w-0">
-                                <button onclick="playAudio('${encodeURIComponent(key)}')" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white flex items-center justify-center transition shrink-0">
-                                    <i class="fa-solid ${isPlaying && !audioPlayer.paused ? 'fa-pause' : 'fa-play'} text-xs"></i>
-                                </button>
-                                <div class="min-w-0 flex-1">
-                                    <div class="font-medium text-slate-200 truncate text-xs sm:text-sm" title="${f.filename}">
-                                        <span>${f.displayName || f.filename}</span>
+                        <!-- 寬螢幕：主歌名與路徑 / 窄螢幕：完整包裝（包含下方分類與操作按鈕） -->
+                        <td class="py-3 px-3 md:py-2.5 md:px-5 truncate" colspan="4">
+                            <!-- 寬螢幕下的傳統表格容器（md 以上顯示 block / table-cell 模擬，此處我們用 flex 在桌面對齊，手機垂直堆疊） -->
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+                                
+                                <!-- 左側：播放器與歌名資訊 -->
+                                <div class="flex items-center space-x-2.5 min-w-0 flex-1">
+                                    <button onclick="playAudio('${encodeURIComponent(key)}')" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white flex items-center justify-center transition shrink-0 shadow">
+                                        <i class="fa-solid ${isPlaying && !audioPlayer.paused ? 'fa-pause' : 'fa-play'} text-xs"></i>
+                                    </button>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="font-medium text-slate-200 truncate text-xs sm:text-sm" title="${f.filename}">
+                                            <span>${f.displayName || f.filename}</span>
+                                        </div>
+                                        <div class="text-[10px] text-slate-500 truncate mt-0.5" title="${f.relativePath || ''}">${f.relativePath || ''}</div>
                                     </div>
-                                    <div class="text-[10px] text-slate-500 truncate mt-0.5" title="${f.relativePath || ''}">${f.relativePath || ''}</div>
                                 </div>
-                            </div>
-                        </td>
-                        <!-- 分類 -->
-                        <td class="py-2.5 px-2 md:px-4 hidden md:table-cell truncate">
-                            <span class="text-xs bg-slate-800 px-2 py-1 rounded-md text-slate-300 truncate inline-block max-w-full">${f.category || '未分類'}</span>
-                        </td>
-                        <!-- 大小 -->
-                        <td class="py-2.5 px-2 md:px-4 text-xs font-mono text-slate-400 hidden lg:table-cell truncate">
-                            ${f.sizeFormatted || '未知'}
-                        </td>
-                        <!-- 操作按鈕 -->
-                        <td class="py-2.5 px-3 md:px-5 text-right whitespace-nowrap">
-                            <div class="flex items-center justify-end space-x-1 sm:space-x-2">
-                                <button onclick="toggleFileLike('${key}')" class="p-1.5 rounded-lg transition ${f.isLiked ? 'text-rose-500 hover:text-rose-400' : 'text-slate-500 hover:text-slate-300'}" title="${f.isLiked ? '取消最愛' : '加入最愛'}">
-                                    <i class="${f.isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-                                </button>
-                                <button onclick="toggleFileDislike('${key}')" class="p-1.5 rounded-lg transition ${f.isDisliked ? 'text-amber-400 hover:text-amber-300' : 'text-slate-500 hover:text-slate-300'}" title="${f.isDisliked ? '取消隱藏' : '隱藏此歌曲 (Dislike)'}">
-                                    <i class="${f.isDisliked ? 'fa-solid' : 'fa-regular'} fa-thumbs-down"></i>
-                                </button>
+
+                                <!-- 桌面端欄位：分類 -->
+                                <div class="hidden md:block w-28 shrink-0 truncate">
+                                    <span class="text-xs bg-slate-800 px-2 py-1 rounded-md text-slate-300 truncate inline-block max-w-full">${f.category || '未分類'}</span>
+                                </div>
+
+                                <!-- 桌面端欄位：大小 -->
+                                <div class="hidden lg:block w-20 shrink-0 text-xs font-mono text-slate-400 truncate">
+                                    ${f.sizeFormatted || '未知'}
+                                </div>
+
+                                <!-- 響應式底部/右側區塊：手機端顯示在底部（分類 + 操作按鈕），桌面端顯示在右側 -->
+                                <div class="flex items-center justify-between md:justify-end gap-2 pt-2 md:pt-0 border-t border-slate-800/60 md:border-t-0 shrink-0">
+                                    <!-- 手機端才顯示的分類標籤（位於底部左側） -->
+                                    <div class="md:hidden flex items-center space-x-1.5">
+                                        <span class="text-[10px] bg-slate-800/90 text-indigo-400 px-2 py-0.5 rounded border border-slate-700/60">
+                                            ${f.category || '未分類'}
+                                        </span>
+                                        <span class="text-[10px] font-mono text-slate-500">
+                                            ${f.sizeFormatted || ''}
+                                        </span>
+                                    </div>
+
+                                    <!-- 操作按鈕 (Like / Dislike) -->
+                                    <div class="flex items-center space-x-1">
+                                        <button onclick="toggleFileLike('${key}')" class="p-1.5 rounded-lg transition ${f.isLiked ? 'text-rose-500 hover:text-rose-400' : 'text-slate-500 hover:text-slate-300'}" title="${f.isLiked ? '取消最愛' : '加入最愛'}">
+                                            <i class="${f.isLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm md:text-base"></i>
+                                        </button>
+                                        <button onclick="toggleFileDislike('${key}')" class="p-1.5 rounded-lg transition ${f.isDisliked ? 'text-amber-400 hover:text-amber-300' : 'text-slate-500 hover:text-slate-300'}" title="${f.isDisliked ? '取消隱藏' : '隱藏此歌曲'}">
+                                            <i class="${f.isDisliked ? 'fa-solid' : 'fa-regular'} fa-thumbs-down text-sm md:text-base"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
                             </div>
                         </td>
                     </tr>
