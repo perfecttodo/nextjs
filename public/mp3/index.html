@@ -62,8 +62,8 @@
     <!-- 側邊欄背景遮罩 -->
     <div id="mobileDrawerBackdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden lg:hidden opacity-0 transition-opacity duration-300" onclick="toggleMobileDrawer(false)"></div>
 
-    <!-- 主體內容容器 -->
-    <div class="flex-1 max-w-[1920px] w-full mx-auto p-2 sm:p-4 md:p-6 flex gap-4 overflow-hidden pb-20">
+    <!-- 主體內容容器 (已增加 pb-24 底部內距，為固定播放器完整留白) -->
+    <div class="flex-1 max-w-[1920px] w-full mx-auto p-2 sm:p-4 md:p-6 flex gap-4 overflow-hidden pb-24 md:pb-28">
         
         <!-- 左側邊欄 -->
         <aside id="mobileDrawer" class="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-slate-900 border-r border-slate-800 z-50 transform -translate-x-full lg:translate-x-0 lg:static lg:w-72 xl:w-80 lg:bg-transparent lg:border-none flex flex-col h-full shadow-2xl lg:shadow-none shrink-0 overflow-y-auto">
@@ -163,10 +163,9 @@
                     </div>
                 </div>
 
-                <!-- 檔案列表表格 (寬螢幕維持傳統表格，窄螢幕自動安全轉化為區塊堆疊) -->
+                <!-- 檔案列表表格 -->
                 <div id="tableContainer" class="flex-1 overflow-y-auto overflow-x-hidden">
                     <table class="w-full text-left border-collapse table-fixed">
-                        <!-- 標題列表：僅在中大型螢幕 (md) 顯示 -->
                         <thead class="sticky top-0 bg-slate-950/95 backdrop-blur z-10 hidden md:table-header-group">
                             <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
                                 <th class="py-2.5 px-3 md:px-5 w-auto">歌名與路徑</th>
@@ -766,9 +765,8 @@
 
                 html += `
                     <tr id="row-${safeIdKey}" class="transition ${rowBg}">
-                        <!-- 寬螢幕：主歌名與路徑 / 窄螢幕：完整包裝（包含下方分類與操作按鈕） -->
+                        <!-- 歌名與路徑 (桌面與手機共用主欄位) -->
                         <td class="py-3 px-3 md:py-2.5 md:px-5 truncate" colspan="4">
-                            <!-- 寬螢幕下的傳統表格容器（md 以上顯示 block / table-cell 模擬，此處我們用 flex 在桌面對齊，手機垂直堆疊） -->
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
                                 
                                 <!-- 左側：播放器與歌名資訊 -->
