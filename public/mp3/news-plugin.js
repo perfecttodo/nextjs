@@ -1,12 +1,11 @@
 /**
- * News 播放列表插件 v2.1
+ * News 播放列表插件 v2.2
  * 
- * 关键改动（HLS 播放）：
- *  - 详细错误捕获（打印 HLS 所有 ERROR 事件的 type/details/fatal）
- *  - 网络错误自动重试一次；媒体错误自动 recoverMediaError 一次
- *  - 15s 加载超时保护
- *  - 播放前打印 level 信息（videoCodec / audioCodec），便于定位
- *  - 配合主应用 <video id="audioPlayer">，兼容 video-only 的 fMP4
+ * HLS 播放改进：
+ *  - 预检 m3u8（fetch），快速定位 CORS / 404 / 非法内容
+ *  - 优先 hls.js（含 Safari 14+，兼容 fMP4 + BYTERANGE）
+ *  - 原生兜底仅限 iOS Safari 无 MSE 场景，设置 crossOrigin
+ *  - 详细错误码输出（media.error.code / .message）
  */
 (function () {
     'use strict';
@@ -169,113 +168,184 @@
         }
     }
 
+    // ==================== 预检 m3u8 ====================
+    async function preflightM3u8(url) {
+        try {
+            const res = await fetch(url, { method: 'GET', cache: 'no-cache' });
+            if (!res.ok) {
+                throw new Error(`m3u8 无法访问（HTTP ${res.status}）`);
+            }
+            const text = await res.text();
+            if (!text.includes('#EXTM3U')) {
+                throw new Error('返回内容不是有效的 HLS 播放列表（可能返回了 HTML 错误页）');
+            }
+            return true;
+        } catch (e) {
+            // fetch 的跨域失败通常是 TypeError: Failed to fetch
+            if (e instanceof TypeError) {
+                throw new Error('m3u8 请求失败，可能是 CORS 未开放或跨域被拦：' + e.message);
+            }
+            throw e;
+        }
+    }
+
     // ==================== HLS 播放核心 ====================
     async function playHls(url) {
         const ext = window.MP3AppExtension;
         const media = ext.audioPlayer;
 
-        // 清理旧的 HLS 实例
-        if (hlsInstance) {
-            try { hlsInstance.destroy(); } catch (e) {}
-            hlsInstance = null;
+        // 清理旧实例与状态
+        if (hlsInstance) { try { hlsInstance.destroy(); } catch (e) {} hlsInstance = null; }
+        try { media.pause(); } catch (e) {}
+        media.removeAttribute('src');
+        try { media.load(); } catch (e) {}
+
+        console.log('[HLS] URL:', url);
+        console.log('[HLS] 浏览器能力:', {
+            hasMSE: !!window.MediaSource,
+            canPlayNative: media.canPlayType('application/vnd.apple.mpegurl')
+        });
+
+        // 1) 先预检 m3u8 —— 5 秒内给你明确答案（CORS / 404 / 内容非法）
+        try {
+            setStatus('正在检查 m3u8…');
+            await preflightM3u8(url);
+        } catch (e) {
+            console.error('[HLS] 预检失败:', e);
+            throw new Error('m3u8 预检失败：' + e.message);
         }
 
-        // Safari 原生 HLS（无 hls.js 也支持）
+        // 2) 优先 hls.js（Safari 14+ 也支持 MSE，兼容 fMP4 + BYTERANGE）
+        try {
+            await ensureHlsJs();
+            if (window.Hls && window.Hls.isSupported()) {
+                console.log('[HLS] 使用 hls.js');
+                await playWithHlsJs(media, url);
+                return;
+            }
+            console.warn('[HLS] hls.js 不可用（当前浏览器不支持 MSE）');
+        } catch (e) {
+            console.warn('[HLS] hls.js 加载/播放失败，尝试原生:', e.message);
+        }
+
+        // 3) 原生兜底（iOS Safari 13 及以下）
         if (media.canPlayType('application/vnd.apple.mpegurl')) {
-            console.log('[HLS] 使用原生播放器');
-            media.src = url;
-            await media.play().catch(e => { throw new Error('原生播放失败：' + e.message); });
+            console.log('[HLS] 使用原生 HLS');
+            await playWithNativeHls(media, url);
             return;
         }
 
-        await ensureHlsJs();
-        if (!window.Hls || !window.Hls.isSupported()) {
-            throw new Error('当前浏览器不支持 HLS（MSE 不可用）');
-        }
+        throw new Error('浏览器不支持 HLS（既无 MSE 也无原生 HLS 支持）');
+    }
 
-        hlsInstance = new window.Hls({
-            lowLatencyMode: false,
-            enableWorker: true,
-            manifestLoadingMaxRetry: 2,
-            manifestLoadingRetryDelay: 1000,
-            fragLoadingMaxRetry: 3,
-            fragLoadingRetryDelay: 1000,
-            fragLoadingMaxRetryTimeout: 8000,
-            appendErrorMaxRetry: 2,
-            startLevel: -1,
-            debug: false
-        });
+    async function playWithHlsJs(media, url) {
+        return new Promise((resolve, reject) => {
+            const hls = new window.Hls({
+                lowLatencyMode: false,
+                enableWorker: true,
+                manifestLoadingMaxRetry: 2,
+                manifestLoadingRetryDelay: 800,
+                fragLoadingMaxRetry: 3,
+                fragLoadingRetryDelay: 800,
+                fragLoadingMaxRetryTimeout: 8000,
+                appendErrorMaxRetry: 2,
+                startLevel: -1
+            });
+            hlsInstance = hls;
 
-        await new Promise((resolve, reject) => {
             let recoveredNetwork = false;
             let recoveredMedia = false;
+
             const timeout = setTimeout(() => {
                 cleanup();
-                reject(new Error('HLS 加载超时 15s（检查 CORS / Range / Content-Type）'));
+                reject(new Error('HLS 加载超时（15s）：可能是分片 Range 不支持或 CORS 未开放'));
             }, 15000);
 
             const cleanup = () => {
                 clearTimeout(timeout);
-                if (hlsInstance) {
-                    hlsInstance.off(window.Hls.Events.MANIFEST_PARSED);
-                    hlsInstance.off(window.Hls.Events.ERROR);
-                }
+                try {
+                    hls.off(window.Hls.Events.MANIFEST_PARSED);
+                    hls.off(window.Hls.Events.ERROR);
+                } catch (e) {}
             };
 
-            hlsInstance.on(window.Hls.Events.MANIFEST_PARSED, (e, data) => {
-                console.log('[HLS] 解析成功，level 信息：');
-                (data.levels || []).forEach((lv, i) => {
-                    console.log(`  level[${i}]`, {
-                        videoCodec: lv.videoCodec || '(无)',
-                        audioCodec: lv.audioCodec || '(无)',
-                        bitrate: lv.bitrate,
-                        width: lv.width,
-                        height: lv.height
-                    });
-                });
+            hls.on(window.Hls.Events.MANIFEST_PARSED, (e, data) => {
+                console.log('[HLS] manifest 解析成功，levels:', (data.levels || []).map(lv => ({
+                    videoCodec: lv.videoCodec || '(无)',
+                    audioCodec: lv.audioCodec || '(无)',
+                    width: lv.width,
+                    height: lv.height
+                })));
                 cleanup();
-                resolve();
+                media.play()
+                    .then(resolve)
+                    .catch(err => reject(new Error('播放失败: ' + err.message)));
             });
 
-            hlsInstance.on(window.Hls.Events.ERROR, (e, data) => {
+            hls.on(window.Hls.Events.ERROR, (e, data) => {
                 console.error('[HLS] error:', data.type, data.details, 'fatal=' + data.fatal, data);
                 if (!data.fatal) return;
 
-                if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR) {
-                    // 网络错误：先重试一次
-                    if (!recoveredNetwork) {
-                        recoveredNetwork = true;
-                        console.warn('[HLS] 网络错误，尝试重新加载…');
-                        try { hlsInstance.startLoad(); return; } catch (er) {}
-                    }
-                    cleanup();
-                    reject(new Error('网络错误：' + data.details + '（可能 CORS 或 m3u8 不可访问）'));
-                    return;
+                if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR && !recoveredNetwork) {
+                    recoveredNetwork = true;
+                    console.warn('[HLS] 网络错误，尝试重新加载…');
+                    try { hls.startLoad(); return; } catch (er) {}
+                }
+                if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR && !recoveredMedia) {
+                    recoveredMedia = true;
+                    console.warn('[HLS] 媒体错误，尝试 recoverMediaError…');
+                    try { hls.recoverMediaError(); return; } catch (er) {}
                 }
 
-                if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) {
-                    // 媒体错误：先 recoverMediaError 一次
-                    if (!recoveredMedia) {
-                        recoveredMedia = true;
-                        console.warn('[HLS] 媒体错误，尝试恢复…');
-                        try { hlsInstance.recoverMediaError(); return; } catch (er) {}
-                    }
-                    cleanup();
-                    reject(new Error('媒体错误：' + data.details + '（可能 codec 不被支持，或分片是 video-only 但播放器不支持）'));
-                    return;
-                }
-
-                // 其他 fatal 错误
                 cleanup();
                 const reason = data.reason ? '：' + data.reason : '';
-                reject(new Error(data.details + reason));
+                reject(new Error(`${data.type}/${data.details}${reason}`));
             });
 
-            hlsInstance.loadSource(url);
-            hlsInstance.attachMedia(media);
+            hls.loadSource(url);
+            hls.attachMedia(media);
         });
+    }
 
-        await media.play().catch(e => { throw new Error('播放失败：' + e.message); });
+    async function playWithNativeHls(media, url) {
+        return new Promise((resolve, reject) => {
+            // Safari 跨域 HLS 需要显式 crossOrigin
+            media.crossOrigin = 'anonymous';
+            media.src = url;
+
+            const timeout = setTimeout(() => {
+                cleanup();
+                const err = media.error;
+                const detail = err ? ` (error.code=${err.code})` : '';
+                reject(new Error('原生 HLS 加载超时 15s' + detail));
+            }, 15000);
+
+            const onLoaded = () => {
+                cleanup();
+                media.play()
+                    .then(resolve)
+                    .catch(err => reject(new Error('原生播放失败: ' + err.message)));
+            };
+            const onError = () => {
+                cleanup();
+                const err = media.error;
+                let detail = '未知错误';
+                if (err) {
+                    const codeMap = { 1: 'MEDIA_ERR_ABORTED', 2: 'MEDIA_ERR_NETWORK', 3: 'MEDIA_ERR_DECODE', 4: 'MEDIA_ERR_SRC_NOT_SUPPORTED' };
+                    detail = `${codeMap[err.code] || err.code} / ${err.message || '(空)'}`;
+                }
+                reject(new Error('原生播放失败：' + detail + '（多半是 m3u8 CORS / 分片 Content-Type / Range 支持问题）'));
+            };
+            const cleanup = () => {
+                clearTimeout(timeout);
+                media.removeEventListener('loadedmetadata', onLoaded);
+                media.removeEventListener('error', onError);
+            };
+
+            media.addEventListener('loadedmetadata', onLoaded);
+            media.addEventListener('error', onError);
+            media.load();
+        });
     }
 
     // ==================== 数据源处理器 ====================
@@ -306,8 +376,8 @@
                     if (isHls) {
                         await playHls(url);
                     } else {
-                        // 非 HLS：可能是普通 mp4/mp3，直接给 src
                         if (hlsInstance) { try { hlsInstance.destroy(); } catch (e) {} hlsInstance = null; }
+                        ext.audioPlayer.crossOrigin = null;
                         ext.audioPlayer.src = url;
                         await ext.audioPlayer.play().catch(e => { throw new Error('播放失败：' + e.message); });
                     }
@@ -380,7 +450,7 @@
 
     // ==================== 插件 API ====================
     window.MP3NewsPlugin = {
-        version: '2.1.0',
+        version: '2.2.0',
         async init() {
             registerDataSource();
             injectUI();

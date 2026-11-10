@@ -5,12 +5,6 @@ const albumId = process.env.BOT_ALBUM_ID;
 
 export async function GET(request: NextRequest) {
   try {
-    try {
-      await doIt();
-    } catch (ee) {
-      console.error(ee);
-    }
-
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '30'); // 默认每页30条
@@ -52,7 +46,6 @@ export async function GET(request: NextRequest) {
     const data = episodes.map(e => {
       let groupName = e.description || '';
 
-      // 兼容原先的 CBS / MSN 判断逻辑（如果 blobUrl 包含特定标识）
       if (e.blobUrl && e.blobUrl.toLowerCase().indexOf('cbs') > -1) {
         groupName = 'CBS ' + groupName;
       } else if (e.blobUrl && e.blobUrl.toLowerCase().indexOf('msn') > -1) {
@@ -64,7 +57,7 @@ export async function GET(request: NextRequest) {
         title: e.createdAt.toISOString().split('T')[0] + ' ' + e.title,
         url: e.blobUrl,
         img: "",
-        group: groupName, // 将 description（或分类名称）作为 group
+        group: groupName,
         date: e.createdAt,
         duration: e.duration,
         format: e.format,
@@ -83,7 +76,22 @@ export async function GET(request: NextRequest) {
       sync: 1
     };
 
-    return NextResponse.json(responsePayload);
+    // --- 1. 创建常规的 NextResponse ---
+    const response = NextResponse.json(responsePayload);
+
+    // --- 2. 设置缓存控制响应头 ---
+    // 解释：
+    // - public: 浏览器和公共 CDN 都可以缓存
+    // - max-age=60: 浏览器本地缓存 60 秒
+    // - s-maxage=300: CDN/代理服务器缓存 300 秒（5分钟）
+    // - stale-while-revalidate=600: 如果内容过期，在接下来 10 分钟内可以先返回旧缓存，同时在后台悄悄请求新数据更新
+    response.headers.set(
+      'Cache-Control',
+      'public, max-age=36000, s-maxage=300, stale-while-revalidate=600'
+    );
+
+    return response;
+
   } catch (error) {
     console.error('Error fetching published episodes:', error);
     return NextResponse.json(
