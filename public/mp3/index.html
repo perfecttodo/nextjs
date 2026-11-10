@@ -26,7 +26,6 @@
         #mobileDrawer { transition: transform 0.3s ease-in-out; }
         #mobileDrawerToggle.is-open .fa-bars::before { content: "\f00d"; }
 
-        /* 插件控制面板为空时自动折叠，避免出现"只有一条无内容 row"的视觉噪音 */
         .plugin-body:empty { display: none; }
     </style>
 </head>
@@ -82,7 +81,6 @@
             </div>
 
             <div id="sidebarContentWrapper" class="flex-1 min-h-0 space-y-4 flex flex-col p-4 lg:p-0 overflow-y-auto pr-1">
-                <!-- 插件槽位：插件中心 + 插件自己的控制面板都插到这里 -->
                 <div id="pluginSlot" class="space-y-4"></div>
 
                 <!-- 分類區塊 -->
@@ -271,10 +269,29 @@
         </div>
     </div>
 
-    <audio id="audioPlayer" ontimeupdate="updateProgress()" onended="onAudioEnded()" onerror="onAudioError()"></audio>
+    <video id="audioPlayer" class="sr-only" playsinline preload="auto" aria-hidden="true"
+           ontimeupdate="updateProgress()" onended="onAudioEnded()" onerror="onAudioError()"></video>
 
     <!-- ==================== 主應用邏輯 ==================== -->
     <script>
+        // 安全地把任意字符串嵌入内联 onclick 的 JS 字符串字面量。
+        // encodeURIComponent 不会编码单引号 '，会导致 onclick 字符串提前闭合 → SyntaxError。
+        function encodeInlineArg(s) {
+            return encodeURIComponent(String(s == null ? '' : s)).replace(/'/g, '%27');
+        }
+        // 容错解码：非 %XX 序列原样返回，避免 URIError。
+        function safeDecodeURI(s) {
+            try { return decodeURIComponent(s); } catch (e) { return s; }
+        }
+        // HTML 属性转义（用于 value / title / data-* 等）。
+        function escapeHtmlAttr(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
         let allFiles = [];
         let categories = ['未分類', '流行', '輕音樂', '工作', '其他'];
         let currentCategory = '全部';
@@ -468,7 +485,6 @@
                     const dislikedMap = getDislikedMap();
                     const tagsMap = getTagsMap();
 
-                    // 保留当前已合并的外部数据源（news / gdrive 等）
                     const existingExternal = allFiles.filter(f => f._source && f._source !== 'local');
 
                     const localFiles = data.files.map(f => {
@@ -564,7 +580,8 @@
             renderTable();
         }
 
-        async function deleteCategory(catName) {
+        async function deleteCategory(encodedCat) {
+            const catName = safeDecodeURI(encodedCat);
             if (catName === '未分類' || catName === '全部' || catName === '我的最愛') return;
             const confirmed = await showCustomModal({
                 title: '刪除分類',
@@ -611,13 +628,14 @@
                 const count = allFiles.filter(f => f.category === cat && !f.isDisliked).length;
                 const isActive = (currentCategory === cat && !currentTagFilter);
                 const canDelete = (cat !== '未分類');
+                const encCat = encodeInlineArg(cat);
                 html += `
                     <div class="flex items-center space-x-1 w-full group">
-                        <button onclick="filterCategory('${cat}')" class="cat-btn flex-1 text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${isActive ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300'}">
-                            <span>${cat}</span>
+                        <button onclick="filterCategory('${encCat}')" class="cat-btn flex-1 text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${isActive ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300'}">
+                            <span>${escapeHtmlAttr(cat)}</span>
                             <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${count}</span>
                         </button>
-                        ${canDelete ? `<button onclick="deleteCategory('${cat}')" class="opacity-0 group-hover:opacity-100 p-1.5 text-slate-500 hover:text-rose-400 text-xs transition" title="刪除分類"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                        ${canDelete ? `<button onclick="deleteCategory('${encCat}')" class="opacity-0 group-hover:opacity-100 p-1.5 text-slate-500 hover:text-rose-400 text-xs transition" title="刪除分類"><i class="fa-solid fa-xmark"></i></button>` : ''}
                     </div>
                 `;
             });
@@ -634,7 +652,8 @@
             badge.innerText = text;
         }
 
-        function filterCategory(cat) {
+        function filterCategory(encodedCat) {
+            const cat = safeDecodeURI(encodedCat);
             currentCategory = cat;
             currentTagFilter = null;
             currentPage = 1;
@@ -661,12 +680,14 @@
             let html = `<span onclick="filterByTag(null)" class="cursor-pointer px-2 py-1 rounded-lg text-[11px] transition ${!currentTagFilter ? 'bg-indigo-600 text-white font-medium' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}">全部標籤</span>`;
             uniqueTags.forEach(tag => {
                 const isActive = (currentTagFilter === tag);
-                html += `<span onclick="filterByTag('${tag}')" class="cursor-pointer px-2 py-1 rounded-lg text-[11px] transition flex items-center space-x-1 ${isActive ? 'bg-indigo-600 text-white font-medium' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}"><span>#${tag}</span><span class="text-[9px] opacity-70">(${tagCounts[tag]})</span></span>`;
+                const encTag = encodeInlineArg(tag);
+                html += `<span onclick="filterByTag('${encTag}')" class="cursor-pointer px-2 py-1 rounded-lg text-[11px] transition flex items-center space-x-1 ${isActive ? 'bg-indigo-600 text-white font-medium' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}"><span>#${escapeHtmlAttr(tag)}</span><span class="text-[9px] opacity-70">(${tagCounts[tag]})</span></span>`;
             });
             container.innerHTML = html;
         }
 
-        function filterByTag(tag) {
+        function filterByTag(encodedTag) {
+            const tag = encodedTag === null ? null : safeDecodeURI(encodedTag);
             currentTagFilter = tag;
             currentPage = 1;
             pendingScrollToCurrentSong = false;
@@ -790,11 +811,11 @@
 
         function togglePlayerLike() {
             if (!currentPlayingFile) return;
-            toggleLike(encodeURIComponent(currentPlayingFile));
+            toggleLike(encodeInlineArg(currentPlayingFile));
         }
         function togglePlayerDislike() {
             if (!currentPlayingFile) return;
-            toggleFileDislike(encodeURIComponent(currentPlayingFile));
+            toggleFileDislike(encodeInlineArg(currentPlayingFile));
         }
 
         function updatePlayerLikeState() {
@@ -946,7 +967,7 @@
             let prevIndex = currentIndex - 1;
             if (prevIndex < 0) prevIndex = list.length - 1;
             const target = list[prevIndex];
-            playSong(encodeURIComponent(target.relativePath || target.filename), encodeURIComponent(target.displayName || ''));
+            playSong(encodeInlineArg(target.relativePath || target.filename), encodeInlineArg(target.displayName || ''));
         }
 
         function playNext() {
@@ -959,7 +980,7 @@
                     randomIndex = (randomIndex + 1) % list.length;
                 }
                 const target = list[randomIndex];
-                playSong(encodeURIComponent(target.relativePath || target.filename), encodeURIComponent(target.displayName || ''));
+                playSong(encodeInlineArg(target.relativePath || target.filename), encodeInlineArg(target.displayName || ''));
                 return;
             }
             const currentIndex = list.findIndex(f => (f.relativePath || f.filename) === currentPlayingFile);
@@ -977,7 +998,7 @@
                 nextIndex = 0;
             }
             const target = list[nextIndex];
-            playSong(encodeURIComponent(target.relativePath || target.filename), encodeURIComponent(target.displayName || ''));
+            playSong(encodeInlineArg(target.relativePath || target.filename), encodeInlineArg(target.displayName || ''));
         }
 
         function onAudioEnded() {
@@ -993,7 +1014,7 @@
         function togglePlay() {
             if (!audioPlayer.src) {
                 const list = getFilteredFiles();
-                if (list.length > 0) playSong(encodeURIComponent(list[0].relativePath || list[0].filename), encodeURIComponent(list[0].displayName || ''));
+                if (list.length > 0) playSong(encodeInlineArg(list[0].relativePath || list[0].filename), encodeInlineArg(list[0].displayName || ''));
                 return;
             }
             if (audioPlayer.paused) {
@@ -1147,11 +1168,15 @@
                 const fileKey = file.relativePath || file.filename;
                 const isPlaying = currentPlayingFile === fileKey;
                 const sizeMb = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
-                const catOptions = categories.map(c => `<option value="${c}" ${c === file.category ? 'selected' : ''}>${c}</option>`).join('');
-                const tagsHtml = (file.tags || []).map(t => `<span class="bg-indigo-950 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[10px]">#${t}</span>`).join(' ');
+                const catOptions = categories.map(c => {
+                    const safe = escapeHtmlAttr(c);
+                    return `<option value="${safe}" ${c === file.category ? 'selected' : ''}>${safe}</option>`;
+                }).join('');
+                const tagsHtml = (file.tags || []).map(t => `<span class="bg-indigo-950 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[10px]">#${escapeHtmlAttr(t)}</span>`).join(' ');
 
-                const encodedKey = encodeURIComponent(fileKey);
-                const encodedName = encodeURIComponent(file.displayName || file.filename);
+                // 关键修复：encodeInlineArg 会把单引号替换成 %27，避免 onclick 提前闭合
+                const encodedKey = encodeInlineArg(fileKey);
+                const encodedName = encodeInlineArg(file.displayName || file.filename);
                 const rowId = `row-${encodedKey.replace(/[%._-]/g, '_')}`;
                 const isExternal = (file._source && file._source !== 'local');
 
@@ -1166,12 +1191,12 @@
                                     <div class="overflow-hidden flex-1 min-w-0">
                                         <div class="flex items-center space-x-2">
                                             ${typeof window.MP3RenderSourceBadge === 'function' ? window.MP3RenderSourceBadge(file) : ''}
-                                            <span class="font-medium text-slate-200 truncate" title="${file.displayName}">${file.displayName}</span>
+                                            <span class="font-medium text-slate-200 truncate" title="${escapeHtmlAttr(file.displayName)}">${escapeHtmlAttr(file.displayName)}</span>
                                             <button onclick="toggleLike('${encodedKey}', event)" class="text-xs transition ${file.isLiked ? 'text-rose-500 hover:text-rose-400' : 'text-slate-600 hover:text-slate-400'}" title="最愛">
                                                 <i class="${file.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}"></i>
                                             </button>
                                         </div>
-                                        ${file.relativePath && file.relativePath !== file.filename ? `<div class="text-[11px] text-slate-500 truncate">${file.relativePath}</div>` : ''}
+                                        ${file.relativePath && file.relativePath !== file.filename ? `<div class="text-[11px] text-slate-500 truncate">${escapeHtmlAttr(file.relativePath)}</div>` : ''}
                                     </div>
                                 </div>
 
@@ -1202,7 +1227,7 @@
             renderPagination(totalPages, filtered.length);
 
             if (pendingScrollToCurrentSong && currentPlayingFile) {
-                const rowId = `row-${encodeURIComponent(currentPlayingFile).replace(/[%._-]/g, '_')}`;
+                const rowId = `row-${encodeInlineArg(currentPlayingFile).replace(/[%._-]/g, '_')}`;
                 const targetRow = document.getElementById(rowId);
                 if (targetRow) targetRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 pendingScrollToCurrentSong = false;
@@ -1210,7 +1235,6 @@
 
             if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
 
-            // 通知可自动加载的插件：当前页数据不足则触发补充
             if (window.MP3NewsPlugin && typeof window.MP3NewsPlugin.maybeAutoLoad === 'function') {
                 window.MP3NewsPlugin.maybeAutoLoad();
             }
@@ -1272,7 +1296,7 @@
                 cancelBtn.classList.toggle('hidden', !needsCancel);
 
                 if (isPrompt) {
-                    bodyEl.innerHTML = `<p class="mb-2 text-slate-300">${message}</p><input type="text" id="modalPromptInput" value="${defaultValue}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">`;
+                    bodyEl.innerHTML = `<p class="mb-2 text-slate-300">${message}</p><input type="text" id="modalPromptInput" value="${escapeHtmlAttr(defaultValue)}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">`;
                 } else {
                     bodyEl.innerHTML = `<p>${message.replace(/\n/g, '<br>')}</p>`;
                 }
@@ -1313,7 +1337,7 @@
         }
     </script>
 
-    <!-- ==================== 主應用擴展接口（含 currentPage / pageSize 訪問器） ==================== -->
+    <!-- ==================== 主應用擴展接口 ==================== -->
     <script>
         window.MP3AppExtension = (function () {
             const call = (name, ...args) => {
@@ -1321,7 +1345,7 @@
                 if (typeof fn === 'function') return fn.apply(window, args);
             };
             return {
-                version: '1.3',
+                version: '1.4',
                 get allFiles() { return allFiles; },
                 set allFiles(v) { allFiles = v; },
                 get categories() { return categories; },
@@ -1405,9 +1429,9 @@
 
         window.MP3RenderSourceBadge = function(file) {
             const meta = window.MP3GetSourceMeta(file);
-            return `<span class="source-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-medium shrink-0 ${meta.badgeClass}" title="来源：${meta.label}">
+            return `<span class="source-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-medium shrink-0 ${meta.badgeClass}" title="来源：${escapeHtmlAttr(meta.label)}">
                 <i class="${meta.icon} text-[9px]"></i>
-                <span>${meta.label}</span>
+                <span>${escapeHtmlAttr(meta.label)}</span>
             </span>`;
         };
 
@@ -1417,7 +1441,7 @@
             if (!file) { el.classList.add('hidden'); return; }
             const meta = window.MP3GetSourceMeta(file);
             el.className = `inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border text-[10px] font-medium shrink-0 ${meta.badgeClass}`;
-            el.innerHTML = `<i class="${meta.icon} text-[9px]"></i>${meta.label}`;
+            el.innerHTML = `<i class="${meta.icon} text-[9px]"></i>${escapeHtmlAttr(meta.label)}`;
             el.classList.remove('hidden');
         };
 
@@ -1520,7 +1544,7 @@
                 </div>
                 <div class="flex items-center space-x-2">
                     <select id="pluginUserSelect" onchange="window.pluginSwitchUser(this.value)" class="bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:border-indigo-500 font-medium flex-1">
-                        ${usersList.map(u => `<option value="${u}" ${u === currentUser ? 'selected' : ''}>${u}</option>`).join('')}
+                        ${usersList.map(u => `<option value="${escapeHtmlAttr(u)}" ${u === currentUser ? 'selected' : ''}>${escapeHtmlAttr(u)}</option>`).join('')}
                     </select>
                     <button onclick="window.pluginPromptAddUser()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1.5 rounded-xl text-xs transition shadow" title="新增用戶">
                         <i class="fa-solid fa-user-plus"></i>
@@ -1561,7 +1585,7 @@
         function refreshUserSelects() {
             const selectEl = document.getElementById('pluginUserSelect');
             if (selectEl) {
-                selectEl.innerHTML = usersList.map(u => `<option value="${u}" ${u === currentUser ? 'selected' : ''}>${u}</option>`).join('');
+                selectEl.innerHTML = usersList.map(u => `<option value="${escapeHtmlAttr(u)}" ${u === currentUser ? 'selected' : ''}>${escapeHtmlAttr(u)}</option>`).join('');
             }
         }
 
@@ -1578,21 +1602,22 @@
                 const likeCount = Object.keys(userLikes).length;
                 const isCurrent = u === currentUser;
                 const isDefault = u === STORAGE_KEYS.DEFAULT_USER_NAME;
+                const safeU = escapeHtmlAttr(u);
                 return `
                     <div class="flex items-center justify-between bg-slate-900 border border-slate-800 p-3 rounded-xl">
                         <div>
                             <div class="font-semibold text-sm text-slate-200 flex items-center">
-                                ${u}
+                                ${safeU}
                                 ${isCurrent ? '<span class="ml-2 text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full">當前</span>' : ''}
                                 ${isDefault ? '<span class="ml-2 text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">系統預設</span>' : ''}
                             </div>
                             <div class="text-xs text-slate-400 mt-0.5">已收藏 ${likeCount} 首歌</div>
                         </div>
                         <div class="flex items-center space-x-1.5">
-                            ${!isDefault ? `<button onclick="window.pluginRenameUser('${u}')" class="px-2.5 py-1 bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white rounded-lg text-xs transition">改名</button>` : ''}
-                            <button onclick="window.pluginExportUser('${u}')" class="px-2.5 py-1 bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white rounded-lg text-xs transition">匯出</button>
-                            <button onclick="window.pluginMergeUserPrompt('${u}')" class="px-2.5 py-1 bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white rounded-lg text-xs transition">合併</button>
-                            ${!isDefault && usersList.length > 1 ? `<button onclick="window.pluginDeleteUser('${u}')" class="px-2.5 py-1 bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white rounded-lg text-xs transition">刪除</button>` : ''}
+                            ${!isDefault ? `<button onclick="window.pluginRenameUser('${safeU}')" class="px-2.5 py-1 bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white rounded-lg text-xs transition">改名</button>` : ''}
+                            <button onclick="window.pluginExportUser('${safeU}')" class="px-2.5 py-1 bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white rounded-lg text-xs transition">匯出</button>
+                            <button onclick="window.pluginMergeUserPrompt('${safeU}')" class="px-2.5 py-1 bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white rounded-lg text-xs transition">合併</button>
+                            ${!isDefault && usersList.length > 1 ? `<button onclick="window.pluginDeleteUser('${safeU}')" class="px-2.5 py-1 bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white rounded-lg text-xs transition">刪除</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -1739,7 +1764,7 @@
                     if (files.length > 0) {
                         files.forEach(file => {
                             const fileKey = file.relativePath || file.filename;
-                            const rowId = `row-${encodeURIComponent(fileKey).replace(/[%._-]/g, '_')}`;
+                            const rowId = `row-${encodeInlineArg(fileKey).replace(/[%._-]/g, '_')}`;
                             const row = document.getElementById(rowId);
                             if (row) {
                                 const likedUsers = [];
@@ -1772,7 +1797,7 @@
     })();
     </script>
 
-    <!-- ==================== 插件管理器（按需动态加载，每行内嵌 plugin-body 容器） ==================== -->
+    <!-- ==================== 插件管理器 ==================== -->
     <script>
     (function() {
         'use strict';
@@ -1869,8 +1894,8 @@
                         <div class="flex items-center gap-2 min-w-0">
                             <i class="${meta.icon} ${meta.iconClass || 'text-indigo-400'} text-sm shrink-0"></i>
                             <div class="min-w-0">
-                                <div class="text-xs text-slate-200 font-medium truncate" title="${meta.name}">${meta.name}</div>
-                                <div class="text-[10px] text-slate-500 truncate" title="${meta.description}">${meta.description}</div>
+                                <div class="text-xs text-slate-200 font-medium truncate" title="${escapeHtmlAttr(meta.name)}">${escapeHtmlAttr(meta.name)}</div>
+                                <div class="text-[10px] text-slate-500 truncate" title="${escapeHtmlAttr(meta.description)}">${escapeHtmlAttr(meta.description)}</div>
                             </div>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer shrink-0">

@@ -1,10 +1,12 @@
 /**
- * News 播放列表插件 v2.0
+ * News 播放列表插件 v2.1
  * 
- * 统一设计：
- *  - UI 渲染到插件管理器的 .plugin-body 容器内（不再有独立卡片）
- *  - 无独立分页 UI，主表格翻页自动加载
- *  - API 固定每页 30 条，主表格 pageSize 用户随便改，不影响 API
+ * 关键改动（HLS 播放）：
+ *  - 详细错误捕获（打印 HLS 所有 ERROR 事件的 type/details/fatal）
+ *  - 网络错误自动重试一次；媒体错误自动 recoverMediaError 一次
+ *  - 15s 加载超时保护
+ *  - 播放前打印 level 信息（videoCodec / audioCodec），便于定位
+ *  - 配合主应用 <video id="audioPlayer">，兼容 video-only 的 fMP4
  */
 (function () {
     'use strict';
@@ -69,7 +71,7 @@
         };
     }
 
-    // ==================== API ====================
+    // ==================== 数据加载 ====================
     async function loadPage(page) {
         const ext = window.MP3AppExtension;
         if (!ext) throw new Error('MP3AppExtension 未就绪');
@@ -151,7 +153,6 @@
         }
     }
 
-    // 主表格 renderTable 后调用，检查是否需要加载
     function maybeAutoLoad() {
         const ext = window.MP3AppExtension;
         if (!ext || loading || !lastMeta) return;
@@ -166,6 +167,115 @@
         if (newsCount < need && maxLoaded < lastMeta.totalPages) {
             loadMore();
         }
+    }
+
+    // ==================== HLS 播放核心 ====================
+    async function playHls(url) {
+        const ext = window.MP3AppExtension;
+        const media = ext.audioPlayer;
+
+        // 清理旧的 HLS 实例
+        if (hlsInstance) {
+            try { hlsInstance.destroy(); } catch (e) {}
+            hlsInstance = null;
+        }
+
+        // Safari 原生 HLS（无 hls.js 也支持）
+        if (media.canPlayType('application/vnd.apple.mpegurl')) {
+            console.log('[HLS] 使用原生播放器');
+            media.src = url;
+            await media.play().catch(e => { throw new Error('原生播放失败：' + e.message); });
+            return;
+        }
+
+        await ensureHlsJs();
+        if (!window.Hls || !window.Hls.isSupported()) {
+            throw new Error('当前浏览器不支持 HLS（MSE 不可用）');
+        }
+
+        hlsInstance = new window.Hls({
+            lowLatencyMode: false,
+            enableWorker: true,
+            manifestLoadingMaxRetry: 2,
+            manifestLoadingRetryDelay: 1000,
+            fragLoadingMaxRetry: 3,
+            fragLoadingRetryDelay: 1000,
+            fragLoadingMaxRetryTimeout: 8000,
+            appendErrorMaxRetry: 2,
+            startLevel: -1,
+            debug: false
+        });
+
+        await new Promise((resolve, reject) => {
+            let recoveredNetwork = false;
+            let recoveredMedia = false;
+            const timeout = setTimeout(() => {
+                cleanup();
+                reject(new Error('HLS 加载超时 15s（检查 CORS / Range / Content-Type）'));
+            }, 15000);
+
+            const cleanup = () => {
+                clearTimeout(timeout);
+                if (hlsInstance) {
+                    hlsInstance.off(window.Hls.Events.MANIFEST_PARSED);
+                    hlsInstance.off(window.Hls.Events.ERROR);
+                }
+            };
+
+            hlsInstance.on(window.Hls.Events.MANIFEST_PARSED, (e, data) => {
+                console.log('[HLS] 解析成功，level 信息：');
+                (data.levels || []).forEach((lv, i) => {
+                    console.log(`  level[${i}]`, {
+                        videoCodec: lv.videoCodec || '(无)',
+                        audioCodec: lv.audioCodec || '(无)',
+                        bitrate: lv.bitrate,
+                        width: lv.width,
+                        height: lv.height
+                    });
+                });
+                cleanup();
+                resolve();
+            });
+
+            hlsInstance.on(window.Hls.Events.ERROR, (e, data) => {
+                console.error('[HLS] error:', data.type, data.details, 'fatal=' + data.fatal, data);
+                if (!data.fatal) return;
+
+                if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR) {
+                    // 网络错误：先重试一次
+                    if (!recoveredNetwork) {
+                        recoveredNetwork = true;
+                        console.warn('[HLS] 网络错误，尝试重新加载…');
+                        try { hlsInstance.startLoad(); return; } catch (er) {}
+                    }
+                    cleanup();
+                    reject(new Error('网络错误：' + data.details + '（可能 CORS 或 m3u8 不可访问）'));
+                    return;
+                }
+
+                if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) {
+                    // 媒体错误：先 recoverMediaError 一次
+                    if (!recoveredMedia) {
+                        recoveredMedia = true;
+                        console.warn('[HLS] 媒体错误，尝试恢复…');
+                        try { hlsInstance.recoverMediaError(); return; } catch (er) {}
+                    }
+                    cleanup();
+                    reject(new Error('媒体错误：' + data.details + '（可能 codec 不被支持，或分片是 video-only 但播放器不支持）'));
+                    return;
+                }
+
+                // 其他 fatal 错误
+                cleanup();
+                const reason = data.reason ? '：' + data.reason : '';
+                reject(new Error(data.details + reason));
+            });
+
+            hlsInstance.loadSource(url);
+            hlsInstance.attachMedia(media);
+        });
+
+        await media.play().catch(e => { throw new Error('播放失败：' + e.message); });
     }
 
     // ==================== 数据源处理器 ====================
@@ -187,11 +297,6 @@
                     return;
                 }
 
-                if (hlsInstance) {
-                    try { hlsInstance.destroy(); } catch (e) {}
-                    hlsInstance = null;
-                }
-
                 const url = item.url;
                 const isHls = /\.m3u8(\?|$)/i.test(url) || item.format === 'application/vnd.apple.mpegurl';
 
@@ -199,29 +304,13 @@
                     setStatus('正在加载音频…');
 
                     if (isHls) {
-                        if (ext.audioPlayer.canPlayType('application/vnd.apple.mpegurl')) {
-                            ext.audioPlayer.src = url;
-                        } else {
-                            await ensureHlsJs();
-                            if (window.Hls && window.Hls.isSupported()) {
-                                hlsInstance = new window.Hls({ lowLatencyMode: true });
-                                hlsInstance.loadSource(url);
-                                hlsInstance.attachMedia(ext.audioPlayer);
-                                await new Promise((resolve, reject) => {
-                                    hlsInstance.on(window.Hls.Events.MANIFEST_PARSED, resolve);
-                                    hlsInstance.on(window.Hls.Events.ERROR, (evt, data) => {
-                                        if (data && data.fatal) reject(new Error('HLS 解析失败：' + data.type));
-                                    });
-                                });
-                            } else {
-                                throw new Error('当前浏览器不支持 HLS');
-                            }
-                        }
+                        await playHls(url);
                     } else {
+                        // 非 HLS：可能是普通 mp4/mp3，直接给 src
+                        if (hlsInstance) { try { hlsInstance.destroy(); } catch (e) {} hlsInstance = null; }
                         ext.audioPlayer.src = url;
+                        await ext.audioPlayer.play().catch(e => { throw new Error('播放失败：' + e.message); });
                     }
-
-                    await ext.audioPlayer.play().catch(e => { throw new Error('播放失败：' + e.message); });
 
                     ext.currentPlayingFile = file.relativePath;
                     document.getElementById('currentSongTitle').innerText = file.displayName;
@@ -238,13 +327,14 @@
 
                     setStatus('▶️ ' + file.displayName, 'success');
                 } catch (e) {
+                    console.error('[News] 播放失败:', e);
                     setStatus('播放失败：' + e.message, 'error');
                 }
             }
         };
     }
 
-    // ==================== UI（渲染到插件管理器的容器） ====================
+    // ==================== UI ====================
     function injectUI() {
         const body = window.MP3PluginManager && window.MP3PluginManager.getBodyContainer
             ? window.MP3PluginManager.getBodyContainer('news')
@@ -290,7 +380,7 @@
 
     // ==================== 插件 API ====================
     window.MP3NewsPlugin = {
-        version: '2.0.0',
+        version: '2.1.0',
         async init() {
             registerDataSource();
             injectUI();
