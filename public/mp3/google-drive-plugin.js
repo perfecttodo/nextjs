@@ -6,6 +6,9 @@
  *  3. 数据源架构：window.MP3DataSourceHandlers 可无限扩展
  *  4. 来源徽章：由主应用 MP3SourceRegistry 统一渲染，插件只负责设置 _source='gdrive'
  */
+window.MP3GoogleDriveConfig = {
+    clientId: '802199089900-5n676d4hansnab5c66igukb1mch5m7m1.apps.googleusercontent.com'
+  };
 (function () {
     'use strict';
 
