@@ -23,13 +23,11 @@
             padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
         }
 
-        #mobileDrawer {
-            transition: transform 0.3s ease-in-out;
-        }
+        #mobileDrawer { transition: transform 0.3s ease-in-out; }
+        #mobileDrawerToggle.is-open .fa-bars::before { content: "\f00d"; }
 
-        #mobileDrawerToggle.is-open .fa-bars::before {
-            content: "\f00d";
-        }
+        /* 插件控制面板为空时自动折叠，避免出现"只有一条无内容 row"的视觉噪音 */
+        .plugin-body:empty { display: none; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 h-screen flex flex-col overflow-hidden" style="height: 100dvh;">
@@ -84,6 +82,9 @@
             </div>
 
             <div id="sidebarContentWrapper" class="flex-1 min-h-0 space-y-4 flex flex-col p-4 lg:p-0 overflow-y-auto pr-1">
+                <!-- 插件槽位：插件中心 + 插件自己的控制面板都插到这里 -->
+                <div id="pluginSlot" class="space-y-4"></div>
+
                 <!-- 分類區塊 -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl">
                     <div class="flex items-center justify-between mb-3 px-1">
@@ -139,7 +140,6 @@
                     <div class="flex items-center space-x-3 flex-wrap gap-2">
                         <span id="fileCountText" class="text-xs text-slate-400">共 0 首</span>
 
-                        <!-- 來源過濾下拉 -->
                         <select id="sourceFilter" onchange="handleSourceFilterChange(this.value)" 
                             class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-300 focus:outline-none">
                             <option value="all">所有來源</option>
@@ -468,7 +468,7 @@
                     const dislikedMap = getDislikedMap();
                     const tagsMap = getTagsMap();
 
-                    // 保留当前已合并的外部数据源文件（如 Drive）
+                    // 保留当前已合并的外部数据源（news / gdrive 等）
                     const existingExternal = allFiles.filter(f => f._source && f._source !== 'local');
 
                     const localFiles = data.files.map(f => {
@@ -509,7 +509,6 @@
                 pendingScrollToCurrentSong = true;
                 syncPageToFile(lastKey);
 
-                // 外部数据源（如 Drive）不恢复音频，只恢复 UI 状态，等用户点击才播放
                 const src = targetFile._source || 'local';
                 if (src === 'local') {
                     const dir = document.getElementById('dirInput').value.trim();
@@ -550,7 +549,6 @@
             }
         }
 
-        // ==================== 分類 ====================
         function addNewCategory() {
             const inputEl = document.getElementById('newCategoryInput');
             const catName = inputEl.value.trim();
@@ -705,7 +703,6 @@
             showCustomModal({ title: '標籤管理提示', message: '點擊每首歌右側的「+標籤」按鈕可為該曲目新增或修改標籤，點擊左側標籤即可過濾歌曲。', type: 'info' });
         }
 
-        // ==================== 過濾 ====================
         function getFilteredFiles() {
             const keyword = (document.getElementById('searchInput').value || '').toLowerCase();
             const sourceFilter = window.currentSourceFilter || 'all';
@@ -731,7 +728,6 @@
             });
         }
 
-        // ==================== Like / Dislike ====================
         function toggleLike(encodedKey, event) {
             if (event) event.stopPropagation();
             const fileKey = decodeURIComponent(encodedKey);
@@ -830,7 +826,6 @@
             }
         }
 
-        // ==================== 播放控制 ====================
         function togglePlayMode() {
             const modes = ['loop', 'shuffle', 'single', 'sequence'];
             let currentIdx = modes.indexOf(playMode);
@@ -886,12 +881,19 @@
             timerText.innerText = `[自動換歌: ${sec}s]`;
         }
 
-        // ★ 核心：本地分支的播放逻辑；外部数据源自动分派
+        // 播放入口：先重置所有外部数据源（例如 HLS），再按 _source 分派
         async function playSong(encodedKey, encodedName) {
             const fileKey = decodeURIComponent(encodedKey);
             const file = allFiles.find(f => (f.relativePath || f.filename) === fileKey);
 
-            // 外部数据源分派（Drive / Dropbox / OneDrive 等）
+            if (window.MP3DataSourceHandlers) {
+                Object.entries(window.MP3DataSourceHandlers).forEach(([k, h]) => {
+                    if (h && typeof h.reset === 'function') {
+                        try { h.reset(); } catch (e) {}
+                    }
+                });
+            }
+
             if (file && file._source && file._source !== 'local'
                 && window.MP3DataSourceHandlers
                 && window.MP3DataSourceHandlers[file._source]) {
@@ -903,7 +905,6 @@
                 }
             }
 
-            // 本地分支
             const displayName = encodedName ? decodeURIComponent(encodedName) : fileKey;
             const dir = document.getElementById('dirInput').value.trim();
             const streamUrl = `/api/mp3?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(fileKey)}`;
@@ -1035,7 +1036,6 @@
             return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
-        // ==================== 分类 / 删除 / 复制 ====================
         async function changeCategory(encodedKey, newCategory) {
             const fileKey = decodeURIComponent(encodedKey);
             const dir = document.getElementById('dirInput').value.trim();
@@ -1112,7 +1112,6 @@
             }
         }
 
-        // ==================== 分頁 / 渲染 ====================
         function handleSearch() { currentPage = 1; pendingScrollToCurrentSong = false; updateUrlParams(); renderTable(); }
         function goToPage(p) { currentPage = p; pendingScrollToCurrentSong = false; updateUrlParams(); renderTable(); }
         function changePageSize(sz) { pageSize = parseInt(sz); currentPage = 1; pendingScrollToCurrentSong = false; updateUrlParams(); renderTable(); }
@@ -1130,6 +1129,9 @@
                 document.getElementById('topNextBtn').disabled = true;
                 pendingScrollToCurrentSong = false;
                 if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
+                if (window.MP3NewsPlugin && typeof window.MP3NewsPlugin.maybeAutoLoad === 'function') {
+                    window.MP3NewsPlugin.maybeAutoLoad();
+                }
                 return;
             }
 
@@ -1207,6 +1209,11 @@
             }
 
             if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
+
+            // 通知可自动加载的插件：当前页数据不足则触发补充
+            if (window.MP3NewsPlugin && typeof window.MP3NewsPlugin.maybeAutoLoad === 'function') {
+                window.MP3NewsPlugin.maybeAutoLoad();
+            }
         }
 
         function renderPagination(totalPages, totalItems) {
@@ -1228,7 +1235,6 @@
             container.innerHTML = html;
         }
 
-        // ==================== Modal ====================
         function showCustomModal({ title, subtitle = '系統通知', message, type = 'info', isPrompt = false, defaultValue = '', confirmText = '確定' }) {
             return new Promise((resolve) => {
                 const modal = document.getElementById('customModal');
@@ -1307,7 +1313,7 @@
         }
     </script>
 
-    <!-- ==================== 主應用擴展接口（必須在 google-drive-plugin.js 之前） ==================== -->
+    <!-- ==================== 主應用擴展接口（含 currentPage / pageSize 訪問器） ==================== -->
     <script>
         window.MP3AppExtension = (function () {
             const call = (name, ...args) => {
@@ -1315,7 +1321,7 @@
                 if (typeof fn === 'function') return fn.apply(window, args);
             };
             return {
-                version: '1.1',
+                version: '1.3',
                 get allFiles() { return allFiles; },
                 set allFiles(v) { allFiles = v; },
                 get categories() { return categories; },
@@ -1324,6 +1330,9 @@
                 set currentPlayingFile(v) { currentPlayingFile = v; },
                 get currentCategory() { return currentCategory; },
                 set currentCategory(v) { currentCategory = v; },
+                get currentPage() { return currentPage; },
+                set currentPage(v) { currentPage = v; },
+                get pageSize() { return pageSize; },
                 get audioPlayer() { return audioPlayer; },
 
                 renderAll() {
@@ -1346,7 +1355,7 @@
         console.log('[MP3AppExtension] ready v' + window.MP3AppExtension.version);
     </script>
 
-    <!-- ==================== 來源註冊表 + 徽章渲染 + 來源過濾（已修復 allFiles 訪問） ==================== -->
+    <!-- ==================== 來源註冊表 + 徽章 + 來源過濾 ==================== -->
     <script>
         window.MP3SourceRegistry = window.MP3SourceRegistry || {
             local: {
@@ -1372,6 +1381,12 @@
                 icon: 'fa-brands fa-microsoft',
                 badgeClass: 'bg-sky-950/50 text-sky-300 border-sky-500/30',
                 dotClass: 'bg-sky-400'
+            },
+            news: {
+                label: 'News',
+                icon: 'fa-solid fa-newspaper',
+                badgeClass: 'bg-amber-950/50 text-amber-300 border-amber-500/30',
+                dotClass: 'bg-amber-400'
             }
         };
 
@@ -1406,17 +1421,14 @@
             el.classList.remove('hidden');
         };
 
-        // 來源過濾
         window.currentSourceFilter = 'all';
 
-        // ★ 修復：主應用用 let 宣告 allFiles，不會掛到 window，必須走 MP3AppExtension
         window.refreshSourceFilterOptions = function() {
             const sel = document.getElementById('sourceFilter');
             if (!sel) return;
 
             const files = (window.MP3AppExtension && window.MP3AppExtension.allFiles) || [];
 
-            // 統計當前實際存在的來源；空列表也視為「本地」，避免下拉只剩「所有來源」
             const present = new Set();
             if (files.length === 0) {
                 present.add('local');
@@ -1424,10 +1436,8 @@
                 files.forEach(f => present.add(f._source || 'local'));
             }
 
-            // 清空除「所有來源」以外的选项
             while (sel.options.length > 1) sel.remove(1);
 
-            // 按注册表顺序展示，避免每次渲染顺序乱跳
             const orderedKeys = Object.keys(window.MP3SourceRegistry || {});
             const presentArr = [...present].sort((a, b) => {
                 const ia = orderedKeys.indexOf(a);
@@ -1443,7 +1453,6 @@
                 sel.appendChild(opt);
             });
 
-            // 如果当前过滤的来源已不存在，重置为「所有來源」
             if (window.currentSourceFilter !== 'all' && !present.has(window.currentSourceFilter)) {
                 window.currentSourceFilter = 'all';
                 sel.value = 'all';
@@ -1459,7 +1468,7 @@
         };
     </script>
 
-    <!-- ==================== 多用戶外掛（已修復 allFiles 訪問） ==================== -->
+    <!-- ==================== 多用戶外掛 ==================== -->
     <script>
     (function() {
         const STORAGE_KEYS = {
@@ -1496,8 +1505,10 @@
         }
 
         function injectUserUI() {
-            const drawerContent = document.getElementById('sidebarContentWrapper');
-            if (!drawerContent) return;
+            const slot = document.getElementById('pluginSlot');
+            const fallback = document.getElementById('sidebarContentWrapper');
+            const target = slot || fallback;
+            if (!target) return;
             const userSection = document.createElement('div');
             userSection.className = 'bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl';
             userSection.innerHTML = `
@@ -1516,7 +1527,7 @@
                     </button>
                 </div>
             `;
-            drawerContent.insertBefore(userSection, drawerContent.firstChild);
+            target.appendChild(userSection);
         }
 
         window.pluginSwitchUser = function(username) {
@@ -1724,8 +1735,6 @@
             if (typeof originalRenderTable === 'function') {
                 window.renderTable = function() {
                     originalRenderTable();
-
-                    // ★ 修復：主應用 allFiles 是 let，不會掛到 window，改走 MP3AppExtension
                     const files = (window.MP3AppExtension && window.MP3AppExtension.allFiles) || [];
                     if (files.length > 0) {
                         files.forEach(file => {
@@ -1763,7 +1772,172 @@
     })();
     </script>
 
-    <script src="google-drive-plugin.js"
-        data-client-id="802199089900-5n676d4hansnab5c66igukb1mch5m7m1.apps.googleusercontent.com"></script>
+    <!-- ==================== 插件管理器（按需动态加载，每行内嵌 plugin-body 容器） ==================== -->
+    <script>
+    (function() {
+        'use strict';
+
+        const REGISTRY = {
+            news: {
+                id: 'news',
+                name: 'News 播放列表',
+                description: '通过 /api/mp3/news 加载新闻音频（m3u8）',
+                icon: 'fa-solid fa-newspaper',
+                iconClass: 'text-amber-400',
+                scriptSrc: 'news-plugin.js',
+                globalVar: 'MP3NewsPlugin'
+            }
+        };
+
+        const STORAGE_KEY = 'mp3_enabled_dynamic_plugins';
+        const enabled = new Set();
+        try {
+            (JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') || []).forEach(id => {
+                if (REGISTRY[id]) enabled.add(id);
+            });
+        } catch(e) {}
+
+        const loadedPlugins = {};
+        const loadedScripts = new Set();
+
+        let uiRoot = null;
+
+        function persist() {
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...enabled])); } catch(e) {}
+        }
+
+        function loadScriptOnce(src) {
+            if (loadedScripts.has(src)) return Promise.resolve();
+            return new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = src;
+                s.dataset.pluginSrc = src;
+                s.onload = () => { loadedScripts.add(src); resolve(); };
+                s.onerror = () => reject(new Error('无法加载插件脚本：' + src));
+                document.head.appendChild(s);
+            });
+        }
+
+        async function enablePlugin(id) {
+            const meta = REGISTRY[id];
+            if (!meta) throw new Error('未知插件：' + id);
+            if (loadedPlugins[id]) return loadedPlugins[id];
+
+            await loadScriptOnce(meta.scriptSrc);
+            const plugin = window[meta.globalVar];
+            if (!plugin) throw new Error('插件未暴露全局变量：' + meta.globalVar);
+            if (typeof plugin.init !== 'function') throw new Error('插件缺少 init() 方法');
+
+            await plugin.init();
+            loadedPlugins[id] = plugin;
+            enabled.add(id);
+            persist();
+            return plugin;
+        }
+
+        async function disablePlugin(id) {
+            const plugin = loadedPlugins[id];
+            if (plugin && typeof plugin.unload === 'function') {
+                try { await plugin.unload(); } catch(e) { console.error('[PluginManager] unload error:', e); }
+            }
+            delete loadedPlugins[id];
+            enabled.delete(id);
+            persist();
+        }
+
+        function injectUI() {
+            const slot = document.getElementById('pluginSlot');
+            if (!slot) { setTimeout(injectUI, 200); return; }
+            if (uiRoot) return;
+
+            uiRoot = document.createElement('div');
+            uiRoot.id = 'pluginManagerCard';
+            uiRoot.className = 'bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl';
+
+            const itemsHtml = Object.values(REGISTRY).map(meta => `
+                <div class="plugin-item py-2 border-b border-slate-800/60 last:border-none">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <i class="${meta.icon} ${meta.iconClass || 'text-indigo-400'} text-sm shrink-0"></i>
+                            <div class="min-w-0">
+                                <div class="text-xs text-slate-200 font-medium truncate" title="${meta.name}">${meta.name}</div>
+                                <div class="text-[10px] text-slate-500 truncate" title="${meta.description}">${meta.description}</div>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input type="checkbox" class="plugin-toggle sr-only peer" data-plugin-id="${meta.id}" ${enabled.has(meta.id) ? 'checked' : ''}>
+                            <div class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:bg-indigo-600 transition"></div>
+                            <span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition peer-checked:translate-x-4"></span>
+                        </label>
+                    </div>
+                    <div class="plugin-body mt-2" data-plugin-id="${meta.id}"></div>
+                </div>
+            `).join('');
+
+            uiRoot.innerHTML = `
+                <div class="flex items-center justify-between mb-1 px-1">
+                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-puzzle-piece text-indigo-400 mr-1.5"></i> 插件中心
+                    </h2>
+                    <span class="text-[10px] text-slate-600">按需加載</span>
+                </div>
+                ${itemsHtml}
+            `;
+
+            slot.appendChild(uiRoot);
+
+            uiRoot.querySelectorAll('.plugin-toggle').forEach(toggle => {
+                toggle.addEventListener('change', async (e) => {
+                    const id = e.target.dataset.pluginId;
+                    const on = e.target.checked;
+                    try {
+                        if (on) await enablePlugin(id);
+                        else await disablePlugin(id);
+                        if (typeof window.refreshSourceFilterOptions === 'function') {
+                            window.refreshSourceFilterOptions();
+                        }
+                    } catch (err) {
+                        console.error('[PluginManager] toggle failed:', id, err);
+                        e.target.checked = !on;
+                    }
+                });
+            });
+        }
+
+        async function restoreAll() {
+            for (const id of [...enabled]) {
+                try {
+                    await enablePlugin(id);
+                } catch (e) {
+                    console.error('[PluginManager] restore failed:', id, e);
+                    enabled.delete(id);
+                }
+            }
+            persist();
+        }
+
+        window.MP3PluginManager = {
+            REGISTRY,
+            enable: enablePlugin,
+            disable: disablePlugin,
+            isEnabled: (id) => enabled.has(id),
+            isLoaded: (id) => !!loadedPlugins[id],
+            getBodyContainer(id) {
+                return uiRoot ? uiRoot.querySelector(`.plugin-body[data-plugin-id="${id}"]`) : null;
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(async () => {
+                injectUI();
+                await restoreAll();
+                if (typeof window.refreshSourceFilterOptions === 'function') {
+                    window.refreshSourceFilterOptions();
+                }
+            }, 400);
+        });
+    })();
+    </script>
+
 </body>
 </html>
