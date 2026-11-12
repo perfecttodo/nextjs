@@ -1,11 +1,8 @@
 /**
- * 本地目錄插件 v3.0
- * 
- * 特性：
- *  - 支援多個 API 端點 + 多個目錄
- *  - 每個源的配置存於 localStorage['mp3_local_sources']
- *  - 每個文件的 _key = fileKey + '\x00' + sourceId（全局唯一）
- *  - 兼容舊數據：加載時把 likedMap[fileKey] 遷移到 likedMap[_key]
+ * 本地目錄插件 v3.1（加固版）
+ * - init 顺序：ensureUI → renderRows → 各源并行 loadSource
+ * - 每源独立 try/catch，失败只影响该源
+ * - 数据"先清后加"，即使抛错也不留半截数据
  */
 (function () {
     'use strict';
@@ -14,11 +11,10 @@
 
     let isActive = false;
     let uiRoot = null;
-    let editingId = null; // null=新增, 'src_xxx'=編輯
+    let editingId = null;
 
-    const status = {}; // sourceId -> { loading, count, error }
+    const status = {};
 
-    // ==================== 数据存取 ====================
     function loadSources() {
         try { return JSON.parse(localStorage.getItem(SOURCES_KEY) || '[]'); } catch (e) { return []; }
     }
@@ -42,7 +38,6 @@
         return parts[parts.length - 1] || src.dir || src.apiBase;
     }
 
-    // ==================== 单个源加载 ====================
     async function loadSource(src) {
         const ext = window.MP3AppExtension;
         if (!ext) return;
@@ -70,7 +65,6 @@
                 const fileKey = f.relativePath || f.filename;
                 const uniqueKey = fileKey + '\x00' + src.id;
 
-                // 迁移旧数据
                 let rawLike = likedMap[uniqueKey];
                 if (!rawLike && likedMap[fileKey]) {
                     rawLike = likedMap[fileKey];
@@ -109,7 +103,7 @@
             if (dislikedChanged) window.saveDislikedMap(dislikedMap);
             if (tagsChanged) window.saveTagsMap(tagsMap);
 
-            // 合并（同步完成）
+            // 先清后加
             ext.allFiles = ext.allFiles.filter(f => !(f._source === 'local' && f._sourceId === src.id));
             ext.allFiles = [...ext.allFiles, ...newFiles];
 
@@ -128,7 +122,6 @@
         renderRows();
     }
 
-    // ==================== 全部/单个源操作 ====================
     async function loadAllSources() {
         if (!isActive) return;
         const sources = loadSources().filter(s => s.enabled);
@@ -137,16 +130,15 @@
         if (typeof window.updateUrlParams === 'function') window.updateUrlParams();
 
         if (sources.length === 0) {
-            const ext2 = window.MP3AppExtension;
-            if (ext2) {
-                ext2.allFiles = ext2.allFiles.filter(f => !(f._source === 'local' && f._sourceId));
-                ext2.renderAll();
+            if (ext) {
+                ext.allFiles = ext.allFiles.filter(f => !(f._source === 'local' && f._sourceId));
+                ext.renderAll();
             }
             renderRows();
             return;
         }
 
-        await Promise.all(sources.map(s => loadSource(s)));
+        await Promise.allSettled(sources.map(s => loadSource(s)));
     }
 
     async function unloadSource(id) {
@@ -178,7 +170,6 @@
         ext.renderAll();
     }
 
-    // ==================== 源管理 ====================
     async function addOrUpdateSource(form) {
         const sources = loadSources();
         const apiBase = normalizeApiBase(form.apiBase);
@@ -190,16 +181,9 @@
             if (idx === -1) throw new Error('源不存在');
             sources[idx] = { ...sources[idx], name: form.name, apiBase, dir };
             saveSources(sources);
-            // 重新加载
             await loadSource(sources[idx]);
         } else {
-            const src = {
-                id: genId(),
-                name: form.name || '',
-                apiBase,
-                dir,
-                enabled: true
-            };
+            const src = { id: genId(), name: form.name || '', apiBase, dir, enabled: true };
             sources.push(src);
             saveSources(sources);
             await loadSource(src);
@@ -226,7 +210,6 @@
         renderRows();
     }
 
-    // ==================== UI 渲染 ====================
     function ensureUI() {
         return new Promise((resolve) => {
             function tryInject() {
@@ -359,15 +342,15 @@
         }
     }
 
-    // ==================== 插件生命周期 ====================
     window.MP3LocalPlugin = {
-        version: '3.0.0',
+        version: '3.1.0',
         async init() {
             isActive = true;
             await ensureUI();
             renderRows();
             const sources = loadSources().filter(s => s.enabled);
-            await Promise.all(sources.map(s => loadSource(s)));
+            // 每源独立，Promise.allSettled 保证一个失败不影响其他
+            await Promise.allSettled(sources.map(s => loadSource(s)));
         },
         async unload() {
             isActive = false;

@@ -238,8 +238,20 @@
     <video id="audioPlayer" class="sr-only" playsinline preload="auto" aria-hidden="true"
            ontimeupdate="updateProgress()" onended="onAudioEnded()" onerror="onAudioError()"></video>
 
+    <!-- ==================== 全局错误监听 ==================== -->
     <script>
-        // ==================== 安全辅助 ====================
+        window.addEventListener('unhandledrejection', (e) => {
+            console.error('[Global] 未处理的 Promise 拒绝:', e.reason);
+            e.preventDefault();
+        });
+        window.addEventListener('error', (e) => {
+            console.error('[Global] 未捕获错误:', e.error || e.message);
+        });
+    </script>
+
+    <!-- ==================== 主應用邏輯 ==================== -->
+    <script>
+        // ---------- 安全辅助 ----------
         function encodeInlineArg(s) {
             return encodeURIComponent(String(s == null ? '' : s)).replace(/'/g, '%27');
         }
@@ -252,15 +264,14 @@
                 .replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
 
-        // ==================== 文件唯一 key ====================
-        // 本地文件由插件附上 _key（fileKey + '\x00' + sourceId）；News / Drive 无 _key，退回 relativePath
+        // ---------- 文件唯一 key ----------
         function getFileKey(f) {
             if (!f) return '';
             return f._key || f.relativePath || f.filename || '';
         }
         window.getFileKey = getFileKey;
 
-        // ==================== 从文件上下文读取请求参数 ====================
+        // ---------- 从文件上下文读取请求参数 ----------
         function getFileRequestParams(file) {
             const apiBase = (file && file._apiBase) || window.MP3GetMp3ApiBase();
             const dir = (file && file._dir) || window.MP3GetCurrentDir();
@@ -268,7 +279,7 @@
             return { apiBase, dir, originalKey };
         }
 
-        // ==================== Like 时间戳辅助 ====================
+        // ---------- Like 时间戳辅助 ----------
         function parseLikedAt(raw) {
             if (!raw) return null;
             if (raw === true) return null;
@@ -288,7 +299,7 @@
 
         window.mp3_showLikedDate = localStorage.getItem('mp3_show_liked_date') === 'true';
 
-        // ==================== 兜底：单源场景读取（多源场景不依赖） ====================
+        // ---------- 兜底（单源场景读取） ----------
         window.MP3GetCurrentDir = function () {
             return localStorage.getItem('mp3_last_dir') || '';
         };
@@ -297,12 +308,12 @@
             return String(base).trim().replace(/\/+$/, '') || '/api/mp3';
         };
 
-        // ==================== 主应用状态 ====================
+        // ---------- 主应用状态 ----------
         let allFiles = [];
         let categories = ['未分類', '流行', '輕音樂', '工作', '其他'];
         let currentCategory = '全部';
         let currentTagFilter = null;
-        let currentPlayingFile = null; // 这里存的是 _key
+        let currentPlayingFile = null;
         const audioPlayer = document.getElementById('audioPlayer');
 
         let currentPage = 1;
@@ -365,19 +376,12 @@
             categories = getSavedCategories();
             const params = new URLSearchParams(window.location.search);
 
-            // 旧兼容：如果 URL 带 ?dir= 且本地还没有配置，作为第一个源导入
             const dirParam = params.get('dir');
             if (dirParam) {
                 let sources = [];
                 try { sources = JSON.parse(localStorage.getItem('mp3_local_sources') || '[]'); } catch (e) {}
                 if (sources.length === 0) {
-                    sources.push({
-                        id: 'src_default',
-                        name: '本地音樂',
-                        apiBase: '/api/mp3',
-                        dir: dirParam,
-                        enabled: true
-                    });
+                    sources.push({ id: 'src_default', name: '本地音樂', apiBase: '/api/mp3', dir: dirParam, enabled: true });
                     localStorage.setItem('mp3_local_sources', JSON.stringify(sources));
                 }
             }
@@ -500,13 +504,12 @@
             window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
         }
 
-        // ==================== loadFiles 转发 ====================
+        // ---------- loadFiles 转发 ----------
         async function loadFiles(resetPage = false) {
             if (resetPage) currentPage = 1;
             if (window.MP3LocalPlugin && typeof window.MP3LocalPlugin.loadAllSources === 'function') {
                 return window.MP3LocalPlugin.loadAllSources();
             }
-            // 插件未启用：清空本地
             allFiles = allFiles.filter(f => f._source && f._source !== 'local');
             renderCategories();
             renderTagCloud();
@@ -909,6 +912,7 @@
             timerText.innerText = `[自動換歌: ${sec}s]`;
         }
 
+        // ★ 播放入口：数据源失败降级
         async function playSong(encodedKey, encodedName) {
             const uniqueKey = decodeURIComponent(encodedKey);
             const file = allFiles.find(f => getFileKey(f) === uniqueKey);
@@ -925,7 +929,12 @@
                 try {
                     return await window.MP3DataSourceHandlers[file._source].play(file);
                 } catch (e) {
-                    console.error('[DataSource] play failed:', e);
+                    console.error(`[DataSource] ${file._source}.play 失败:`, e);
+                    showCustomModal({
+                        title: '播放失败',
+                        message: `「${file._source}」插件无法播放该文件：\n${e.message || '未知错误'}`,
+                        type: 'error'
+                    });
                     return;
                 }
             }
@@ -1125,7 +1134,6 @@
                 return;
             }
 
-            // 按 (apiBase, dir) 分组
             const groups = new Map();
             likedKeys.forEach(uniqueKey => {
                 const file = allFiles.find(f => getFileKey(f) === uniqueKey);
@@ -1181,7 +1189,23 @@
         function goToPage(p) { currentPage = p; pendingScrollToCurrentSong = false; updateUrlParams(); renderTable(); }
         function changePageSize(sz) { pageSize = parseInt(sz); currentPage = 1; pendingScrollToCurrentSong = false; updateUrlParams(); renderTable(); }
 
+        // ★ 双层 try/catch：整体失败显示错误，单行失败不影响其他行
         function renderTable() {
+            try {
+                renderTableInner();
+            } catch (err) {
+                console.error('[renderTable] 渲染失败:', err);
+                const tbody = document.getElementById('fileTableBody');
+                if (tbody) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-rose-400">
+                        <i class="fa-solid fa-triangle-exclamation text-3xl mb-2 block"></i>
+                        渲染失败：${escapeHtmlAttr(err.message || '未知错误')}
+                    </td></tr>`;
+                }
+            }
+        }
+
+        function renderTableInner() {
             const tbody = document.getElementById('fileTableBody');
             let filtered = getFilteredFiles();
             document.getElementById('fileCountText').innerText = `共 ${filtered.length} 首`;
@@ -1207,71 +1231,76 @@
 
             let html = '';
             pageItems.forEach(file => {
-                const uniqueKey = getFileKey(file);
-                const isPlaying = currentPlayingFile === uniqueKey;
-                const sizeMb = file.size ? ((file.size / (1024 * 1024)).toFixed(1) + ' MB') : '';
-                const catOptions = categories.map(c => {
-                    const safe = escapeHtmlAttr(c);
-                    return `<option value="${safe}" ${c === file.category ? 'selected' : ''}>${safe}</option>`;
-                }).join('');
-                const tagsHtml = (file.tags || []).map(t => `<span class="bg-indigo-950 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[10px]">#${escapeHtmlAttr(t)}</span>`).join(' ');
+                try {
+                    const uniqueKey = getFileKey(file);
+                    const isPlaying = currentPlayingFile === uniqueKey;
+                    const sizeMb = file.size ? ((file.size / (1024 * 1024)).toFixed(1) + ' MB') : '';
+                    const catOptions = categories.map(c => {
+                        const safe = escapeHtmlAttr(c);
+                        return `<option value="${safe}" ${c === file.category ? 'selected' : ''}>${safe}</option>`;
+                    }).join('');
+                    const tagsHtml = (file.tags || []).map(t => `<span class="bg-indigo-950 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[10px]">#${escapeHtmlAttr(t)}</span>`).join(' ');
 
-                const encodedKey = encodeInlineArg(uniqueKey);
-                const encodedName = encodeInlineArg(file.displayName || file.filename || '');
-                const rowId = `row-${encodedKey.replace(/[%._-]/g, '_')}`;
-                const isExternal = (file._source && file._source !== 'local');
+                    const encodedKey = encodeInlineArg(uniqueKey);
+                    const encodedName = encodeInlineArg(file.displayName || file.filename || '');
+                    const rowId = `row-${encodedKey.replace(/[%._-]/g, '_')}`;
+                    const isExternal = (file._source && file._source !== 'local');
 
-                const likeTitle = file.isLiked
-                    ? (file.likedAt ? `取消最愛（收藏于 ${formatLikedAtDate(file.likedAt)}）` : '取消最愛')
-                    : '加入最愛';
+                    const likeTitle = file.isLiked
+                        ? (file.likedAt ? `取消最愛（收藏于 ${formatLikedAtDate(file.likedAt)}）` : '取消最愛')
+                        : '加入最愛';
 
-                const likedAtLine = (currentCategory === '我的最愛' && file.likedAt && window.mp3_showLikedDate)
-                    ? `<div class="text-[10px] text-rose-400/80 mt-0.5 flex items-center gap-1"><i class="fa-solid fa-clock text-[9px]"></i><span>收藏于 ${formatLikedAtDate(file.likedAt)}</span></div>`
-                    : '';
+                    const likedAtLine = (currentCategory === '我的最愛' && file.likedAt && window.mp3_showLikedDate)
+                        ? `<div class="text-[10px] text-rose-400/80 mt-0.5 flex items-center gap-1"><i class="fa-solid fa-clock text-[9px]"></i><span>收藏于 ${formatLikedAtDate(file.likedAt)}</span></div>`
+                        : '';
 
-                html += `
-                    <tr id="${rowId}" class="transition ${isPlaying ? 'bg-indigo-950/30 border-l-4 border-indigo-500' : 'hover:bg-slate-900/50'}">
-                        <td class="py-3 px-4 md:px-6" colspan="4">
-                            <div class="flex flex-col md:flex-row md:items-center gap-3">
-                                <div class="flex items-center space-x-3 flex-1 min-w-0">
-                                    <button onclick="playSong('${encodedKey}', '${encodedName}')" class="w-9 h-9 rounded-lg ${isPlaying ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-indigo-400 hover:bg-indigo-600 hover:text-white'} flex items-center justify-center transition shadow flex-shrink-0">
-                                        <i class="fa-solid ${isPlaying && !audioPlayer.paused ? 'fa-pause' : 'fa-play'} text-xs"></i>
-                                    </button>
-                                    <div class="overflow-hidden flex-1 min-w-0">
-                                        <div class="flex items-center space-x-2">
-                                            ${typeof window.MP3RenderSourceBadge === 'function' ? window.MP3RenderSourceBadge(file) : ''}
-                                            <span class="font-medium text-slate-200 truncate" title="${escapeHtmlAttr(file.displayName)}">${escapeHtmlAttr(file.displayName)}</span>
-                                            <button onclick="toggleLike('${encodedKey}', event)" class="text-xs transition ${file.isLiked ? 'text-rose-500 hover:text-rose-400' : 'text-slate-600 hover:text-slate-400'}" title="${escapeHtmlAttr(likeTitle)}">
-                                                <i class="${file.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}"></i>
-                                            </button>
+                    html += `
+                        <tr id="${rowId}" class="transition ${isPlaying ? 'bg-indigo-950/30 border-l-4 border-indigo-500' : 'hover:bg-slate-900/50'}">
+                            <td class="py-3 px-4 md:px-6" colspan="4">
+                                <div class="flex flex-col md:flex-row md:items-center gap-3">
+                                    <div class="flex items-center space-x-3 flex-1 min-w-0">
+                                        <button onclick="playSong('${encodedKey}', '${encodedName}')" class="w-9 h-9 rounded-lg ${isPlaying ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-indigo-400 hover:bg-indigo-600 hover:text-white'} flex items-center justify-center transition shadow flex-shrink-0">
+                                            <i class="fa-solid ${isPlaying && !audioPlayer.paused ? 'fa-pause' : 'fa-play'} text-xs"></i>
+                                        </button>
+                                        <div class="overflow-hidden flex-1 min-w-0">
+                                            <div class="flex items-center space-x-2">
+                                                ${typeof window.MP3RenderSourceBadge === 'function' ? window.MP3RenderSourceBadge(file) : ''}
+                                                <span class="font-medium text-slate-200 truncate" title="${escapeHtmlAttr(file.displayName)}">${escapeHtmlAttr(file.displayName)}</span>
+                                                <button onclick="toggleLike('${encodedKey}', event)" class="text-xs transition ${file.isLiked ? 'text-rose-500 hover:text-rose-400' : 'text-slate-600 hover:text-slate-400'}" title="${escapeHtmlAttr(likeTitle)}">
+                                                    <i class="${file.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}"></i>
+                                                </button>
+                                            </div>
+                                            ${file.relativePath && file.relativePath !== file.filename ? `<div class="text-[11px] text-slate-500 truncate">${escapeHtmlAttr(file.relativePath)}</div>` : ''}
+                                            ${likedAtLine}
                                         </div>
-                                        ${file.relativePath && file.relativePath !== file.filename ? `<div class="text-[11px] text-slate-500 truncate">${escapeHtmlAttr(file.relativePath)}</div>` : ''}
-                                        ${likedAtLine}
+                                    </div>
+
+                                    <div class="flex flex-wrap items-center gap-2 md:w-44 md:flex-shrink-0 md:justify-end">
+                                        <select onchange="changeCategory('${encodedKey}', this.value)" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-300 focus:outline-none focus:border-indigo-500 ${isExternal ? 'opacity-50 cursor-not-allowed' : ''}" ${isExternal ? 'disabled title="外部來源分類不可修改"' : ''}>
+                                            ${catOptions}
+                                        </select>
+                                        ${tagsHtml}
+                                        <button onclick="editSongTags('${encodedKey}', '${encodedName}')" class="text-[10px] text-slate-500 hover:text-indigo-400 px-1 border border-dashed border-slate-700 rounded ${isExternal ? 'opacity-30 cursor-not-allowed' : ''}" ${isExternal ? 'disabled' : ''}>+標籤</button>
+                                    </div>
+
+                                    <div class="hidden lg:block w-20 flex-shrink-0 text-xs text-slate-400 whitespace-nowrap">${sizeMb}</div>
+
+                                    <div class="flex items-center justify-end gap-1 md:w-20 flex-shrink-0">
+                                        <button onclick="toggleFileDislike('${encodedKey}')" class="p-1.5 rounded-lg transition ${file.isDisliked ? 'text-amber-400 hover:text-amber-300' : 'text-slate-500 hover:text-amber-400'}" title="${file.isDisliked ? '取消隱藏' : '隱藏此歌曲'}">
+                                            <i class="${file.isDisliked ? 'fa-solid' : 'fa-regular'} fa-thumbs-down text-sm"></i>
+                                        </button>
+                                        <button onclick="deleteSong('${encodedKey}')" class="text-slate-500 hover:text-rose-400 p-1.5 transition ${isExternal ? 'opacity-30 cursor-not-allowed' : ''}" ${isExternal ? 'disabled' : ''}>
+                                            <i class="fa-solid fa-trash-can text-sm"></i>
+                                        </button>
                                     </div>
                                 </div>
-
-                                <div class="flex flex-wrap items-center gap-2 md:w-44 md:flex-shrink-0 md:justify-end">
-                                    <select onchange="changeCategory('${encodedKey}', this.value)" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-300 focus:outline-none focus:border-indigo-500 ${isExternal ? 'opacity-50 cursor-not-allowed' : ''}" ${isExternal ? 'disabled title="外部來源分類不可修改"' : ''}>
-                                        ${catOptions}
-                                    </select>
-                                    ${tagsHtml}
-                                    <button onclick="editSongTags('${encodedKey}', '${encodedName}')" class="text-[10px] text-slate-500 hover:text-indigo-400 px-1 border border-dashed border-slate-700 rounded ${isExternal ? 'opacity-30 cursor-not-allowed' : ''}" ${isExternal ? 'disabled' : ''}>+標籤</button>
-                                </div>
-
-                                <div class="hidden lg:block w-20 flex-shrink-0 text-xs text-slate-400 whitespace-nowrap">${sizeMb}</div>
-
-                                <div class="flex items-center justify-end gap-1 md:w-20 flex-shrink-0">
-                                    <button onclick="toggleFileDislike('${encodedKey}')" class="p-1.5 rounded-lg transition ${file.isDisliked ? 'text-amber-400 hover:text-amber-300' : 'text-slate-500 hover:text-amber-400'}" title="${file.isDisliked ? '取消隱藏' : '隱藏此歌曲'}">
-                                        <i class="${file.isDisliked ? 'fa-solid' : 'fa-regular'} fa-thumbs-down text-sm"></i>
-                                    </button>
-                                    <button onclick="deleteSong('${encodedKey}')" class="text-slate-500 hover:text-rose-400 p-1.5 transition ${isExternal ? 'opacity-30 cursor-not-allowed' : ''}" ${isExternal ? 'disabled' : ''}>
-                                        <i class="fa-solid fa-trash-can text-sm"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                            </td>
+                        </tr>
+                    `;
+                } catch (err) {
+                    console.error('[renderTable] 单行渲染失败:', file, err);
+                    html += `<tr><td colspan="4" class="px-4 py-2 text-rose-400 text-xs">⚠️ 无法渲染：${escapeHtmlAttr(file?.filename || '未知文件')}</td></tr>`;
+                }
             });
             tbody.innerHTML = html;
             renderPagination(totalPages, filtered.length);
@@ -1383,6 +1412,7 @@
         }
     </script>
 
+    <!-- ==================== 主應用擴展接口 ==================== -->
     <script>
         window.MP3AppExtension = (function () {
             const call = (name, ...args) => {
@@ -1390,7 +1420,7 @@
                 if (typeof fn === 'function') return fn.apply(window, args);
             };
             return {
-                version: '2.0',
+                version: '2.1',
                 get allFiles() { return allFiles; },
                 set allFiles(v) { allFiles = v; },
                 get categories() { return categories; },
@@ -1435,6 +1465,7 @@
         console.log('[MP3AppExtension] ready v' + window.MP3AppExtension.version);
     </script>
 
+    <!-- ==================== 來源註冊表 ==================== -->
     <script>
         window.MP3SourceRegistry = window.MP3SourceRegistry || {
             local: { label: '本地', icon: 'fa-solid fa-hard-drive', badgeClass: 'bg-slate-800/80 text-slate-300 border-slate-600/60', dotClass: 'bg-slate-400' },
@@ -1502,6 +1533,7 @@
         };
     </script>
 
+    <!-- ==================== 插件管理器（加固版） ==================== -->
     <script>
     (function() {
         'use strict';
@@ -1515,17 +1547,19 @@
                 iconClass: 'text-slate-400',
                 scriptSrc: 'local-plugin.js',
                 globalVar: 'MP3LocalPlugin',
-                autoEnable: true
+                autoEnable: true,
+                dataSourceKeys: []
             },
             multiUser: {
                 id: 'multiUser',
                 name: '多用戶',
-                description: '每個用戶獨立的 Like 記憶，支持切換、導入導出',
+                description: '每個用戶獨立的 Like 記憶',
                 icon: 'fa-solid fa-user-shield',
                 iconClass: 'text-indigo-400',
                 scriptSrc: 'multi-user-plugin.js',
                 globalVar: 'MP3MultiUserPlugin',
-                autoEnable: true
+                autoEnable: true,
+                dataSourceKeys: []
             },
             news: {
                 id: 'news',
@@ -1534,16 +1568,18 @@
                 icon: 'fa-solid fa-newspaper',
                 iconClass: 'text-amber-400',
                 scriptSrc: 'news-plugin.js',
-                globalVar: 'MP3NewsPlugin'
+                globalVar: 'MP3NewsPlugin',
+                dataSourceKeys: ['news']
             },
             gdrive: {
                 id: 'gdrive',
                 name: 'Google Drive 音樂',
-                description: '從 Drive 的 music/fav 加載音樂、備份數據',
+                description: '從 Drive 的 music/fav 加載音樂',
                 icon: 'fa-brands fa-google-drive',
                 iconClass: 'text-emerald-400',
                 scriptSrc: 'google-drive-plugin.js',
-                globalVar: 'MP3GoogleDrivePlugin'
+                globalVar: 'MP3GoogleDrivePlugin',
+                dataSourceKeys: ['gdrive']
             }
         };
 
@@ -1562,12 +1598,72 @@
         }
 
         const loadedPlugins = {};
+        const loadingPlugins = {};
         const loadedScripts = new Set();
         let uiRoot = null;
 
+        // ==================== 工具 ====================
         function persist() {
             try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...enabled])); } catch(e) {}
         }
+
+        function withTimeout(promise, ms, msg) {
+            return Promise.race([
+                Promise.resolve(promise),
+                new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error(msg || `操作超时（${ms}ms）`)), ms)
+                )
+            ]);
+        }
+
+        function getBodyContainer(id) {
+            return uiRoot ? uiRoot.querySelector(`.plugin-body[data-plugin-id="${id}"]`) : null;
+        }
+
+        function cleanupDataSources(meta) {
+            if (!window.MP3DataSourceHandlers) return;
+            const keys = Array.isArray(meta.dataSourceKeys) ? meta.dataSourceKeys : [meta.id];
+            keys.forEach(k => {
+                try { delete window.MP3DataSourceHandlers[k]; } catch (e) {}
+            });
+        }
+
+        // 失败时完整回滚：unload → 清 DOM → 清 handler → 删全局变量 → 清 allFiles → 移除 enabled
+        async function rollbackPlugin(id, meta, plugin) {
+            console.warn(`[PluginManager] 回滚插件 ${id}…`);
+
+            if (plugin && typeof plugin.unload === 'function') {
+                try {
+                    await withTimeout(plugin.unload(), 4000, 'unload 超时');
+                } catch (e) {
+                    console.warn(`[PluginManager] ${id}.unload 异常:`, e);
+                }
+            }
+
+            const bodyEl = getBodyContainer(id);
+            if (bodyEl) bodyEl.innerHTML = '';
+
+            cleanupDataSources(meta);
+
+            try { delete window[meta.globalVar]; } catch (e) {}
+
+            const ext = window.MP3AppExtension;
+            if (ext && Array.isArray(ext.allFiles)) {
+                const sourceKeys = Array.isArray(meta.dataSourceKeys) ? meta.dataSourceKeys : [];
+                if (sourceKeys.length > 0) {
+                    try {
+                        ext.allFiles = ext.allFiles.filter(f => !sourceKeys.includes(f._source));
+                        if (typeof window.renderTable === 'function') window.renderTable();
+                    } catch (e) {
+                        console.warn('[PluginManager] 清理 allFiles 失败:', e);
+                    }
+                }
+            }
+
+            enabled.delete(id);
+            persist();
+        }
+
         function loadScriptOnce(src) {
             if (loadedScripts.has(src)) return Promise.resolve();
             return new Promise((resolve, reject) => {
@@ -1575,35 +1671,66 @@
                 s.src = src;
                 s.dataset.pluginSrc = src;
                 s.onload = () => { loadedScripts.add(src); resolve(); };
-                s.onerror = () => reject(new Error('無法加載插件腳本：' + src));
+                s.onerror = () => reject(new Error('无法加载插件脚本：' + src));
                 document.head.appendChild(s);
             });
         }
+
         async function enablePlugin(id) {
             const meta = REGISTRY[id];
             if (!meta) throw new Error('未知插件：' + id);
             if (loadedPlugins[id]) return loadedPlugins[id];
-            await loadScriptOnce(meta.scriptSrc);
-            const plugin = window[meta.globalVar];
-            if (!plugin) throw new Error('插件未暴露全局變量：' + meta.globalVar);
-            if (typeof plugin.init !== 'function') {
-                const v = plugin.version || '未知';
-                throw new Error(`插件「${meta.name}」版本 ${v} 缺少 init() 方法。請檢查 ${meta.scriptSrc} 是否為最新版本。`);
+            if (loadingPlugins[id]) return loadingPlugins[id];
+
+            const task = (async () => {
+                let plugin = null;
+                try {
+                    await withTimeout(loadScriptOnce(meta.scriptSrc), 10000, '加载脚本超时');
+                    plugin = window[meta.globalVar];
+                    if (!plugin) throw new Error(`插件未暴露全局变量：${meta.globalVar}`);
+                    if (typeof plugin.init !== 'function') {
+                        const v = plugin.version || '未知';
+                        throw new Error(`插件版本 ${v} 缺少 init() 方法`);
+                    }
+                    await withTimeout(plugin.init(), 15000, 'init 超时');
+                    loadedPlugins[id] = plugin;
+                    enabled.add(id);
+                    persist();
+                    return plugin;
+                } catch (err) {
+                    console.error(`[PluginManager] 插件「${meta.name}」启用失败:`, err);
+                    await rollbackPlugin(id, meta, plugin || window[meta.globalVar]);
+                    throw err;
+                }
+            })();
+
+            loadingPlugins[id] = task;
+            try {
+                return await task;
+            } finally {
+                delete loadingPlugins[id];
             }
-            await plugin.init();
-            loadedPlugins[id] = plugin;
-            enabled.add(id);
-            persist();
-            return plugin;
         }
+
         async function disablePlugin(id) {
+            const meta = REGISTRY[id];
             const plugin = loadedPlugins[id];
+
             if (plugin && typeof plugin.unload === 'function') {
-                try { await plugin.unload(); } catch(e) { console.error('[PluginManager] unload error:', e); }
+                try {
+                    await withTimeout(plugin.unload(), 5000, 'unload 超时');
+                } catch (e) {
+                    console.warn(`[PluginManager] ${id}.unload 异常（忽略并继续清理）:`, e);
+                }
             }
+
             delete loadedPlugins[id];
             enabled.delete(id);
             persist();
+
+            const bodyEl = getBodyContainer(id);
+            if (bodyEl) bodyEl.innerHTML = '';
+            cleanupDataSources(meta);
         }
 
         function injectUI() {
@@ -1622,7 +1749,7 @@
                             <i class="${meta.icon} ${meta.iconClass || 'text-indigo-400'} text-sm shrink-0"></i>
                             <div class="min-w-0">
                                 <div class="text-xs text-slate-200 font-medium truncate">${escapeHtmlAttr(meta.name)}</div>
-                                <div class="text-[10px] text-slate-500 truncate">${escapeHtmlAttr(meta.description)}</div>
+                                <div class="text-[10px] text-slate-500 truncate plugin-desc">${escapeHtmlAttr(meta.description)}</div>
                             </div>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer shrink-0">
@@ -1650,13 +1777,34 @@
                 toggle.addEventListener('change', async (e) => {
                     const id = e.target.dataset.pluginId;
                     const on = e.target.checked;
+                    const meta = REGISTRY[id];
+
+                    const itemEl = e.target.closest('.plugin-item');
+                    const descEl = itemEl ? itemEl.querySelector('.plugin-desc') : null;
+                    const origDesc = meta.description;
+
                     try {
                         if (on) await enablePlugin(id);
                         else await disablePlugin(id);
-                        if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
+                        if (descEl) descEl.textContent = origDesc;
                     } catch (err) {
-                        console.error('[PluginManager] toggle failed:', id, err);
                         e.target.checked = !on;
+                        if (descEl) {
+                            descEl.textContent = '⚠️ ' + (err.message || '启用失败');
+                            descEl.classList.add('text-rose-400');
+                            setTimeout(() => {
+                                descEl.textContent = origDesc;
+                                descEl.classList.remove('text-rose-400');
+                            }, 5000);
+                        }
+                    }
+
+                    try {
+                        if (typeof window.refreshSourceFilterOptions === 'function') {
+                            window.refreshSourceFilterOptions();
+                        }
+                    } catch (e) {
+                        console.warn('[PluginManager] 刷新来源过滤失败:', e);
                     }
                 });
             });
@@ -1667,11 +1815,23 @@
                 const rank = id => id === 'multiUser' ? 0 : id === 'local' ? 1 : 2;
                 return rank(a) - rank(b);
             });
-            for (const id of order) {
-                if (!enabled.has(id)) continue;
-                try { await enablePlugin(id); }
-                catch (e) { console.error('[PluginManager] restore failed:', id, e); enabled.delete(id); }
+
+            // multiUser 必须先加载，串行
+            if (enabled.has('multiUser')) {
+                try { await enablePlugin('multiUser'); }
+                catch (e) { console.error('[PluginManager] multiUser 恢复失败:', e); }
             }
+
+            // 其他插件并行加载，互不阻塞
+            const rest = order.filter(id => id !== 'multiUser' && enabled.has(id));
+            const results = await Promise.allSettled(rest.map(id => enablePlugin(id)));
+
+            results.forEach((r, i) => {
+                if (r.status === 'rejected') {
+                    console.error(`[PluginManager] ${rest[i]} 恢复失败:`, r.reason);
+                }
+            });
+
             persist();
         }
 
@@ -1681,16 +1841,16 @@
             disable: disablePlugin,
             isEnabled: (id) => enabled.has(id),
             isLoaded: (id) => !!loadedPlugins[id],
-            getBodyContainer(id) {
-                return uiRoot ? uiRoot.querySelector(`.plugin-body[data-plugin-id="${id}"]`) : null;
-            }
+            getBodyContainer
         };
 
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(async () => {
                 injectUI();
                 await restoreAll();
-                if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
+                if (typeof window.refreshSourceFilterOptions === 'function') {
+                    try { window.refreshSourceFilterOptions(); } catch (e) {}
+                }
             }, 400);
         });
     })();

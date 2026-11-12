@@ -1,7 +1,8 @@
 /**
- * 多用户插件 v1.2（独立文件版）
- * 
- * 变更：likes badge tooltip 只显示日期（YYYY-MM-DD）
+ * 多用户插件 v1.3
+ * - init 顺序：initStorage → injectUI → hookCoreFunctions（UI 成功后才 hook）
+ * - badge 用 getFileKey，兼容本地多源的 _key
+ * - Like 时间只显示日期
  */
 (function () {
     'use strict';
@@ -90,42 +91,48 @@
     }
 
     function decorateRowsWithLikesBadges() {
-        const files = (window.MP3AppExtension && window.MP3AppExtension.allFiles) || [];
-        if (files.length === 0) return;
+        try {
+            const files = (window.MP3AppExtension && window.MP3AppExtension.allFiles) || [];
+            if (files.length === 0) return;
 
-        files.forEach(file => {
-            const fileKey = file.relativePath || file.filename;
-            const encodedKey = encodeInlineArgLocal(fileKey);
-            const rowId = `row-${encodedKey.replace(/[%._-]/g, '_')}`;
-            const row = document.getElementById(rowId);
-            if (!row) return;
+            files.forEach(file => {
+                const fileKey = (typeof window.getFileKey === 'function')
+                    ? window.getFileKey(file)
+                    : (file._key || file.relativePath || file.filename);
+                const encodedKey = encodeInlineArgLocal(fileKey);
+                const rowId = `row-${encodedKey.replace(/[%._-]/g, '_')}`;
+                const row = document.getElementById(rowId);
+                if (!row) return;
 
-            const likedUsers = [];
-            usersList.forEach(u => {
-                const map = getUserLikesMap(u);
-                if (map && map[fileKey]) {
-                    let ts = null;
-                    const v = map[fileKey];
-                    if (typeof v === 'object' && typeof v.ts === 'number') ts = v.ts;
-                    likedUsers.push({ name: u, ts });
+                const likedUsers = [];
+                usersList.forEach(u => {
+                    const map = getUserLikesMap(u);
+                    if (map && map[fileKey]) {
+                        let ts = null;
+                        const v = map[fileKey];
+                        if (typeof v === 'object' && typeof v.ts === 'number') ts = v.ts;
+                        likedUsers.push({ name: u, ts });
+                    }
+                });
+
+                const titleContainer = row.querySelector('.flex.items-center.space-x-2');
+                if (!titleContainer) return;
+
+                const oldBadge = titleContainer.querySelector('.plugin-likes-badge');
+                if (oldBadge) oldBadge.remove();
+
+                if (likedUsers.length > 0) {
+                    const badge = document.createElement('span');
+                    badge.className = 'plugin-likes-badge text-[10px] text-rose-400 bg-rose-950/40 border border-rose-500/30 px-1.5 py-0.5 rounded ml-2';
+                    const tooltip = likedUsers.map(x => x.ts ? `${x.name}（${formatDate(x.ts)}）` : x.name).join('\n');
+                    badge.title = `按讚用戶：\n${tooltip}`;
+                    badge.innerHTML = `<i class="fa-solid fa-heart mr-1"></i>${likedUsers.length}`;
+                    titleContainer.appendChild(badge);
                 }
             });
-
-            const titleContainer = row.querySelector('.flex.items-center.space-x-2');
-            if (!titleContainer) return;
-
-            const oldBadge = titleContainer.querySelector('.plugin-likes-badge');
-            if (oldBadge) oldBadge.remove();
-
-            if (likedUsers.length > 0) {
-                const badge = document.createElement('span');
-                badge.className = 'plugin-likes-badge text-[10px] text-rose-400 bg-rose-950/40 border border-rose-500/30 px-1.5 py-0.5 rounded ml-2';
-                const tooltip = likedUsers.map(x => x.ts ? `${x.name}（${formatDate(x.ts)}）` : x.name).join('\n');
-                badge.title = `按讚用戶：\n${tooltip}`;
-                badge.innerHTML = `<i class="fa-solid fa-heart mr-1"></i>${likedUsers.length}`;
-                titleContainer.appendChild(badge);
-            }
-        });
+        } catch (e) {
+            console.error('[multiUser] decorateRowsWithLikesBadges 失败:', e);
+        }
     }
 
     function injectUI() {
@@ -380,14 +387,16 @@
     }
 
     window.MP3MultiUserPlugin = {
-        version: '1.2.0',
+        version: '1.3.0',
         async init() {
             initStorage();
-            hookCoreFunctions();
-            await injectUI();
+            await injectUI();          // 先完成 UI
+            hookCoreFunctions();       // UI 成功后再 hook
             refreshUI();
             setTimeout(() => {
-                if (typeof window.renderTable === 'function') window.renderTable();
+                if (typeof window.renderTable === 'function') {
+                    try { window.renderTable(); } catch (e) {}
+                }
             }, 100);
         },
         async unload() {
