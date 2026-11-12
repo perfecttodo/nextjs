@@ -18,6 +18,13 @@
         #mobileDrawer { transition: transform 0.3s ease-in-out; }
         #mobileDrawerToggle.is-open .fa-bars::before { content: "\f00d"; }
         .plugin-body:empty { display: none; }
+
+        /* 播放行脉冲高亮（3 次后停止） */
+        @keyframes playingHighlight {
+            0%, 100% { background-color: rgba(49, 46, 129, 0.30); }
+            50%      { background-color: rgba(49, 46, 129, 0.45); }
+        }
+        tr.playing-row { animation: playingHighlight 1.6s ease-in-out 3; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 h-screen flex flex-col overflow-hidden" style="height: 100dvh;">
@@ -912,7 +919,6 @@
             timerText.innerText = `[自動換歌: ${sec}s]`;
         }
 
-        // ★ 播放入口：数据源失败降级
         async function playSong(encodedKey, encodedName) {
             const uniqueKey = decodeURIComponent(encodedKey);
             const file = allFiles.find(f => getFileKey(f) === uniqueKey);
@@ -1189,7 +1195,25 @@
         function goToPage(p) { currentPage = p; pendingScrollToCurrentSong = false; updateUrlParams(); renderTable(); }
         function changePageSize(sz) { pageSize = parseInt(sz); currentPage = 1; pendingScrollToCurrentSong = false; updateUrlParams(); renderTable(); }
 
-        // ★ 双层 try/catch：整体失败显示错误，单行失败不影响其他行
+        // ★ 居中滚动到当前播放歌曲
+        function scrollToCurrentSongInTable() {
+            if (!currentPlayingFile) return;
+            const container = document.getElementById('tableContainer');
+            if (!container) return;
+
+            const rowId = `row-${encodeInlineArg(currentPlayingFile).replace(/[%._-]/g, '_')}`;
+            const row = document.getElementById(rowId);
+            if (!row) return;
+
+            const containerRect = container.getBoundingClientRect();
+            const rowRect = row.getBoundingClientRect();
+            const delta = (rowRect.top - containerRect.top) + rowRect.height / 2 - containerRect.height / 2;
+
+            if (Math.abs(delta) < 2) return;
+            container.scrollBy({ top: delta, behavior: 'smooth' });
+        }
+
+        // ★ 双层 try/catch
         function renderTable() {
             try {
                 renderTableInner();
@@ -1254,8 +1278,13 @@
                         ? `<div class="text-[10px] text-rose-400/80 mt-0.5 flex items-center gap-1"><i class="fa-solid fa-clock text-[9px]"></i><span>收藏于 ${formatLikedAtDate(file.likedAt)}</span></div>`
                         : '';
 
+                    // ★ 播放行加 playing-row class 触发脉冲动画
+                    const rowClass = isPlaying
+                        ? 'playing-row bg-indigo-950/30 border-l-4 border-indigo-500'
+                        : 'hover:bg-slate-900/50';
+
                     html += `
-                        <tr id="${rowId}" class="transition ${isPlaying ? 'bg-indigo-950/30 border-l-4 border-indigo-500' : 'hover:bg-slate-900/50'}">
+                        <tr id="${rowId}" class="${rowClass} transition">
                             <td class="py-3 px-4 md:px-6" colspan="4">
                                 <div class="flex flex-col md:flex-row md:items-center gap-3">
                                     <div class="flex items-center space-x-3 flex-1 min-w-0">
@@ -1305,11 +1334,14 @@
             tbody.innerHTML = html;
             renderPagination(totalPages, filtered.length);
 
+            // ★ 播放后居中滚动（双 rAF 确保布局完成）
             if (pendingScrollToCurrentSong && currentPlayingFile) {
-                const rowId = `row-${encodeInlineArg(currentPlayingFile).replace(/[%._-]/g, '_')}`;
-                const targetRow = document.getElementById(rowId);
-                if (targetRow) targetRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 pendingScrollToCurrentSong = false;
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        scrollToCurrentSongInTable();
+                    });
+                });
             }
 
             if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
@@ -1420,7 +1452,7 @@
                 if (typeof fn === 'function') return fn.apply(window, args);
             };
             return {
-                version: '2.1',
+                version: '2.2',
                 get allFiles() { return allFiles; },
                 set allFiles(v) { allFiles = v; },
                 get categories() { return categories; },
@@ -1602,7 +1634,6 @@
         const loadedScripts = new Set();
         let uiRoot = null;
 
-        // ==================== 工具 ====================
         function persist() {
             try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...enabled])); } catch(e) {}
         }
@@ -1628,7 +1659,6 @@
             });
         }
 
-        // 失败时完整回滚：unload → 清 DOM → 清 handler → 删全局变量 → 清 allFiles → 移除 enabled
         async function rollbackPlugin(id, meta, plugin) {
             console.warn(`[PluginManager] 回滚插件 ${id}…`);
 
@@ -1816,13 +1846,11 @@
                 return rank(a) - rank(b);
             });
 
-            // multiUser 必须先加载，串行
             if (enabled.has('multiUser')) {
                 try { await enablePlugin('multiUser'); }
                 catch (e) { console.error('[PluginManager] multiUser 恢复失败:', e); }
             }
 
-            // 其他插件并行加载，互不阻塞
             const rest = order.filter(id => id !== 'multiUser' && enabled.has(id));
             const results = await Promise.allSettled(rest.map(id => enablePlugin(id)));
 
