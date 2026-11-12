@@ -993,21 +993,60 @@
             timerText.innerText = `[自動換歌: ${sec}s]`;
         }
 
+        // ==================== 播放 UI 统一同步 ====================
+        // 把“设置当前播放 + 切页 + 更新标题/媒体会话/来源徽章 + 高亮 + 滚动居中”抽成公共函数，
+        // 本地来源与外部来源都调用它，保证无论哪种来源都能让列表滚动到该歌曲并高亮。
+        function applyPlaybackUI(uniqueKey, file, displayName) {
+            if (!file) return;
+            currentPlayingFile = uniqueKey;
+            pendingScrollToCurrentSong = true;   // 触发 renderTable 内的居中滚动
+            syncPageToFile(uniqueKey);            // 自动翻到该歌所在页
+
+            const titleEl = document.getElementById('currentSongTitle');
+            const catEl   = document.getElementById('currentSongCategory');
+            if (titleEl) titleEl.innerText = displayName;
+            if (catEl)   catEl.innerText   = file.category || '';
+
+            updateDocumentTitle(displayName);
+            updateMediaSessionMetadata(displayName, getSourceArtist(file));
+            localStorage.setItem('mp3_last_played_key', uniqueKey);
+            localStorage.setItem('mp3_last_played_title', displayName);
+
+            if (typeof window.MP3SetPlayerSourceBadge === 'function') {
+                window.MP3SetPlayerSourceBadge(file);
+            }
+
+            updatePlayerLikeState();
+            updatePlayerDislikeState();
+
+            renderTable();       // 高亮当前行 + pendingScrollToCurrentSong 触发居中
+            updatePlayButton();
+        }
+
         async function playSong(encodedKey, encodedName) {
             const uniqueKey = decodeURIComponent(encodedKey);
             const file = allFiles.find(f => getFileKey(f) === uniqueKey);
+            if (!file) return;
 
+            // 重置所有数据源插件状态
             if (window.MP3DataSourceHandlers) {
                 Object.entries(window.MP3DataSourceHandlers).forEach(([k, h]) => {
                     if (h && typeof h.reset === 'function') { try { h.reset(); } catch (e) {} }
                 });
             }
 
-            if (file && file._source && file._source !== 'local'
+            const displayName = encodedName
+                ? decodeURIComponent(encodedName)
+                : ((file.displayName || file.filename) || uniqueKey);
+
+            // ========== 外部来源 ==========
+            if (file._source && file._source !== 'local'
                 && window.MP3DataSourceHandlers
                 && window.MP3DataSourceHandlers[file._source]) {
+
+                const wasCurrentSong = (currentPlayingFile === uniqueKey);
                 try {
-                    return await window.MP3DataSourceHandlers[file._source].play(file);
+                    await window.MP3DataSourceHandlers[file._source].play(file);
                 } catch (e) {
                     console.error(`[DataSource] ${file._source}.play 失败:`, e);
                     showCustomModal({
@@ -1017,38 +1056,37 @@
                     });
                     return;
                 }
+
+                // 同一首歌再次点击：仅同步状态，不重新滚动 / 不重置播放器
+                if (wasCurrentSong) {
+                    updatePlayerLikeState();
+                    updatePlayerDislikeState();
+                    renderTable();
+                    updatePlayButton();
+                    return;
+                }
+
+                // 新歌：从最新 allFiles 重新取引用（插件内部可能重建了列表）
+                const refreshed = allFiles.find(f => getFileKey(f) === uniqueKey) || file;
+                applyPlaybackUI(uniqueKey, refreshed, displayName);
+                return;
             }
 
-            const displayName = encodedName ? decodeURIComponent(encodedName) : (file && (file.displayName || file.filename)) || uniqueKey;
-            if (!file) return;
+            // ========== 本地来源 ==========
             const { apiBase, dir, originalKey } = getFileRequestParams(file);
             const streamUrl = `${apiBase}?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(originalKey)}`;
 
-            syncPageToFile(uniqueKey);
-
             if (currentPlayingFile !== uniqueKey) {
-                currentPlayingFile = uniqueKey;
-                pendingScrollToCurrentSong = true;
                 audioPlayer.src = streamUrl;
                 audioPlayer.play();
-                document.getElementById('currentSongTitle').innerText = displayName;
-                document.getElementById('currentSongCategory').innerText = file.category || '';
-                updateDocumentTitle(displayName);
-                updateMediaSessionMetadata(displayName, getSourceArtist(file));
-                localStorage.setItem('mp3_last_played_key', uniqueKey);
-                localStorage.setItem('mp3_last_played_title', displayName);
-
-                if (typeof window.MP3SetPlayerSourceBadge === 'function') {
-                    window.MP3SetPlayerSourceBadge(file);
-                }
+                applyPlaybackUI(uniqueKey, file, displayName);
             } else {
                 if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause();
+                updatePlayerLikeState();
+                updatePlayerDislikeState();
+                renderTable();
+                updatePlayButton();
             }
-
-            updatePlayerLikeState();
-            updatePlayerDislikeState();
-            renderTable();
-            updatePlayButton();
 
             if (isAutoMode && !audioPlayer.paused) startAutoTimer(10);
             else clearAutoTimer();
