@@ -1804,6 +1804,17 @@
                 icon: 'fa-brands fa-google-drive', iconClass: 'text-emerald-400',
                 scriptSrc: 'google-drive-plugin.js', globalVar: 'MP3GoogleDrivePlugin',
                 dataSourceKeys: ['gdrive']
+            },
+            videoPlayer: {
+                id: 'videoPlayer',
+                name: '视频渲染',
+                description: '检测到视频轨道时显示悬浮小窗，支持全屏/画中画',
+                icon: 'fa-solid fa-tv',
+                iconClass: 'text-purple-400',
+                scriptSrc: 'video-player-plugin.js',
+                globalVar: 'MP3VideoPlayerPlugin',
+                autoEnable: true,
+                dataSourceKeys: []
             }
         };
 

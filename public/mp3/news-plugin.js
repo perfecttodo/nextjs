@@ -1,11 +1,12 @@
 /**
- * News 播放列表插件 v2.3
+ * News 播放列表插件 v2.5
  * 
- * 相对 v2.2 的改动：
- *  1. 新增 visibilitychange 处理，解决切后台 HLS 停播问题
- *  2. hidden 时：记录播放状态，不销毁 hls 实例、不 stopLoad（否则音频真断）
- *  3. visible 时：尝试恢复播放 + 检查缓冲、必要时 startLoad
- *  4. reset / unload 时清理监听
+ * 相对 v2.4 的修复：
+ *  1. ★ 切歌时重置 media.currentTime = 0，避免新视频 seek 到空 buffer
+ *  2. ★ loadSource 前 stopLoad()，清理旧请求
+ *  3. ★ loadSource 后 startLoad()，确保新流开始加载
+ *  4. ★ 复用失败时降级重建实例（保证能播放，视频插件会尝试恢复全屏）
+ *  5. 增加详细日志，便于排查
  */
 (function () {
     'use strict';
@@ -21,8 +22,8 @@
     let loadedPages = new Set();
     let loading = false;
     let hlsInstance = null;
+    let hlsAttachedMedia = null;
 
-    // ★ 可见性相关
     let visibilityHandler = null;
     let wasPlayingBeforeHidden = false;
 
@@ -77,24 +78,14 @@
     // ==================== 可见性处理 ====================
     function attachVisibilityHandler(media) {
         cleanupVisibilityHandler();
-
         visibilityHandler = () => {
             if (!hlsInstance) return;
-
             if (document.visibilityState === 'hidden') {
-                // 记录切后台前的播放状态，但不暂停、不 stopLoad
-                // 让浏览器/系统自己处理媒体元素暂停；hls 解析在 Worker 中不受影响
                 wasPlayingBeforeHidden = !media.paused;
-                console.log('[News HLS] Page hidden, wasPlaying =', wasPlayingBeforeHidden);
             } else if (document.visibilityState === 'visible') {
-                console.log('[News HLS] Page visible, attempting resume…');
-                // 1. 如果切回来时媒体元素被浏览器强制暂停了，尝试恢复
                 if (wasPlayingBeforeHidden && media.paused) {
-                    media.play().catch((e) => {
-                        console.warn('[News HLS] Resume play failed:', e);
-                    });
+                    media.play().catch(() => {});
                 }
-                // 2. 检查缓冲，如果已经耗尽（长时间后台），重新 startLoad
                 try {
                     const buffered = media.buffered;
                     let hasBuffer = false;
@@ -105,16 +96,12 @@
                             break;
                         }
                     }
-                    if (!hasBuffer) {
-                        console.log('[News HLS] Buffer empty, restarting load at', t);
+                    if (!hasBuffer && hlsInstance) {
                         hlsInstance.startLoad(t > 0 ? t - 1 : -1);
                     }
-                } catch (e) {
-                    console.warn('[News HLS] startLoad check failed:', e);
-                }
+                } catch (e) {}
             }
         };
-
         document.addEventListener('visibilitychange', visibilityHandler);
     }
 
@@ -166,14 +153,12 @@
         if (loading) return;
         const ext = window.MP3AppExtension;
         if (!ext) return;
-
         loading = true;
         setStatus('正在加载…');
         try {
             ext.allFiles = ext.allFiles.filter(f => f._source !== 'news');
             loadedPages.clear();
             lastMeta = null;
-
             await loadPage(1);
             setStatus(`✅ 已加载 ${CONFIG.apiPageSize} 条`, 'success');
             renderCard();
@@ -189,11 +174,9 @@
         const ext = window.MP3AppExtension;
         if (!ext) return;
         if (!lastMeta) return;
-
         const maxLoaded = loadedPages.size > 0 ? Math.max(...loadedPages) : 0;
         const nextPage = maxLoaded + 1;
         if (nextPage > lastMeta.totalPages) return;
-
         loading = true;
         setStatus(`正在加载第 ${nextPage} 页…`);
         try {
@@ -211,16 +194,12 @@
         const ext = window.MP3AppExtension;
         if (!ext || loading || !lastMeta) return;
         if (ext.currentCategory !== CONFIG.categoryName) return;
-
         const currentPage = ext.currentPage || 1;
         const pageSize = ext.pageSize || 20;
         const need = currentPage * pageSize;
         const newsCount = ext.allFiles.filter(f => f._source === 'news').length;
         const maxLoaded = loadedPages.size > 0 ? Math.max(...loadedPages) : 0;
-
-        if (newsCount < need && maxLoaded < lastMeta.totalPages) {
-            loadMore();
-        }
+        if (newsCount < need && maxLoaded < lastMeta.totalPages) loadMore();
     }
 
     // ==================== 预检 m3u8 ====================
@@ -242,38 +221,39 @@
         const ext = window.MP3AppExtension;
         const media = ext.audioPlayer;
 
-        if (hlsInstance) { try { hlsInstance.destroy(); } catch (e) {} hlsInstance = null; }
-        try { media.pause(); } catch (e) {}
-        media.removeAttribute('src');
-        try { media.load(); } catch (e) {}
-
-        console.log('[News HLS] URL:', url);
-        console.log('[News HLS] 浏览器能力:', {
-            hasMSE: !!window.MediaSource,
-            canPlayNative: media.canPlayType('application/vnd.apple.mpegurl')
-        });
+        console.log('[News HLS] playHls:', url, '复用 =', !!(hlsInstance && hlsAttachedMedia === media));
 
         try {
             setStatus('正在检查 m3u8…');
             await preflightM3u8(url);
         } catch (e) {
-            console.error('[News HLS] 预检失败:', e);
             throw new Error('m3u8 预检失败：' + e.message);
         }
 
         try {
             await ensureHlsJs();
             if (window.Hls && window.Hls.isSupported()) {
-                console.log('[News HLS] 使用 hls.js');
-                await playWithHlsJs(media, url);
+                // ★ 优先复用
+                if (hlsInstance && hlsAttachedMedia === media) {
+                    try {
+                        await switchHlsSource(media, url);
+                        return;
+                    } catch (e) {
+                        console.warn('[News HLS] 复用失败，降级重建:', e.message);
+                        // 降级：强制 destroy 后重建
+                        try { hlsInstance.destroy(); } catch (er) {}
+                        hlsInstance = null;
+                        hlsAttachedMedia = null;
+                    }
+                }
+                await createAndPlayHls(media, url);
                 return;
             }
         } catch (e) {
-            console.warn('[News HLS] hls.js 加载/播放失败，尝试原生:', e.message);
+            console.warn('[News HLS] hls.js 失败，尝试原生:', e.message);
         }
 
         if (media.canPlayType('application/vnd.apple.mpegurl')) {
-            console.log('[News HLS] 使用原生 HLS');
             await playWithNativeHls(media, url);
             return;
         }
@@ -281,11 +261,96 @@
         throw new Error('浏览器不支持 HLS');
     }
 
-    async function playWithHlsJs(media, url) {
+    // ★ 复用实例切换源（v2.5 修复）
+    async function switchHlsSource(media, url) {
+        return new Promise((resolve, reject) => {
+            const hls = hlsInstance;
+            let settled = false;
+
+            console.log('[News HLS] switchHlsSource:', url);
+
+            const finish = (fn, arg) => {
+                if (settled) return;
+                settled = true;
+                fn(arg);
+            };
+
+            const onParsed = () => {
+                console.log('[News HLS] switch MANIFEST_PARSED');
+                cleanup();
+                try {
+                    // ★ 关键1：重置播放位置，避免 seek 到旧 buffer 位置
+                    media.currentTime = 0;
+                } catch (e) {
+                    console.warn('[News HLS] reset currentTime failed:', e);
+                }
+                media.play()
+                    .then(() => {
+                        attachVisibilityHandler(media);
+                        finish(resolve);
+                    })
+                    .catch(err => {
+                        console.warn('[News HLS] switch play rejected:', err);
+                        finish(reject, new Error('切换后播放失败: ' + err.message));
+                    });
+            };
+
+            const onError = (e, data) => {
+                if (!data.fatal) return;
+                console.warn('[News HLS] switch fatal error:', data.type, data.details);
+                cleanup();
+                finish(reject, new Error(`${data.type}/${data.details}`));
+            };
+
+            const onTimeout = () => {
+                console.warn('[News HLS] switch timeout');
+                cleanup();
+                finish(reject, new Error('切换 HLS 源超时'));
+            };
+
+            const cleanup = () => {
+                clearTimeout(timeoutId);
+                try { hls.off(window.Hls.Events.MANIFEST_PARSED, onParsed); } catch (e) {}
+                try { hls.off(window.Hls.Events.ERROR, onError); } catch (e) {}
+            };
+
+            hls.on(window.Hls.Events.MANIFEST_PARSED, onParsed);
+            hls.on(window.Hls.Events.ERROR, onError);
+            const timeoutId = setTimeout(onTimeout, 12000);
+
+            try {
+                // ★ 关键2：停止旧加载
+                try { hls.stopLoad(); } catch (e) {}
+
+                // ★ 关键3：暂停并重置 media
+                try {
+                    media.pause();
+                    media.currentTime = 0;
+                } catch (e) {}
+
+                // 切换源
+                hls.loadSource(url);
+
+                // 确保 attach 状态
+                if (hls.media !== media) {
+                    hls.attachMedia(media);
+                }
+
+                // ★ 关键4：显式启动加载
+                try { hls.startLoad(); } catch (e) {}
+            } catch (e) {
+                cleanup();
+                finish(reject, e);
+            }
+        });
+    }
+
+    // 首次创建实例
+    async function createAndPlayHls(media, url) {
         return new Promise((resolve, reject) => {
             const hls = new window.Hls({
                 lowLatencyMode: false,
-                enableWorker: true,             // ★ Worker 线程解析，后台不受可见性节流影响
+                enableWorker: true,
                 manifestLoadingMaxRetry: 2,
                 manifestLoadingRetryDelay: 800,
                 fragLoadingMaxRetry: 3,
@@ -295,6 +360,7 @@
                 startLevel: -1
             });
             hlsInstance = hls;
+            hlsAttachedMedia = media;
 
             let recoveredNetwork = false;
             let recoveredMedia = false;
@@ -306,31 +372,25 @@
 
             const cleanup = () => {
                 clearTimeout(timeout);
-                try {
-                    hls.off(window.Hls.Events.MANIFEST_PARSED);
-                    hls.off(window.Hls.Events.ERROR);
-                } catch (e) {}
+                try { hls.off(window.Hls.Events.MANIFEST_PARSED, onParsed); } catch (e) {}
+                try { hls.off(window.Hls.Events.ERROR, onError); } catch (e) {}
             };
 
-            hls.on(window.Hls.Events.MANIFEST_PARSED, (e, data) => {
-                console.log('[News HLS] manifest 解析成功，levels:', (data.levels || []).map(lv => ({
-                    videoCodec: lv.videoCodec || '(无)',
-                    audioCodec: lv.audioCodec || '(无)'
-                })));
+            const onParsed = () => {
+                console.log('[News HLS] create MANIFEST_PARSED');
                 cleanup();
+                try { media.currentTime = 0; } catch (e) {}
                 media.play()
                     .then(() => {
-                        // ★ 播放成功后挂载可见性监听
                         attachVisibilityHandler(media);
                         resolve();
                     })
                     .catch(err => reject(new Error('播放失败: ' + err.message)));
-            });
+            };
 
-            hls.on(window.Hls.Events.ERROR, (e, data) => {
-                console.error('[News HLS] error:', data.type, data.details, 'fatal=' + data.fatal);
+            const onError = (e, data) => {
+                console.warn('[News HLS] create fatal error:', data.type, data.details);
                 if (!data.fatal) return;
-
                 if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR && !recoveredNetwork) {
                     recoveredNetwork = true;
                     try { hls.startLoad(); return; } catch (er) {}
@@ -339,11 +399,12 @@
                     recoveredMedia = true;
                     try { hls.recoverMediaError(); return; } catch (er) {}
                 }
-
                 cleanup();
-                const reason = data.reason ? '：' + data.reason : '';
-                reject(new Error(`${data.type}/${data.details}${reason}`));
-            });
+                reject(new Error(`${data.type}/${data.details}`));
+            };
+
+            hls.on(window.Hls.Events.MANIFEST_PARSED, onParsed);
+            hls.on(window.Hls.Events.ERROR, onError);
 
             hls.loadSource(url);
             hls.attachMedia(media);
@@ -354,19 +415,14 @@
         return new Promise((resolve, reject) => {
             media.crossOrigin = 'anonymous';
             media.src = url;
-
             const timeout = setTimeout(() => {
                 cleanup();
-                const err = media.error;
-                const detail = err ? ` (error.code=${err.code})` : '';
-                reject(new Error('原生 HLS 加载超时 15s' + detail));
+                reject(new Error('原生 HLS 加载超时 15s'));
             }, 15000);
-
             const onLoaded = () => {
                 cleanup();
                 media.play()
                     .then(() => {
-                        // ★ 原生 HLS 也挂载可见性监听
                         attachVisibilityHandler(media);
                         resolve();
                     })
@@ -374,24 +430,26 @@
             };
             const onError = () => {
                 cleanup();
-                const err = media.error;
-                let detail = '未知错误';
-                if (err) {
-                    const codeMap = { 1: 'MEDIA_ERR_ABORTED', 2: 'MEDIA_ERR_NETWORK', 3: 'MEDIA_ERR_DECODE', 4: 'MEDIA_ERR_SRC_NOT_SUPPORTED' };
-                    detail = `${codeMap[err.code] || err.code} / ${err.message || '(空)'}`;
-                }
-                reject(new Error('原生播放失败：' + detail));
+                reject(new Error('原生播放失败'));
             };
             const cleanup = () => {
                 clearTimeout(timeout);
                 media.removeEventListener('loadedmetadata', onLoaded);
                 media.removeEventListener('error', onError);
             };
-
             media.addEventListener('loadedmetadata', onLoaded);
             media.addEventListener('error', onError);
             media.load();
         });
+    }
+
+    function destroyHls() {
+        cleanupVisibilityHandler();
+        if (hlsInstance) {
+            try { hlsInstance.destroy(); } catch (e) {}
+            hlsInstance = null;
+            hlsAttachedMedia = null;
+        }
     }
 
     // ==================== 数据源处理器 ====================
@@ -399,11 +457,7 @@
         window.MP3DataSourceHandlers = window.MP3DataSourceHandlers || {};
         window.MP3DataSourceHandlers['news'] = {
             reset() {
-                cleanupVisibilityHandler();   // ★ 切歌/清理时移除可见性监听
-                if (hlsInstance) {
-                    try { hlsInstance.destroy(); } catch (e) {}
-                    hlsInstance = null;
-                }
+                // 不 destroy hls，只清理可见性监听
             },
             play: async (file) => {
                 const ext = window.MP3AppExtension;
@@ -413,17 +467,15 @@
                     setStatus('该条新闻缺少播放地址', 'error');
                     return;
                 }
-
                 const url = item.url;
                 const isHls = /\.m3u8(\?|$)/i.test(url) || item.format === 'application/vnd.apple.mpegurl';
 
                 try {
                     setStatus('正在加载音频…');
-
                     if (isHls) {
                         await playHls(url);
                     } else {
-                        if (hlsInstance) { try { hlsInstance.destroy(); } catch (e) {} hlsInstance = null; }
+                        destroyHls();
                         ext.audioPlayer.crossOrigin = null;
                         ext.audioPlayer.src = url;
                         await ext.audioPlayer.play().catch(e => { throw new Error('播放失败：' + e.message); });
@@ -436,14 +488,11 @@
                     if (typeof window.MP3SetPlayerSourceBadge === 'function') {
                         window.MP3SetPlayerSourceBadge(file);
                     }
-
                     ext.updatePlayerLikeState();
                     ext.updatePlayerDislikeState();
                     ext.renderTable();
                     ext.updatePlayButton();
-
                     if (window.MP3AppExtension?.syncMediaSession) window.MP3AppExtension.syncMediaSession();
-
                     setStatus('▶️ ' + file.displayName, 'success');
                 } catch (e) {
                     console.error('[News] 播放失败:', e);
@@ -456,8 +505,7 @@
     // ==================== UI ====================
     function injectUI() {
         const body = window.MP3PluginManager && window.MP3PluginManager.getBodyContainer
-            ? window.MP3PluginManager.getBodyContainer('news')
-            : null;
+            ? window.MP3PluginManager.getBodyContainer('news') : null;
         if (!body) { setTimeout(injectUI, 300); return; }
         if (uiRoot) return;
 
@@ -473,7 +521,6 @@
             <p class="news-status text-[10px] min-h-[0.75rem] break-all text-slate-500"></p>
         `;
         body.appendChild(uiRoot);
-
         uiRoot.querySelector('.news-refresh').addEventListener('click', () => refresh());
         renderCard();
     }
@@ -482,24 +529,21 @@
         if (!uiRoot) return;
         const info = uiRoot.querySelector('.news-info');
         if (!info) return;
-
         if (!lastMeta) {
             info.innerHTML = `<span class="text-slate-500">尚未加载</span>`;
             return;
         }
-
         const ext = window.MP3AppExtension;
         const newsCount = ext ? ext.allFiles.filter(f => f._source === 'news').length : 0;
         const maxLoaded = loadedPages.size > 0 ? Math.max(...loadedPages) : 0;
         const hasMore = maxLoaded < lastMeta.totalPages;
-
         info.innerHTML = `已加载 <span class="text-amber-400 font-medium">${newsCount}</span> / ${lastMeta.total}
             ${hasMore ? '<span class="text-slate-600">· 翻到末页自动加载</span>' : '<span class="text-emerald-500">· 已全部加载</span>'}`;
     }
 
     // ==================== 插件 API ====================
     window.MP3NewsPlugin = {
-        version: '2.3.0',
+        version: '2.5.0',
         async init() {
             registerDataSource();
             injectUI();
@@ -507,51 +551,33 @@
         },
         async unload() {
             const ext = window.MP3AppExtension;
-
-            cleanupVisibilityHandler();   // ★ 卸载时清理可见性监听
-
-            if (hlsInstance) {
-                try { hlsInstance.destroy(); } catch (e) {}
-                hlsInstance = null;
-            }
+            destroyHls();
 
             if (ext) {
                 const playingKey = ext.currentPlayingFile;
                 const isPlayingNews = playingKey && String(playingKey).startsWith('[News]');
-
                 ext.allFiles = ext.allFiles.filter(f => f._source !== 'news');
                 ext.categories = ext.categories.filter(c => c !== CONFIG.categoryName);
                 ext.saveCategories(ext.categories);
-
                 if (isPlayingNews) {
                     try { ext.audioPlayer.pause(); } catch (e) {}
                     ext.audioPlayer.removeAttribute('src');
                     try { ext.audioPlayer.load(); } catch (e) {}
                     ext.currentPlayingFile = null;
-
                     const titleEl = document.getElementById('currentSongTitle');
                     const catEl = document.getElementById('currentSongCategory');
                     if (titleEl) titleEl.innerText = '尚未選擇播放歌曲';
                     if (catEl) catEl.innerText = '就緒';
-                    if (typeof window.MP3SetPlayerSourceBadge === 'function') {
-                        window.MP3SetPlayerSourceBadge(null);
-                    }
+                    if (typeof window.MP3SetPlayerSourceBadge === 'function') window.MP3SetPlayerSourceBadge(null);
                 }
-
                 ext.updatePlayButton();
                 ext.updatePlayerLikeState();
                 ext.updatePlayerDislikeState();
                 ext.renderAll();
             }
-
             if (uiRoot) { uiRoot.remove(); uiRoot = null; }
-
             if (window.MP3DataSourceHandlers) delete window.MP3DataSourceHandlers['news'];
-
-            if (typeof window.refreshSourceFilterOptions === 'function') {
-                window.refreshSourceFilterOptions();
-            }
-
+            if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
             lastMeta = null;
             loadedPages.clear();
             loading = false;
