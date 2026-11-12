@@ -671,15 +671,10 @@
                     <span>全部</span>
                     <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${validFilesCount}</span>
                 </button>
-                <div class="flex items-center space-x-1 w-full">
-                    <button onclick="filterCategory('我的最愛')" class="cat-btn flex-1 text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${currentCategory === '我的最愛' && !currentTagFilter ? 'bg-rose-600/20 text-rose-400 border border-rose-500/30' : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300'}">
-                        <span class="flex items-center"><i class="fa-solid fa-heart text-rose-500 mr-2"></i> 我的最愛</span>
-                        <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${totalLikedCount}</span>
-                    </button>
-                    <button onclick="copyFavoriteSongs()" class="p-2 bg-slate-800 hover:bg-rose-600/30 text-slate-400 hover:text-rose-400 border border-slate-700 rounded-xl transition text-xs flex items-center justify-center" title="複製我的最愛到指定目錄">
-                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 1.259-.25 2.45-.71 3.518a.75.75 0 11-1.38-.586c.382-.897.59-1.91.59-2.932 0-2.112-1.748-3.75-3.937-3.75a3.98 3.98 0 00-3.322 1.77.75.75 0 01-1.238 0A3.98 3.98 0 008.437 4.5C6.248 4.5 4.5 6.138 4.5 8.25c0 3.256 2.052 6.132 4.38 8.16a23.684 23.684 0 003.882 2.871l.013.007.004.002.721 1.32-.721-1.32z"/></svg>
-                    </button>
-                </div>
+                <button onclick="filterCategory('我的最愛')" class="cat-btn w-full text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${currentCategory === '我的最愛' && !currentTagFilter ? 'bg-rose-600/20 text-rose-400 border border-rose-500/30' : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300'}">
+                    <span class="flex items-center"><i class="fa-solid fa-heart text-rose-500 mr-2"></i> 我的最愛</span>
+                    <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${totalLikedCount}</span>
+                </button>
                 <button onclick="filterCategory('Dislike')" class="cat-btn w-full text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${currentCategory === 'Dislike' && !currentTagFilter ? 'bg-amber-600/20 text-amber-400 border border-amber-500/30' : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300'}">
                     <span class="flex items-center"><i class="fa-solid fa-thumbs-down text-amber-400 mr-2"></i> 已隱藏</span>
                     <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${totalDislikedCount}</span>
@@ -1246,7 +1241,6 @@
 
             const src = file._source || 'local';
 
-            // 外部来源：走插件 handler.delete
             if (src !== 'local' && window.MP3DataSourceHandlers && window.MP3DataSourceHandlers[src]
                 && typeof window.MP3DataSourceHandlers[src].delete === 'function') {
                 let skipMap = {};
@@ -1266,7 +1260,6 @@
                 return;
             }
 
-            // 本地文件：走原逻辑
             const confirmed = await showCustomModal({
                 title: '刪除檔案確認',
                 subtitle: '此操作無法復原',
@@ -1297,65 +1290,6 @@
                 }
             } catch (e) {
                 showCustomModal({ title: '連線錯誤', message: e.message, type: 'error' });
-            }
-        }
-
-        async function copyFavoriteSongs() {
-            const likedMap = getLikedMap();
-            const likedKeys = Object.keys(likedMap);
-            if (likedKeys.length === 0) {
-                showCustomModal({ title: '提示', message: '目前沒有任何「我的最愛」歌曲可供複製！', type: 'info' });
-                return;
-            }
-
-            const groups = new Map();
-            likedKeys.forEach(uniqueKey => {
-                const file = allFiles.find(f => getFileKey(f) === uniqueKey);
-                if (!file) return;
-                const { apiBase, dir, originalKey } = getFileRequestParams(file);
-                const gKey = apiBase + '\x00' + dir;
-                if (!groups.has(gKey)) groups.set(gKey, { apiBase, dir, filenames: [] });
-                groups.get(gKey).filenames.push(originalKey);
-            });
-
-            if (groups.size === 0) {
-                showCustomModal({ title: '提示', message: '找不到對應的檔案來源。', type: 'info' });
-                return;
-            }
-
-            const savedTargetDir = localStorage.getItem('mp3_copy_target_dir') || '';
-            const targetDir = await showCustomModal({
-                title: '複製我的最愛',
-                subtitle: `共選定 ${likedKeys.length} 首，分屬 ${groups.size} 個來源`,
-                message: '請輸入要複製過去的目標資料夾絕對路徑：',
-                type: 'confirm', isPrompt: true,
-                defaultValue: savedTargetDir, confirmText: '開始複製'
-            });
-            if (!targetDir || !targetDir.trim()) return;
-            const trimmedTargetDir = targetDir.trim();
-            localStorage.setItem('mp3_copy_target_dir', trimmedTargetDir);
-
-            let totalSuccess = 0;
-            const errors = [];
-            for (const { apiBase, dir, filenames } of groups.values()) {
-                try {
-                    const res = await fetch(`${apiBase}/copy-favorites`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sourceDir: dir, targetDir: trimmedTargetDir, filenames })
-                    });
-                    const data = await res.json();
-                    if (data.success) totalSuccess += data.successCount || 0;
-                    else errors.push(`${dir}: ${data.error}`);
-                } catch (e) {
-                    errors.push(`${dir}: ${e.message}`);
-                }
-            }
-
-            if (errors.length === 0) {
-                showCustomModal({ title: '複製完成', message: `已成功複製 ${totalSuccess} 首到 ${trimmedTargetDir}`, type: 'success' });
-            } else {
-                showCustomModal({ title: '部分失敗', message: `成功 ${totalSuccess} 首\n錯誤：\n${errors.join('\n')}`, type: 'error' });
             }
         }
 
@@ -1688,7 +1622,7 @@
                 if (typeof fn === 'function') return fn.apply(window, args);
             };
             return {
-                version: '2.4',
+                version: '2.5',
                 get allFiles() { return allFiles; },
                 set allFiles(v) { allFiles = v; },
                 get categories() { return categories; },
@@ -1734,7 +1668,10 @@
                 updateDocumentTitle: (name) => updateDocumentTitle(name),
                 resetMediaSession: () => resetMediaSession(),
 
-                cleanupFileMetadata: (key) => cleanupFileMetadata(key)
+                cleanupFileMetadata: (key) => cleanupFileMetadata(key),
+
+                // ★ 供插件调用主应用的弹窗
+                showCustomModal: (...a) => call('showCustomModal', ...a)
             };
         })();
         console.log('[MP3AppExtension] ready v' + window.MP3AppExtension.version);
@@ -1832,6 +1769,16 @@
                 scriptSrc: 'multi-user-plugin.js',
                 globalVar: 'MP3MultiUserPlugin',
                 autoEnable: true,
+                dataSourceKeys: []
+            },
+            copyFav: {
+                id: 'copyFav',
+                name: '複製我的最愛',
+                description: '把「我的最愛」複製到指定本地目錄',
+                icon: 'fa-solid fa-copy',
+                iconClass: 'text-rose-400',
+                scriptSrc: 'copy-favorites-plugin.js',
+                globalVar: 'MP3CopyFavoritesPlugin',
                 dataSourceKeys: []
             },
             news: {
