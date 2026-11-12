@@ -1,10 +1,11 @@
 /**
- * Google Drive 扩展插件 v3.6
+ * Google Drive 扩展插件 v3.7
  * 
- * 相对 v3.5 的改动：
- *  1. 新增「上传本地文件到 Drive」按钮，支持多选
- *  2. 支持取消上传（上传中显示取消按钮）
- *  3. 显示每个文件的大小和进度
+ * 相对 v3.6 的改动：
+ *  1. 移除所有 window.confirm / window.alert
+ *  2. 改用主应用 showCustomModal（视觉统一、支持多行、支持 danger/error 等样式）
+ *  3. 主应用 showCustomModal 不可用时，回退到插件内部轻量弹窗
+ *  4. 上传本地文件的大文件警告通过弹窗内文高亮呈现，不再依赖原生 alert 的粗糙样式
  */
 window.MP3GoogleDriveConfig = {
     clientId: '802199089900-5n676d4hansnab5c66igukb1mch5m7m1.apps.googleusercontent.com'
@@ -33,7 +34,7 @@ window.MP3GoogleDriveConfig = {
 
     const DEFAULT_FAV_PATH = ['apps', 'music', 'fav'];
     const INVALID_PATH_CHARS = /[<>:"|?*\x00-\x1f]/;
-    const LARGE_FILE_WARN = 500 * 1024 * 1024; // 500MB
+    const LARGE_FILE_WARN = 500 * 1024 * 1024;
 
     const EXCLUDED_BACKUP_KEYS = new Set([
         KEY_TOKEN, KEY_CLIENT_ID, KEY_FAV_FOLDER_ID, KEY_FAV_PATH, KEY_MIGRATED
@@ -53,6 +54,98 @@ window.MP3GoogleDriveConfig = {
     let accessToken = null;
     let tokenClient = null;
     let uiRoot = null;
+
+    // ==================== 弹窗辅助 ====================
+    // 统一封装：优先使用主应用 showCustomModal，回退到插件内置弹窗
+    function showPluginConfirm({ title, message, confirmText = '确定', type = 'confirm' }) {
+        if (typeof window.showCustomModal === 'function') {
+            return window.showCustomModal({
+                title,
+                subtitle: '请确认操作',
+                message: escapeHtml(message),
+                type,
+                confirmText
+            });
+        }
+        return fallbackConfirm({ title, message, confirmText, type, needsCancel: true });
+    }
+
+    function showPluginAlert({ title, message, type = 'info', confirmText = '知道了' }) {
+        if (typeof window.showCustomModal === 'function') {
+            return window.showCustomModal({
+                title,
+                subtitle: '提示',
+                message: escapeHtml(message),
+                type,
+                confirmText
+            });
+        }
+        return fallbackConfirm({ title, message, confirmText, type, needsCancel: false });
+    }
+
+    function fallbackConfirm({ title, message, confirmText, type, needsCancel }) {
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] flex items-center justify-center p-4';
+
+            const iconBgMap = {
+                danger: 'bg-rose-500/20 text-rose-400',
+                error: 'bg-rose-500/20 text-rose-400',
+                success: 'bg-emerald-500/20 text-emerald-400',
+                warning: 'bg-amber-500/20 text-amber-400',
+                info: 'bg-indigo-500/20 text-indigo-400',
+                confirm: 'bg-indigo-500/20 text-indigo-400'
+            };
+            const iconClsMap = {
+                danger: 'fa-triangle-exclamation',
+                error: 'fa-triangle-exclamation',
+                success: 'fa-circle-check',
+                warning: 'fa-circle-exclamation',
+                info: 'fa-circle-info',
+                confirm: 'fa-circle-question'
+            };
+            const btnClsMap = {
+                danger: 'bg-rose-600 hover:bg-rose-500',
+                error: 'bg-rose-600 hover:bg-rose-500',
+                success: 'bg-emerald-600 hover:bg-emerald-500',
+                warning: 'bg-amber-600 hover:bg-amber-500',
+                info: 'bg-indigo-600 hover:bg-indigo-500',
+                confirm: 'bg-indigo-600 hover:bg-indigo-500'
+            };
+
+            const iconBg = iconBgMap[type] || iconBgMap.info;
+            const iconCls = iconClsMap[type] || iconClsMap.info;
+            const btnCls = btnClsMap[type] || btnClsMap.info;
+
+            overlay.innerHTML = `
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 shadow-2xl">
+                    <div class="flex items-start gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center shrink-0">
+                            <i class="fa-solid ${iconCls} text-base"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-sm font-bold text-slate-100 mb-1">${escapeHtml(title)}</h3>
+                            <p class="text-[11px] text-slate-400 leading-relaxed whitespace-pre-line">${escapeHtml(message)}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-end gap-2">
+                        ${needsCancel ? `<button data-action="cancel" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[11px] font-medium transition">取消</button>` : ''}
+                        <button data-action="confirm" class="px-4 py-2 ${btnCls} text-white rounded-lg text-[11px] font-medium transition shadow-sm">${escapeHtml(confirmText)}</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            overlay.querySelectorAll('[data-action]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const action = btn.dataset.action;
+                    overlay.remove();
+                    resolve(action === 'confirm');
+                });
+            });
+        });
+    }
 
     // ==================== Client ID 配置 ====================
     function getClientId() {
@@ -494,7 +587,8 @@ window.MP3GoogleDriveConfig = {
                     if (!name || !name.trim()) return;
                     const trimmed = name.trim();
                     if (INVALID_PATH_CHARS.test(trimmed)) {
-                        alert('文件夹名称含非法字符');
+                        // 文件夹浏览器在模态套模态场景，用原生 alert 保证可见性
+                        alert('文件夹名称含非法字符（不允许 < > : " | ? *）');
                         return;
                     }
                     try {
@@ -1108,9 +1202,16 @@ window.MP3GoogleDriveConfig = {
         });
         uiRoot.querySelector('.gdrive-migrate').addEventListener('click', () => migrateLegacyFiles());
 
-        // 重置 Client ID
-        uiRoot.querySelector('.gdrive-reset-client').addEventListener('click', () => {
-            if (!confirm('清除已保存的 Client ID？下次使用需重新填写。')) return;
+        // 重置 Client ID（改成 await 自定义弹窗）
+        uiRoot.querySelector('.gdrive-reset-client').addEventListener('click', async () => {
+            const confirmed = await showPluginConfirm({
+                title: '重置 Client ID',
+                message: '清除已保存的 Client ID？下次使用需重新填写。',
+                confirmText: '确认重置',
+                type: 'danger'
+            });
+            if (!confirmed) return;
+
             try { localStorage.removeItem(KEY_CLIENT_ID); } catch (e) {}
             clearCachedToken();
             accessToken = null;
@@ -1202,7 +1303,14 @@ window.MP3GoogleDriveConfig = {
 
     async function restoreFromDrive() {
         if (!state.authorized) { setStatus('请先授权。', 'warn'); return; }
-        if (!window.confirm('从 Drive 恢复会覆盖本机同名的 mp3_* 数据。是否继续？')) return;
+
+        const confirmed = await showPluginConfirm({
+            title: '从 Drive 恢复',
+            message: '从 Drive 恢复会覆盖本机同名的 mp3_* 数据。是否继续？',
+            confirmText: '确认恢复',
+            type: 'danger'
+        });
+        if (!confirmed) return;
 
         try {
             setStatus('正在查找备份…');
@@ -1214,7 +1322,11 @@ window.MP3GoogleDriveConfig = {
             );
             const listData = await listRes.json();
             if (!listData.files || listData.files.length === 0) {
-                setStatus('未找到备份文件', 'warn');
+                await showPluginAlert({
+                    title: '未找到备份',
+                    message: `Drive 的 appDataFolder 里没有 ${CONFIG.backupFileName}，请先执行「备份」。`,
+                    type: 'warning'
+                });
                 return;
             }
             const res = await driveFetch(
@@ -1281,15 +1393,36 @@ window.MP3GoogleDriveConfig = {
 
         const likedMap = typeof window.getLikedMap === 'function' ? window.getLikedMap() : {};
         const likedKeys = Object.keys(likedMap);
-        if (likedKeys.length === 0) { setStatus('「我的最愛」为空。', 'warn'); return; }
+        if (likedKeys.length === 0) {
+            await showPluginAlert({
+                title: '「我的最愛」为空',
+                message: '请先在列表中为歌曲点击 ♥ 加入最愛。',
+                type: 'info'
+            });
+            return;
+        }
 
         const dirInput = document.getElementById('dirInput');
         const sourceDir = dirInput ? dirInput.value.trim() : (window.MP3GetCurrentDir ? window.MP3GetCurrentDir() : '');
-        if (!sourceDir) { setStatus('请先输入资料夹路径。', 'warn'); return; }
+        if (!sourceDir) {
+            await showPluginAlert({
+                title: '未指定本地目录',
+                message: '请先在「本地目錄」插件里添加并加载一个目录，否则无法获取歌曲文件。',
+                type: 'warning'
+            });
+            return;
+        }
 
         const folderPath = getFavoritesFolderPath();
         const pathText = pathKey(folderPath);
-        if (!window.confirm(`即将上传 ${likedKeys.length} 首到 Drive 的 ${pathText} 目录。\n同名文件会跳过。继续？`)) return;
+
+        const confirmed = await showPluginConfirm({
+            title: '上传我的最愛',
+            message: `即将上传 ${likedKeys.length} 首到 Drive 的 ${pathText} 目录。\n\n同名文件会自动跳过。`,
+            confirmText: '开始上传',
+            type: 'confirm'
+        });
+        if (!confirmed) return;
 
         state.uploadingFavorites = true;
         const favBtn = uiRoot.querySelector('.gdrive-upload-favorites');
@@ -1347,10 +1480,15 @@ window.MP3GoogleDriveConfig = {
                 await new Promise(r => setTimeout(r, 30));
             }
 
-            const summary = `✅ 完成。成功 ${successCount}，跳过 ${skipCount}，失败 ${failCount}。`;
-            setStatus(summary, failCount > 0 ? 'warn' : 'success');
+            const summary = `成功 ${successCount}，跳过 ${skipCount}，失败 ${failCount}。`;
+            setStatus(`✅ 完成。${summary}`, failCount > 0 ? 'warn' : 'success');
+
             if (failures.length > 0) {
-                window.alert(summary + '\n\n失败：\n' + failures.map(f => `• ${f.filename}: ${f.error}`).join('\n'));
+                await showPluginAlert({
+                    title: '部分文件上传失败',
+                    message: summary + '\n\n失败详情：\n' + failures.map(f => `• ${f.filename}：${f.error}`).join('\n'),
+                    type: 'error'
+                });
             }
             syncDriveFilesToMainList().catch(() => {});
         } finally {
@@ -1359,7 +1497,7 @@ window.MP3GoogleDriveConfig = {
         }
     }
 
-    // ==================== 上传本地文件（新增） ====================
+    // ==================== 上传本地文件 ====================
     function pickAndUploadLocalFiles() {
         if (!state.authorized) { setStatus('请先授权。', 'warn'); return; }
         if (state.uploadingLocalFiles) { setStatus('已有上传任务…', 'warn'); return; }
@@ -1382,15 +1520,19 @@ window.MP3GoogleDriveConfig = {
         const folderPath = getFavoritesFolderPath();
         const pathText = pathKey(folderPath);
 
-        // 大文件警告
         const largeFiles = files.filter(f => f.size > LARGE_FILE_WARN);
-        let confirmMsg = `即将上传 ${files.length} 个文件到 Drive 的 ${pathText} 目录。\n同名文件会跳过。`;
+        let message = `即将上传 ${files.length} 个文件到 Drive 的 ${pathText} 目录。\n\n同名文件会自动跳过。`;
         if (largeFiles.length > 0) {
-            confirmMsg += `\n\n⚠️ 其中 ${largeFiles.length} 个文件大于 500MB，浏览器内存可能不足，建议分次上传。`;
+            message += `\n\n⚠️ 其中 ${largeFiles.length} 个文件大于 500MB，浏览器内存可能不足，建议分次上传。`;
         }
-        confirmMsg += '\n\n继续？';
 
-        if (!window.confirm(confirmMsg)) return;
+        const confirmed = await showPluginConfirm({
+            title: '上传本地文件',
+            message,
+            confirmText: '开始上传',
+            type: largeFiles.length > 0 ? 'danger' : 'confirm'
+        });
+        if (!confirmed) return;
 
         state.uploadingLocalFiles = true;
         state.cancelLocalUpload = false;
@@ -1410,7 +1552,6 @@ window.MP3GoogleDriveConfig = {
                 return;
             }
 
-            // 列出现有文件
             setStatus('正在读取 Drive 现有文件…');
             const existingNames = new Set();
             try {
@@ -1436,7 +1577,6 @@ window.MP3GoogleDriveConfig = {
                 const file = files[i];
                 const filename = file.name;
 
-                // 跳过同名
                 if (existingNames.has(filename)) {
                     skipCount++;
                     uploadedSize += file.size;
@@ -1462,12 +1602,16 @@ window.MP3GoogleDriveConfig = {
             }
 
             const wasCancelled = state.cancelLocalUpload;
-            const summaryPrefix = wasCancelled ? '已取消。' : '✅ 完成。';
-            const summary = `${summaryPrefix}成功 ${successCount}，跳过 ${skipCount}，失败 ${failCount}。`;
+            const prefix = wasCancelled ? '已取消。' : '✅ 完成。';
+            const summary = `${prefix}成功 ${successCount}，跳过 ${skipCount}，失败 ${failCount}。`;
             setStatus(summary, (failCount > 0 || wasCancelled) ? 'warn' : 'success');
 
             if (failures.length > 0) {
-                window.alert(summary + '\n\n失败：\n' + failures.map(f => `• ${f.filename}: ${f.error}`).join('\n'));
+                await showPluginAlert({
+                    title: '部分文件上传失败',
+                    message: summary + '\n\n失败详情：\n' + failures.map(f => `• ${f.filename}：${f.error}`).join('\n'),
+                    type: 'error'
+                });
             }
 
             await syncDriveFilesToMainList();
@@ -1483,7 +1627,7 @@ window.MP3GoogleDriveConfig = {
 
     // ==================== 对外 API ====================
     window.MP3GoogleDrivePlugin = {
-        version: '3.6.0',
+        version: '3.7.0',
         async init() {
             registerDataSource();
             injectUI();
