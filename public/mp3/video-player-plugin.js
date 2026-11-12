@@ -1,26 +1,23 @@
 /**
- * 视频渲染插件 v1.2
+ * 视频渲染插件 v1.3
  * 
- * 相对 v1.1 的改动：
- *  1. ★ 全屏退出区分「切歌导致」和「用户主动」：
- *     - 按 ESC → 用户主动，清除全屏意图
- *     - 时间窗口内有媒体变化事件（loadstart/emptied/durationchange/ended）→ 切歌导致，保留意图
- *  2. ★ `playing` 事件时立即尝试恢复全屏（此时用户手势窗口通常还在）
- *  3. ★ `ended` 事件也标记媒体变化，避免"视频播完 → 自动切歌"时全屏意图被误清
- *  4. ★ 恢复失败时显示"点击恢复全屏"浮层
- *  5. 请求全屏前检查其他元素是否正在全屏（避免抢占 F11 全屏）
+ * 相对 v1.2 的改动：
+ *  1. ★ PiP 中关闭小窗 → 设全局隐藏（不只是当前视频），切歌不再弹小窗
+ *  2. ★ PiP 退出（用户主动）→ 自动清除全局隐藏，小窗恢复
+ *  3. ★ PiP 因媒体变化自动退出（切歌）→ 保留全局隐藏，等用户主动操作
+ *  4. ★ 插件卡片新增"显示小窗"按钮（全局隐藏时可用）
+ *  5. 插件卡片状态显示"画中画中（小窗已隐藏）"
  */
 (function () {
     'use strict';
 
     const NS = 'mp3_video_player_';
     const KEY_DISABLED_FOR_SRC = NS + 'disabled_for_src';
+    const KEY_GLOBAL_HIDDEN = NS + 'global_hidden';
     const KEY_POSITION = NS + 'position';
     const KEY_FULLSCREEN_INTENT = NS + 'fullscreen_intent';
 
-    // 媒体变化事件后，全屏退出的判定窗口（毫秒）
     const MEDIA_CHANGE_WINDOW = 1500;
-    // 恢复全屏的防抖间隔（毫秒）
     const RESTORE_DEBOUNCE = 300;
 
     const state = {
@@ -65,6 +62,18 @@
         state.hiddenForCurrentSrc = hidden;
     }
 
+    // ★ 全局隐藏：PiP 场景下关闭小窗后，切歌也不弹出
+    function isGloballyHidden() {
+        return localStorage.getItem(KEY_GLOBAL_HIDDEN) === 'true';
+    }
+
+    function setGloballyHidden(hidden) {
+        try {
+            if (hidden) localStorage.setItem(KEY_GLOBAL_HIDDEN, 'true');
+            else localStorage.removeItem(KEY_GLOBAL_HIDDEN);
+        } catch (e) {}
+    }
+
     function saveFullscreenIntent(value) {
         state.fullscreenIntent = value;
         try {
@@ -75,6 +84,10 @@
 
     function markMediaChange() {
         state.lastMediaChangeAt = Date.now();
+    }
+
+    function isInPip() {
+        return state.videoEl && document.pictureInPictureElement === state.videoEl;
     }
 
     // ==================== 视频容器 ====================
@@ -107,7 +120,7 @@
                 <div class="video-slot absolute inset-0"></div>
             </div>
             <div class="video-hint px-2 py-1 bg-slate-900/95 text-[9px] text-slate-500 text-center">
-                拖动顶栏移动 · 关闭后本次不再显示
+                拖动顶栏移动 · PiP 中关闭则保持隐藏
             </div>
         `;
         document.body.appendChild(el);
@@ -190,22 +203,14 @@
     async function requestFullscreenWithIntent() {
         if (!state.videoEl) return false;
         const el = state.videoEl;
-
-        // 有其他元素在全屏（如 F11 全屏了整个页面），不抢占
-        if (document.fullscreenElement && document.fullscreenElement !== el) {
-            console.log('[VideoPlayer] 其他元素在全屏，跳过');
-            return false;
-        }
-
+        if (document.fullscreenElement && document.fullscreenElement !== el) return false;
         try {
             if (el.requestFullscreen) await el.requestFullscreen();
             else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
             else if (el.webkitEnterFullscreen) el.webkitEnterFullscreen();
             else return false;
-
             saveFullscreenIntent(true);
             hideRestoreHint();
-            console.log('[VideoPlayer] 进入全屏成功');
             return true;
         } catch (e) {
             console.warn('[VideoPlayer] requestFullscreen 失败:', e);
@@ -218,16 +223,11 @@
         if (!state.videoEl) return;
         if (document.fullscreenElement === state.videoEl) return;
         if (isHiddenForCurrentSrc()) return;
-
-        // 防抖
         if (Date.now() - state.lastRestoreAttemptAt < RESTORE_DEBOUNCE) return;
         state.lastRestoreAttemptAt = Date.now();
 
-        console.log('[VideoPlayer] 尝试恢复全屏…');
         const ok = await requestFullscreenWithIntent();
-        if (!ok) {
-            showRestoreHint();
-        }
+        if (!ok) showRestoreHint();
     }
 
     function showRestoreHint() {
@@ -239,7 +239,7 @@
         hint.innerHTML = `<i class="fa-solid fa-expand"></i><span>点击恢复全屏</span>`;
         hint.addEventListener('click', async (e) => {
             e.stopPropagation();
-            state.lastRestoreAttemptAt = 0; // 用户点击不受防抖限制
+            state.lastRestoreAttemptAt = 0;
             const ok = await requestFullscreenWithIntent();
             if (ok) hideRestoreHint();
         });
@@ -267,6 +267,8 @@
     function showContainer() {
         if (!state.container) return;
         if (isHiddenForCurrentSrc()) return;
+        // ★ 全局隐藏 + PiP 中 → 不显示
+        if (isGloballyHidden() && isInPip()) return;
 
         state.container.classList.remove('hidden');
         applySavedPosition();
@@ -313,17 +315,42 @@
     function checkVideoTrack() {
         if (!state.videoEl) return;
         const hasVideo = (state.videoEl.videoWidth || 0) > 0 && (state.videoEl.videoHeight || 0) > 0;
-        if (hasVideo) showContainer();
-        else hideContainer();
+
+        if (!hasVideo) {
+            hideContainer();
+            updatePluginCardStatus();
+            return;
+        }
+
+        // ★ 全局隐藏：仅当 PiP 还在时才保持隐藏；PiP 已退出则自动清除
+        if (isGloballyHidden()) {
+            if (isInPip()) {
+                hideContainer();
+                updatePluginCardStatus();
+                return;
+            }
+            // PiP 已退出，清除全局隐藏
+            setGloballyHidden(false);
+            // 同时把「单视频隐藏」也清除（用户退出 PiP 是明确"想看小窗"的信号）
+            try { localStorage.removeItem(KEY_DISABLED_FOR_SRC); } catch (e) {}
+            state.hiddenForCurrentSrc = false;
+        }
+
+        if (isHiddenForCurrentSrc()) {
+            hideContainer();
+            updatePluginCardStatus();
+            return;
+        }
+
+        showContainer();
+        updatePluginCardStatus();
     }
 
     // ==================== 全屏事件 ====================
     function bindFullscreenEvents() {
-        // ★ ESC 检测：用户按 ESC 主动退出全屏
         const onKeyDown = (e) => {
             if (e.key === 'Escape') {
                 state.userPressedEscape = true;
-                // 1 秒后自动重置，避免长时间保留导致误判
                 setTimeout(() => { state.userPressedEscape = false; }, 1000);
             }
         };
@@ -332,30 +359,58 @@
 
         const onFullscreenChange = () => {
             if (document.fullscreenElement === state.videoEl) {
-                // 进入全屏
                 saveFullscreenIntent(true);
                 hideRestoreHint();
-                console.log('[VideoPlayer] 进入全屏');
             } else {
-                // 退出全屏：判断原因
                 if (state.userPressedEscape) {
                     state.userPressedEscape = false;
                     saveFullscreenIntent(false);
-                    console.log('[VideoPlayer] 用户按 ESC 退出全屏，清除意图');
                 } else if (state.fullscreenIntent &&
                            (Date.now() - state.lastMediaChangeAt) < MEDIA_CHANGE_WINDOW) {
                     // 切歌导致，保留意图，等 playing 时恢复
-                    console.log('[VideoPlayer] 切歌导致全屏退出，将在 playing 时恢复');
                 } else {
                     saveFullscreenIntent(false);
-                    console.log('[VideoPlayer] 用户主动退出全屏（非切歌场景），清除意图');
                 }
             }
+            updatePluginCardStatus();
         };
         document.addEventListener('fullscreenchange', onFullscreenChange);
         document.addEventListener('webkitfullscreenchange', onFullscreenChange);
         state.eventHandlers.push({ el: document, event: 'fullscreenchange', handler: onFullscreenChange });
         state.eventHandlers.push({ el: document, event: 'webkitfullscreenchange', handler: onFullscreenChange });
+    }
+
+    // ==================== PiP 事件 ====================
+    function bindPictureInPictureEvents(video) {
+        // 进入 PiP：更新状态（不自动隐藏小窗——用户可能想同时看到两者）
+        attach(video, 'enterpictureinpicture', () => {
+            console.log('[VideoPlayer] 进入 PiP');
+            updatePluginCardStatus();
+        });
+
+        // 退出 PiP
+        attach(video, 'leavepictureinpicture', () => {
+            console.log('[VideoPlayer] 退出 PiP');
+            const isMediaChanging = (Date.now() - state.lastMediaChangeAt) < MEDIA_CHANGE_WINDOW;
+
+            if (isMediaChanging) {
+                // 切歌导致的 PiP 退出（极少发生，某些浏览器行为），保留全局隐藏
+                console.log('[VideoPlayer] PiP 退出（媒体变化中），保留全局隐藏');
+                updatePluginCardStatus();
+                return;
+            }
+
+            // 用户主动退出 PiP → 清除全局隐藏，恢复小窗
+            if (isGloballyHidden()) {
+                setGloballyHidden(false);
+                // 同时清除「单视频隐藏」——用户退出 PiP 是想回到小窗视图
+                try { localStorage.removeItem(KEY_DISABLED_FOR_SRC); } catch (e) {}
+                state.hiddenForCurrentSrc = false;
+                console.log('[VideoPlayer] 用户退出 PiP，清除全局隐藏，恢复小窗');
+            }
+            checkVideoTrack();
+            updatePluginCardStatus();
+        });
     }
 
     // ==================== 视频事件 ====================
@@ -367,24 +422,20 @@
         state.videoEl = video;
         state.originalParent = video.parentNode || document.body;
 
-        // ★ 媒体变化标记：切歌/新源加载时触发，用于全屏退出时的原因判定
         attach(video, 'loadstart', markMediaChange);
         attach(video, 'emptied', markMediaChange);
         attach(video, 'durationchange', markMediaChange);
         attach(video, 'ended', markMediaChange);
 
-        // 视频元数据加载完成 → 检查视频轨道
         attach(video, 'loadedmetadata', () => {
             state.hiddenForCurrentSrc = isHiddenForCurrentSrc();
             checkVideoTrack();
             updatePluginCardStatus();
         });
 
-        // ★ 关键：playing 事件时尝试恢复全屏
         attach(video, 'playing', () => {
             markMediaChange();
             if (state.fullscreenIntent && !document.fullscreenElement) {
-                console.log('[VideoPlayer] playing 事件触发，尝试恢复全屏');
                 tryRestoreFullscreen();
             }
         });
@@ -399,6 +450,9 @@
             checkVideoTrack();
             updatePluginCardStatus();
         });
+
+        // ★ PiP 事件
+        bindPictureInPictureEvents(video);
     }
 
     // ==================== 插件卡片 UI ====================
@@ -410,15 +464,20 @@
                 if (!body) { setTimeout(tryInject, 300); return; }
                 body.innerHTML = `
                     <p class="text-[10px] text-slate-500 leading-relaxed">
-                        检测到视频轨道时，在右下角显示悬浮小窗。全屏状态跨歌保持。
+                        检测到视频轨道时，在右下角显示悬浮小窗。全屏状态跨歌保持；PiP 中关闭小窗会保持隐藏。
                     </p>
                     <div class="flex items-center justify-between mt-1.5 gap-2">
-                        <span class="text-[10px] text-slate-400">
-                            当前状态：<b class="vp-status text-slate-500">等待播放</b>
+                        <span class="text-[10px] text-slate-400 min-w-0 truncate">
+                            状态：<b class="vp-status text-slate-500">等待播放</b>
                         </span>
-                        <button class="vp-reset-hint text-[10px] text-slate-500 hover:text-slate-300 transition" title="清除所有『已关闭』和『全屏意图』记录">
-                            清除记忆
-                        </button>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button class="vp-show-btn hidden text-[10px] text-indigo-400 hover:text-indigo-300 transition" title="重新显示视频小窗">
+                                <i class="fa-solid fa-eye mr-0.5"></i>显示小窗
+                            </button>
+                            <button class="vp-reset-hint text-[10px] text-slate-500 hover:text-slate-300 transition" title="清除所有隐藏和全屏记录">
+                                清除记忆
+                            </button>
+                        </div>
                     </div>
                 `;
                 bindPluginCardButtons();
@@ -431,17 +490,30 @@
     function bindPluginCardButtons() {
         const body = window.MP3PluginManager?.getBodyContainer?.('videoPlayer');
         if (!body) return;
+
         const resetBtn = body.querySelector('.vp-reset-hint');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
                 try {
                     localStorage.removeItem(KEY_DISABLED_FOR_SRC);
+                    localStorage.removeItem(KEY_GLOBAL_HIDDEN);
                     localStorage.removeItem(KEY_FULLSCREEN_INTENT);
                 } catch (e) {}
                 state.hiddenForCurrentSrc = false;
                 state.fullscreenIntent = false;
-                updatePluginCardStatus();
                 checkVideoTrack();
+                updatePluginCardStatus();
+            });
+        }
+
+        const showBtn = body.querySelector('.vp-show-btn');
+        if (showBtn) {
+            showBtn.addEventListener('click', () => {
+                setGloballyHidden(false);
+                try { localStorage.removeItem(KEY_DISABLED_FOR_SRC); } catch (e) {}
+                state.hiddenForCurrentSrc = false;
+                checkVideoTrack();
+                updatePluginCardStatus();
             });
         }
     }
@@ -450,18 +522,29 @@
         const body = window.MP3PluginManager?.getBodyContainer?.('videoPlayer');
         if (!body) return;
         const el = body.querySelector('.vp-status');
+        const showBtn = body.querySelector('.vp-show-btn');
         if (!el) return;
+
         if (!state.videoEl) {
             el.textContent = '等待播放';
             el.className = 'vp-status text-slate-500';
+            if (showBtn) showBtn.classList.add('hidden');
             return;
         }
+
         const hasVideo = (state.videoEl.videoWidth || 0) > 0;
+        const inPip = isInPip();
+        const containerVisible = state.container && !state.container.classList.contains('hidden');
+        const globallyHidden = isGloballyHidden();
+
         if (hasVideo) {
-            if (document.fullscreenElement === state.videoEl) {
+            if (globallyHidden && inPip) {
+                el.textContent = '画中画中（小窗已隐藏）';
+                el.className = 'vp-status text-purple-400';
+            } else if (document.fullscreenElement === state.videoEl) {
                 el.textContent = '全屏播放中';
                 el.className = 'vp-status text-emerald-400';
-            } else if (state.container && !state.container.classList.contains('hidden')) {
+            } else if (containerVisible) {
                 el.textContent = state.fullscreenIntent ? '视频播放中（全屏待恢复）' : '视频播放中';
                 el.className = 'vp-status text-emerald-400';
             } else {
@@ -475,14 +558,28 @@
             el.textContent = '等待播放';
             el.className = 'vp-status text-slate-500';
         }
+
+        // ★ 控制"显示小窗"按钮：有视频轨道但小窗当前不可见时显示
+        if (showBtn) {
+            const shouldShow = hasVideo && !containerVisible;
+            if (shouldShow) showBtn.classList.remove('hidden');
+            else showBtn.classList.add('hidden');
+        }
     }
 
     function bindContainerButtons(container) {
         container.querySelector('.video-btn-close').addEventListener('click', () => {
+            // ★ 若当前在 PiP 中，同时设置全局隐藏
+            const inPip = isInPip();
             setHiddenForCurrentSrc(true);
+            if (inPip) {
+                setGloballyHidden(true);
+                console.log('[VideoPlayer] PiP 中关闭小窗 → 设置全局隐藏（切歌保持隐藏）');
+            }
             hideContainer();
             updatePluginCardStatus();
         });
+
         container.querySelector('.video-btn-fullscreen').addEventListener('click', () => {
             requestFullscreenWithIntent();
         });
@@ -493,7 +590,7 @@
 
     // ==================== 插件生命周期 ====================
     window.MP3VideoPlayerPlugin = {
-        version: '1.2.0',
+        version: '1.3.0',
         async init() {
             state.container = createContainer();
             bindDrag(state.container);
@@ -517,6 +614,9 @@
             try {
                 if (document.fullscreenElement === state.videoEl) {
                     if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+                }
+                if (document.pictureInPictureElement === state.videoEl) {
+                    if (document.exitPictureInPicture) document.exitPictureInPicture().catch(() => {});
                 }
             } catch (e) {}
 
