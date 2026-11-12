@@ -65,7 +65,7 @@
     <!-- 主要內容區 -->
     <main class="flex-1 min-h-0 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-1 gap-6 overflow-y-auto lg:overflow-hidden">
         
-        <!-- 左側：分類、標籤與搜尋 -->
+        <!-- 左側：插件槽位 + 分類、標籤與搜尋 -->
         <div id="mobileDrawer" class="fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-slate-950 border-r border-slate-800 transform -translate-x-full
                                     lg:static lg:translate-x-0 lg:col-span-1 lg:w-auto lg:bg-transparent lg:border-none lg:z-auto
                                     lg:min-h-0 lg:overflow-hidden
@@ -274,16 +274,13 @@
 
     <!-- ==================== 主應用邏輯 ==================== -->
     <script>
-        // 安全地把任意字符串嵌入内联 onclick 的 JS 字符串字面量。
-        // encodeURIComponent 不会编码单引号 '，会导致 onclick 字符串提前闭合 → SyntaxError。
+        // ---------- 内联 onclick 安全辅助 ----------
         function encodeInlineArg(s) {
             return encodeURIComponent(String(s == null ? '' : s)).replace(/'/g, '%27');
         }
-        // 容错解码：非 %XX 序列原样返回，避免 URIError。
         function safeDecodeURI(s) {
             try { return decodeURIComponent(s); } catch (e) { return s; }
         }
-        // HTML 属性转义（用于 value / title / data-* 等）。
         function escapeHtmlAttr(s) {
             return String(s == null ? '' : s)
                 .replace(/&/g, '&amp;')
@@ -292,6 +289,36 @@
                 .replace(/>/g, '&gt;');
         }
 
+        // ---------- Like 时间戳辅助（全局，插件可复用） ----------
+        // 兼容旧结构：true → null（未知时间）；{ ts } → 时间戳；null/undefined → null
+        function parseLikedAt(raw) {
+            if (!raw) return null;
+            if (raw === true) return null;
+            if (typeof raw === 'object' && typeof raw.ts === 'number') return raw.ts;
+            return null;
+        }
+        function formatLikedAt(ts) {
+            if (!ts) return '';
+            const d = new Date(ts);
+            const now = new Date();
+            const diffDays = Math.floor((now - d) / 86400000);
+            if (diffDays === 0) {
+                const hh = String(d.getHours()).padStart(2, '0');
+                const mm = String(d.getMinutes()).padStart(2, '0');
+                return `今天 ${hh}:${mm}`;
+            }
+            if (diffDays === 1) return '昨天';
+            if (diffDays < 7) return `${diffDays} 天前`;
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+        function formatLikedAtFull(ts) {
+            if (!ts) return '';
+            const d = new Date(ts);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} `
+                 + `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        }
+
+        // ---------- 主应用状态 ----------
         let allFiles = [];
         let categories = ['未分類', '流行', '輕音樂', '工作', '其他'];
         let currentCategory = '全部';
@@ -489,10 +516,12 @@
 
                     const localFiles = data.files.map(f => {
                         const key = f.relativePath || f.filename;
+                        const rawLike = likedMap[key];
                         return {
                             ...f,
                             _source: 'local',
-                            isLiked: !!likedMap[key],
+                            isLiked: !!rawLike,
+                            likedAt: parseLikedAt(rawLike),
                             isDisliked: !!dislikedMap[key],
                             tags: tagsMap[key] || []
                         };
@@ -728,7 +757,7 @@
             const keyword = (document.getElementById('searchInput').value || '').toLowerCase();
             const sourceFilter = window.currentSourceFilter || 'all';
 
-            return allFiles.filter(f => {
+            const result = allFiles.filter(f => {
                 const key = f.relativePath || f.filename;
                 const matchKey = (f.displayName || f.filename).toLowerCase().includes(keyword) ||
                                  key.toLowerCase().includes(keyword);
@@ -747,6 +776,13 @@
                 }
                 return matchKey && matchTag && matchSource;
             });
+
+            // 我的最愛：按收藏时间倒序（最新在前），无时间的排后面
+            if (currentCategory === '我的最愛') {
+                result.sort((a, b) => (b.likedAt || 0) - (a.likedAt || 0));
+            }
+
+            return result;
         }
 
         function toggleLike(encodedKey, event) {
@@ -762,8 +798,19 @@
                 delete dislikedMap[fileKey];
                 saveDislikedMap(dislikedMap);
             }
+
             const likedMap = getLikedMap();
-            if (file.isLiked) likedMap[fileKey] = true; else delete likedMap[fileKey];
+            if (file.isLiked) {
+                // 若已有时间戳则保留（首次收藏时间），否则记录当前时间
+                const existing = likedMap[fileKey];
+                const existingTs = (existing && typeof existing === 'object' && typeof existing.ts === 'number') ? existing.ts : null;
+                const ts = existingTs || Date.now();
+                likedMap[fileKey] = { ts };
+                file.likedAt = ts;
+            } else {
+                delete likedMap[fileKey];
+                file.likedAt = null;
+            }
             saveLikedMap(likedMap);
 
             if (currentPlayingFile === fileKey) {
@@ -792,6 +839,7 @@
                 dislikedMap[fileKey] = true;
                 if (file.isLiked) {
                     file.isLiked = false;
+                    file.likedAt = null;
                     const likedMap = getLikedMap();
                     delete likedMap[fileKey];
                     saveLikedMap(likedMap);
@@ -826,7 +874,7 @@
             const file = allFiles.find(f => (f.relativePath || f.filename) === currentPlayingFile);
             if (file && file.isLiked) {
                 icon.className = 'fa-solid fa-heart text-rose-500';
-                btn.title = '取消最愛 (L)';
+                btn.title = file.likedAt ? `取消最愛（收藏于 ${formatLikedAtFull(file.likedAt)}）` : '取消最愛 (L)';
             } else {
                 icon.className = 'fa-regular fa-heart text-slate-500 hover:text-slate-300';
                 btn.title = '加入最愛 (L)';
@@ -1174,11 +1222,17 @@
                 }).join('');
                 const tagsHtml = (file.tags || []).map(t => `<span class="bg-indigo-950 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[10px]">#${escapeHtmlAttr(t)}</span>`).join(' ');
 
-                // 关键修复：encodeInlineArg 会把单引号替换成 %27，避免 onclick 提前闭合
                 const encodedKey = encodeInlineArg(fileKey);
                 const encodedName = encodeInlineArg(file.displayName || file.filename);
                 const rowId = `row-${encodedKey.replace(/[%._-]/g, '_')}`;
                 const isExternal = (file._source && file._source !== 'local');
+
+                const likeTitle = file.isLiked
+                    ? (file.likedAt ? `取消最愛（收藏于 ${formatLikedAtFull(file.likedAt)}）` : '取消最愛')
+                    : '加入最愛';
+                const likedAtLine = (currentCategory === '我的最愛' && file.likedAt)
+                    ? `<div class="text-[10px] text-rose-400/80 mt-0.5 flex items-center gap-1"><i class="fa-solid fa-clock text-[9px]"></i><span>收藏于 ${formatLikedAtFull(file.likedAt)}</span></div>`
+                    : '';
 
                 html += `
                     <tr id="${rowId}" class="transition ${isPlaying ? 'bg-indigo-950/30 border-l-4 border-indigo-500' : 'hover:bg-slate-900/50'}">
@@ -1192,11 +1246,12 @@
                                         <div class="flex items-center space-x-2">
                                             ${typeof window.MP3RenderSourceBadge === 'function' ? window.MP3RenderSourceBadge(file) : ''}
                                             <span class="font-medium text-slate-200 truncate" title="${escapeHtmlAttr(file.displayName)}">${escapeHtmlAttr(file.displayName)}</span>
-                                            <button onclick="toggleLike('${encodedKey}', event)" class="text-xs transition ${file.isLiked ? 'text-rose-500 hover:text-rose-400' : 'text-slate-600 hover:text-slate-400'}" title="最愛">
+                                            <button onclick="toggleLike('${encodedKey}', event)" class="text-xs transition ${file.isLiked ? 'text-rose-500 hover:text-rose-400' : 'text-slate-600 hover:text-slate-400'}" title="${escapeHtmlAttr(likeTitle)}">
                                                 <i class="${file.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}"></i>
                                             </button>
                                         </div>
                                         ${file.relativePath && file.relativePath !== file.filename ? `<div class="text-[11px] text-slate-500 truncate">${escapeHtmlAttr(file.relativePath)}</div>` : ''}
+                                        ${likedAtLine}
                                     </div>
                                 </div>
 
@@ -1234,7 +1289,6 @@
             }
 
             if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
-
             if (window.MP3NewsPlugin && typeof window.MP3NewsPlugin.maybeAutoLoad === 'function') {
                 window.MP3NewsPlugin.maybeAutoLoad();
             }
@@ -1345,7 +1399,7 @@
                 if (typeof fn === 'function') return fn.apply(window, args);
             };
             return {
-                version: '1.4',
+                version: '1.5',
                 get allFiles() { return allFiles; },
                 set allFiles(v) { allFiles = v; },
                 get categories() { return categories; },
@@ -1373,7 +1427,12 @@
 
                 saveCategories: (...a) => call('saveCategories', ...a),
                 getLikedMap: () => (typeof getLikedMap === 'function' ? getLikedMap() : {}),
-                getDislikedMap: () => (typeof getDislikedMap === 'function' ? getDislikedMap() : {})
+                getDislikedMap: () => (typeof getDislikedMap === 'function' ? getDislikedMap() : {}),
+
+                // 时间戳辅助（供插件复用）
+                parseLikedAt,
+                formatLikedAt,
+                formatLikedAtFull
             };
         })();
         console.log('[MP3AppExtension] ready v' + window.MP3AppExtension.version);
@@ -1492,317 +1551,22 @@
         };
     </script>
 
-    <!-- ==================== 多用戶外掛 ==================== -->
-    <script>
-    (function() {
-        const STORAGE_KEYS = {
-            USERS: 'mp3_plugin_users_list',
-            CURRENT_USER: 'mp3_plugin_current_user',
-            DEFAULT_USER_NAME: '預設用戶'
-        };
-
-        let usersList = ['預設用戶'];
-        let currentUser = '預設用戶';
-
-        function initPluginStorage() {
-            const savedUsers = localStorage.getItem(STORAGE_KEYS.USERS);
-            if (savedUsers) { try { usersList = JSON.parse(savedUsers); } catch(e) {} }
-            else localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
-
-            const lastUser = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
-            if (lastUser && usersList.includes(lastUser)) currentUser = lastUser;
-            else {
-                currentUser = usersList[0];
-                localStorage.setItem(STORAGE_KEYS.CURRENT_USER, currentUser);
-            }
-        }
-
-        function getStorageKeyForUser(username) {
-            if (username === STORAGE_KEYS.DEFAULT_USER_NAME) return 'mp3_liked_map';
-            return `mp3_${username}_liked_map`;
-        }
-        function getUserLikesMap(username) {
-            try { return JSON.parse(localStorage.getItem(getStorageKeyForUser(username)) || '{}'); } catch(e) { return {}; }
-        }
-        function saveUserLikesMap(username, map) {
-            localStorage.setItem(getStorageKeyForUser(username), JSON.stringify(map));
-        }
-
-        function injectUserUI() {
-            const slot = document.getElementById('pluginSlot');
-            const fallback = document.getElementById('sidebarContentWrapper');
-            const target = slot || fallback;
-            if (!target) return;
-            const userSection = document.createElement('div');
-            userSection.className = 'bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl';
-            userSection.innerHTML = `
-                <div class="flex items-center justify-between mb-2 px-1">
-                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center">
-                        <i class="fa-solid fa-user-shield text-indigo-400 mr-1.5"></i> 多用戶
-                    </h2>
-                    <button onclick="window.pluginOpenManageModal()" class="text-[11px] text-indigo-400 hover:underline"><i class="fa-solid fa-gear mr-1"></i>管理</button>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <select id="pluginUserSelect" onchange="window.pluginSwitchUser(this.value)" class="bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:border-indigo-500 font-medium flex-1">
-                        ${usersList.map(u => `<option value="${escapeHtmlAttr(u)}" ${u === currentUser ? 'selected' : ''}>${escapeHtmlAttr(u)}</option>`).join('')}
-                    </select>
-                    <button onclick="window.pluginPromptAddUser()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1.5 rounded-xl text-xs transition shadow" title="新增用戶">
-                        <i class="fa-solid fa-user-plus"></i>
-                    </button>
-                </div>
-            `;
-            target.appendChild(userSection);
-        }
-
-        window.pluginSwitchUser = function(username) {
-            currentUser = username;
-            localStorage.setItem(STORAGE_KEYS.CURRENT_USER, username);
-            if (typeof window.loadFiles === 'function') window.loadFiles(false);
-        };
-
-        window.pluginPromptAddUser = async function() {
-            if (typeof window.showCustomModal === 'function') {
-                const newName = await window.showCustomModal({
-                    title: '登記新用戶',
-                    message: '請輸入新用戶名稱（無需密碼）：',
-                    type: 'confirm',
-                    isPrompt: true,
-                    defaultValue: '',
-                    confirmText: '新增並切換'
-                });
-                if (!newName || !newName.trim()) return;
-                const trimmed = newName.trim();
-                if (trimmed === STORAGE_KEYS.DEFAULT_USER_NAME) { alert('「預設用戶」為系統保留名稱！'); return; }
-                if (!usersList.includes(trimmed)) {
-                    usersList.push(trimmed);
-                    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
-                }
-                refreshUserSelects();
-                window.pluginSwitchUser(trimmed);
-            }
-        };
-
-        function refreshUserSelects() {
-            const selectEl = document.getElementById('pluginUserSelect');
-            if (selectEl) {
-                selectEl.innerHTML = usersList.map(u => `<option value="${escapeHtmlAttr(u)}" ${u === currentUser ? 'selected' : ''}>${escapeHtmlAttr(u)}</option>`).join('');
-            }
-        }
-
-        window.pluginOpenManageModal = function() {
-            let modal = document.getElementById('pluginUserManageModal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'pluginUserManageModal';
-                modal.className = 'fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center';
-                document.body.appendChild(modal);
-            }
-            let usersHtml = usersList.map(u => {
-                const userLikes = getUserLikesMap(u);
-                const likeCount = Object.keys(userLikes).length;
-                const isCurrent = u === currentUser;
-                const isDefault = u === STORAGE_KEYS.DEFAULT_USER_NAME;
-                const safeU = escapeHtmlAttr(u);
-                return `
-                    <div class="flex items-center justify-between bg-slate-900 border border-slate-800 p-3 rounded-xl">
-                        <div>
-                            <div class="font-semibold text-sm text-slate-200 flex items-center">
-                                ${safeU}
-                                ${isCurrent ? '<span class="ml-2 text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full">當前</span>' : ''}
-                                ${isDefault ? '<span class="ml-2 text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">系統預設</span>' : ''}
-                            </div>
-                            <div class="text-xs text-slate-400 mt-0.5">已收藏 ${likeCount} 首歌</div>
-                        </div>
-                        <div class="flex items-center space-x-1.5">
-                            ${!isDefault ? `<button onclick="window.pluginRenameUser('${safeU}')" class="px-2.5 py-1 bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white rounded-lg text-xs transition">改名</button>` : ''}
-                            <button onclick="window.pluginExportUser('${safeU}')" class="px-2.5 py-1 bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white rounded-lg text-xs transition">匯出</button>
-                            <button onclick="window.pluginMergeUserPrompt('${safeU}')" class="px-2.5 py-1 bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white rounded-lg text-xs transition">合併</button>
-                            ${!isDefault && usersList.length > 1 ? `<button onclick="window.pluginDeleteUser('${safeU}')" class="px-2.5 py-1 bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white rounded-lg text-xs transition">刪除</button>` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            modal.innerHTML = `
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl flex flex-col max-h-[85dvh]">
-                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
-                        <h3 class="text-base font-bold text-slate-100 flex items-center">
-                            <i class="fa-solid fa-users-gear text-indigo-400 mr-2"></i> 用戶管理中心
-                        </h3>
-                        <button onclick="document.getElementById('pluginUserManageModal').remove()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                    <div class="space-y-3 overflow-y-auto flex-1 pr-1 mb-4">${usersHtml}</div>
-                    <div class="pt-3 border-t border-slate-800 flex items-center justify-between">
-                        <button onclick="window.pluginImportUserPrompt()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-xl transition">
-                            <i class="fa-solid fa-file-import mr-1"></i> 匯入用戶資料
-                        </button>
-                        <button onclick="document.getElementById('pluginUserManageModal').remove()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white rounded-xl transition">
-                            關閉
-                        </button>
-                    </div>
-                </div>
-            `;
-        };
-
-        window.pluginRenameUser = async function(oldName) {
-            if (oldName === STORAGE_KEYS.DEFAULT_USER_NAME) return;
-            const newName = prompt(`請輸入「${oldName}」的新名稱：`, oldName);
-            if (!newName || !newName.trim() || newName.trim() === oldName) return;
-            const trimmed = newName.trim();
-            if (trimmed === STORAGE_KEYS.DEFAULT_USER_NAME || usersList.includes(trimmed)) {
-                alert('此用戶名稱無效或已存在！');
-                return;
-            }
-            const oldKey = getStorageKeyForUser(oldName);
-            const newKey = getStorageKeyForUser(trimmed);
-            const data = localStorage.getItem(oldKey);
-            if (data) { localStorage.setItem(newKey, data); localStorage.removeItem(oldKey); }
-            usersList = usersList.map(u => u === oldName ? trimmed : u);
-            localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
-            if (currentUser === oldName) {
-                currentUser = trimmed;
-                localStorage.setItem(STORAGE_KEYS.CURRENT_USER, currentUser);
-            }
-            refreshUserSelects();
-            window.pluginOpenManageModal();
-            if (typeof window.loadFiles === 'function') window.loadFiles(false);
-        };
-
-        window.pluginDeleteUser = async function(username) {
-            if (username === STORAGE_KEYS.DEFAULT_USER_NAME) { alert('「預設用戶」不能被刪除！'); return; }
-            if (!confirm(`確定要刪除用戶「${username}」嗎？`)) return;
-            usersList = usersList.filter(u => u !== username);
-            localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
-            localStorage.removeItem(getStorageKeyForUser(username));
-            if (currentUser === username) {
-                currentUser = STORAGE_KEYS.DEFAULT_USER_NAME;
-                localStorage.setItem(STORAGE_KEYS.CURRENT_USER, currentUser);
-            }
-            refreshUserSelects();
-            window.pluginOpenManageModal();
-            if (typeof window.loadFiles === 'function') window.loadFiles(false);
-        };
-
-        window.pluginExportUser = function(username) {
-            const likes = getUserLikesMap(username);
-            const userData = { username, likes };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(userData, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `mp3_user_${username}_liked_map.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        };
-
-        window.pluginImportUserPrompt = function() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = e => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = event => {
-                    try {
-                        const imported = JSON.parse(event.target.result);
-                        if (!imported.username || !imported.likes) { alert('匯入失敗：檔案格式不正確！'); return; }
-                        let targetUser = imported.username;
-                        if (targetUser === STORAGE_KEYS.DEFAULT_USER_NAME || usersList.includes(targetUser)) {
-                            targetUser = targetUser + '_import_' + Date.now().toString().slice(-4);
-                        }
-                        usersList.push(targetUser);
-                        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
-                        saveUserLikesMap(targetUser, imported.likes);
-                        refreshUserSelects();
-                        window.pluginOpenManageModal();
-                        alert(`成功匯入用戶「${targetUser}」！`);
-                        if (typeof window.loadFiles === 'function') window.loadFiles(false);
-                    } catch(err) { alert('解析 JSON 檔案失敗！'); }
-                };
-                reader.readAsText(file);
-            };
-            input.click();
-        };
-
-        window.pluginMergeUserPrompt = function(sourceUser) {
-            const otherUsers = usersList.filter(u => u !== sourceUser);
-            if (otherUsers.length === 0) { alert('沒有其他用戶可供合併！'); return; }
-            const targetUser = prompt(`請選擇要將「${sourceUser}」的 Like 記錄合併到哪一個用戶？\n現有其他用戶：${otherUsers.join(', ')}`);
-            if (!targetUser || !otherUsers.includes(targetUser.trim())) {
-                if (targetUser) alert('輸入的目標用戶不存在！');
-                return;
-            }
-            const target = targetUser.trim();
-            if (!confirm(`確定要將「${sourceUser}」的所有 Like 合併到「${target}」嗎？`)) return;
-            const sourceLikes = getUserLikesMap(sourceUser);
-            const targetLikes = getUserLikesMap(target);
-            Object.keys(sourceLikes).forEach(songKey => { targetLikes[songKey] = true; });
-            saveUserLikesMap(target, targetLikes);
-            localStorage.removeItem(getStorageKeyForUser(sourceUser));
-            usersList = usersList.filter(u => u !== sourceUser);
-            localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
-            if (currentUser === sourceUser) {
-                currentUser = target;
-                localStorage.setItem(STORAGE_KEYS.CURRENT_USER, currentUser);
-            }
-            refreshUserSelects();
-            window.pluginOpenManageModal();
-            alert(`成功合併至 「${target}」！`);
-            if (typeof window.loadFiles === 'function') window.loadFiles(false);
-        };
-
-        function overrideCoreFunctions() {
-            window.getLikedMap = function() { return getUserLikesMap(currentUser); };
-            window.saveLikedMap = function(map) { saveUserLikesMap(currentUser, map); };
-
-            const originalRenderTable = window.renderTable;
-            if (typeof originalRenderTable === 'function') {
-                window.renderTable = function() {
-                    originalRenderTable();
-                    const files = (window.MP3AppExtension && window.MP3AppExtension.allFiles) || [];
-                    if (files.length > 0) {
-                        files.forEach(file => {
-                            const fileKey = file.relativePath || file.filename;
-                            const rowId = `row-${encodeInlineArg(fileKey).replace(/[%._-]/g, '_')}`;
-                            const row = document.getElementById(rowId);
-                            if (row) {
-                                const likedUsers = [];
-                                usersList.forEach(u => {
-                                    const map = getUserLikesMap(u);
-                                    if (map && map[fileKey]) likedUsers.push(u);
-                                });
-                                if (likedUsers.length > 0) {
-                                    const titleContainer = row.querySelector('.flex.items-center.space-x-2');
-                                    if (titleContainer && !titleContainer.querySelector('.plugin-likes-badge')) {
-                                        const badge = document.createElement('span');
-                                        badge.className = 'plugin-likes-badge text-[10px] text-rose-400 bg-rose-950/40 border border-rose-500/30 px-1.5 py-0.5 rounded ml-2';
-                                        badge.title = `按讚用戶: ${likedUsers.join(', ')}`;
-                                        badge.innerHTML = `<i class="fa-solid fa-heart mr-1"></i>${likedUsers.length}`;
-                                        titleContainer.appendChild(badge);
-                                    }
-                                }
-                            }
-                        });
-                    }
-                };
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            initPluginStorage();
-            injectUserUI();
-            overrideCoreFunctions();
-        });
-    })();
-    </script>
-
-    <!-- ==================== 插件管理器 ==================== -->
+    <!-- ==================== 插件管理器（按需动态加载） ==================== -->
     <script>
     (function() {
         'use strict';
 
         const REGISTRY = {
+            multiUser: {
+                id: 'multiUser',
+                name: '多用户',
+                description: '每个用户独立的 Like 记忆，支持切换、导入导出',
+                icon: 'fa-solid fa-user-shield',
+                iconClass: 'text-indigo-400',
+                scriptSrc: 'multi-user-plugin.js',
+                globalVar: 'MP3MultiUserPlugin',
+                autoEnable: true
+            },
             news: {
                 id: 'news',
                 name: 'News 播放列表',
@@ -1825,11 +1589,22 @@
 
         const STORAGE_KEY = 'mp3_enabled_dynamic_plugins';
         const enabled = new Set();
-        try {
-            (JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') || []).forEach(id => {
-                if (REGISTRY[id]) enabled.add(id);
+        const storedRaw = localStorage.getItem(STORAGE_KEY);
+
+        if (storedRaw === null) {
+            // 首次访问：启用所有 autoEnable 的插件
+            Object.values(REGISTRY).forEach(meta => {
+                if (meta.autoEnable) enabled.add(meta.id);
             });
-        } catch(e) {}
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...enabled])); } catch (e) {}
+        } else {
+            try {
+                const parsed = JSON.parse(storedRaw);
+                if (Array.isArray(parsed)) {
+                    parsed.forEach(id => { if (REGISTRY[id]) enabled.add(id); });
+                }
+            } catch (e) {}
+        }
 
         const loadedPlugins = {};
         const loadedScripts = new Set();
@@ -1860,7 +1635,10 @@
             await loadScriptOnce(meta.scriptSrc);
             const plugin = window[meta.globalVar];
             if (!plugin) throw new Error('插件未暴露全局变量：' + meta.globalVar);
-            if (typeof plugin.init !== 'function') throw new Error('插件缺少 init() 方法');
+            if (typeof plugin.init !== 'function') {
+                const v = plugin.version || '未知';
+                throw new Error(`插件「${meta.name}」版本 ${v} 缺少 init() 方法。请检查 ${meta.scriptSrc} 是否为最新版本。`);
+            }
 
             await plugin.init();
             loadedPlugins[id] = plugin;
@@ -1939,7 +1717,14 @@
         }
 
         async function restoreAll() {
-            for (const id of [...enabled]) {
+            // 先加载 multiUser（它覆写 getLikedMap），再加载其他插件
+            const order = Object.keys(REGISTRY).sort((a, b) => {
+                if (a === 'multiUser') return -1;
+                if (b === 'multiUser') return 1;
+                return 0;
+            });
+            for (const id of order) {
+                if (!enabled.has(id)) continue;
                 try {
                     await enablePlugin(id);
                 } catch (e) {
