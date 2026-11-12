@@ -9,35 +9,24 @@
     <style>
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(51, 65, 85, 0.6) transparent;
-        }
+        * { scrollbar-width: thin; scrollbar-color: rgba(51, 65, 85, 0.6) transparent; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.4); border-radius: 9999px; transition: background 0.2s ease; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.6); }
-
-        footer.player-bar {
-            padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
-        }
-
+        footer.player-bar { padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px)); }
         #mobileDrawer { transition: transform 0.3s ease-in-out; }
         #mobileDrawerToggle.is-open .fa-bars::before { content: "\f00d"; }
-
         .plugin-body:empty { display: none; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 h-screen flex flex-col overflow-hidden" style="height: 100dvh;">
 
-    <!-- 頂部導覽列 -->
     <header class="border-b border-slate-800 bg-slate-900/95 backdrop-blur shrink-0 px-3 md:px-6 py-2.5 flex items-center justify-between gap-2.5 md:gap-3 z-30">
         <div class="flex items-center gap-2 md:gap-3 min-w-0">
-            <button onclick="toggleMobileDrawer()" 
-                id="mobileDrawerToggle"
+            <button onclick="toggleMobileDrawer()" id="mobileDrawerToggle"
                 class="lg:hidden p-2 rounded-xl bg-indigo-950/60 border border-indigo-500/40 text-indigo-400 hover:text-white hover:bg-indigo-600 transition shadow-md flex items-center justify-center shrink-0"
-                title="開啟分類與篩選" aria-label="開啟分類與篩選">
+                title="開啟分類與篩選">
                 <i class="fa-solid fa-bars text-base"></i>
             </button>
             <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/35 shrink-0">
@@ -50,18 +39,12 @@
         </div>
     </header>
 
-    <!-- 移動端抽屜遮罩 -->
     <div id="mobileDrawerBackdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden lg:hidden opacity-0 transition-opacity duration-300" onclick="toggleMobileDrawer(false)"></div>
 
-    <!-- 主要內容區 -->
     <main class="flex-1 min-h-0 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-1 gap-6 overflow-y-auto lg:overflow-hidden">
-        
-        <!-- 左側：插件槽位 + 分類、標籤與搜尋 -->
         <div id="mobileDrawer" class="fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-slate-950 border-r border-slate-800 transform -translate-x-full
                                     lg:static lg:translate-x-0 lg:col-span-1 lg:w-auto lg:bg-transparent lg:border-none lg:z-auto
-                                    lg:min-h-0 lg:overflow-hidden
-                                    flex flex-col shrink-0 shadow-2xl lg:shadow-none">
-            
+                                    lg:min-h-0 lg:overflow-hidden flex flex-col shrink-0 shadow-2xl lg:shadow-none">
             <div class="lg:hidden flex items-center justify-between px-4 py-3 border-b border-slate-800 shrink-0">
                 <h3 class="font-bold text-sm text-slate-200 flex items-center">
                     <i class="fa-solid fa-sliders text-indigo-400 mr-2"></i> 控制與分類
@@ -70,11 +53,9 @@
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
-
             <div id="sidebarContentWrapper" class="flex-1 min-h-0 space-y-4 flex flex-col p-4 lg:p-0 overflow-y-auto pr-1">
                 <div id="pluginSlot" class="space-y-4"></div>
 
-                <!-- 分類區塊（含显示收藏日期开关） -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl">
                     <div class="flex items-center justify-between mb-3 px-1">
                         <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">分類標籤</h2>
@@ -82,10 +63,10 @@
                     </div>
                     <div id="categoryFilters" class="flex flex-col space-y-1.5 mb-3"></div>
                     <div class="flex items-center space-x-1.5 pt-2 border-t border-slate-800">
-                        <input type="text" id="newCategoryInput" placeholder="新分類名稱..." 
+                        <input type="text" id="newCategoryInput" placeholder="新分類名稱..."
                             class="bg-slate-800 border border-slate-700 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 flex-1 text-slate-200"
                             onkeydown="if(event.key==='Enter') addNewCategory()">
-                        <button onclick="addNewCategory()" class="bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700 px-3 py-1.5 rounded-xl text-xs transition" title="新增分類">
+                        <button onclick="addNewCategory()" class="bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700 px-3 py-1.5 rounded-xl text-xs transition">
                             <i class="fa-solid fa-plus"></i>
                         </button>
                     </div>
@@ -102,7 +83,6 @@
                     </div>
                 </div>
 
-                <!-- 標籤過濾 -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl">
                     <div class="flex items-center justify-between mb-2.5 px-1">
                         <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">標籤過濾</h2>
@@ -111,24 +91,21 @@
                     <div id="tagCloudContainer" class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto"></div>
                 </div>
 
-                <!-- 快速搜尋 -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl">
                     <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5 px-1">快速搜尋</h2>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
                             <i class="fa-solid fa-magnifying-glass text-xs"></i>
                         </span>
-                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜尋歌名或目錄..." 
+                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜尋歌名或目錄..."
                             class="w-full bg-slate-800/80 border border-slate-700 text-sm rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:border-indigo-500 text-slate-200">
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 右側：MP3 列表 -->
         <div class="lg:col-span-3 flex flex-col lg:min-h-0 lg:overflow-hidden min-w-0">
             <div class="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-xl flex flex-col lg:flex-1 lg:min-h-0 overflow-hidden">
-                
                 <div class="px-4 md:px-6 py-3.5 border-b border-slate-800 flex justify-between items-center shrink-0 flex-wrap gap-2">
                     <div class="flex items-center space-x-2 min-w-0">
                         <h2 class="font-semibold text-slate-200 flex items-center text-sm md:text-base shrink-0">
@@ -138,7 +115,7 @@
                     </div>
                     <div class="flex items-center space-x-3 flex-wrap gap-2">
                         <span id="fileCountText" class="text-xs text-slate-400">共 0 首</span>
-                        <select id="sourceFilter" onchange="handleSourceFilterChange(this.value)" 
+                        <select id="sourceFilter" onchange="handleSourceFilterChange(this.value)"
                             class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-300 focus:outline-none">
                             <option value="all">所有來源</option>
                         </select>
@@ -174,7 +151,7 @@
                             <tr>
                                 <td colspan="4" class="text-center py-12 text-slate-500">
                                     <i class="fa-solid fa-folder-open text-3xl mb-2 block"></i>
-                                    請在「本地目录」插件裡輸入路徑並載入
+                                    請在「本地目錄」插件中新增目錄
                                 </td>
                             </tr>
                         </tbody>
@@ -186,7 +163,6 @@
         </div>
     </main>
 
-    <!-- 底部播放器 -->
     <footer class="shrink-0 relative z-20 bg-slate-900 border-t border-slate-800 p-3 shadow-2xl player-bar">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
             <div class="flex items-center space-x-3 w-full md:w-1/4">
@@ -204,7 +180,7 @@
 
             <div class="flex flex-col items-center w-full md:w-2/4 space-y-1">
                 <div class="flex items-center space-x-3 md:space-x-4">
-                    <button onclick="toggleAutoMode()" id="autoModeBtn" class="text-xs px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1" title="切換自動模式">
+                    <button onclick="toggleAutoMode()" id="autoModeBtn" class="text-xs px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1">
                         <i class="fa-solid fa-bolt text-[10px]"></i><span>自動</span>
                     </button>
                     <button onclick="togglePlayMode()" id="playModeBtn" class="text-slate-400 hover:text-indigo-400 transition flex items-center justify-center p-1" title="播放模式">
@@ -240,7 +216,6 @@
         </div>
     </footer>
 
-    <!-- Modal -->
     <div id="customModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl transform scale-95 transition-transform duration-200" id="modalBox">
             <div class="flex items-center space-x-3 mb-4">
@@ -263,9 +238,8 @@
     <video id="audioPlayer" class="sr-only" playsinline preload="auto" aria-hidden="true"
            ontimeupdate="updateProgress()" onended="onAudioEnded()" onerror="onAudioError()"></video>
 
-    <!-- ==================== 主應用邏輯 ==================== -->
     <script>
-        // ---------- 内联 onclick 安全辅助 ----------
+        // ==================== 安全辅助 ====================
         function encodeInlineArg(s) {
             return encodeURIComponent(String(s == null ? '' : s)).replace(/'/g, '%27');
         }
@@ -274,13 +248,27 @@
         }
         function escapeHtmlAttr(s) {
             return String(s == null ? '' : s)
-                .replace(/&/g, '&amp;')
-                .replace(/"/g, '&quot;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
+                .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
 
-        // ---------- Like 时间戳辅助 ----------
+        // ==================== 文件唯一 key ====================
+        // 本地文件由插件附上 _key（fileKey + '\x00' + sourceId）；News / Drive 无 _key，退回 relativePath
+        function getFileKey(f) {
+            if (!f) return '';
+            return f._key || f.relativePath || f.filename || '';
+        }
+        window.getFileKey = getFileKey;
+
+        // ==================== 从文件上下文读取请求参数 ====================
+        function getFileRequestParams(file) {
+            const apiBase = (file && file._apiBase) || window.MP3GetMp3ApiBase();
+            const dir = (file && file._dir) || window.MP3GetCurrentDir();
+            const originalKey = (file && file._originalKey) || (file && (file.relativePath || file.filename)) || '';
+            return { apiBase, dir, originalKey };
+        }
+
+        // ==================== Like 时间戳辅助 ====================
         function parseLikedAt(raw) {
             if (!raw) return null;
             if (raw === true) return null;
@@ -298,27 +286,23 @@
             return `${formatLikedAtDate(ts)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
         }
 
-        // 全局显示开关
         window.mp3_showLikedDate = localStorage.getItem('mp3_show_liked_date') === 'true';
 
-        // ---------- 统一读取当前目录（只读 localStorage，由 local 插件写入） ----------
+        // ==================== 兜底：单源场景读取（多源场景不依赖） ====================
         window.MP3GetCurrentDir = function () {
             return localStorage.getItem('mp3_last_dir') || '';
         };
-
-        // ---------- 统一 API 端点（可配置） ----------
         window.MP3GetMp3ApiBase = function () {
             let base = localStorage.getItem('mp3_api_base') || '/api/mp3';
-            base = String(base).trim().replace(/\/+$/, '');
-            return base || '/api/mp3';
+            return String(base).trim().replace(/\/+$/, '') || '/api/mp3';
         };
 
-        // ---------- 主应用状态 ----------
+        // ==================== 主应用状态 ====================
         let allFiles = [];
         let categories = ['未分類', '流行', '輕音樂', '工作', '其他'];
         let currentCategory = '全部';
         let currentTagFilter = null;
-        let currentPlayingFile = null;
+        let currentPlayingFile = null; // 这里存的是 _key
         const audioPlayer = document.getElementById('audioPlayer');
 
         let currentPage = 1;
@@ -328,7 +312,6 @@
         let autoTimer = null;
         let autoCountdownInterval = null;
         let remainingSeconds = 10;
-
         let pendingScrollToCurrentSong = false;
         let lastPauseTime = 0;
         const PAUSE_TO_PLAY_DELAY = 900;
@@ -381,8 +364,23 @@
         window.addEventListener('DOMContentLoaded', () => {
             categories = getSavedCategories();
             const params = new URLSearchParams(window.location.search);
+
+            // 旧兼容：如果 URL 带 ?dir= 且本地还没有配置，作为第一个源导入
             const dirParam = params.get('dir');
-            if (dirParam) localStorage.setItem('mp3_last_dir', dirParam);
+            if (dirParam) {
+                let sources = [];
+                try { sources = JSON.parse(localStorage.getItem('mp3_local_sources') || '[]'); } catch (e) {}
+                if (sources.length === 0) {
+                    sources.push({
+                        id: 'src_default',
+                        name: '本地音樂',
+                        apiBase: '/api/mp3',
+                        dir: dirParam,
+                        enabled: true
+                    });
+                    localStorage.setItem('mp3_local_sources', JSON.stringify(sources));
+                }
+            }
 
             const pageParam = parseInt(params.get('page'));
             if (!isNaN(pageParam) && pageParam > 0) currentPage = pageParam;
@@ -416,7 +414,6 @@
                 if (volEl) volEl.value = vol;
             }
 
-            // 全局显示收藏日期开关
             const showToggle = document.getElementById('showLikedDateToggle');
             if (showToggle) {
                 showToggle.checked = window.mp3_showLikedDate;
@@ -446,7 +443,7 @@
                     if (lastPauseTime > 0 && (now - lastPauseTime < PAUSE_TO_PLAY_DELAY)) {
                         lastPauseTime = 0;
                         if (currentPlayingFile) {
-                            const file = allFiles.find(f => (f.relativePath || f.filename) === currentPlayingFile);
+                            const file = allFiles.find(f => getFileKey(f) === currentPlayingFile);
                             if (file && !file.isLiked) togglePlayerLike();
                         }
                         if (audioPlayer.paused) {
@@ -496,22 +493,21 @@
         }
 
         function updateUrlParams() {
-            const dir = window.MP3GetCurrentDir();
             const params = new URLSearchParams(window.location.search);
-            if (dir) params.set('dir', dir); else params.delete('dir');
+            params.delete('dir');
             params.set('page', currentPage);
             params.set('pageSize', pageSize);
             window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
         }
 
-        // ★ loadFiles 转发到 local 插件
+        // ==================== loadFiles 转发 ====================
         async function loadFiles(resetPage = false) {
-            if (window.MP3LocalPlugin && typeof window.MP3LocalPlugin.loadLocalFiles === 'function') {
-                return window.MP3LocalPlugin.loadLocalFiles(resetPage);
-            }
             if (resetPage) currentPage = 1;
-            const existingExternal = allFiles.filter(f => f._source && f._source !== 'local');
-            allFiles = existingExternal;
+            if (window.MP3LocalPlugin && typeof window.MP3LocalPlugin.loadAllSources === 'function') {
+                return window.MP3LocalPlugin.loadAllSources();
+            }
+            // 插件未启用：清空本地
+            allFiles = allFiles.filter(f => f._source && f._source !== 'local');
             renderCategories();
             renderTagCloud();
             renderTable();
@@ -523,46 +519,45 @@
             const lastTime = parseFloat(sessionStorage.getItem('mp3_last_played_time') || localStorage.getItem('mp3_last_played_time') || '0');
             if (!lastKey || allFiles.length === 0) return;
 
-            const targetFile = allFiles.find(f => (f.relativePath || f.filename) === lastKey);
-            if (targetFile) {
-                currentPlayingFile = lastKey;
-                pendingScrollToCurrentSong = true;
-                syncPageToFile(lastKey);
+            const targetFile = allFiles.find(f => getFileKey(f) === lastKey);
+            if (!targetFile) return;
 
-                const src = targetFile._source || 'local';
-                if (src === 'local') {
-                    const dir = window.MP3GetCurrentDir();
-                    if (!dir) return;
-                    const api = window.MP3GetMp3ApiBase();
-                    const streamUrl = `${api}?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(lastKey)}`;
-                    audioPlayer.src = streamUrl;
-                    audioPlayer.addEventListener('loadedmetadata', function onMeta() {
-                        if (!isNaN(audioPlayer.duration) && lastTime < audioPlayer.duration) {
-                            audioPlayer.currentTime = lastTime;
-                        }
-                        audioPlayer.removeEventListener('loadedmetadata', onMeta);
-                    });
-                }
+            currentPlayingFile = lastKey;
+            pendingScrollToCurrentSong = true;
+            syncPageToFile(lastKey);
 
-                const displayName = targetFile.displayName || lastTitle;
-                document.getElementById('currentSongTitle').innerText = displayName;
-                document.getElementById('currentSongCategory').innerText = targetFile.category || '';
-                updateMediaSessionMetadata(displayName);
-
-                if (typeof window.MP3SetPlayerSourceBadge === 'function') {
-                    window.MP3SetPlayerSourceBadge(targetFile);
-                }
-
-                updatePlayerLikeState();
-                updatePlayerDislikeState();
-                renderTable();
-                updatePlayButton();
+            const src = targetFile._source || 'local';
+            if (src === 'local') {
+                const { apiBase, dir, originalKey } = getFileRequestParams(targetFile);
+                if (!dir) return;
+                const streamUrl = `${apiBase}?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(originalKey)}`;
+                audioPlayer.src = streamUrl;
+                audioPlayer.addEventListener('loadedmetadata', function onMeta() {
+                    if (!isNaN(audioPlayer.duration) && lastTime < audioPlayer.duration) {
+                        audioPlayer.currentTime = lastTime;
+                    }
+                    audioPlayer.removeEventListener('loadedmetadata', onMeta);
+                });
             }
+
+            const displayName = targetFile.displayName || lastTitle;
+            document.getElementById('currentSongTitle').innerText = displayName;
+            document.getElementById('currentSongCategory').innerText = targetFile.category || '';
+            updateMediaSessionMetadata(displayName);
+
+            if (typeof window.MP3SetPlayerSourceBadge === 'function') {
+                window.MP3SetPlayerSourceBadge(targetFile);
+            }
+
+            updatePlayerLikeState();
+            updatePlayerDislikeState();
+            renderTable();
+            updatePlayButton();
         }
 
-        function syncPageToFile(fileKey) {
+        function syncPageToFile(uniqueKey) {
             const filtered = getFilteredFiles();
-            const idx = filtered.findIndex(f => (f.relativePath || f.filename) === fileKey);
+            const idx = filtered.findIndex(f => getFileKey(f) === uniqueKey);
             if (idx === -1) return;
             const targetPage = Math.floor(idx / pageSize) + 1;
             if (targetPage !== currentPage) {
@@ -592,8 +587,7 @@
             const confirmed = await showCustomModal({
                 title: '刪除分類',
                 message: `確定要刪除分類「${catName}」嗎？\n原先屬於此分類的歌曲將自動歸為「未分類」。`,
-                type: 'danger',
-                confirmText: '確認刪除'
+                type: 'danger', confirmText: '確認刪除'
             });
             if (!confirmed) return;
             allFiles.forEach(f => { if (f.category === catName) f.category = '未分類'; });
@@ -641,7 +635,7 @@
                             <span>${escapeHtmlAttr(cat)}</span>
                             <span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${count}</span>
                         </button>
-                        ${canDelete ? `<button onclick="deleteCategory('${encCat}')" class="opacity-0 group-hover:opacity-100 p-1.5 text-slate-500 hover:text-rose-400 text-xs transition" title="刪除分類"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                        ${canDelete ? `<button onclick="deleteCategory('${encCat}')" class="opacity-0 group-hover:opacity-100 p-1.5 text-slate-500 hover:text-rose-400 text-xs transition"><i class="fa-solid fa-xmark"></i></button>` : ''}
                     </div>
                 `;
             });
@@ -653,9 +647,7 @@
         function updateMobileFilterBadge() {
             const badge = document.getElementById('mobileFilterBadge');
             if (!badge) return;
-            let text = currentCategory;
-            if (currentTagFilter) text = '#' + currentTagFilter;
-            badge.innerText = text;
+            badge.innerText = currentTagFilter ? '#' + currentTagFilter : currentCategory;
         }
 
         function filterCategory(encodedCat) {
@@ -693,8 +685,7 @@
         }
 
         function filterByTag(encodedTag) {
-            const tag = encodedTag === null ? null : safeDecodeURI(encodedTag);
-            currentTagFilter = tag;
+            currentTagFilter = encodedTag === null ? null : safeDecodeURI(encodedTag);
             currentPage = 1;
             pendingScrollToCurrentSong = false;
             renderCategories();
@@ -705,23 +696,24 @@
         }
 
         async function editSongTags(encodedKey, encodedName) {
-            const fileKey = decodeURIComponent(encodedKey);
+            const uniqueKey = decodeURIComponent(encodedKey);
+            const file = allFiles.find(f => getFileKey(f) === uniqueKey);
+            if (!file) return;
             const displayName = decodeURIComponent(encodedName);
             const tagsMap = getTagsMap();
-            const currentTags = tagsMap[fileKey] || [];
+            const currentTags = tagsMap[uniqueKey] || [];
             const inputTags = await showCustomModal({
                 title: '管理歌曲標籤',
                 subtitle: displayName,
                 message: '請輸入標籤（多個標籤請用半形逗號 , 隔開）：',
-                type: 'confirm',
-                isPrompt: true,
+                type: 'confirm', isPrompt: true,
                 defaultValue: currentTags.join(', '),
                 confirmText: '儲存標籤'
             });
             if (inputTags === null) return;
             const newTags = inputTags.split(',').map(t => t.trim()).filter(t => t.length > 0);
-            if (newTags.length > 0) tagsMap[fileKey] = [...new Set(newTags)];
-            else delete tagsMap[fileKey];
+            if (newTags.length > 0) tagsMap[uniqueKey] = [...new Set(newTags)];
+            else delete tagsMap[uniqueKey];
             saveTagsMap(tagsMap);
             loadFiles(false);
         }
@@ -735,8 +727,8 @@
             const sourceFilter = window.currentSourceFilter || 'all';
 
             const result = allFiles.filter(f => {
-                const key = f.relativePath || f.filename;
-                const matchKey = (f.displayName || f.filename).toLowerCase().includes(keyword) ||
+                const key = getFileKey(f);
+                const matchKey = (f.displayName || f.filename || '').toLowerCase().includes(keyword) ||
                                  key.toLowerCase().includes(keyword);
                 const matchTag = !currentTagFilter || (f.tags && f.tags.includes(currentTagFilter));
                 const matchSource = sourceFilter === 'all' || ((f._source || 'local') === sourceFilter);
@@ -756,39 +748,39 @@
 
         function toggleLike(encodedKey, event) {
             if (event) event.stopPropagation();
-            const fileKey = decodeURIComponent(encodedKey);
-            const file = allFiles.find(f => (f.relativePath || f.filename) === fileKey);
+            const uniqueKey = decodeURIComponent(encodedKey);
+            const file = allFiles.find(f => getFileKey(f) === uniqueKey);
             if (!file) return;
 
             file.isLiked = !file.isLiked;
             if (file.isLiked && file.isDisliked) {
                 file.isDisliked = false;
                 const dislikedMap = getDislikedMap();
-                delete dislikedMap[fileKey];
+                delete dislikedMap[uniqueKey];
                 saveDislikedMap(dislikedMap);
             }
 
             const likedMap = getLikedMap();
             if (file.isLiked) {
-                const existing = likedMap[fileKey];
+                const existing = likedMap[uniqueKey];
                 const existingTs = (existing && typeof existing === 'object' && typeof existing.ts === 'number') ? existing.ts : null;
                 const ts = existingTs || Date.now();
-                likedMap[fileKey] = { ts };
+                likedMap[uniqueKey] = { ts };
                 file.likedAt = ts;
             } else {
-                delete likedMap[fileKey];
+                delete likedMap[uniqueKey];
                 file.likedAt = null;
             }
             saveLikedMap(likedMap);
 
-            if (currentPlayingFile === fileKey) {
+            if (currentPlayingFile === uniqueKey) {
                 updatePlayerLikeState();
                 updatePlayerDislikeState();
             }
             renderCategories();
             renderTable();
 
-            if (isAutoMode && currentPlayingFile === fileKey && file.isLiked) {
+            if (isAutoMode && currentPlayingFile === uniqueKey && file.isLiked) {
                 clearAutoTimer();
                 const timerText = document.getElementById('autoTimerText');
                 timerText.classList.remove('hidden');
@@ -798,25 +790,25 @@
         }
 
         function toggleFileDislike(encodedKey) {
-            const fileKey = decodeURIComponent(encodedKey);
-            const file = allFiles.find(f => (f.relativePath || f.filename) === fileKey);
+            const uniqueKey = decodeURIComponent(encodedKey);
+            const file = allFiles.find(f => getFileKey(f) === uniqueKey);
             if (!file) return;
             file.isDisliked = !file.isDisliked;
             const dislikedMap = getDislikedMap();
             if (file.isDisliked) {
-                dislikedMap[fileKey] = true;
+                dislikedMap[uniqueKey] = true;
                 if (file.isLiked) {
                     file.isLiked = false;
                     file.likedAt = null;
                     const likedMap = getLikedMap();
-                    delete likedMap[fileKey];
+                    delete likedMap[uniqueKey];
                     saveLikedMap(likedMap);
                 }
             } else {
-                delete dislikedMap[fileKey];
+                delete dislikedMap[uniqueKey];
             }
             saveDislikedMap(dislikedMap);
-            if (currentPlayingFile === fileKey) {
+            if (currentPlayingFile === uniqueKey) {
                 updatePlayerLikeState();
                 updatePlayerDislikeState();
                 if (file.isDisliked && !audioPlayer.paused) playNext();
@@ -839,7 +831,7 @@
             const icon = document.getElementById('playerLikeIcon');
             if (!currentPlayingFile) { btn.classList.add('hidden'); return; }
             btn.classList.remove('hidden');
-            const file = allFiles.find(f => (f.relativePath || f.filename) === currentPlayingFile);
+            const file = allFiles.find(f => getFileKey(f) === currentPlayingFile);
             if (file && file.isLiked) {
                 icon.className = 'fa-solid fa-heart text-rose-500';
                 btn.title = file.likedAt ? `取消最愛（收藏于 ${formatLikedAtDate(file.likedAt)}）` : '取消最愛 (L)';
@@ -853,7 +845,7 @@
             const icon = document.getElementById('playerDislikeIcon');
             if (!currentPlayingFile) { btn.classList.add('hidden'); return; }
             btn.classList.remove('hidden');
-            const file = allFiles.find(f => (f.relativePath || f.filename) === currentPlayingFile);
+            const file = allFiles.find(f => getFileKey(f) === currentPlayingFile);
             if (file && file.isDisliked) {
                 icon.className = 'fa-solid fa-thumbs-down text-amber-400';
                 btn.title = '取消隱藏';
@@ -871,7 +863,6 @@
             localStorage.setItem('mp3_last_play_mode', playMode);
             document.getElementById('playModeBtn').innerHTML = modeIconsSVG[playMode];
             document.getElementById('modeText').innerText = modeNames[playMode];
-            document.getElementById('playModeBtn').title = `播放模式: ${modeNames[playMode]}`;
         }
 
         function toggleAutoMode() {
@@ -919,8 +910,8 @@
         }
 
         async function playSong(encodedKey, encodedName) {
-            const fileKey = decodeURIComponent(encodedKey);
-            const file = allFiles.find(f => (f.relativePath || f.filename) === fileKey);
+            const uniqueKey = decodeURIComponent(encodedKey);
+            const file = allFiles.find(f => getFileKey(f) === uniqueKey);
 
             if (window.MP3DataSourceHandlers) {
                 Object.entries(window.MP3DataSourceHandlers).forEach(([k, h]) => {
@@ -939,23 +930,22 @@
                 }
             }
 
-            const displayName = encodedName ? decodeURIComponent(encodedName) : fileKey;
-            const dir = window.MP3GetCurrentDir();
-            const api = window.MP3GetMp3ApiBase();
-            const streamUrl = `${api}?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(fileKey)}`;
+            const displayName = encodedName ? decodeURIComponent(encodedName) : (file && (file.displayName || file.filename)) || uniqueKey;
+            if (!file) return;
+            const { apiBase, dir, originalKey } = getFileRequestParams(file);
+            const streamUrl = `${apiBase}?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(originalKey)}`;
 
-            syncPageToFile(fileKey);
+            syncPageToFile(uniqueKey);
 
-            if (currentPlayingFile !== fileKey) {
-                currentPlayingFile = fileKey;
+            if (currentPlayingFile !== uniqueKey) {
+                currentPlayingFile = uniqueKey;
                 pendingScrollToCurrentSong = true;
                 audioPlayer.src = streamUrl;
                 audioPlayer.play();
                 document.getElementById('currentSongTitle').innerText = displayName;
-                const fileObj = file;
-                document.getElementById('currentSongCategory').innerText = fileObj ? fileObj.category : '';
+                document.getElementById('currentSongCategory').innerText = file.category || '';
                 updateMediaSessionMetadata(displayName);
-                localStorage.setItem('mp3_last_played_key', fileKey);
+                localStorage.setItem('mp3_last_played_key', uniqueKey);
                 localStorage.setItem('mp3_last_played_title', displayName);
 
                 if (typeof window.MP3SetPlayerSourceBadge === 'function') {
@@ -977,11 +967,11 @@
         function playPrev() {
             const list = getFilteredFiles();
             if (list.length === 0) return;
-            const currentIndex = list.findIndex(f => (f.relativePath || f.filename) === currentPlayingFile);
+            const currentIndex = list.findIndex(f => getFileKey(f) === currentPlayingFile);
             let prevIndex = currentIndex - 1;
             if (prevIndex < 0) prevIndex = list.length - 1;
             const target = list[prevIndex];
-            playSong(encodeInlineArg(target.relativePath || target.filename), encodeInlineArg(target.displayName || ''));
+            playSong(encodeInlineArg(getFileKey(target)), encodeInlineArg(target.displayName || ''));
         }
 
         function playNext() {
@@ -990,14 +980,14 @@
             if (list.length === 0) return;
             if (playMode === 'shuffle') {
                 let randomIndex = Math.floor(Math.random() * list.length);
-                if (list.length > 1 && (list[randomIndex].relativePath || list[randomIndex].filename) === currentPlayingFile) {
+                if (list.length > 1 && getFileKey(list[randomIndex]) === currentPlayingFile) {
                     randomIndex = (randomIndex + 1) % list.length;
                 }
                 const target = list[randomIndex];
-                playSong(encodeInlineArg(target.relativePath || target.filename), encodeInlineArg(target.displayName || ''));
+                playSong(encodeInlineArg(getFileKey(target)), encodeInlineArg(target.displayName || ''));
                 return;
             }
-            const currentIndex = list.findIndex(f => (f.relativePath || f.filename) === currentPlayingFile);
+            const currentIndex = list.findIndex(f => getFileKey(f) === currentPlayingFile);
             let nextIndex = currentIndex + 1;
             if (nextIndex >= list.length) {
                 if (playMode === 'sequence') {
@@ -1012,7 +1002,7 @@
                 nextIndex = 0;
             }
             const target = list[nextIndex];
-            playSong(encodeInlineArg(target.relativePath || target.filename), encodeInlineArg(target.displayName || ''));
+            playSong(encodeInlineArg(getFileKey(target)), encodeInlineArg(target.displayName || ''));
         }
 
         function onAudioEnded() {
@@ -1028,7 +1018,10 @@
         function togglePlay() {
             if (!audioPlayer.src) {
                 const list = getFilteredFiles();
-                if (list.length > 0) playSong(encodeInlineArg(list[0].relativePath || list[0].filename), encodeInlineArg(list[0].displayName || ''));
+                if (list.length > 0) {
+                    const f = list[0];
+                    playSong(encodeInlineArg(getFileKey(f)), encodeInlineArg(f.displayName || ''));
+                }
                 return;
             }
             if (audioPlayer.paused) {
@@ -1072,46 +1065,55 @@
         }
 
         async function changeCategory(encodedKey, newCategory) {
-            const fileKey = decodeURIComponent(encodedKey);
-            const dir = window.MP3GetCurrentDir();
-            const api = window.MP3GetMp3ApiBase();
-            const res = await fetch(api, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ dir, filename: fileKey, newCategory })
-            });
-            const data = await res.json();
-            if (data.success) loadFiles(false);
-            else showCustomModal({ title: '修改失敗', message: data.error, type: 'error' });
+            const uniqueKey = decodeURIComponent(encodedKey);
+            const file = allFiles.find(f => getFileKey(f) === uniqueKey);
+            if (!file) return;
+            const { apiBase, dir, originalKey } = getFileRequestParams(file);
+            try {
+                const res = await fetch(apiBase, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dir, filename: originalKey, newCategory })
+                });
+                const data = await res.json();
+                if (data.success) loadFiles(false);
+                else showCustomModal({ title: '修改失敗', message: data.error, type: 'error' });
+            } catch (e) {
+                showCustomModal({ title: '連線錯誤', message: e.message, type: 'error' });
+            }
         }
 
         async function deleteSong(encodedKey) {
-            const fileKey = decodeURIComponent(encodedKey);
+            const uniqueKey = decodeURIComponent(encodedKey);
+            const file = allFiles.find(f => getFileKey(f) === uniqueKey);
+            if (!file) return;
             const confirmed = await showCustomModal({
                 title: '刪除檔案確認',
                 subtitle: '此操作無法復原',
                 message: '確定要從硬碟中刪除這個 MP3 檔案嗎？',
-                type: 'danger',
-                confirmText: '確認刪除'
+                type: 'danger', confirmText: '確認刪除'
             });
             if (!confirmed) return;
-            const dir = window.MP3GetCurrentDir();
-            const api = window.MP3GetMp3ApiBase();
-            const res = await fetch(`${api}?dir=${encodeURIComponent(dir)}&filename=${encodeURIComponent(fileKey)}`, { method: 'DELETE' });
-            const data = await res.json();
-            if (data.success) {
-                if (currentPlayingFile === fileKey) {
-                    audioPlayer.pause();
-                    currentPlayingFile = null;
-                    localStorage.removeItem('mp3_last_played_key');
-                    sessionStorage.removeItem('mp3_last_played_time');
-                    updatePlayerLikeState();
-                    updatePlayerDislikeState();
-                    clearAutoTimer();
+            const { apiBase, dir, originalKey } = getFileRequestParams(file);
+            try {
+                const res = await fetch(`${apiBase}?dir=${encodeURIComponent(dir)}&filename=${encodeURIComponent(originalKey)}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    if (currentPlayingFile === uniqueKey) {
+                        audioPlayer.pause();
+                        currentPlayingFile = null;
+                        localStorage.removeItem('mp3_last_played_key');
+                        sessionStorage.removeItem('mp3_last_played_time');
+                        updatePlayerLikeState();
+                        updatePlayerDislikeState();
+                        clearAutoTimer();
+                    }
+                    loadFiles(false);
+                } else {
+                    showCustomModal({ title: '刪除失敗', message: data.error, type: 'error' });
                 }
-                loadFiles(false);
-            } else {
-                showCustomModal({ title: '刪除失敗', message: data.error, type: 'error' });
+            } catch (e) {
+                showCustomModal({ title: '連線錯誤', message: e.message, type: 'error' });
             }
         }
 
@@ -1122,31 +1124,56 @@
                 showCustomModal({ title: '提示', message: '目前沒有任何「我的最愛」歌曲可供複製！', type: 'info' });
                 return;
             }
+
+            // 按 (apiBase, dir) 分组
+            const groups = new Map();
+            likedKeys.forEach(uniqueKey => {
+                const file = allFiles.find(f => getFileKey(f) === uniqueKey);
+                if (!file) return;
+                const { apiBase, dir, originalKey } = getFileRequestParams(file);
+                const gKey = apiBase + '\x00' + dir;
+                if (!groups.has(gKey)) groups.set(gKey, { apiBase, dir, filenames: [] });
+                groups.get(gKey).filenames.push(originalKey);
+            });
+
+            if (groups.size === 0) {
+                showCustomModal({ title: '提示', message: '找不到對應的檔案來源。', type: 'info' });
+                return;
+            }
+
             const savedTargetDir = localStorage.getItem('mp3_copy_target_dir') || '';
             const targetDir = await showCustomModal({
                 title: '複製我的最愛',
-                subtitle: `共選定 ${likedKeys.length} 首收藏歌曲`,
+                subtitle: `共選定 ${likedKeys.length} 首，分屬 ${groups.size} 個來源`,
                 message: '請輸入要複製過去的目標資料夾絕對路徑：',
-                type: 'confirm',
-                isPrompt: true,
-                defaultValue: savedTargetDir,
-                confirmText: '開始複製'
+                type: 'confirm', isPrompt: true,
+                defaultValue: savedTargetDir, confirmText: '開始複製'
             });
             if (!targetDir || !targetDir.trim()) return;
             const trimmedTargetDir = targetDir.trim();
             localStorage.setItem('mp3_copy_target_dir', trimmedTargetDir);
-            const currentSourceDir = window.MP3GetCurrentDir();
-            const api = window.MP3GetMp3ApiBase();
-            const res = await fetch(`${api}/copy-favorites`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sourceDir: currentSourceDir, targetDir: trimmedTargetDir, filenames: likedKeys })
-            });
-            const data = await res.json();
-            if (data.success) {
-                showCustomModal({ title: '複製完成', message: `已成功將最愛歌曲複製。\n成功：${data.successCount} 首`, type: 'success' });
+
+            let totalSuccess = 0;
+            const errors = [];
+            for (const { apiBase, dir, filenames } of groups.values()) {
+                try {
+                    const res = await fetch(`${apiBase}/copy-favorites`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sourceDir: dir, targetDir: trimmedTargetDir, filenames })
+                    });
+                    const data = await res.json();
+                    if (data.success) totalSuccess += data.successCount || 0;
+                    else errors.push(`${dir}: ${data.error}`);
+                } catch (e) {
+                    errors.push(`${dir}: ${e.message}`);
+                }
+            }
+
+            if (errors.length === 0) {
+                showCustomModal({ title: '複製完成', message: `已成功複製 ${totalSuccess} 首到 ${trimmedTargetDir}`, type: 'success' });
             } else {
-                showCustomModal({ title: '複製失敗', message: data.error, type: 'error' });
+                showCustomModal({ title: '部分失敗', message: `成功 ${totalSuccess} 首\n錯誤：\n${errors.join('\n')}`, type: 'error' });
             }
         }
 
@@ -1167,9 +1194,7 @@
                 document.getElementById('topNextBtn').disabled = true;
                 pendingScrollToCurrentSong = false;
                 if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
-                if (window.MP3NewsPlugin && typeof window.MP3NewsPlugin.maybeAutoLoad === 'function') {
-                    window.MP3NewsPlugin.maybeAutoLoad();
-                }
+                if (window.MP3NewsPlugin && typeof window.MP3NewsPlugin.maybeAutoLoad === 'function') window.MP3NewsPlugin.maybeAutoLoad();
                 return;
             }
 
@@ -1182,17 +1207,17 @@
 
             let html = '';
             pageItems.forEach(file => {
-                const fileKey = file.relativePath || file.filename;
-                const isPlaying = currentPlayingFile === fileKey;
-                const sizeMb = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+                const uniqueKey = getFileKey(file);
+                const isPlaying = currentPlayingFile === uniqueKey;
+                const sizeMb = file.size ? ((file.size / (1024 * 1024)).toFixed(1) + ' MB') : '';
                 const catOptions = categories.map(c => {
                     const safe = escapeHtmlAttr(c);
                     return `<option value="${safe}" ${c === file.category ? 'selected' : ''}>${safe}</option>`;
                 }).join('');
                 const tagsHtml = (file.tags || []).map(t => `<span class="bg-indigo-950 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded text-[10px]">#${escapeHtmlAttr(t)}</span>`).join(' ');
 
-                const encodedKey = encodeInlineArg(fileKey);
-                const encodedName = encodeInlineArg(file.displayName || file.filename);
+                const encodedKey = encodeInlineArg(uniqueKey);
+                const encodedName = encodeInlineArg(file.displayName || file.filename || '');
                 const rowId = `row-${encodedKey.replace(/[%._-]/g, '_')}`;
                 const isExternal = (file._source && file._source !== 'local');
 
@@ -1230,7 +1255,7 @@
                                         ${catOptions}
                                     </select>
                                     ${tagsHtml}
-                                    <button onclick="editSongTags('${encodedKey}', '${encodedName}')" class="text-[10px] text-slate-500 hover:text-indigo-400 px-1 border border-dashed border-slate-700 rounded ${isExternal ? 'opacity-30 cursor-not-allowed' : ''}" ${isExternal ? 'disabled title="外部來源不支援"' : ''}>+標籤</button>
+                                    <button onclick="editSongTags('${encodedKey}', '${encodedName}')" class="text-[10px] text-slate-500 hover:text-indigo-400 px-1 border border-dashed border-slate-700 rounded ${isExternal ? 'opacity-30 cursor-not-allowed' : ''}" ${isExternal ? 'disabled' : ''}>+標籤</button>
                                 </div>
 
                                 <div class="hidden lg:block w-20 flex-shrink-0 text-xs text-slate-400 whitespace-nowrap">${sizeMb}</div>
@@ -1239,7 +1264,7 @@
                                     <button onclick="toggleFileDislike('${encodedKey}')" class="p-1.5 rounded-lg transition ${file.isDisliked ? 'text-amber-400 hover:text-amber-300' : 'text-slate-500 hover:text-amber-400'}" title="${file.isDisliked ? '取消隱藏' : '隱藏此歌曲'}">
                                         <i class="${file.isDisliked ? 'fa-solid' : 'fa-regular'} fa-thumbs-down text-sm"></i>
                                     </button>
-                                    <button onclick="deleteSong('${encodedKey}')" class="text-slate-500 hover:text-rose-400 p-1.5 transition ${isExternal ? 'opacity-30 cursor-not-allowed' : ''}" ${isExternal ? 'disabled title="外部來源不支援刪除"' : ''}>
+                                    <button onclick="deleteSong('${encodedKey}')" class="text-slate-500 hover:text-rose-400 p-1.5 transition ${isExternal ? 'opacity-30 cursor-not-allowed' : ''}" ${isExternal ? 'disabled' : ''}>
                                         <i class="fa-solid fa-trash-can text-sm"></i>
                                     </button>
                                 </div>
@@ -1259,9 +1284,7 @@
             }
 
             if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
-            if (window.MP3NewsPlugin && typeof window.MP3NewsPlugin.maybeAutoLoad === 'function') {
-                window.MP3NewsPlugin.maybeAutoLoad();
-            }
+            if (window.MP3NewsPlugin && typeof window.MP3NewsPlugin.maybeAutoLoad === 'function') window.MP3NewsPlugin.maybeAutoLoad();
         }
 
         function renderPagination(totalPages, totalItems) {
@@ -1270,7 +1293,7 @@
             document.getElementById('topPrevBtn').disabled = (currentPage <= 1);
             document.getElementById('topNextBtn').disabled = (currentPage >= totalPages);
 
-            let html = `
+            container.innerHTML = `
                 <span class="text-xs text-slate-400">顯示第 ${(currentPage - 1) * pageSize + 1} - ${Math.min(currentPage * pageSize, totalItems)} 筆，共 ${totalItems} 筆資料</span>
                 <div class="flex items-center space-x-1.5">
                     <button onclick="goToPage(1)" ${currentPage === 1 ? 'disabled class="px-2.5 py-1 bg-slate-900 text-slate-600 rounded-lg text-xs cursor-not-allowed"' : 'class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition"'}>首頁</button>
@@ -1280,7 +1303,6 @@
                     <button onclick="goToPage(${totalPages})" ${currentPage >= totalPages ? 'disabled class="px-2.5 py-1 bg-slate-900 text-slate-600 rounded-lg text-xs cursor-not-allowed"' : 'class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition"'}>末頁</button>
                 </div>
             `;
-            container.innerHTML = html;
         }
 
         function showCustomModal({ title, subtitle = '系統通知', message, type = 'info', isPrompt = false, defaultValue = '', confirmText = '確定' }) {
@@ -1361,7 +1383,6 @@
         }
     </script>
 
-    <!-- ==================== 主應用擴展接口 ==================== -->
     <script>
         window.MP3AppExtension = (function () {
             const call = (name, ...args) => {
@@ -1369,7 +1390,7 @@
                 if (typeof fn === 'function') return fn.apply(window, args);
             };
             return {
-                version: '1.8',
+                version: '2.0',
                 get allFiles() { return allFiles; },
                 set allFiles(v) { allFiles = v; },
                 get categories() { return categories; },
@@ -1398,11 +1419,15 @@
                 saveCategories: (...a) => call('saveCategories', ...a),
                 getLikedMap: () => (typeof getLikedMap === 'function' ? getLikedMap() : {}),
                 getDislikedMap: () => (typeof getDislikedMap === 'function' ? getDislikedMap() : {}),
+                saveLikedMap: (...a) => call('saveLikedMap', ...a),
+                saveDislikedMap: (...a) => call('saveDislikedMap', ...a),
+                saveTagsMap: (...a) => call('saveTagsMap', ...a),
 
                 parseLikedAt,
                 formatLikedAtDate,
                 formatLikedAtFull,
-
+                getFileKey,
+                getFileRequestParams,
                 getCurrentDir: window.MP3GetCurrentDir,
                 getMp3ApiBase: window.MP3GetMp3ApiBase
             };
@@ -1410,38 +1435,18 @@
         console.log('[MP3AppExtension] ready v' + window.MP3AppExtension.version);
     </script>
 
-    <!-- ==================== 來源註冊表 ==================== -->
     <script>
         window.MP3SourceRegistry = window.MP3SourceRegistry || {
-            local: {
-                label: '本地',
-                icon: 'fa-solid fa-hard-drive',
-                badgeClass: 'bg-slate-800/80 text-slate-300 border-slate-600/60',
-                dotClass: 'bg-slate-400'
-            },
-            gdrive: {
-                label: 'Drive',
-                icon: 'fa-brands fa-google-drive',
-                badgeClass: 'bg-emerald-950/50 text-emerald-300 border-emerald-500/30',
-                dotClass: 'bg-emerald-400'
-            },
-            news: {
-                label: 'News',
-                icon: 'fa-solid fa-newspaper',
-                badgeClass: 'bg-amber-950/50 text-amber-300 border-amber-500/30',
-                dotClass: 'bg-amber-400'
-            }
+            local: { label: '本地', icon: 'fa-solid fa-hard-drive', badgeClass: 'bg-slate-800/80 text-slate-300 border-slate-600/60', dotClass: 'bg-slate-400' },
+            gdrive: { label: 'Drive', icon: 'fa-brands fa-google-drive', badgeClass: 'bg-emerald-950/50 text-emerald-300 border-emerald-500/30', dotClass: 'bg-emerald-400' },
+            news: { label: 'News', icon: 'fa-solid fa-newspaper', badgeClass: 'bg-amber-950/50 text-amber-300 border-amber-500/30', dotClass: 'bg-amber-400' }
         };
 
         window.MP3GetSourceMeta = function(file) {
             const key = (file && file._source) || 'local';
             const meta = window.MP3SourceRegistry[key];
             if (meta) return Object.assign({ key }, meta);
-            return {
-                key, label: key, icon: 'fa-solid fa-cloud',
-                badgeClass: 'bg-indigo-950/50 text-indigo-300 border-indigo-500/30',
-                dotClass: 'bg-indigo-400'
-            };
+            return { key, label: key, icon: 'fa-solid fa-cloud', badgeClass: 'bg-indigo-950/50 text-indigo-300 border-indigo-500/30', dotClass: 'bg-indigo-400' };
         };
 
         window.MP3RenderSourceBadge = function(file) {
@@ -1497,7 +1502,6 @@
         };
     </script>
 
-    <!-- ==================== 插件管理器 ==================== -->
     <script>
     (function() {
         'use strict';
@@ -1505,8 +1509,8 @@
         const REGISTRY = {
             local: {
                 id: 'local',
-                name: '本地目录',
-                description: '从 /api/mp3 加载指定目录的 MP3（API 可配置）',
+                name: '本地目錄',
+                description: '支援多個 API 端點與多個目錄',
                 icon: 'fa-solid fa-folder-open',
                 iconClass: 'text-slate-400',
                 scriptSrc: 'local-plugin.js',
@@ -1515,8 +1519,8 @@
             },
             multiUser: {
                 id: 'multiUser',
-                name: '多用户',
-                description: '每个用户独立的 Like 记忆，支持切换、导入导出',
+                name: '多用戶',
+                description: '每個用戶獨立的 Like 記憶，支持切換、導入導出',
                 icon: 'fa-solid fa-user-shield',
                 iconClass: 'text-indigo-400',
                 scriptSrc: 'multi-user-plugin.js',
@@ -1526,7 +1530,7 @@
             news: {
                 id: 'news',
                 name: 'News 播放列表',
-                description: '通过 /api/mp3/news 加载新闻音频（m3u8）',
+                description: '通過 /api/mp3/news 加載新聞音頻（m3u8）',
                 icon: 'fa-solid fa-newspaper',
                 iconClass: 'text-amber-400',
                 scriptSrc: 'news-plugin.js',
@@ -1534,8 +1538,8 @@
             },
             gdrive: {
                 id: 'gdrive',
-                name: 'Google Drive 音乐',
-                description: '从 Drive 的 music/fav 加载音乐、备份数据',
+                name: 'Google Drive 音樂',
+                description: '從 Drive 的 music/fav 加載音樂、備份數據',
                 icon: 'fa-brands fa-google-drive',
                 iconClass: 'text-emerald-400',
                 scriptSrc: 'google-drive-plugin.js',
@@ -1548,9 +1552,7 @@
         const storedRaw = localStorage.getItem(STORAGE_KEY);
 
         if (storedRaw === null) {
-            Object.values(REGISTRY).forEach(meta => {
-                if (meta.autoEnable) enabled.add(meta.id);
-            });
+            Object.values(REGISTRY).forEach(meta => { if (meta.autoEnable) enabled.add(meta.id); });
             try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...enabled])); } catch (e) {}
         } else {
             try {
@@ -1566,7 +1568,6 @@
         function persist() {
             try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...enabled])); } catch(e) {}
         }
-
         function loadScriptOnce(src) {
             if (loadedScripts.has(src)) return Promise.resolve();
             return new Promise((resolve, reject) => {
@@ -1574,31 +1575,27 @@
                 s.src = src;
                 s.dataset.pluginSrc = src;
                 s.onload = () => { loadedScripts.add(src); resolve(); };
-                s.onerror = () => reject(new Error('无法加载插件脚本：' + src));
+                s.onerror = () => reject(new Error('無法加載插件腳本：' + src));
                 document.head.appendChild(s);
             });
         }
-
         async function enablePlugin(id) {
             const meta = REGISTRY[id];
             if (!meta) throw new Error('未知插件：' + id);
             if (loadedPlugins[id]) return loadedPlugins[id];
-
             await loadScriptOnce(meta.scriptSrc);
             const plugin = window[meta.globalVar];
-            if (!plugin) throw new Error('插件未暴露全局变量：' + meta.globalVar);
+            if (!plugin) throw new Error('插件未暴露全局變量：' + meta.globalVar);
             if (typeof plugin.init !== 'function') {
                 const v = plugin.version || '未知';
-                throw new Error(`插件「${meta.name}」版本 ${v} 缺少 init() 方法。请检查 ${meta.scriptSrc} 是否为最新版本。`);
+                throw new Error(`插件「${meta.name}」版本 ${v} 缺少 init() 方法。請檢查 ${meta.scriptSrc} 是否為最新版本。`);
             }
-
             await plugin.init();
             loadedPlugins[id] = plugin;
             enabled.add(id);
             persist();
             return plugin;
         }
-
         async function disablePlugin(id) {
             const plugin = loadedPlugins[id];
             if (plugin && typeof plugin.unload === 'function') {
@@ -1624,8 +1621,8 @@
                         <div class="flex items-center gap-2 min-w-0">
                             <i class="${meta.icon} ${meta.iconClass || 'text-indigo-400'} text-sm shrink-0"></i>
                             <div class="min-w-0">
-                                <div class="text-xs text-slate-200 font-medium truncate" title="${escapeHtmlAttr(meta.name)}">${escapeHtmlAttr(meta.name)}</div>
-                                <div class="text-[10px] text-slate-500 truncate" title="${escapeHtmlAttr(meta.description)}">${escapeHtmlAttr(meta.description)}</div>
+                                <div class="text-xs text-slate-200 font-medium truncate">${escapeHtmlAttr(meta.name)}</div>
+                                <div class="text-[10px] text-slate-500 truncate">${escapeHtmlAttr(meta.description)}</div>
                             </div>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer shrink-0">
@@ -1647,7 +1644,6 @@
                 </div>
                 ${itemsHtml}
             `;
-
             slot.appendChild(uiRoot);
 
             uiRoot.querySelectorAll('.plugin-toggle').forEach(toggle => {
@@ -1657,9 +1653,7 @@
                     try {
                         if (on) await enablePlugin(id);
                         else await disablePlugin(id);
-                        if (typeof window.refreshSourceFilterOptions === 'function') {
-                            window.refreshSourceFilterOptions();
-                        }
+                        if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
                     } catch (err) {
                         console.error('[PluginManager] toggle failed:', id, err);
                         e.target.checked = !on;
@@ -1669,7 +1663,6 @@
         }
 
         async function restoreAll() {
-            // 加载顺序：multiUser → local → 其他
             const order = Object.keys(REGISTRY).sort((a, b) => {
                 const rank = id => id === 'multiUser' ? 0 : id === 'local' ? 1 : 2;
                 return rank(a) - rank(b);
@@ -1677,10 +1670,7 @@
             for (const id of order) {
                 if (!enabled.has(id)) continue;
                 try { await enablePlugin(id); }
-                catch (e) {
-                    console.error('[PluginManager] restore failed:', id, e);
-                    enabled.delete(id);
-                }
+                catch (e) { console.error('[PluginManager] restore failed:', id, e); enabled.delete(id); }
             }
             persist();
         }
@@ -1700,9 +1690,7 @@
             setTimeout(async () => {
                 injectUI();
                 await restoreAll();
-                if (typeof window.refreshSourceFilterOptions === 'function') {
-                    window.refreshSourceFilterOptions();
-                }
+                if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
             }, 400);
         });
     })();
