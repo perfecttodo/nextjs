@@ -1,10 +1,7 @@
 /**
- * 多用户插件 v1.1（独立文件版）
+ * 多用户插件 v1.2（独立文件版）
  * 
- * 变更：
- *  - Like 数据结构升级为 { ts: 时间戳 }（由主应用 toggleLike 写入）
- *  - likes badge 的 tooltip 显示每个用户"何时 Like"
- *  - 兼容旧数据（true → 视为未知时间）
+ * 变更：likes badge tooltip 只显示日期（YYYY-MM-DD）
  */
 (function () {
     'use strict';
@@ -23,7 +20,6 @@
     let originalSaveLikedMap = null;
     let originalRenderTable = null;
 
-    // ==================== 工具（优先复用主应用的版本） ====================
     function encodeInlineArgLocal(s) {
         if (typeof window.encodeInlineArg === 'function') return window.encodeInlineArg(s);
         return encodeURIComponent(String(s == null ? '' : s)).replace(/'/g, '%27');
@@ -31,30 +27,22 @@
     function escapeAttr(s) {
         if (typeof window.escapeHtmlAttr === 'function') return window.escapeHtmlAttr(s);
         return String(s == null ? '' : s)
-            .replace(/&/g, '&amp;')
-            .replace(/"/g, '&quot;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
+            .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
-    function formatFull(ts) {
-        if (typeof window.formatLikedAtFull === 'function') return window.formatLikedAtFull(ts);
+    function formatDate(ts) {
+        if (typeof window.formatLikedAtDate === 'function') return window.formatLikedAtDate(ts);
         if (!ts) return '';
         const d = new Date(ts);
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} `
-             + `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
-    // ==================== 存储 ====================
     function initStorage() {
         const savedUsers = localStorage.getItem(STORAGE_KEYS.USERS);
-        if (savedUsers) {
-            try { usersList = JSON.parse(savedUsers); } catch (e) {}
-        } else {
-            localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
-        }
-        if (!usersList.includes(STORAGE_KEYS.DEFAULT_USER_NAME)) {
-            usersList.unshift(STORAGE_KEYS.DEFAULT_USER_NAME);
-        }
+        if (savedUsers) { try { usersList = JSON.parse(savedUsers); } catch (e) {} }
+        else localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
+
+        if (!usersList.includes(STORAGE_KEYS.DEFAULT_USER_NAME)) usersList.unshift(STORAGE_KEYS.DEFAULT_USER_NAME);
 
         const lastUser = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
         if (lastUser && usersList.includes(lastUser)) currentUser = lastUser;
@@ -75,7 +63,6 @@
         localStorage.setItem(getStorageKeyForUser(username), JSON.stringify(map));
     }
 
-    // ==================== 覆写核心函数 ====================
     function hookCoreFunctions() {
         originalGetLikedMap = window.getLikedMap;
         originalSaveLikedMap = window.saveLikedMap;
@@ -133,7 +120,7 @@
             if (likedUsers.length > 0) {
                 const badge = document.createElement('span');
                 badge.className = 'plugin-likes-badge text-[10px] text-rose-400 bg-rose-950/40 border border-rose-500/30 px-1.5 py-0.5 rounded ml-2';
-                const tooltip = likedUsers.map(x => x.ts ? `${x.name}（${formatFull(x.ts)}）` : x.name).join('\n');
+                const tooltip = likedUsers.map(x => x.ts ? `${x.name}（${formatDate(x.ts)}）` : x.name).join('\n');
                 badge.title = `按讚用戶：\n${tooltip}`;
                 badge.innerHTML = `<i class="fa-solid fa-heart mr-1"></i>${likedUsers.length}`;
                 titleContainer.appendChild(badge);
@@ -141,13 +128,11 @@
         });
     }
 
-    // ==================== UI ====================
     function injectUI() {
         return new Promise((resolve) => {
             function tryInject() {
                 const body = window.MP3PluginManager && window.MP3PluginManager.getBodyContainer
-                    ? window.MP3PluginManager.getBodyContainer('multiUser')
-                    : null;
+                    ? window.MP3PluginManager.getBodyContainer('multiUser') : null;
                 if (!body) { setTimeout(tryInject, 300); return; }
                 if (uiRoot) { resolve(); return; }
 
@@ -165,7 +150,6 @@
                     </div>
                     <div class="flex items-center justify-between text-[10px] text-slate-500 gap-2">
                         <span class="plugin-user-likes-count truncate"></span>
-                        <span class="plugin-user-status truncate"></span>
                     </div>
                 `;
                 body.appendChild(uiRoot);
@@ -173,7 +157,6 @@
                 uiRoot.querySelector('.plugin-user-select').addEventListener('change', (e) => switchUser(e.target.value));
                 uiRoot.querySelector('.plugin-user-manage').addEventListener('click', openManageModal);
                 uiRoot.querySelector('.plugin-user-add').addEventListener('click', promptAddUser);
-
                 resolve();
             }
             tryInject();
@@ -182,7 +165,6 @@
 
     function refreshUI() {
         if (!uiRoot) return;
-
         const select = uiRoot.querySelector('.plugin-user-select');
         if (select) {
             select.innerHTML = usersList.map(u => {
@@ -190,7 +172,6 @@
                 return `<option value="${safe}" ${u === currentUser ? 'selected' : ''}>${safe}</option>`;
             }).join('');
         }
-
         const likesCount = uiRoot.querySelector('.plugin-user-likes-count');
         if (likesCount) {
             const likes = getUserLikesMap(currentUser);
@@ -198,33 +179,23 @@
         }
     }
 
-    // ==================== 用户操作 ====================
     function switchUser(username) {
         if (!usersList.includes(username)) return;
         currentUser = username;
         localStorage.setItem(STORAGE_KEYS.CURRENT_USER, username);
         refreshUI();
-        if (typeof window.loadFiles === 'function') {
-            window.loadFiles(false);
-        }
+        if (typeof window.loadFiles === 'function') window.loadFiles(false);
     }
 
     async function promptAddUser() {
         if (typeof window.showCustomModal !== 'function') return;
         const newName = await window.showCustomModal({
-            title: '登記新用戶',
-            message: '請輸入新用戶名稱（無需密碼）：',
-            type: 'confirm',
-            isPrompt: true,
-            defaultValue: '',
-            confirmText: '新增並切換'
+            title: '登記新用戶', message: '請輸入新用戶名稱（無需密碼）：',
+            type: 'confirm', isPrompt: true, defaultValue: '', confirmText: '新增並切換'
         });
         if (!newName || !newName.trim()) return;
         const trimmed = newName.trim();
-        if (trimmed === STORAGE_KEYS.DEFAULT_USER_NAME) {
-            alert('「預設用戶」為系統保留名稱！');
-            return;
-        }
+        if (trimmed === STORAGE_KEYS.DEFAULT_USER_NAME) { alert('「預設用戶」為系統保留名稱！'); return; }
         if (!usersList.includes(trimmed)) {
             usersList.push(trimmed);
             localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
@@ -233,7 +204,6 @@
         switchUser(trimmed);
     }
 
-    // ==================== 管理弹窗 ====================
     function openManageModal() {
         let modal = document.getElementById('pluginUserManageModal');
         if (!modal) {
@@ -282,26 +252,21 @@
                     <button class="modal-import px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-xl transition">
                         <i class="fa-solid fa-file-import mr-1"></i> 匯入用戶資料
                     </button>
-                    <button class="modal-close px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white rounded-xl transition">
-                        關閉
-                    </button>
+                    <button class="modal-close px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white rounded-xl transition">關閉</button>
                 </div>
             </div>
         `;
 
         modal.querySelectorAll('[data-action]').forEach(btn => {
             btn.addEventListener('click', () => {
-                const action = btn.dataset.action;
-                const user = btn.dataset.user;
-                if (action === 'rename') renameUser(user);
-                else if (action === 'export') exportUser(user);
-                else if (action === 'merge') mergeUserPrompt(user);
-                else if (action === 'delete') deleteUser(user);
+                const a = btn.dataset.action, u = btn.dataset.user;
+                if (a === 'rename') renameUser(u);
+                else if (a === 'export') exportUser(u);
+                else if (a === 'merge') mergeUserPrompt(u);
+                else if (a === 'delete') deleteUser(u);
             });
         });
-        modal.querySelectorAll('.modal-close').forEach(btn => {
-            btn.addEventListener('click', () => modal.remove());
-        });
+        modal.querySelectorAll('.modal-close').forEach(btn => btn.addEventListener('click', () => modal.remove()));
         modal.querySelector('.modal-import').addEventListener('click', importUserPrompt);
     }
 
@@ -311,43 +276,33 @@
         if (!newName || !newName.trim() || newName.trim() === oldName) return;
         const trimmed = newName.trim();
         if (trimmed === STORAGE_KEYS.DEFAULT_USER_NAME || usersList.includes(trimmed)) {
-            alert('此用戶名稱無效或已存在！');
-            return;
+            alert('此用戶名稱無效或已存在！'); return;
         }
         const oldKey = getStorageKeyForUser(oldName);
         const newKey = getStorageKeyForUser(trimmed);
         const data = localStorage.getItem(oldKey);
         if (data) { localStorage.setItem(newKey, data); localStorage.removeItem(oldKey); }
-
         usersList = usersList.map(u => u === oldName ? trimmed : u);
         localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
-
         if (currentUser === oldName) {
             currentUser = trimmed;
             localStorage.setItem(STORAGE_KEYS.CURRENT_USER, currentUser);
         }
-
         refreshUI();
         openManageModal();
         if (typeof window.loadFiles === 'function') window.loadFiles(false);
     }
 
     async function deleteUser(username) {
-        if (username === STORAGE_KEYS.DEFAULT_USER_NAME) {
-            alert('「預設用戶」不能被刪除！');
-            return;
-        }
+        if (username === STORAGE_KEYS.DEFAULT_USER_NAME) { alert('「預設用戶」不能被刪除！'); return; }
         if (!confirm(`確定要刪除用戶「${username}」嗎？`)) return;
-
         usersList = usersList.filter(u => u !== username);
         localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
         localStorage.removeItem(getStorageKeyForUser(username));
-
         if (currentUser === username) {
             currentUser = STORAGE_KEYS.DEFAULT_USER_NAME;
             localStorage.setItem(STORAGE_KEYS.CURRENT_USER, currentUser);
         }
-
         refreshUI();
         openManageModal();
         if (typeof window.loadFiles === 'function') window.loadFiles(false);
@@ -367,8 +322,7 @@
 
     function importUserPrompt() {
         const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json';
+        input.type = 'file'; input.accept = '.json';
         input.onchange = e => {
             const file = e.target.files[0];
             if (!file) return;
@@ -376,10 +330,7 @@
             reader.onload = event => {
                 try {
                     const imported = JSON.parse(event.target.result);
-                    if (!imported.username || !imported.likes) {
-                        alert('匯入失敗：檔案格式不正確！');
-                        return;
-                    }
+                    if (!imported.username || !imported.likes) { alert('匯入失敗：檔案格式不正確！'); return; }
                     let targetUser = imported.username;
                     if (targetUser === STORAGE_KEYS.DEFAULT_USER_NAME || usersList.includes(targetUser)) {
                         targetUser = targetUser + '_import_' + Date.now().toString().slice(-4);
@@ -391,9 +342,7 @@
                     openManageModal();
                     alert(`成功匯入用戶「${targetUser}」！`);
                     if (typeof window.loadFiles === 'function') window.loadFiles(false);
-                } catch (err) {
-                    alert('解析 JSON 檔案失敗！');
-                }
+                } catch (err) { alert('解析 JSON 檔案失敗！'); }
             };
             reader.readAsText(file);
         };
@@ -402,14 +351,10 @@
 
     function mergeUserPrompt(sourceUser) {
         const otherUsers = usersList.filter(u => u !== sourceUser);
-        if (otherUsers.length === 0) {
-            alert('沒有其他用戶可供合併！');
-            return;
-        }
+        if (otherUsers.length === 0) { alert('沒有其他用戶可供合併！'); return; }
         const targetUser = prompt(`請選擇要將「${sourceUser}」的 Like 記錄合併到哪一個用戶？\n現有其他用戶：${otherUsers.join(', ')}`);
         if (!targetUser || !otherUsers.includes(targetUser.trim())) {
-            if (targetUser) alert('輸入的目標用戶不存在！');
-            return;
+            if (targetUser) alert('輸入的目標用戶不存在！'); return;
         }
         const target = targetUser.trim();
         if (!confirm(`確定要將「${sourceUser}」的所有 Like 合併到「${target}」嗎？`)) return;
@@ -417,7 +362,6 @@
         const sourceLikes = getUserLikesMap(sourceUser);
         const targetLikes = getUserLikesMap(target);
         Object.keys(sourceLikes).forEach(k => {
-            // 若目标已有该曲，保留目标的时间戳（视为首次收藏时间）；否则继承来源
             if (!targetLikes[k]) targetLikes[k] = sourceLikes[k];
         });
         saveUserLikesMap(target, targetLikes);
@@ -425,27 +369,23 @@
 
         usersList = usersList.filter(u => u !== sourceUser);
         localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersList));
-
         if (currentUser === sourceUser) {
             currentUser = target;
             localStorage.setItem(STORAGE_KEYS.CURRENT_USER, currentUser);
         }
-
         refreshUI();
         openManageModal();
         alert(`成功合併至 「${target}」！`);
         if (typeof window.loadFiles === 'function') window.loadFiles(false);
     }
 
-    // ==================== 对外 API ====================
     window.MP3MultiUserPlugin = {
-        version: '1.1.0',
+        version: '1.2.0',
         async init() {
             initStorage();
             hookCoreFunctions();
             await injectUI();
             refreshUI();
-
             setTimeout(() => {
                 if (typeof window.renderTable === 'function') window.renderTable();
             }, 100);
@@ -455,17 +395,10 @@
                 currentUser = STORAGE_KEYS.DEFAULT_USER_NAME;
                 localStorage.setItem(STORAGE_KEYS.CURRENT_USER, currentUser);
             }
-
             const modal = document.getElementById('pluginUserManageModal');
             if (modal) modal.remove();
-
             unhookCoreFunctions();
-
-            if (uiRoot) {
-                uiRoot.remove();
-                uiRoot = null;
-            }
-
+            if (uiRoot) { uiRoot.remove(); uiRoot = null; }
             if (typeof window.loadFiles === 'function') {
                 window.loadFiles(false);
             } else if (typeof window.renderTable === 'function') {
