@@ -100,7 +100,6 @@
 
         <div class="lg:col-span-3 flex flex-col lg:min-h-0 lg:overflow-hidden min-w-0">
             <div class="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-xl flex flex-col lg:flex-1 lg:min-h-0 overflow-hidden">
-                <!-- 列表標題列（含搜索框，桌面端居中、移動端自動換行） -->
                 <div class="px-4 md:px-6 py-3 border-b border-slate-800 flex items-center shrink-0 flex-wrap gap-2 md:gap-3">
                     <div class="flex items-center space-x-2 shrink-0">
                         <h2 class="font-semibold text-slate-200 flex items-center text-sm md:text-base">
@@ -109,7 +108,6 @@
                         <span id="mobileFilterBadge" class="lg:hidden text-[10px] text-indigo-400 bg-indigo-950/60 border border-indigo-500/30 px-2 py-0.5 rounded-full truncate max-w-[40vw]">全部</span>
                     </div>
 
-                    <!-- 搜索框：桌面端在标题右侧自适应，移动端自动换到最后一行 -->
                     <div class="relative flex-1 min-w-[160px] max-w-md order-last md:order-none w-full md:w-auto">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
                             <i class="fa-solid fa-magnifying-glass text-xs"></i>
@@ -383,6 +381,8 @@
         const APP_ARTIST_FALLBACK = 'MP3 雲端管理';
         const ARTWORK_URL = 'https://cdn-icons-png.flaticon.com/512/3388/3388823.png';
 
+        let wasPlayingBeforeHidden = false;
+
         function updateDocumentTitle(songName) {
             if (songName && String(songName).trim()) {
                 document.title = `${songName} - ${APP_TITLE}`;
@@ -464,8 +464,31 @@
             } catch (e) {}
         }
 
+        // ★ 全局 visibilitychange 兜底：切回前台时尝试恢复媒体会话与播放
+        function handleGlobalVisibilityChange() {
+            if (document.visibilityState === 'hidden') {
+                wasPlayingBeforeHidden = !audioPlayer.paused;
+                console.log('[MediaSession] Page hidden, wasPlaying =', wasPlayingBeforeHidden);
+            } else if (document.visibilityState === 'visible') {
+                console.log('[MediaSession] Page visible');
+                if (currentPlayingFile) {
+                    syncMediaSessionFromCurrent();
+                    // 若切后台前在播放、切回来后浏览器强制暂停了，尝试恢复
+                    if (wasPlayingBeforeHidden && audioPlayer.paused) {
+                        audioPlayer.play().catch((e) => {
+                            console.warn('[MediaSession] Resume playback failed:', e);
+                        });
+                    }
+                }
+            }
+        }
+
         function initMediaSession() {
-            if (!('mediaSession' in navigator)) return;
+            if (!('mediaSession' in navigator)) {
+                // 即使没有 MediaSession 也要保底监听可见性
+                document.addEventListener('visibilitychange', handleGlobalVisibilityChange);
+                return;
+            }
             const ms = navigator.mediaSession;
 
             ms.setActionHandler('pause', () => {
@@ -540,6 +563,9 @@
             audioPlayer.addEventListener('durationchange', () => {
                 syncMediaSessionPosition();
             });
+
+            // ★ 全局可见性监听
+            document.addEventListener('visibilitychange', handleGlobalVisibilityChange);
         }
 
         function initKeyboardShortcuts() {
@@ -1623,7 +1649,7 @@
                 if (typeof fn === 'function') return fn.apply(window, args);
             };
             return {
-                version: '2.5',
+                version: '2.6',
                 get allFiles() { return allFiles; },
                 set allFiles(v) { allFiles = v; },
                 get categories() { return categories; },
@@ -1750,55 +1776,33 @@
 
         const REGISTRY = {
             local: {
-                id: 'local',
-                name: '本地目錄',
-                description: '支援多個 API 端點與多個目錄',
-                icon: 'fa-solid fa-folder-open',
-                iconClass: 'text-slate-400',
-                scriptSrc: 'local-plugin.js',
-                globalVar: 'MP3LocalPlugin',
-                autoEnable: true,
-                dataSourceKeys: []
+                id: 'local', name: '本地目錄', description: '支援多個 API 端點與多個目錄',
+                icon: 'fa-solid fa-folder-open', iconClass: 'text-slate-400',
+                scriptSrc: 'local-plugin.js', globalVar: 'MP3LocalPlugin',
+                autoEnable: true, dataSourceKeys: []
             },
             multiUser: {
-                id: 'multiUser',
-                name: '多用戶',
-                description: '每個用戶獨立的 Like 記憶',
-                icon: 'fa-solid fa-user-shield',
-                iconClass: 'text-indigo-400',
-                scriptSrc: 'multi-user-plugin.js',
-                globalVar: 'MP3MultiUserPlugin',
-                autoEnable: true,
-                dataSourceKeys: []
+                id: 'multiUser', name: '多用戶', description: '每個用戶獨立的 Like 記憶',
+                icon: 'fa-solid fa-user-shield', iconClass: 'text-indigo-400',
+                scriptSrc: 'multi-user-plugin.js', globalVar: 'MP3MultiUserPlugin',
+                autoEnable: true, dataSourceKeys: []
             },
             copyFav: {
-                id: 'copyFav',
-                name: '複製我的最愛',
-                description: '把「我的最愛」複製到指定本地目錄',
-                icon: 'fa-solid fa-copy',
-                iconClass: 'text-rose-400',
-                scriptSrc: 'copy-favorites-plugin.js',
-                globalVar: 'MP3CopyFavoritesPlugin',
+                id: 'copyFav', name: '複製我的最愛', description: '把「我的最愛」複製到指定本地目錄',
+                icon: 'fa-solid fa-copy', iconClass: 'text-rose-400',
+                scriptSrc: 'copy-favorites-plugin.js', globalVar: 'MP3CopyFavoritesPlugin',
                 dataSourceKeys: []
             },
             news: {
-                id: 'news',
-                name: 'News 播放列表',
-                description: '通過 /api/mp3/news 加載新聞音頻（m3u8）',
-                icon: 'fa-solid fa-newspaper',
-                iconClass: 'text-amber-400',
-                scriptSrc: 'news-plugin.js',
-                globalVar: 'MP3NewsPlugin',
+                id: 'news', name: 'News 播放列表', description: '通過 /api/mp3/news 加載新聞音頻（m3u8）',
+                icon: 'fa-solid fa-newspaper', iconClass: 'text-amber-400',
+                scriptSrc: 'news-plugin.js', globalVar: 'MP3NewsPlugin',
                 dataSourceKeys: ['news']
             },
             gdrive: {
-                id: 'gdrive',
-                name: 'Google Drive 音樂',
-                description: '從 Drive 的 music/fav 加載音樂',
-                icon: 'fa-brands fa-google-drive',
-                iconClass: 'text-emerald-400',
-                scriptSrc: 'google-drive-plugin.js',
-                globalVar: 'MP3GoogleDrivePlugin',
+                id: 'gdrive', name: 'Google Drive 音樂', description: '從 Drive 的 music/fav 加載音樂',
+                icon: 'fa-brands fa-google-drive', iconClass: 'text-emerald-400',
+                scriptSrc: 'google-drive-plugin.js', globalVar: 'MP3GoogleDrivePlugin',
                 dataSourceKeys: ['gdrive']
             }
         };
@@ -1997,12 +2001,8 @@
                     }
 
                     try {
-                        if (typeof window.refreshSourceFilterOptions === 'function') {
-                            window.refreshSourceFilterOptions();
-                        }
-                        if (typeof window.renderTable === 'function') {
-                            window.renderTable();
-                        }
+                        if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
+                        if (typeof window.renderTable === 'function') window.renderTable();
                     } catch (e) { console.warn('[PluginManager] 刷新失败:', e); }
                 });
             });

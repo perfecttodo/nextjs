@@ -1,11 +1,11 @@
 /**
- * News 播放列表插件 v2.2
+ * News 播放列表插件 v2.3
  * 
- * HLS 播放改进：
- *  - 预检 m3u8（fetch），快速定位 CORS / 404 / 非法内容
- *  - 优先 hls.js（含 Safari 14+，兼容 fMP4 + BYTERANGE）
- *  - 原生兜底仅限 iOS Safari 无 MSE 场景，设置 crossOrigin
- *  - 详细错误码输出（media.error.code / .message）
+ * 相对 v2.2 的改动：
+ *  1. 新增 visibilitychange 处理，解决切后台 HLS 停播问题
+ *  2. hidden 时：记录播放状态，不销毁 hls 实例、不 stopLoad（否则音频真断）
+ *  3. visible 时：尝试恢复播放 + 检查缓冲、必要时 startLoad
+ *  4. reset / unload 时清理监听
  */
 (function () {
     'use strict';
@@ -21,6 +21,10 @@
     let loadedPages = new Set();
     let loading = false;
     let hlsInstance = null;
+
+    // ★ 可见性相关
+    let visibilityHandler = null;
+    let wasPlayingBeforeHidden = false;
 
     // ==================== 工具 ====================
     function setStatus(msg, tone) {
@@ -68,6 +72,57 @@
             _source: 'news',
             _newsItem: item
         };
+    }
+
+    // ==================== 可见性处理 ====================
+    function attachVisibilityHandler(media) {
+        cleanupVisibilityHandler();
+
+        visibilityHandler = () => {
+            if (!hlsInstance) return;
+
+            if (document.visibilityState === 'hidden') {
+                // 记录切后台前的播放状态，但不暂停、不 stopLoad
+                // 让浏览器/系统自己处理媒体元素暂停；hls 解析在 Worker 中不受影响
+                wasPlayingBeforeHidden = !media.paused;
+                console.log('[News HLS] Page hidden, wasPlaying =', wasPlayingBeforeHidden);
+            } else if (document.visibilityState === 'visible') {
+                console.log('[News HLS] Page visible, attempting resume…');
+                // 1. 如果切回来时媒体元素被浏览器强制暂停了，尝试恢复
+                if (wasPlayingBeforeHidden && media.paused) {
+                    media.play().catch((e) => {
+                        console.warn('[News HLS] Resume play failed:', e);
+                    });
+                }
+                // 2. 检查缓冲，如果已经耗尽（长时间后台），重新 startLoad
+                try {
+                    const buffered = media.buffered;
+                    let hasBuffer = false;
+                    const t = media.currentTime || 0;
+                    for (let i = 0; i < buffered.length; i++) {
+                        if (buffered.start(i) <= t && buffered.end(i) > t + 0.5) {
+                            hasBuffer = true;
+                            break;
+                        }
+                    }
+                    if (!hasBuffer) {
+                        console.log('[News HLS] Buffer empty, restarting load at', t);
+                        hlsInstance.startLoad(t > 0 ? t - 1 : -1);
+                    }
+                } catch (e) {
+                    console.warn('[News HLS] startLoad check failed:', e);
+                }
+            }
+        };
+
+        document.addEventListener('visibilitychange', visibilityHandler);
+    }
+
+    function cleanupVisibilityHandler() {
+        if (visibilityHandler) {
+            document.removeEventListener('visibilitychange', visibilityHandler);
+            visibilityHandler = null;
+        }
     }
 
     // ==================== 数据加载 ====================
@@ -172,19 +227,12 @@
     async function preflightM3u8(url) {
         try {
             const res = await fetch(url, { method: 'GET', cache: 'no-cache' });
-            if (!res.ok) {
-                throw new Error(`m3u8 无法访问（HTTP ${res.status}）`);
-            }
+            if (!res.ok) throw new Error(`m3u8 无法访问（HTTP ${res.status}）`);
             const text = await res.text();
-            if (!text.includes('#EXTM3U')) {
-                throw new Error('返回内容不是有效的 HLS 播放列表（可能返回了 HTML 错误页）');
-            }
+            if (!text.includes('#EXTM3U')) throw new Error('返回内容不是有效的 HLS 播放列表');
             return true;
         } catch (e) {
-            // fetch 的跨域失败通常是 TypeError: Failed to fetch
-            if (e instanceof TypeError) {
-                throw new Error('m3u8 请求失败，可能是 CORS 未开放或跨域被拦：' + e.message);
-            }
+            if (e instanceof TypeError) throw new Error('m3u8 请求失败，可能是 CORS 未开放：' + e.message);
             throw e;
         }
     }
@@ -194,55 +242,50 @@
         const ext = window.MP3AppExtension;
         const media = ext.audioPlayer;
 
-        // 清理旧实例与状态
         if (hlsInstance) { try { hlsInstance.destroy(); } catch (e) {} hlsInstance = null; }
         try { media.pause(); } catch (e) {}
         media.removeAttribute('src');
         try { media.load(); } catch (e) {}
 
-        console.log('[HLS] URL:', url);
-        console.log('[HLS] 浏览器能力:', {
+        console.log('[News HLS] URL:', url);
+        console.log('[News HLS] 浏览器能力:', {
             hasMSE: !!window.MediaSource,
             canPlayNative: media.canPlayType('application/vnd.apple.mpegurl')
         });
 
-        // 1) 先预检 m3u8 —— 5 秒内给你明确答案（CORS / 404 / 内容非法）
         try {
             setStatus('正在检查 m3u8…');
             await preflightM3u8(url);
         } catch (e) {
-            console.error('[HLS] 预检失败:', e);
+            console.error('[News HLS] 预检失败:', e);
             throw new Error('m3u8 预检失败：' + e.message);
         }
 
-        // 2) 优先 hls.js（Safari 14+ 也支持 MSE，兼容 fMP4 + BYTERANGE）
         try {
             await ensureHlsJs();
             if (window.Hls && window.Hls.isSupported()) {
-                console.log('[HLS] 使用 hls.js');
+                console.log('[News HLS] 使用 hls.js');
                 await playWithHlsJs(media, url);
                 return;
             }
-            console.warn('[HLS] hls.js 不可用（当前浏览器不支持 MSE）');
         } catch (e) {
-            console.warn('[HLS] hls.js 加载/播放失败，尝试原生:', e.message);
+            console.warn('[News HLS] hls.js 加载/播放失败，尝试原生:', e.message);
         }
 
-        // 3) 原生兜底（iOS Safari 13 及以下）
         if (media.canPlayType('application/vnd.apple.mpegurl')) {
-            console.log('[HLS] 使用原生 HLS');
+            console.log('[News HLS] 使用原生 HLS');
             await playWithNativeHls(media, url);
             return;
         }
 
-        throw new Error('浏览器不支持 HLS（既无 MSE 也无原生 HLS 支持）');
+        throw new Error('浏览器不支持 HLS');
     }
 
     async function playWithHlsJs(media, url) {
         return new Promise((resolve, reject) => {
             const hls = new window.Hls({
                 lowLatencyMode: false,
-                enableWorker: true,
+                enableWorker: true,             // ★ Worker 线程解析，后台不受可见性节流影响
                 manifestLoadingMaxRetry: 2,
                 manifestLoadingRetryDelay: 800,
                 fragLoadingMaxRetry: 3,
@@ -258,7 +301,7 @@
 
             const timeout = setTimeout(() => {
                 cleanup();
-                reject(new Error('HLS 加载超时（15s）：可能是分片 Range 不支持或 CORS 未开放'));
+                reject(new Error('HLS 加载超时（15s）'));
             }, 15000);
 
             const cleanup = () => {
@@ -270,30 +313,30 @@
             };
 
             hls.on(window.Hls.Events.MANIFEST_PARSED, (e, data) => {
-                console.log('[HLS] manifest 解析成功，levels:', (data.levels || []).map(lv => ({
+                console.log('[News HLS] manifest 解析成功，levels:', (data.levels || []).map(lv => ({
                     videoCodec: lv.videoCodec || '(无)',
-                    audioCodec: lv.audioCodec || '(无)',
-                    width: lv.width,
-                    height: lv.height
+                    audioCodec: lv.audioCodec || '(无)'
                 })));
                 cleanup();
                 media.play()
-                    .then(resolve)
+                    .then(() => {
+                        // ★ 播放成功后挂载可见性监听
+                        attachVisibilityHandler(media);
+                        resolve();
+                    })
                     .catch(err => reject(new Error('播放失败: ' + err.message)));
             });
 
             hls.on(window.Hls.Events.ERROR, (e, data) => {
-                console.error('[HLS] error:', data.type, data.details, 'fatal=' + data.fatal, data);
+                console.error('[News HLS] error:', data.type, data.details, 'fatal=' + data.fatal);
                 if (!data.fatal) return;
 
                 if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR && !recoveredNetwork) {
                     recoveredNetwork = true;
-                    console.warn('[HLS] 网络错误，尝试重新加载…');
                     try { hls.startLoad(); return; } catch (er) {}
                 }
                 if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR && !recoveredMedia) {
                     recoveredMedia = true;
-                    console.warn('[HLS] 媒体错误，尝试 recoverMediaError…');
                     try { hls.recoverMediaError(); return; } catch (er) {}
                 }
 
@@ -309,7 +352,6 @@
 
     async function playWithNativeHls(media, url) {
         return new Promise((resolve, reject) => {
-            // Safari 跨域 HLS 需要显式 crossOrigin
             media.crossOrigin = 'anonymous';
             media.src = url;
 
@@ -323,7 +365,11 @@
             const onLoaded = () => {
                 cleanup();
                 media.play()
-                    .then(resolve)
+                    .then(() => {
+                        // ★ 原生 HLS 也挂载可见性监听
+                        attachVisibilityHandler(media);
+                        resolve();
+                    })
                     .catch(err => reject(new Error('原生播放失败: ' + err.message)));
             };
             const onError = () => {
@@ -334,7 +380,7 @@
                     const codeMap = { 1: 'MEDIA_ERR_ABORTED', 2: 'MEDIA_ERR_NETWORK', 3: 'MEDIA_ERR_DECODE', 4: 'MEDIA_ERR_SRC_NOT_SUPPORTED' };
                     detail = `${codeMap[err.code] || err.code} / ${err.message || '(空)'}`;
                 }
-                reject(new Error('原生播放失败：' + detail + '（多半是 m3u8 CORS / 分片 Content-Type / Range 支持问题）'));
+                reject(new Error('原生播放失败：' + detail));
             };
             const cleanup = () => {
                 clearTimeout(timeout);
@@ -353,6 +399,7 @@
         window.MP3DataSourceHandlers = window.MP3DataSourceHandlers || {};
         window.MP3DataSourceHandlers['news'] = {
             reset() {
+                cleanupVisibilityHandler();   // ★ 切歌/清理时移除可见性监听
                 if (hlsInstance) {
                     try { hlsInstance.destroy(); } catch (e) {}
                     hlsInstance = null;
@@ -382,7 +429,7 @@
                         await ext.audioPlayer.play().catch(e => { throw new Error('播放失败：' + e.message); });
                     }
 
-                    ext.currentPlayingFile = file.relativePath;
+                    ext.currentPlayingFile = window.getFileKey(file);
                     document.getElementById('currentSongTitle').innerText = file.displayName;
                     document.getElementById('currentSongCategory').innerText = file.category;
 
@@ -394,6 +441,8 @@
                     ext.updatePlayerDislikeState();
                     ext.renderTable();
                     ext.updatePlayButton();
+
+                    if (window.MP3AppExtension?.syncMediaSession) window.MP3AppExtension.syncMediaSession();
 
                     setStatus('▶️ ' + file.displayName, 'success');
                 } catch (e) {
@@ -450,7 +499,7 @@
 
     // ==================== 插件 API ====================
     window.MP3NewsPlugin = {
-        version: '2.2.0',
+        version: '2.3.0',
         async init() {
             registerDataSource();
             injectUI();
@@ -458,6 +507,8 @@
         },
         async unload() {
             const ext = window.MP3AppExtension;
+
+            cleanupVisibilityHandler();   // ★ 卸载时清理可见性监听
 
             if (hlsInstance) {
                 try { hlsInstance.destroy(); } catch (e) {}
@@ -493,10 +544,7 @@
                 ext.renderAll();
             }
 
-            if (uiRoot) {
-                uiRoot.remove();
-                uiRoot = null;
-            }
+            if (uiRoot) { uiRoot.remove(); uiRoot = null; }
 
             if (window.MP3DataSourceHandlers) delete window.MP3DataSourceHandlers['news'];
 
