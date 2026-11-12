@@ -32,30 +32,21 @@
 <body class="bg-slate-950 text-slate-100 h-screen flex flex-col overflow-hidden" style="height: 100dvh;">
 
     <!-- 頂部導覽列 -->
-    <header class="border-b border-slate-800 bg-slate-900/95 backdrop-blur shrink-0 px-3 md:px-6 py-2.5 flex flex-col md:flex-row items-center justify-between gap-2.5 md:gap-3 z-30">
-        <div class="flex items-center w-full md:w-auto justify-between md:justify-start gap-2">
-            <div class="flex items-center gap-2 md:gap-3 min-w-0">
-                <button onclick="toggleMobileDrawer()" 
-                    id="mobileDrawerToggle"
-                    class="lg:hidden p-2 rounded-xl bg-indigo-950/60 border border-indigo-500/40 text-indigo-400 hover:text-white hover:bg-indigo-600 transition shadow-md flex items-center justify-center shrink-0"
-                    title="開啟分類與篩選" aria-label="開啟分類與篩選">
-                    <i class="fa-solid fa-bars text-base"></i>
-                </button>
-                <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/35 shrink-0">
-                    <i class="fa-solid fa-headphones-simple text-lg"></i>
-                </div>
-                <div class="min-w-0">
-                    <h1 class="text-base md:text-lg font-bold tracking-wide truncate">MP3 雲端管理</h1>
-                    <p class="text-[11px] text-slate-400 hidden sm:block truncate">即時串流、分類與標籤管理</p>
-                </div>
-            </div>
-        </div>
-        <div class="flex items-center space-x-2 md:space-x-3 w-full md:w-auto max-w-xl">
-            <input type="text" id="dirInput" placeholder="輸入資料夾絕對路徑..." 
-                class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500 flex-1 md:w-80">
-            <button onclick="loadFiles(true)" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-1.5 rounded-lg text-sm font-medium transition shadow-md whitespace-nowrap" title="重新載入 (快捷鍵: R)">
-                <i class="fa-solid fa-rotate mr-1.5"></i> 載入
+    <header class="border-b border-slate-800 bg-slate-900/95 backdrop-blur shrink-0 px-3 md:px-6 py-2.5 flex items-center justify-between gap-2.5 md:gap-3 z-30">
+        <div class="flex items-center gap-2 md:gap-3 min-w-0">
+            <button onclick="toggleMobileDrawer()" 
+                id="mobileDrawerToggle"
+                class="lg:hidden p-2 rounded-xl bg-indigo-950/60 border border-indigo-500/40 text-indigo-400 hover:text-white hover:bg-indigo-600 transition shadow-md flex items-center justify-center shrink-0"
+                title="開啟分類與篩選" aria-label="開啟分類與篩選">
+                <i class="fa-solid fa-bars text-base"></i>
             </button>
+            <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/35 shrink-0">
+                <i class="fa-solid fa-headphones-simple text-lg"></i>
+            </div>
+            <div class="min-w-0">
+                <h1 class="text-base md:text-lg font-bold tracking-wide truncate">MP3 雲端管理</h1>
+                <p class="text-[11px] text-slate-400 hidden sm:block truncate">即時串流、分類與標籤管理</p>
+            </div>
         </div>
     </header>
 
@@ -83,7 +74,7 @@
             <div id="sidebarContentWrapper" class="flex-1 min-h-0 space-y-4 flex flex-col p-4 lg:p-0 overflow-y-auto pr-1">
                 <div id="pluginSlot" class="space-y-4"></div>
 
-                <!-- 分類區塊（含顯示收藏日期開關） -->
+                <!-- 分類區塊（含显示收藏日期开关） -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl">
                     <div class="flex items-center justify-between mb-3 px-1">
                         <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">分類標籤</h2>
@@ -98,7 +89,6 @@
                             <i class="fa-solid fa-plus"></i>
                         </button>
                     </div>
-                    <!-- 全局 Like 显示设置 -->
                     <div class="flex items-center justify-between pt-2 mt-2 border-t border-slate-800">
                         <span class="text-[11px] text-slate-400 flex items-center">
                             <i class="fa-solid fa-clock text-[10px] mr-1.5 text-slate-500"></i>
@@ -184,7 +174,7 @@
                             <tr>
                                 <td colspan="4" class="text-center py-12 text-slate-500">
                                     <i class="fa-solid fa-folder-open text-3xl mb-2 block"></i>
-                                    請輸入路徑並點擊「載入」
+                                    請在「本地目录」插件裡輸入路徑並載入
                                 </td>
                             </tr>
                         </tbody>
@@ -290,7 +280,7 @@
                 .replace(/>/g, '&gt;');
         }
 
-        // ---------- Like 时间戳辅助（全局） ----------
+        // ---------- Like 时间戳辅助 ----------
         function parseLikedAt(raw) {
             if (!raw) return null;
             if (raw === true) return null;
@@ -310,6 +300,18 @@
 
         // 全局显示开关
         window.mp3_showLikedDate = localStorage.getItem('mp3_show_liked_date') === 'true';
+
+        // ---------- 统一读取当前目录（只读 localStorage，由 local 插件写入） ----------
+        window.MP3GetCurrentDir = function () {
+            return localStorage.getItem('mp3_last_dir') || '';
+        };
+
+        // ---------- 统一 API 端点（可配置） ----------
+        window.MP3GetMp3ApiBase = function () {
+            let base = localStorage.getItem('mp3_api_base') || '/api/mp3';
+            base = String(base).trim().replace(/\/+$/, '');
+            return base || '/api/mp3';
+        };
 
         // ---------- 主应用状态 ----------
         let allFiles = [];
@@ -380,7 +382,7 @@
             categories = getSavedCategories();
             const params = new URLSearchParams(window.location.search);
             const dirParam = params.get('dir');
-            if (dirParam) document.getElementById('dirInput').value = dirParam;
+            if (dirParam) localStorage.setItem('mp3_last_dir', dirParam);
 
             const pageParam = parseInt(params.get('page'));
             if (!isNaN(pageParam) && pageParam > 0) currentPage = pageParam;
@@ -427,8 +429,6 @@
 
             initMediaSession();
             initKeyboardShortcuts();
-
-            // 注意：不主动 loadFiles(false)，由 local 插件 init 时触发首次加载
         });
 
         function initMediaSession() {
@@ -496,7 +496,7 @@
         }
 
         function updateUrlParams() {
-            const dir = document.getElementById('dirInput').value.trim();
+            const dir = window.MP3GetCurrentDir();
             const params = new URLSearchParams(window.location.search);
             if (dir) params.set('dir', dir); else params.delete('dir');
             params.set('page', currentPage);
@@ -504,12 +504,11 @@
             window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
         }
 
-        // ★ loadFiles 转发到 local 插件（插件未启用则清理本地文件）
+        // ★ loadFiles 转发到 local 插件
         async function loadFiles(resetPage = false) {
             if (window.MP3LocalPlugin && typeof window.MP3LocalPlugin.loadLocalFiles === 'function') {
                 return window.MP3LocalPlugin.loadLocalFiles(resetPage);
             }
-            // 本地插件未启用：清理本地文件，保留外部源
             if (resetPage) currentPage = 1;
             const existingExternal = allFiles.filter(f => f._source && f._source !== 'local');
             allFiles = existingExternal;
@@ -518,7 +517,6 @@
             renderTable();
         }
 
-        // 供 local / 其他插件调用：从远端数据恢复播放状态
         function restoreLastPlayedSong() {
             const lastKey = localStorage.getItem('mp3_last_played_key');
             const lastTitle = localStorage.getItem('mp3_last_played_title');
@@ -533,8 +531,10 @@
 
                 const src = targetFile._source || 'local';
                 if (src === 'local') {
-                    const dir = document.getElementById('dirInput').value.trim();
-                    const streamUrl = `/api/mp3?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(lastKey)}`;
+                    const dir = window.MP3GetCurrentDir();
+                    if (!dir) return;
+                    const api = window.MP3GetMp3ApiBase();
+                    const streamUrl = `${api}?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(lastKey)}`;
                     audioPlayer.src = streamUrl;
                     audioPlayer.addEventListener('loadedmetadata', function onMeta() {
                         if (!isNaN(audioPlayer.duration) && lastTime < audioPlayer.duration) {
@@ -748,7 +748,6 @@
                 return matchKey && matchTag && matchSource;
             });
 
-            // 我的最愛按收藏时间倒序（最新在前）
             if (currentCategory === '我的最愛') {
                 result.sort((a, b) => (b.likedAt || 0) - (a.likedAt || 0));
             }
@@ -941,8 +940,9 @@
             }
 
             const displayName = encodedName ? decodeURIComponent(encodedName) : fileKey;
-            const dir = document.getElementById('dirInput').value.trim();
-            const streamUrl = `/api/mp3?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(fileKey)}`;
+            const dir = window.MP3GetCurrentDir();
+            const api = window.MP3GetMp3ApiBase();
+            const streamUrl = `${api}?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(fileKey)}`;
 
             syncPageToFile(fileKey);
 
@@ -1073,8 +1073,9 @@
 
         async function changeCategory(encodedKey, newCategory) {
             const fileKey = decodeURIComponent(encodedKey);
-            const dir = document.getElementById('dirInput').value.trim();
-            const res = await fetch('/api/mp3', {
+            const dir = window.MP3GetCurrentDir();
+            const api = window.MP3GetMp3ApiBase();
+            const res = await fetch(api, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ dir, filename: fileKey, newCategory })
@@ -1094,8 +1095,9 @@
                 confirmText: '確認刪除'
             });
             if (!confirmed) return;
-            const dir = document.getElementById('dirInput').value.trim();
-            const res = await fetch(`/api/mp3?dir=${encodeURIComponent(dir)}&filename=${encodeURIComponent(fileKey)}`, { method: 'DELETE' });
+            const dir = window.MP3GetCurrentDir();
+            const api = window.MP3GetMp3ApiBase();
+            const res = await fetch(`${api}?dir=${encodeURIComponent(dir)}&filename=${encodeURIComponent(fileKey)}`, { method: 'DELETE' });
             const data = await res.json();
             if (data.success) {
                 if (currentPlayingFile === fileKey) {
@@ -1133,8 +1135,9 @@
             if (!targetDir || !targetDir.trim()) return;
             const trimmedTargetDir = targetDir.trim();
             localStorage.setItem('mp3_copy_target_dir', trimmedTargetDir);
-            const currentSourceDir = document.getElementById('dirInput').value.trim();
-            const res = await fetch('/api/mp3/copy-favorites', {
+            const currentSourceDir = window.MP3GetCurrentDir();
+            const api = window.MP3GetMp3ApiBase();
+            const res = await fetch(`${api}/copy-favorites`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sourceDir: currentSourceDir, targetDir: trimmedTargetDir, filenames: likedKeys })
@@ -1197,7 +1200,6 @@
                     ? (file.likedAt ? `取消最愛（收藏于 ${formatLikedAtDate(file.likedAt)}）` : '取消最愛')
                     : '加入最愛';
 
-                // 只在「我的最愛」分类 + 全局开关打开时显示日期
                 const likedAtLine = (currentCategory === '我的最愛' && file.likedAt && window.mp3_showLikedDate)
                     ? `<div class="text-[10px] text-rose-400/80 mt-0.5 flex items-center gap-1"><i class="fa-solid fa-clock text-[9px]"></i><span>收藏于 ${formatLikedAtDate(file.likedAt)}</span></div>`
                     : '';
@@ -1367,7 +1369,7 @@
                 if (typeof fn === 'function') return fn.apply(window, args);
             };
             return {
-                version: '1.6',
+                version: '1.8',
                 get allFiles() { return allFiles; },
                 set allFiles(v) { allFiles = v; },
                 get categories() { return categories; },
@@ -1399,7 +1401,10 @@
 
                 parseLikedAt,
                 formatLikedAtDate,
-                formatLikedAtFull
+                formatLikedAtFull,
+
+                getCurrentDir: window.MP3GetCurrentDir,
+                getMp3ApiBase: window.MP3GetMp3ApiBase
             };
         })();
         console.log('[MP3AppExtension] ready v' + window.MP3AppExtension.version);
@@ -1500,9 +1505,9 @@
         const REGISTRY = {
             local: {
                 id: 'local',
-                name: '本地文件',
-                description: '从 /api/mp3 加载本地文件夹的 MP3',
-                icon: 'fa-solid fa-hard-drive',
+                name: '本地目录',
+                description: '从 /api/mp3 加载指定目录的 MP3（API 可配置）',
+                icon: 'fa-solid fa-folder-open',
                 iconClass: 'text-slate-400',
                 scriptSrc: 'local-plugin.js',
                 globalVar: 'MP3LocalPlugin',
@@ -1664,8 +1669,7 @@
         }
 
         async function restoreAll() {
-            // 加载顺序：multiUser → local → 其他。multiUser 先覆写 getLikedMap，
-            // 这样 local 加载时能读到当前用户的 Like 状态。
+            // 加载顺序：multiUser → local → 其他
             const order = Object.keys(REGISTRY).sort((a, b) => {
                 const rank = id => id === 'multiUser' ? 0 : id === 'local' ? 1 : 2;
                 return rank(a) - rank(b);
