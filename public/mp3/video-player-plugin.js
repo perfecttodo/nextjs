@@ -1,11 +1,14 @@
 /**
- * 视频渲染插件 v1.1
+ * 视频渲染插件 v1.2
  * 
- * 相对 v1.0 的改动：
- *  1. ★ 全屏意图持久化：用户进入全屏后记录意图，切歌自动尝试恢复
- *  2. 切歌后如果全屏被浏览器意外退出 → 尝试重新 requestFullscreen
- *  3. 失败时显示「点击恢复全屏」浮层（避免用户手动找按钮）
- *  4. 用户按 ESC 主动退出时，清除全屏意图（不会自动恢复）
+ * 相对 v1.1 的改动：
+ *  1. ★ 全屏退出区分「切歌导致」和「用户主动」：
+ *     - 按 ESC → 用户主动，清除全屏意图
+ *     - 时间窗口内有媒体变化事件（loadstart/emptied/durationchange/ended）→ 切歌导致，保留意图
+ *  2. ★ `playing` 事件时立即尝试恢复全屏（此时用户手势窗口通常还在）
+ *  3. ★ `ended` 事件也标记媒体变化，避免"视频播完 → 自动切歌"时全屏意图被误清
+ *  4. ★ 恢复失败时显示"点击恢复全屏"浮层
+ *  5. 请求全屏前检查其他元素是否正在全屏（避免抢占 F11 全屏）
  */
 (function () {
     'use strict';
@@ -15,6 +18,11 @@
     const KEY_POSITION = NS + 'position';
     const KEY_FULLSCREEN_INTENT = NS + 'fullscreen_intent';
 
+    // 媒体变化事件后，全屏退出的判定窗口（毫秒）
+    const MEDIA_CHANGE_WINDOW = 1500;
+    // 恢复全屏的防抖间隔（毫秒）
+    const RESTORE_DEBOUNCE = 300;
+
     const state = {
         container: null,
         originalParent: null,
@@ -22,10 +30,10 @@
         hiddenForCurrentSrc: false,
         dragState: { active: false, startX: 0, startY: 0, originX: 0, originY: 0 },
         eventHandlers: [],
-        // ★ 全屏意图
         fullscreenIntent: localStorage.getItem(KEY_FULLSCREEN_INTENT) === 'true',
-        restoreHintTimer: null,
-        userExitedFullscreenAt: 0
+        userPressedEscape: false,
+        lastMediaChangeAt: 0,
+        lastRestoreAttemptAt: 0
     };
 
     // ==================== 工具 ====================
@@ -63,6 +71,10 @@
             if (value) localStorage.setItem(KEY_FULLSCREEN_INTENT, 'true');
             else localStorage.removeItem(KEY_FULLSCREEN_INTENT);
         } catch (e) {}
+    }
+
+    function markMediaChange() {
+        state.lastMediaChangeAt = Date.now();
     }
 
     // ==================== 视频容器 ====================
@@ -107,10 +119,8 @@
         try {
             const saved = JSON.parse(localStorage.getItem(KEY_POSITION) || 'null');
             if (saved && typeof saved.x === 'number' && typeof saved.y === 'number') {
-                const maxX = window.innerWidth - 60;
-                const maxY = window.innerHeight - 60;
-                const x = Math.max(0, Math.min(maxX, saved.x));
-                const y = Math.max(0, Math.min(maxY, saved.y));
+                const x = Math.max(0, Math.min(window.innerWidth - 60, saved.x));
+                const y = Math.max(0, Math.min(window.innerHeight - 60, saved.y));
                 state.container.style.left = x + 'px';
                 state.container.style.top = y + 'px';
                 state.container.style.right = 'auto';
@@ -176,20 +186,29 @@
         window.addEventListener('touchend', onEnd);
     }
 
-    // ==================== 全屏请求（带意图管理） ====================
+    // ==================== 全屏请求 ====================
     async function requestFullscreenWithIntent() {
         if (!state.videoEl) return false;
         const el = state.videoEl;
+
+        // 有其他元素在全屏（如 F11 全屏了整个页面），不抢占
+        if (document.fullscreenElement && document.fullscreenElement !== el) {
+            console.log('[VideoPlayer] 其他元素在全屏，跳过');
+            return false;
+        }
+
         try {
             if (el.requestFullscreen) await el.requestFullscreen();
             else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
             else if (el.webkitEnterFullscreen) el.webkitEnterFullscreen();
             else return false;
+
             saveFullscreenIntent(true);
             hideRestoreHint();
+            console.log('[VideoPlayer] 进入全屏成功');
             return true;
         } catch (e) {
-            console.warn('[VideoPlayer] Fullscreen failed:', e);
+            console.warn('[VideoPlayer] requestFullscreen 失败:', e);
             return false;
         }
     }
@@ -200,6 +219,11 @@
         if (document.fullscreenElement === state.videoEl) return;
         if (isHiddenForCurrentSrc()) return;
 
+        // 防抖
+        if (Date.now() - state.lastRestoreAttemptAt < RESTORE_DEBOUNCE) return;
+        state.lastRestoreAttemptAt = Date.now();
+
+        console.log('[VideoPlayer] 尝试恢复全屏…');
         const ok = await requestFullscreenWithIntent();
         if (!ok) {
             showRestoreHint();
@@ -211,10 +235,11 @@
         let hint = state.container.querySelector('.video-restore-fullscreen');
         if (hint) { hint.classList.remove('hidden'); return; }
         hint = document.createElement('button');
-        hint.className = 'video-restore-fullscreen absolute inset-0 bg-black/60 backdrop-blur-sm text-white flex items-center justify-center gap-2 text-xs font-medium transition';
+        hint.className = 'video-restore-fullscreen absolute inset-0 bg-black/60 backdrop-blur-sm text-white flex items-center justify-center gap-2 text-xs font-medium transition z-10';
         hint.innerHTML = `<i class="fa-solid fa-expand"></i><span>点击恢复全屏</span>`;
         hint.addEventListener('click', async (e) => {
             e.stopPropagation();
+            state.lastRestoreAttemptAt = 0; // 用户点击不受防抖限制
             const ok = await requestFullscreenWithIntent();
             if (ok) hideRestoreHint();
         });
@@ -226,10 +251,6 @@
         if (!state.container) return;
         const hint = state.container.querySelector('.video-restore-fullscreen');
         if (hint) hint.classList.add('hidden');
-    }
-
-    function requestFullscreen() {
-        requestFullscreenWithIntent();
     }
 
     async function togglePictureInPicture() {
@@ -263,9 +284,7 @@
             state.videoEl.style.objectFit = 'contain';
             state.videoEl.controls = true;
 
-            if (state.videoEl.paused) {
-                state.videoEl.play().catch(() => {});
-            }
+            if (state.videoEl.paused) state.videoEl.play().catch(() => {});
         }
     }
 
@@ -294,18 +313,95 @@
     function checkVideoTrack() {
         if (!state.videoEl) return;
         const hasVideo = (state.videoEl.videoWidth || 0) > 0 && (state.videoEl.videoHeight || 0) > 0;
-        if (hasVideo) {
-            showContainer();
-            // ★ 切歌后如果全屏意图还在但丢失了全屏 → 尝试恢复
-            if (state.fullscreenIntent && document.fullscreenElement !== state.videoEl) {
-                setTimeout(() => tryRestoreFullscreen(), 200);
-            }
-        } else {
-            hideContainer();
-        }
+        if (hasVideo) showContainer();
+        else hideContainer();
     }
 
-    // ==================== 主流程 ====================
+    // ==================== 全屏事件 ====================
+    function bindFullscreenEvents() {
+        // ★ ESC 检测：用户按 ESC 主动退出全屏
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                state.userPressedEscape = true;
+                // 1 秒后自动重置，避免长时间保留导致误判
+                setTimeout(() => { state.userPressedEscape = false; }, 1000);
+            }
+        };
+        document.addEventListener('keydown', onKeyDown);
+        state.eventHandlers.push({ el: document, event: 'keydown', handler: onKeyDown });
+
+        const onFullscreenChange = () => {
+            if (document.fullscreenElement === state.videoEl) {
+                // 进入全屏
+                saveFullscreenIntent(true);
+                hideRestoreHint();
+                console.log('[VideoPlayer] 进入全屏');
+            } else {
+                // 退出全屏：判断原因
+                if (state.userPressedEscape) {
+                    state.userPressedEscape = false;
+                    saveFullscreenIntent(false);
+                    console.log('[VideoPlayer] 用户按 ESC 退出全屏，清除意图');
+                } else if (state.fullscreenIntent &&
+                           (Date.now() - state.lastMediaChangeAt) < MEDIA_CHANGE_WINDOW) {
+                    // 切歌导致，保留意图，等 playing 时恢复
+                    console.log('[VideoPlayer] 切歌导致全屏退出，将在 playing 时恢复');
+                } else {
+                    saveFullscreenIntent(false);
+                    console.log('[VideoPlayer] 用户主动退出全屏（非切歌场景），清除意图');
+                }
+            }
+        };
+        document.addEventListener('fullscreenchange', onFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+        state.eventHandlers.push({ el: document, event: 'fullscreenchange', handler: onFullscreenChange });
+        state.eventHandlers.push({ el: document, event: 'webkitfullscreenchange', handler: onFullscreenChange });
+    }
+
+    // ==================== 视频事件 ====================
+    function bindVideoEvents() {
+        const ext = window.MP3AppExtension;
+        if (!ext || !ext.audioPlayer) { setTimeout(bindVideoEvents, 300); return; }
+
+        const video = ext.audioPlayer;
+        state.videoEl = video;
+        state.originalParent = video.parentNode || document.body;
+
+        // ★ 媒体变化标记：切歌/新源加载时触发，用于全屏退出时的原因判定
+        attach(video, 'loadstart', markMediaChange);
+        attach(video, 'emptied', markMediaChange);
+        attach(video, 'durationchange', markMediaChange);
+        attach(video, 'ended', markMediaChange);
+
+        // 视频元数据加载完成 → 检查视频轨道
+        attach(video, 'loadedmetadata', () => {
+            state.hiddenForCurrentSrc = isHiddenForCurrentSrc();
+            checkVideoTrack();
+            updatePluginCardStatus();
+        });
+
+        // ★ 关键：playing 事件时尝试恢复全屏
+        attach(video, 'playing', () => {
+            markMediaChange();
+            if (state.fullscreenIntent && !document.fullscreenElement) {
+                console.log('[VideoPlayer] playing 事件触发，尝试恢复全屏');
+                tryRestoreFullscreen();
+            }
+        });
+
+        attach(video, 'canplay', () => {
+            if (state.fullscreenIntent && !document.fullscreenElement) {
+                tryRestoreFullscreen();
+            }
+        });
+
+        attach(video, 'resize', () => {
+            checkVideoTrack();
+            updatePluginCardStatus();
+        });
+    }
+
+    // ==================== 插件卡片 UI ====================
     function injectUI() {
         return new Promise((resolve) => {
             function tryInject() {
@@ -314,7 +410,7 @@
                 if (!body) { setTimeout(tryInject, 300); return; }
                 body.innerHTML = `
                     <p class="text-[10px] text-slate-500 leading-relaxed">
-                        检测到视频轨道时，在右下角显示悬浮小窗，可拖动、全屏、画中画。全屏状态跨歌保留。
+                        检测到视频轨道时，在右下角显示悬浮小窗。全屏状态跨歌保持。
                     </p>
                     <div class="flex items-center justify-between mt-1.5 gap-2">
                         <span class="text-[10px] text-slate-400">
@@ -362,8 +458,11 @@
         }
         const hasVideo = (state.videoEl.videoWidth || 0) > 0;
         if (hasVideo) {
-            if (state.container && !state.container.classList.contains('hidden')) {
-                el.textContent = '视频播放中';
+            if (document.fullscreenElement === state.videoEl) {
+                el.textContent = '全屏播放中';
+                el.className = 'vp-status text-emerald-400';
+            } else if (state.container && !state.container.classList.contains('hidden')) {
+                el.textContent = state.fullscreenIntent ? '视频播放中（全屏待恢复）' : '视频播放中';
                 el.className = 'vp-status text-emerald-400';
             } else {
                 el.textContent = '视频（已关闭）';
@@ -385,91 +484,16 @@
             updatePluginCardStatus();
         });
         container.querySelector('.video-btn-fullscreen').addEventListener('click', () => {
-            requestFullscreen();
+            requestFullscreenWithIntent();
         });
         container.querySelector('.video-btn-pip').addEventListener('click', () => {
             togglePictureInPicture();
         });
     }
 
-    // ==================== 全屏事件监听 ====================
-    function bindFullscreenEvents() {
-        const onFullscreenChange = () => {
-            const isFull = !!document.fullscreenElement;
-            if (isFull) {
-                // 进入全屏：记录意图
-                if (document.fullscreenElement === state.videoEl) {
-                    saveFullscreenIntent(true);
-                    hideRestoreHint();
-                }
-            } else {
-                // 退出全屏：区分「用户主动 ESC」和「切歌导致」
-                const now = Date.now();
-                // 切歌后 800ms 内的退出视为「浏览器强制」，保留意图
-                // 超过 800ms 之后的退出，视为用户主动 ESC，清除意图
-                if (now - state.userExitedFullscreenAt > 800) {
-                    saveFullscreenIntent(false);
-                }
-                state.userExitedFullscreenAt = now;
-
-                // 如果是切歌导致（意图还在），稍后尝试恢复
-                if (state.fullscreenIntent) {
-                    setTimeout(() => tryRestoreFullscreen(), 300);
-                }
-            }
-        };
-        document.addEventListener('fullscreenchange', onFullscreenChange);
-        document.addEventListener('webkitfullscreenchange', onFullscreenChange);
-        state.eventHandlers.push({ el: document, event: 'fullscreenchange', handler: onFullscreenChange });
-        state.eventHandlers.push({ el: document, event: 'webkitfullscreenchange', handler: onFullscreenChange });
-    }
-
-    // ==================== 视频事件绑定 ====================
-    function bindVideoEvents() {
-        const ext = window.MP3AppExtension;
-        if (!ext || !ext.audioPlayer) { setTimeout(bindVideoEvents, 300); return; }
-
-        const video = ext.audioPlayer;
-        state.videoEl = video;
-        state.originalParent = video.parentNode || document.body;
-
-        // ★ 每次加载新视频元数据 → 检查视频轨道 + 尝试恢复全屏
-        attach(video, 'loadedmetadata', () => {
-            state.hiddenForCurrentSrc = isHiddenForCurrentSrc();
-            checkVideoTrack();
-            updatePluginCardStatus();
-            // 再多等一会，有些流 videoWidth 出来得晚
-            setTimeout(() => tryRestoreFullscreen(), 300);
-        });
-
-        attach(video, 'durationchange', () => {
-            checkVideoTrack();
-            updatePluginCardStatus();
-        });
-
-        attach(video, 'canplay', () => {
-            if (state.fullscreenIntent && document.fullscreenElement !== video) {
-                setTimeout(() => tryRestoreFullscreen(), 100);
-            }
-        });
-
-        attach(video, 'emptied', () => {
-            // src 被清空（切到纯音频或切源），不立刻隐藏，等下一次 loadedmetadata 判断
-            updatePluginCardStatus();
-        });
-
-        attach(video, 'resize', () => {
-            checkVideoTrack();
-            updatePluginCardStatus();
-        });
-
-        // 用户手动进入全屏（原生控件点击全屏按钮）也会触发 fullscreenchange
-        // 已在 bindFullscreenEvents 处理
-    }
-
     // ==================== 插件生命周期 ====================
     window.MP3VideoPlayerPlugin = {
-        version: '1.1.0',
+        version: '1.2.0',
         async init() {
             state.container = createContainer();
             bindDrag(state.container);
@@ -490,7 +514,6 @@
             updatePluginCardStatus();
         },
         async unload() {
-            // 退出全屏（如果当前在全屏）
             try {
                 if (document.fullscreenElement === state.videoEl) {
                     if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
@@ -517,7 +540,7 @@
             state.originalParent = null;
             state.dragState = { active: false, startX: 0, startY: 0, originX: 0, originY: 0 };
             state.hiddenForCurrentSrc = false;
-            state.restoreHintTimer = null;
+            state.userPressedEscape = false;
         }
     };
 })();
