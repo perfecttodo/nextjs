@@ -1,11 +1,11 @@
 /**
- * Google Drive 扩展插件 v3.0（按需加载版）
- *
- * 对外接口：
- *   window.MP3GoogleDrivePlugin = { version, init(), unload(), ... }
- *
- * 由 MP3PluginManager 在用户打开开关时动态加载，
- * 关闭时调用 unload() 清理；开启时调用 init() 挂载。
+ * Google Drive 扩展插件 v3.3
+ * 
+ * 相对 v3.2 的改动：
+ *  1. 路径切换时探测旧/新目录内容，旧目录有文件则弹窗确认
+ *  2. 弹窗三选项：迁移并切换 / 直接切换（不迁移）/ 取消（保持原路径）
+ *  3. 未授权时不探测目录，只保存路径
+ *  4. 保留「迁移旧文件」按钮作为兜底（从 legacyFolderPath 迁移到当前路径）
  */
 window.MP3GoogleDriveConfig = {
     clientId: '802199089900-5n676d4hansnab5c66igukb1mch5m7m1.apps.googleusercontent.com'
@@ -16,7 +16,7 @@ window.MP3GoogleDriveConfig = {
     const CFG = window.MP3GoogleDriveConfig || {};
     const CONFIG = {
         clientId: CFG.clientId || '',
-        favoritesFolderPath: CFG.favoritesFolderPath || ['music', 'fav'],
+        legacyFolderPath: CFG.legacyFolderPath || ['music', 'fav'],
         backupFileName: CFG.backupFileName || 'mp3_player_backup.json',
         driveCategoryName: CFG.driveCategoryName || '☁️ Drive 音樂'
     };
@@ -29,14 +29,21 @@ window.MP3GoogleDriveConfig = {
     const NS = 'mp3_gdrive_';
     const KEY_TOKEN = NS + 'token';
     const KEY_FAV_FOLDER_ID = NS + 'fav_folder_id';
+    const KEY_FAV_PATH = NS + 'fav_path';
+    const KEY_MIGRATED = NS + 'fav_migrated';
 
-    const EXCLUDED_BACKUP_KEYS = new Set([KEY_TOKEN, KEY_FAV_FOLDER_ID]);
+    const DEFAULT_FAV_PATH = ['apps', 'music', 'fav'];
+    const INVALID_PATH_CHARS = /[<>:"|?*\x00-\x1f]/;
+
+    const EXCLUDED_BACKUP_KEYS = new Set([KEY_TOKEN, KEY_FAV_FOLDER_ID, KEY_FAV_PATH, KEY_MIGRATED]);
 
     const state = {
         authorized: false,
         driveFiles: [],
         currentBlobUrl: null,
-        uploadingFavorites: false
+        uploadingFavorites: false,
+        migrating: false,
+        switching: false
     };
 
     let accessToken = null;
@@ -64,7 +71,86 @@ window.MP3GoogleDriveConfig = {
         return name;
     }
 
-    // ==================== Token 持久化 ====================
+    function pathKey(parts) {
+        return parts.join('/');
+    }
+
+    // ==================== 路径配置 ====================
+    function normalizePathParts(input) {
+        if (Array.isArray(input)) {
+            return input.map(s => String(s == null ? '' : s).trim()).filter(Boolean);
+        }
+        const str = String(input == null ? '' : input).trim();
+        if (!str) return [];
+        return str.split(/[\/\\]+/).map(s => s.trim()).filter(Boolean);
+    }
+
+    function validatePathParts(parts) {
+        for (const p of parts) {
+            if (INVALID_PATH_CHARS.test(p)) return `路径段 "${p}" 含非法字符（不允许 < > : " | ? *）`;
+            if (p === '.' || p === '..') return `路径段 "${p}" 无效`;
+        }
+        return null;
+    }
+
+    function validateAndNormalizePath(input) {
+        const parts = normalizePathParts(input);
+        if (parts.length === 0) return { parts: [...DEFAULT_FAV_PATH], cleared: true };
+        const err = validatePathParts(parts);
+        if (err) throw new Error(err);
+        return { parts, cleared: false };
+    }
+
+    function getFavoritesFolderPath() {
+        try {
+            const saved = localStorage.getItem(KEY_FAV_PATH);
+            if (saved) {
+                const parsed = normalizePathParts(JSON.parse(saved));
+                if (parsed.length > 0 && !validatePathParts(parsed)) return parsed;
+            }
+        } catch (e) {}
+        if (CFG.favoritesFolderPath) {
+            const parts = normalizePathParts(CFG.favoritesFolderPath);
+            if (parts.length > 0 && !validatePathParts(parts)) return parts;
+        }
+        return [...DEFAULT_FAV_PATH];
+    }
+
+    function saveFavoritesFolderPath(input) {
+        const parts = normalizePathParts(input);
+        if (parts.length === 0) {
+            try { localStorage.removeItem(KEY_FAV_PATH); } catch (e) {}
+            return [...DEFAULT_FAV_PATH];
+        }
+        const err = validatePathParts(parts);
+        if (err) throw new Error(err);
+        try { localStorage.setItem(KEY_FAV_PATH, JSON.stringify(parts)); } catch (e) {}
+        return parts;
+    }
+
+    // ==================== 缓存 ====================
+    function readFolderCache(cacheKey, expectedPath) {
+        try {
+            const raw = localStorage.getItem(cacheKey);
+            if (!raw) return null;
+            let obj;
+            try { obj = JSON.parse(raw); } catch (e) { obj = null; }
+            if (!obj || typeof obj !== 'object' || !obj.id) {
+                localStorage.removeItem(cacheKey);
+                return null;
+            }
+            if (obj.path !== expectedPath) {
+                localStorage.removeItem(cacheKey);
+                return null;
+            }
+            return obj.id;
+        } catch (e) { return null; }
+    }
+    function writeFolderCache(cacheKey, path, id) {
+        try { localStorage.setItem(cacheKey, JSON.stringify({ path, id })); } catch (e) {}
+    }
+
+    // ==================== Token ====================
     function saveToken(token, expiresInSec) {
         const expiresAt = Date.now() + (expiresInSec || 3600) * 1000 - 60000;
         try { localStorage.setItem(KEY_TOKEN, JSON.stringify({ token, expiresAt })); } catch (e) {}
@@ -158,6 +244,7 @@ window.MP3GoogleDriveConfig = {
         const res = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`);
         const data = await res.json();
         if (data.files && data.files.length > 0) return data.files[0].id;
+
         const createRes = await driveFetch('https://www.googleapis.com/drive/v3/files', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -171,34 +258,309 @@ window.MP3GoogleDriveConfig = {
     }
 
     async function ensureNestedFolder(pathParts, cacheKey) {
+        const expectedPath = pathKey(pathParts);
+
         if (cacheKey) {
-            const cached = localStorage.getItem(cacheKey);
-            if (cached) {
+            const cachedId = readFolderCache(cacheKey, expectedPath);
+            if (cachedId) {
                 try {
-                    const res = await driveFetch(`https://www.googleapis.com/drive/v3/files/${cached}?fields=id,trashed`);
+                    const res = await driveFetch(`https://www.googleapis.com/drive/v3/files/${cachedId}?fields=id,trashed`);
                     if (res.ok) {
                         const info = await res.json();
-                        if (info && !info.trashed) return cached;
+                        if (info && !info.trashed) return cachedId;
                     }
                 } catch (e) {}
                 localStorage.removeItem(cacheKey);
             }
         }
+
         let parentId = 'root';
         for (const name of pathParts) {
             parentId = await ensureFolder(name, parentId);
         }
-        if (cacheKey) localStorage.setItem(cacheKey, parentId);
+
+        if (cacheKey) writeFolderCache(cacheKey, expectedPath, parentId);
         return parentId;
     }
 
-    // ==================== 同步进主列表 ====================
+    // ==================== 探测目录（不创建） ====================
+    async function probeFolder(pathParts) {
+        try {
+            let parentId = 'root';
+            for (const name of pathParts) {
+                const q = encodeURIComponent(
+                    `name='${name}' and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents and trashed=false`
+                );
+                const res = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`);
+                const data = await res.json();
+                if (!data.files || data.files.length === 0) {
+                    return { exists: false, id: null, count: 0 };
+                }
+                parentId = data.files[0].id;
+            }
+            const q = encodeURIComponent(
+                `'${parentId}' in parents and trashed=false and (mimeType='audio/mpeg' or name contains '.mp3')`
+            );
+            const countRes = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)&pageSize=1000`);
+            const countData = await countRes.json();
+            return { exists: true, id: parentId, count: (countData.files || []).length };
+        } catch (e) {
+            return { exists: false, id: null, count: 0 };
+        }
+    }
+
+    // ==================== 迁移文件（参数化） ====================
+    async function migrateFilesBetween(oldPathParts, newPathParts) {
+        const oldPathText = pathKey(oldPathParts);
+        const newPathText = pathKey(newPathParts);
+
+        const oldProbe = await probeFolder(oldPathParts);
+        if (!oldProbe.exists || oldProbe.count === 0) {
+            return { ok: 0, fail: 0, skipped: true };
+        }
+
+        const oldParent = oldProbe.id;
+        const newParent = await ensureNestedFolder(newPathParts, KEY_FAV_FOLDER_ID);
+
+        const q = encodeURIComponent(
+            `'${oldParent}' in parents and trashed=false and (mimeType='audio/mpeg' or name contains '.mp3')`
+        );
+        const listRes = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=1000`);
+        const listData = await listRes.json();
+        const files = listData.files || [];
+
+        let ok = 0, fail = 0;
+        for (const f of files) {
+            try {
+                const res = await driveFetch(
+                    `https://www.googleapis.com/drive/v3/files/${f.id}?addParents=${newParent}&removeParents=${oldParent}&fields=id,parents`,
+                    { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: '{}' }
+                );
+                if (res.ok) ok++; else fail++;
+            } catch (e) { fail++; }
+        }
+
+        return { ok, fail, total: files.length, oldPathText, newPathText };
+    }
+
+    // ==================== 路径切换确认弹窗 ====================
+    function showSwitchDialog({ oldPath, newPath, oldCount, newCount }) {
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4';
+
+            const warning = newCount > 0;
+            const iconBg = warning ? 'bg-amber-500/20 text-amber-400' : 'bg-indigo-500/20 text-indigo-400';
+            const iconCls = warning ? 'fa-triangle-exclamation' : 'fa-folder-tree';
+
+            let bodyMsg = '';
+            if (warning) {
+                bodyMsg = `旧目录 <code class="text-slate-200">${escapeHtmlAttr(oldPath)}</code> 有 <b class="text-amber-400">${oldCount}</b> 个文件，新目录 <code class="text-slate-200">${escapeHtmlAttr(newPath)}</code> 已有 <b class="text-amber-400">${newCount}</b> 个文件。<br>迁移后新旧文件会合并在新目录里。`;
+            } else {
+                bodyMsg = `旧目录 <code class="text-slate-200">${escapeHtmlAttr(oldPath)}</code> 有 <b class="text-indigo-400">${oldCount}</b> 个文件，新目录 <code class="text-slate-200">${escapeHtmlAttr(newPath)}</code> 为空。`;
+            }
+
+            overlay.innerHTML = `
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 shadow-2xl">
+                    <div class="flex items-start gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center shrink-0">
+                            <i class="fa-solid ${iconCls} text-base"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-sm font-bold text-slate-100 mb-1">切换目录前确认</h3>
+                            <p class="text-[11px] text-slate-400 leading-relaxed">${bodyMsg}</p>
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400 bg-slate-950/60 border border-slate-800 rounded-lg p-2.5 mb-4 space-y-1">
+                        <p><i class="fa-solid fa-arrow-right-to-bracket text-indigo-400 mr-1.5"></i><b class="text-slate-200">迁移并切换</b>：把旧文件移动到新目录（旧目录变空）</p>
+                        <p><i class="fa-solid fa-arrow-right text-slate-400 mr-1.5"></i><b class="text-slate-200">直接切换</b>：旧文件留在原地，新目录从空开始</p>
+                        <p><i class="fa-solid fa-xmark text-slate-500 mr-1.5"></i><b class="text-slate-200">取消</b>：保持当前路径不变</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button data-action="cancel" class="flex-1 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[11px] font-medium transition">取消</button>
+                        <button data-action="switch" class="flex-1 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-[11px] font-medium transition">直接切换</button>
+                        <button data-action="migrate" class="flex-1 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[11px] font-medium transition">迁移并切换</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            overlay.querySelectorAll('[data-action]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const action = btn.dataset.action;
+                    overlay.remove();
+                    resolve(action);
+                });
+            });
+        });
+    }
+
+    // ==================== 路径切换主流程 ====================
+    async function handlePathSave(newPathInput) {
+        if (state.switching) return;
+
+        // 1. 验证新路径（不保存）
+        let newParts;
+        try {
+            const result = validateAndNormalizePath(newPathInput);
+            newParts = result.parts;
+        } catch (e) {
+            setStatus('路径无效：' + e.message, 'error');
+            return;
+        }
+
+        const oldParts = getFavoritesFolderPath();
+        const oldPath = pathKey(oldParts);
+        const newPath = pathKey(newParts);
+
+        // 2. 无变化
+        if (oldPath === newPath) {
+            if (uiRoot) {
+                const input = uiRoot.querySelector('.gdrive-path-input');
+                if (input) input.value = newPath;
+            }
+            setStatus(`路径未变化（${newPath}）`, 'warn');
+            return;
+        }
+
+        // 3. 未授权：只保存路径，不探测
+        if (!state.authorized) {
+            saveFavoritesFolderPath(newPathInput);
+            if (uiRoot) {
+                const input = uiRoot.querySelector('.gdrive-path-input');
+                if (input) input.value = newPath;
+            }
+            refreshPathDisplay();
+            setStatus(`路径已保存为 ${newPath}，授权后生效。`, 'success');
+            return;
+        }
+
+        // 4. 已授权：探测旧/新目录
+        state.switching = true;
+        try {
+            setStatus('正在检测旧目录内容…');
+            const oldProbe = await probeFolder(oldParts);
+
+            // 4a. 旧目录空或不存在 → 直接切换
+            if (!oldProbe.exists || oldProbe.count === 0) {
+                saveFavoritesFolderPath(newPathInput);
+                if (uiRoot) {
+                    const input = uiRoot.querySelector('.gdrive-path-input');
+                    if (input) input.value = newPath;
+                }
+                refreshPathDisplay();
+                await syncDriveFilesToMainList();
+                setStatus(`✅ 已切换到 ${newPath}`, 'success');
+                return;
+            }
+
+            setStatus(`正在检测新目录…`);
+            const newProbe = await probeFolder(newParts);
+
+            // 4b. 弹窗确认
+            setStatus(`旧目录有 ${oldProbe.count} 个文件，请确认操作…`);
+            const choice = await showSwitchDialog({
+                oldPath, newPath,
+                oldCount: oldProbe.count,
+                newCount: newProbe.count
+            });
+
+            if (choice === 'cancel') {
+                if (uiRoot) {
+                    const input = uiRoot.querySelector('.gdrive-path-input');
+                    if (input) input.value = oldPath;
+                }
+                refreshPathDisplay();
+                setStatus('已取消路径切换', 'warn');
+                return;
+            }
+
+            // 4c. 保存新路径
+            saveFavoritesFolderPath(newPathInput);
+            if (uiRoot) {
+                const input = uiRoot.querySelector('.gdrive-path-input');
+                if (input) input.value = newPath;
+            }
+            refreshPathDisplay();
+
+            // 4d. 根据选择迁移或跳过
+            if (choice === 'migrate') {
+                setStatus(`正在迁移 ${oldProbe.count} 个文件到 ${newPath}…`);
+                const result = await migrateFilesBetween(oldParts, newParts);
+                if (result.fail === 0) {
+                    setStatus(`✅ 迁移完成：${result.ok} 个文件已移动到 ${newPath}`, 'success');
+                } else {
+                    setStatus(`迁移部分完成：成功 ${result.ok}，失败 ${result.fail}`, 'warn');
+                }
+            } else {
+                setStatus(`已切换到 ${newPath}（旧文件保留在原目录）`, 'success');
+            }
+
+            await syncDriveFilesToMainList();
+        } catch (e) {
+            setStatus('切换失败：' + e.message, 'error');
+        } finally {
+            state.switching = false;
+        }
+    }
+
+    // ==================== 兜底迁移：legacyFolderPath → 当前路径 ====================
+    async function migrateLegacyFiles() {
+        if (state.migrating) return;
+
+        const currentParts = getFavoritesFolderPath();
+        const legacyParts = CONFIG.legacyFolderPath;
+
+        if (pathKey(currentParts) === pathKey(legacyParts)) {
+            setStatus('当前路径即旧路径，无需迁移。', 'warn');
+            return;
+        }
+
+        state.migrating = true;
+        if (uiRoot) {
+            const btn = uiRoot.querySelector('.gdrive-migrate');
+            if (btn) { btn.disabled = true; btn.textContent = '迁移中…'; }
+        }
+
+        try {
+            setStatus(`正在从 ${pathKey(legacyParts)} 迁移到 ${pathKey(currentParts)}…`);
+            const result = await migrateFilesBetween(legacyParts, currentParts);
+
+            if (result.skipped) {
+                setStatus(`旧目录 ${pathKey(legacyParts)} 为空或不存在，无需迁移。`, 'warn');
+            } else if (result.fail === 0) {
+                setStatus(`✅ 迁移完成：${result.ok} 个文件已移动到 ${pathKey(currentParts)}`, 'success');
+                try { localStorage.setItem(KEY_MIGRATED, '1'); } catch (e) {}
+            } else {
+                setStatus(`迁移部分完成：成功 ${result.ok}，失败 ${result.fail}`, 'warn');
+            }
+
+            await syncDriveFilesToMainList();
+        } catch (e) {
+            setStatus('迁移失败：' + e.message, 'error');
+        } finally {
+            state.migrating = false;
+            if (uiRoot) {
+                const btn = uiRoot.querySelector('.gdrive-migrate');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '迁移旧文件';
+                    if (localStorage.getItem(KEY_MIGRATED) === '1') btn.classList.add('hidden');
+                }
+            }
+        }
+    }
+
+    // ==================== 同步列表 ====================
     async function syncDriveFilesToMainList() {
         const ext = window.MP3AppExtension;
         if (!ext) { setStatus('主应用未就绪', 'error'); return; }
+
         try {
-            setStatus('正在加载 Drive 音乐列表…');
-            const folderId = await ensureNestedFolder(CONFIG.favoritesFolderPath, KEY_FAV_FOLDER_ID);
+            const folderPath = getFavoritesFolderPath();
+            setStatus(`正在加载 ${pathKey(folderPath)} 音乐列表…`);
+            const folderId = await ensureNestedFolder(folderPath, KEY_FAV_FOLDER_ID);
             const q = encodeURIComponent(
                 `'${folderId}' in parents and trashed=false and (mimeType='audio/mpeg' or name contains '.mp3')`
             );
@@ -238,7 +600,7 @@ window.MP3GoogleDriveConfig = {
             }
 
             ext.renderAll();
-            setStatus(`✅ 已加载 ${driveFiles.length} 首 Drive 音乐`, 'success');
+            setStatus(`✅ 已加载 ${driveFiles.length} 首（${pathKey(folderPath)}）`, 'success');
         } catch (e) {
             setStatus('加载 Drive 音乐失败：' + e.message, 'error');
         }
@@ -304,6 +666,19 @@ window.MP3GoogleDriveConfig = {
     }
 
     // ==================== UI ====================
+    function refreshPathDisplay() {
+        if (!uiRoot) return;
+        const currentPath = pathKey(getFavoritesFolderPath());
+        const pathText = uiRoot.querySelector('.gdrive-path-text');
+        if (pathText) pathText.textContent = currentPath;
+        const input = uiRoot.querySelector('.gdrive-path-input');
+        if (input && document.activeElement !== input) input.value = currentPath;
+        const migrateBtn = uiRoot.querySelector('.gdrive-migrate');
+        if (migrateBtn) {
+            migrateBtn.title = `把 ${pathKey(CONFIG.legacyFolderPath)} 的文件移到 ${currentPath}`;
+        }
+    }
+
     function injectUI() {
         const body = window.MP3PluginManager && window.MP3PluginManager.getBodyContainer
             ? window.MP3PluginManager.getBodyContainer('gdrive')
@@ -313,10 +688,26 @@ window.MP3GoogleDriveConfig = {
 
         uiRoot = document.createElement('div');
         uiRoot.className = 'space-y-1.5';
+
+        const folderPathText = pathKey(getFavoritesFolderPath());
+        const legacyPathText = pathKey(CONFIG.legacyFolderPath);
+        const shouldShowMigrate = localStorage.getItem(KEY_MIGRATED) !== '1';
+
         uiRoot.innerHTML = `
             <p class="text-[10px] text-slate-500 leading-relaxed">
-                音乐合并到主列表「${CONFIG.driveCategoryName}」。登录会记住。
+                音乐合并到主列表「${CONFIG.driveCategoryName}」，从 Drive 的
+                <code class="gdrive-path-text text-indigo-300">${folderPathText}</code>
+                加载。登录会记住。
             </p>
+            <div class="flex items-center gap-1">
+                <input type="text"
+                    class="gdrive-path-input flex-1 bg-slate-800 border border-slate-700 text-[10px] rounded px-2 py-1 focus:outline-none focus:border-indigo-500 text-slate-200"
+                    placeholder="${pathKey(DEFAULT_FAV_PATH)}"
+                    value="${folderPathText}"
+                    title="自定义 favorite 目录，如 apps/music/fav 或 my/music">
+                <button class="gdrive-path-save px-2 py-1 bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700 rounded text-[10px] transition shrink-0"
+                    title="保存并刷新">保存</button>
+            </div>
             <button class="gdrive-auth w-full bg-indigo-600 hover:bg-indigo-500 text-white py-1.5 rounded-lg text-[11px] font-medium transition shadow-sm">
                 <i class="fa-solid fa-right-to-bracket mr-1"></i>授权 Google Drive
             </button>
@@ -335,14 +726,26 @@ window.MP3GoogleDriveConfig = {
                 <button class="gdrive-upload-favorites w-full bg-rose-600 hover:bg-rose-500 text-white py-1.5 rounded-lg text-[11px] font-medium transition disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-heart mr-1"></i>上传我的最愛到 Drive
                 </button>
+                <button class="gdrive-migrate w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-1.5 rounded-lg text-[11px] font-medium transition border border-slate-700 ${shouldShowMigrate ? '' : 'hidden'}"
+                    title="把 ${legacyPathText} 的文件移到 ${folderPathText}">
+                    <i class="fa-solid fa-arrow-right-arrow-left mr-1"></i>迁移旧文件（${legacyPathText}）
+                </button>
             </div>
             <p class="gdrive-status text-[10px] text-slate-500 min-h-[0.75rem] break-all"></p>
         `;
         body.appendChild(uiRoot);
 
+        const pathInput = uiRoot.querySelector('.gdrive-path-input');
+        const pathSaveBtn = uiRoot.querySelector('.gdrive-path-save');
+
+        pathSaveBtn.addEventListener('click', () => handlePathSave(pathInput.value));
+        pathInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); handlePathSave(pathInput.value); }
+        });
+
         uiRoot.querySelector('.gdrive-auth').addEventListener('click', async () => {
             if (!CONFIG.clientId) {
-                setStatus('未配置 window.MP3GoogleDriveConfig.clientId，无法授权', 'error');
+                setStatus('未配置 window.MP3GoogleDriveConfig.clientId', 'error');
                 return;
             }
             setStatus('正在打开 Google 授权窗口…');
@@ -357,6 +760,7 @@ window.MP3GoogleDriveConfig = {
         uiRoot.querySelector('.gdrive-backup').addEventListener('click', () => backupToDrive());
         uiRoot.querySelector('.gdrive-restore').addEventListener('click', () => restoreFromDrive());
         uiRoot.querySelector('.gdrive-upload-favorites').addEventListener('click', () => uploadFavoritesToDrive());
+        uiRoot.querySelector('.gdrive-migrate').addEventListener('click', () => migrateLegacyFiles());
     }
 
     function showAuthedUI() {
@@ -469,6 +873,7 @@ window.MP3GoogleDriveConfig = {
                 }
             });
             setStatus(`✅ 已恢复 ${count} 项数据，正在刷新…`, 'success');
+            refreshPathDisplay();
             setTimeout(() => {
                 if (typeof window.loadFiles === 'function') window.loadFiles(false);
                 else window.location.reload();
@@ -519,20 +924,22 @@ window.MP3GoogleDriveConfig = {
         if (likedKeys.length === 0) { setStatus('「我的最愛」为空。', 'warn'); return; }
 
         const dirInput = document.getElementById('dirInput');
-        const sourceDir = dirInput ? dirInput.value.trim() : '';
+        const sourceDir = dirInput ? dirInput.value.trim() : (window.MP3GetCurrentDir ? window.MP3GetCurrentDir() : '');
         if (!sourceDir) { setStatus('请先输入资料夹路径。', 'warn'); return; }
 
-        if (!window.confirm(`即将上传 ${likedKeys.length} 首到 Drive 的 ${CONFIG.favoritesFolderPath.join('/')} 目录。\n同名文件会跳过。继续？`)) return;
+        const folderPath = getFavoritesFolderPath();
+        const pathText = pathKey(folderPath);
+        if (!window.confirm(`即将上传 ${likedKeys.length} 首到 Drive 的 ${pathText} 目录。\n同名文件会跳过。继续？`)) return;
 
         state.uploadingFavorites = true;
         const favBtn = uiRoot.querySelector('.gdrive-upload-favorites');
         favBtn.disabled = true;
 
         try {
-            setStatus('正在准备 Drive 目录…');
+            setStatus(`正在准备 Drive 目录 ${pathText}…`);
             let favFolderId;
             try {
-                favFolderId = await ensureNestedFolder(CONFIG.favoritesFolderPath, KEY_FAV_FOLDER_ID);
+                favFolderId = await ensureNestedFolder(folderPath, KEY_FAV_FOLDER_ID);
             } catch (e) {
                 setStatus('创建目录失败：' + e.message, 'error');
                 return;
@@ -562,8 +969,9 @@ window.MP3GoogleDriveConfig = {
                 }
                 setStatus(`(${i + 1}/${likedKeys.length}) 上传：${filename}…`);
                 try {
+                    const apiBase = window.MP3GetMp3ApiBase ? window.MP3GetMp3ApiBase() : '/api/mp3';
                     const streamUrl =
-                        `/api/mp3?dir=${encodeURIComponent(sourceDir)}` +
+                        `${apiBase}?dir=${encodeURIComponent(sourceDir)}` +
                         `&action=stream&filename=${encodeURIComponent(key)}`;
                     const fileRes = await fetch(streamUrl);
                     if (!fileRes.ok) throw new Error(`获取文件失败 HTTP ${fileRes.status}`);
@@ -593,13 +1001,13 @@ window.MP3GoogleDriveConfig = {
 
     // ==================== 对外 API ====================
     window.MP3GoogleDrivePlugin = {
-        version: '3.0.0',
+        version: '3.3.0',
         async init() {
             registerDataSource();
             injectUI();
             await new Promise(r => setTimeout(r, 50));
             if (!CONFIG.clientId) {
-                setStatus('未配置 window.MP3GoogleDriveConfig.clientId，无法授权', 'error');
+                setStatus('未配置 window.MP3GoogleDriveConfig.clientId', 'error');
                 return;
             }
             await tryRestoreSession();
@@ -655,8 +1063,11 @@ window.MP3GoogleDriveConfig = {
             state.authorized = false;
             state.driveFiles = [];
             state.uploadingFavorites = false;
+            state.migrating = false;
+            state.switching = false;
             accessToken = null;
             tokenClient = null;
-        }
+        },
+        getFavoritesPath: () => pathKey(getFavoritesFolderPath())
     };
 })();
