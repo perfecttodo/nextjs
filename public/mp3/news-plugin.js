@@ -1,10 +1,11 @@
 /**
- * News 播放列表插件 v2.6
- * 
- * 相对 v2.5 的改动：
- *  1. switchHlsSource 移除 media.pause() 和 media.currentTime=0
- *     （hls.attachMedia 会自动重置，多余操作只会增加副作用）
- *  2. 保留 hls 实例复用（保住 hls 内部状态）
+ * News 播放列表插件 v2.7
+ *
+ * 相对 v2.6 的改动：
+ *  1. 新增 HLS 暂停/播放联动控制（pause → hls.stopLoad，play → hls.startLoad），
+ *     解决 Safari 中 m3u8 播放时 pause() 被 hls.js 持续缓冲干扰、无法暂停的问题。
+ *  2. Safari / iOS 优先使用原生 HLS（原生管道与 video.pause() 配合更可靠），失败再降级 hls.js。
+ *  3. destroyHls 中解绑 pause/play 联动监听，避免残留。
  */
 (function () {
     'use strict';
@@ -24,6 +25,11 @@
 
     let visibilityHandler = null;
     let wasPlayingBeforeHidden = false;
+
+    // ★ HLS 暂停/播放联动状态
+    let hlsPauseBound = false;
+    let hlsStoppedByPause = false;
+    let hlsBoundMedia = null;
 
     function setStatus(msg, tone) {
         if (!uiRoot) return;
@@ -72,6 +78,50 @@
         };
     }
 
+    // ==================== HLS 暂停/播放联动 ====================
+    function onHlsPause() {
+        if (!hlsInstance) return;
+        try {
+            hlsInstance.stopLoad();
+            hlsStoppedByPause = true;
+            console.log('[News HLS] media pause → hls.stopLoad');
+        } catch (e) {}
+    }
+
+    function onHlsPlay() {
+        if (!hlsInstance || !hlsStoppedByPause) return;
+        try {
+            hlsInstance.startLoad();
+            hlsStoppedByPause = false;
+            console.log('[News HLS] media play → hls.startLoad');
+        } catch (e) {}
+    }
+
+    function bindHlsPauseControl(media) {
+        if (!media) return;
+        if (hlsPauseBound && hlsBoundMedia === media) return;
+        if (hlsBoundMedia) {
+            hlsBoundMedia.removeEventListener('pause', onHlsPause);
+            hlsBoundMedia.removeEventListener('play', onHlsPlay);
+        }
+        hlsBoundMedia = media;
+        hlsPauseBound = true;
+        media.addEventListener('pause', onHlsPause);
+        media.addEventListener('play', onHlsPlay);
+        console.log('[News HLS] bind pause/play control');
+    }
+
+    function unbindHlsPauseControl() {
+        if (hlsBoundMedia) {
+            hlsBoundMedia.removeEventListener('pause', onHlsPause);
+            hlsBoundMedia.removeEventListener('play', onHlsPlay);
+        }
+        hlsBoundMedia = null;
+        hlsPauseBound = false;
+        hlsStoppedByPause = false;
+    }
+
+    // ==================== 可见性处理 ====================
     function attachVisibilityHandler(media) {
         cleanupVisibilityHandler();
         visibilityHandler = () => {
@@ -103,6 +153,7 @@
         }
     }
 
+    // ==================== 数据加载 ====================
     async function loadPage(page) {
         const ext = window.MP3AppExtension;
         if (!ext) throw new Error('MP3AppExtension 未就绪');
@@ -182,6 +233,7 @@
         if (newsCount < need && maxLoaded < lastMeta.totalPages) loadMore();
     }
 
+    // ==================== 播放 ====================
     async function preflightM3u8(url) {
         try {
             const res = await fetch(url, { method: 'GET', cache: 'no-cache' });
@@ -195,17 +247,43 @@
         }
     }
 
+    function prefersNativeHls(media) {
+        const ua = navigator.userAgent;
+        const isSafari = /Safari/.test(ua) && !/Chrome|CriOS|Chromium|Edg|OPR|Android/i.test(ua);
+        const isIOS = /iP(hone|ad|od)/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        if (!(isSafari || isIOS)) return false;
+        try {
+            return media.canPlayType('application/vnd.apple.mpegurl') !== '';
+        } catch (e) {
+            return false;
+        }
+    }
+
     async function playHls(url) {
         const ext = window.MP3AppExtension;
         const media = ext.audioPlayer;
 
-        console.log('[News HLS] playHls:', url, '复用 =', !!(hlsInstance && hlsAttachedMedia === media));
+        console.log('[News HLS] playHls:', url,
+            'nativePreferred =', prefersNativeHls(media),
+            'hlsReuse =', !!(hlsInstance && hlsAttachedMedia === media));
 
         try {
             setStatus('正在检查 m3u8…');
             await preflightM3u8(url);
         } catch (e) {
             throw new Error('m3u8 预检失败：' + e.message);
+        }
+
+        // ★ Safari / iOS：优先原生 HLS
+        if (prefersNativeHls(media)) {
+            try {
+                setStatus('正在使用原生 HLS…');
+                destroyHls(); // 清理旧 hls.js 实例，避免干扰原生管道
+                await playWithNativeHls(media, url);
+                return;
+            } catch (e) {
+                console.warn('[News HLS] 原生 HLS 失败，降级 hls.js:', e.message);
+            }
         }
 
         try {
@@ -217,9 +295,7 @@
                         return;
                     } catch (e) {
                         console.warn('[News HLS] 复用失败，降级重建:', e.message);
-                        try { hlsInstance.destroy(); } catch (er) {}
-                        hlsInstance = null;
-                        hlsAttachedMedia = null;
+                        destroyHls();
                     }
                 }
                 await createAndPlayHls(media, url);
@@ -230,13 +306,13 @@
         }
 
         if (media.canPlayType('application/vnd.apple.mpegurl')) {
+            destroyHls();
             await playWithNativeHls(media, url);
             return;
         }
         throw new Error('浏览器不支持 HLS');
     }
 
-    // ★ v2.6：移除 media.pause() 和 media.currentTime = 0
     async function switchHlsSource(media, url) {
         return new Promise((resolve, reject) => {
             const hls = hlsInstance;
@@ -253,10 +329,11 @@
             const onParsed = () => {
                 console.log('[News HLS] switch MANIFEST_PARSED');
                 cleanup();
-                // hls.attachMedia 已自动重置 currentTime，直接 play
+                // hls.loadSource + attachMedia 已自动重置播放位置，直接 play
                 media.play()
                     .then(() => {
                         attachVisibilityHandler(media);
+                        bindHlsPauseControl(media);   // ★ 绑定暂停/播放联动
                         finish(resolve);
                     })
                     .catch(err => {
@@ -289,7 +366,6 @@
             const timeoutId = setTimeout(onTimeout, 12000);
 
             try {
-                // 只做必要操作：停止旧加载 + 换源 + 重新 attach
                 try { hls.stopLoad(); } catch (e) {}
 
                 hls.loadSource(url);
@@ -299,6 +375,7 @@
                 }
 
                 try { hls.startLoad(); } catch (e) {}
+                hlsStoppedByPause = false;   // ★ 换源后处于加载态
             } catch (e) {
                 cleanup();
                 finish(reject, e);
@@ -340,7 +417,11 @@
                 console.log('[News HLS] create MANIFEST_PARSED');
                 cleanup();
                 media.play()
-                    .then(() => { attachVisibilityHandler(media); resolve(); })
+                    .then(() => {
+                        attachVisibilityHandler(media);
+                        bindHlsPauseControl(media);   // ★ 绑定暂停/播放联动
+                        resolve();
+                    })
                     .catch(err => reject(new Error('播放失败: ' + err.message)));
             };
 
@@ -364,11 +445,16 @@
 
             hls.loadSource(url);
             hls.attachMedia(media);
+            hlsStoppedByPause = false;
         });
     }
 
     async function playWithNativeHls(media, url) {
         return new Promise((resolve, reject) => {
+            // 清理 hls.js 可能残留在 media 上的状态
+            try { media.removeAttribute('src'); } catch (e) {}
+            try { media.load(); } catch (e) {}
+
             media.crossOrigin = 'anonymous';
             media.src = url;
             const timeout = setTimeout(() => { cleanup(); reject(new Error('原生 HLS 加载超时 15s')); }, 15000);
@@ -392,6 +478,7 @@
 
     function destroyHls() {
         cleanupVisibilityHandler();
+        unbindHlsPauseControl();   // ★ 先解绑，避免持有悬空 media
         if (hlsInstance) {
             try { hlsInstance.destroy(); } catch (e) {}
             hlsInstance = null;
@@ -399,6 +486,7 @@
         }
     }
 
+    // ==================== 数据源注册 ====================
     function registerDataSource() {
         window.MP3DataSourceHandlers = window.MP3DataSourceHandlers || {};
         window.MP3DataSourceHandlers['news'] = {
@@ -438,6 +526,7 @@
         };
     }
 
+    // ==================== UI ====================
     function injectUI() {
         const body = window.MP3PluginManager && window.MP3PluginManager.getBodyContainer
             ? window.MP3PluginManager.getBodyContainer('news') : null;
@@ -472,8 +561,9 @@
             ${hasMore ? '<span class="text-slate-600">· 翻到末页自动加载</span>' : '<span class="text-emerald-500">· 已全部加载</span>'}`;
     }
 
+    // ==================== 插件导出 ====================
     window.MP3NewsPlugin = {
-        version: '2.6.0',
+        version: '2.7.0',
         async init() {
             registerDataSource();
             injectUI();
