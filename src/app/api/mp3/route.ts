@@ -32,7 +32,7 @@ function getTargetDirectory(dirParam: string | null): string {
 }
 
 // 支援的音訊副檔名
-const SUPPORTED_AUDIO_EXTENSIONS = ['.mp3', '.flac', '.wav', '.m4a', '.aac', '.ogg'];
+const SUPPORTED_AUDIO_EXTENSIONS = ['.mp3','.mp4', '.flac', '.wav', '.m4a', '.aac', '.ogg'];
 
 // 遞迴獲取目錄下所有音訊檔案的輔助函數
 function getAllAudioFiles(dir: string, baseDir: string, fileList: any[] = []) {
