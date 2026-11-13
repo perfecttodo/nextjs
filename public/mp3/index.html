@@ -2249,7 +2249,17 @@
                 globalVar: 'MP3VideoPlayerPlugin',
                 autoEnable: true,
                 dataSourceKeys: []
-            }
+            },
+            filesystem: {
+            id: 'filesystem',
+            name: '本地檔案（瀏覽器）',
+            description: '直接讀取本機目錄，無需 API（Chrome / Edge）',
+            icon: 'fa-solid fa-folder-tree',
+            iconClass: 'text-cyan-400',
+            scriptSrc: 'filesystem-plugin.js',
+            globalVar: 'MP3FileSystemPlugin',
+            dataSourceKeys: ['filesystem']
+        },
         };
 
         const STORAGE_KEY = 'mp3_enabled_dynamic_plugins';
