@@ -1,11 +1,15 @@
 /**
- * News 播放列表插件 v2.7
+ * News 播放列表插件 v2.8
  *
- * 相对 v2.6 的改动：
- *  1. 新增 HLS 暂停/播放联动控制（pause → hls.stopLoad，play → hls.startLoad），
- *     解决 Safari 中 m3u8 播放时 pause() 被 hls.js 持续缓冲干扰、无法暂停的问题。
- *  2. Safari / iOS 优先使用原生 HLS（原生管道与 video.pause() 配合更可靠），失败再降级 hls.js。
- *  3. destroyHls 中解绑 pause/play 联动监听，避免残留。
+ * 相对 v2.7 的改动（iPhone 后台播放顺滑性）：
+ *  1. 新增 setupAudioSession()：navigator.audioSession.type = 'playback'，
+ *     让 iOS 把 HLS 播放识别为"媒体播放"，避免后台被当作网页音效掐断。
+ *  2. 新增后台切歌守护：startBackgroundEndCheck / stopBackgroundEndCheck。
+ *     在播放结束前约 0.6s 主动切到下一首（同步 pause → 换源 → play），
+ *     避免音频"自然结束"导致 iOS 关闭音频会话、后台无法再 play。
+ *  3. 新增 playNextNewsInBackground / getNextNewsFile：News 列表内循环切歌。
+ *  4. 新增 Media Session nexttrack handler，锁屏"下一首"可触发切歌。
+ *  5. 切歌期间若用户已切到非 News 文件，定时器自动停止，不影响其他数据源。
  */
 (function () {
     'use strict';
@@ -30,6 +34,34 @@
     let hlsPauseBound = false;
     let hlsStoppedByPause = false;
     let hlsBoundMedia = null;
+
+    // ★ 后台切歌守护状态
+    let bgEndTimer = null;
+    let bgEndKey = null;
+    let switchingNext = false;
+
+    // ==================== 音频会话 / Media Session ====================
+    function setupAudioSession() {
+        if (navigator.audioSession) {
+            try {
+                navigator.audioSession.type = 'playback';
+            } catch (e) { /* 静默失败 */ }
+        }
+    }
+
+    function setupMediaSessionForNews() {
+        if (!('mediaSession' in navigator)) return;
+        try {
+            navigator.mediaSession.setActionHandler('nexttrack', () => {
+                playNextNewsInBackground();
+            });
+        } catch (e) {}
+    }
+
+    function teardownMediaSession() {
+        if (!('mediaSession' in navigator)) return;
+        try { navigator.mediaSession.setActionHandler('nexttrack', null); } catch (e) {}
+    }
 
     function setStatus(msg, tone) {
         if (!uiRoot) return;
@@ -76,6 +108,69 @@
             _source: 'news',
             _newsItem: item
         };
+    }
+
+    // ==================== 后台连续播放：切歌守护 ====================
+    function getNextNewsFile() {
+        const ext = window.MP3AppExtension;
+        if (!ext) return null;
+        const newsFiles = ext.allFiles.filter(f => f._source === 'news');
+        if (!newsFiles.length) return null;
+        const curKey = ext.currentPlayingFile;
+        const idx = newsFiles.findIndex(f => window.getFileKey(f) === curKey);
+        if (idx < 0) return newsFiles[0];
+        return newsFiles[(idx + 1) % newsFiles.length];
+    }
+
+    function stopBackgroundEndCheck() {
+        if (bgEndTimer) {
+            clearInterval(bgEndTimer);
+            bgEndTimer = null;
+        }
+        bgEndKey = null;
+    }
+
+    function startBackgroundEndCheck(media, fileKey) {
+        stopBackgroundEndCheck();
+        if (!media || !fileKey) return;
+        bgEndKey = fileKey;
+        bgEndTimer = setInterval(() => {
+            if (switchingNext) return;
+            const ext = window.MP3AppExtension;
+            if (!ext) { stopBackgroundEndCheck(); return; }
+            // 用户已切到其他源/文件 → 停止守护
+            if (ext.currentPlayingFile !== bgEndKey) { stopBackgroundEndCheck(); return; }
+            if (!media || media.paused) return;
+            const dur = media.duration;
+            if (!isFinite(dur) || dur <= 0) return;
+            // 在自然结束前主动切歌，避免 iOS 关闭音频会话
+            if (media.currentTime >= dur - 0.6) {
+                stopBackgroundEndCheck();
+                playNextNewsInBackground();
+            }
+        }, 400);
+    }
+
+    function playNextNewsInBackground() {
+        if (switchingNext) return;
+        const nextFile = getNextNewsFile();
+        if (!nextFile) return;
+        switchingNext = true;
+        stopBackgroundEndCheck();
+        const handler = window.MP3DataSourceHandlers && window.MP3DataSourceHandlers['news'];
+        if (!handler || typeof handler.play !== 'function') {
+            switchingNext = false;
+            return;
+        }
+        try {
+            // 直接同步调用，play() 会在同一事件循环内发起
+            Promise.resolve(handler.play(nextFile))
+                .catch(e => console.warn('[News BG] next failed:', e))
+                .finally(() => { switchingNext = false; });
+        } catch (e) {
+            console.warn('[News BG] next throw:', e);
+            switchingNext = false;
+        }
     }
 
     // ==================== HLS 暂停/播放联动 ====================
@@ -329,11 +424,10 @@
             const onParsed = () => {
                 console.log('[News HLS] switch MANIFEST_PARSED');
                 cleanup();
-                // hls.loadSource + attachMedia 已自动重置播放位置，直接 play
                 media.play()
                     .then(() => {
                         attachVisibilityHandler(media);
-                        bindHlsPauseControl(media);   // ★ 绑定暂停/播放联动
+                        bindHlsPauseControl(media);
                         finish(resolve);
                     })
                     .catch(err => {
@@ -375,7 +469,7 @@
                 }
 
                 try { hls.startLoad(); } catch (e) {}
-                hlsStoppedByPause = false;   // ★ 换源后处于加载态
+                hlsStoppedByPause = false;
             } catch (e) {
                 cleanup();
                 finish(reject, e);
@@ -419,7 +513,7 @@
                 media.play()
                     .then(() => {
                         attachVisibilityHandler(media);
-                        bindHlsPauseControl(media);   // ★ 绑定暂停/播放联动
+                        bindHlsPauseControl(media);
                         resolve();
                     })
                     .catch(err => reject(new Error('播放失败: ' + err.message)));
@@ -451,7 +545,6 @@
 
     async function playWithNativeHls(media, url) {
         return new Promise((resolve, reject) => {
-            // 清理 hls.js 可能残留在 media 上的状态
             try { media.removeAttribute('src'); } catch (e) {}
             try { media.load(); } catch (e) {}
 
@@ -478,7 +571,7 @@
 
     function destroyHls() {
         cleanupVisibilityHandler();
-        unbindHlsPauseControl();   // ★ 先解绑，避免持有悬空 media
+        unbindHlsPauseControl();
         if (hlsInstance) {
             try { hlsInstance.destroy(); } catch (e) {}
             hlsInstance = null;
@@ -498,6 +591,13 @@
                 if (!item || !item.url) { setStatus('该条新闻缺少播放地址', 'error'); return; }
                 const url = item.url;
                 const isHls = /\.m3u8(\?|$)/i.test(url) || item.format === 'application/vnd.apple.mpegurl';
+
+                // ★ 声明音频会话为 playback
+                setupAudioSession();
+
+                // 切歌前先停掉上一个守护
+                stopBackgroundEndCheck();
+
                 try {
                     setStatus('正在加载音频…');
                     if (isHls) {
@@ -517,6 +617,11 @@
                     ext.renderTable();
                     ext.updatePlayButton();
                     if (window.MP3AppExtension?.syncMediaSession) window.MP3AppExtension.syncMediaSession();
+
+                    // ★ 启动后台切歌守护 + Media Session 下一首
+                    setupMediaSessionForNews();
+                    startBackgroundEndCheck(ext.audioPlayer, ext.currentPlayingFile);
+
                     setStatus('▶️ ' + file.displayName, 'success');
                 } catch (e) {
                     console.error('[News] 播放失败:', e);
@@ -563,14 +668,21 @@
 
     // ==================== 插件导出 ====================
     window.MP3NewsPlugin = {
-        version: '2.7.0',
+        version: '2.8.0',
         async init() {
+            setupAudioSession();
             registerDataSource();
             injectUI();
             await refresh();
         },
         async unload() {
             const ext = window.MP3AppExtension;
+
+            // ★ 停止后台切歌守护 + 清理 Media Session
+            stopBackgroundEndCheck();
+            switchingNext = false;
+            teardownMediaSession();
+
             destroyHls();
             if (ext) {
                 const playingKey = ext.currentPlayingFile;
