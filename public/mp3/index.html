@@ -26,7 +26,7 @@
 
         /* ===== 侧边栏卡片折叠 ===== */
         .sidebar-card {
-            flex-shrink: 0;      /* 防止卡片被父 flex 容器压缩 */
+            flex-shrink: 0;
             min-width: 0;
         }
         .sidebar-card-header {
@@ -40,17 +40,15 @@
             display: grid;
             grid-template-rows: 1fr;
         }
-        /* .inner 负责裁切，但自身不能有残留 padding，否则折叠后会露出空白 */
         .sidebar-card-body > .inner {
             overflow: hidden;
             min-height: 0;
             box-sizing: border-box;
-            padding-bottom: 1rem;               /* 展开时下边距，视觉等同于原 pb-4 */
+            padding-bottom: 1rem;
         }
         .sidebar-card.is-collapsed .sidebar-card-body > .inner {
-            padding-bottom: 0;                  /* 收起时一起归零，消除残留空白 */
+            padding-bottom: 0;
         }
-        /* 只有初始化完成后才启用动画，避免首屏闪动 */
         .sidebar-card.is-ready .sidebar-card-body {
             transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -103,7 +101,6 @@
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
-            <!-- 注意：这里不再使用 flex flex-col，改用普通块级布局 + space-y-4 -->
             <div id="sidebarContentWrapper" class="flex-1 min-h-0 space-y-4 p-4 lg:p-0 overflow-y-auto pr-1">
                 <div id="pluginSlot" class="space-y-4"></div>
 
@@ -562,7 +559,6 @@
             } catch (e) {}
         }
 
-        // ★ 全局 visibilitychange 兜底：切回前台时尝试恢复媒体会话与播放
         function handleGlobalVisibilityChange() {
             if (document.visibilityState === 'hidden') {
                 wasPlayingBeforeHidden = !audioPlayer.paused;
@@ -1089,13 +1085,11 @@
         }
 
         // ==================== 播放 UI 统一同步 ====================
-        // 把“设置当前播放 + 切页 + 更新标题/媒体会话/来源徽章 + 高亮 + 滚动居中”抽成公共函数，
-        // 本地来源与外部来源都调用它，保证无论哪种来源都能让列表滚动到该歌曲并高亮。
         function applyPlaybackUI(uniqueKey, file, displayName) {
             if (!file) return;
             currentPlayingFile = uniqueKey;
-            pendingScrollToCurrentSong = true;   // 触发 renderTable 内的居中滚动
-            syncPageToFile(uniqueKey);            // 自动翻到该歌所在页
+            pendingScrollToCurrentSong = true;
+            syncPageToFile(uniqueKey);
 
             const titleEl = document.getElementById('currentSongTitle');
             const catEl   = document.getElementById('currentSongCategory');
@@ -1114,7 +1108,7 @@
             updatePlayerLikeState();
             updatePlayerDislikeState();
 
-            renderTable();       // 高亮当前行 + pendingScrollToCurrentSong 触发居中
+            renderTable();
             updatePlayButton();
         }
 
@@ -1186,6 +1180,50 @@
             if (isAutoMode && !audioPlayer.paused) startAutoTimer(10);
             else clearAutoTimer();
         }
+
+        // ★ toggle 修改：行内按钮点击入口
+        //   若点击的就是当前播放曲目 → 只做 pause / resume，不再走 playSong 的重建流程
+        //   若点击的是别的曲目 → 等价于 playSong
+        function togglePlaySong(encodedKey, encodedName) {
+            const uniqueKey = decodeURIComponent(encodedKey);
+            if (!uniqueKey) return;
+
+            // 点击的就是当前这首：仅暂停/恢复，避免重建播放器与插件 reset
+            if (currentPlayingFile === uniqueKey) {
+                const file = allFiles.find(f => getFileKey(f) === uniqueKey);
+                const src = (file && file._source) || 'local';
+                const handler = window.MP3DataSourceHandlers && window.MP3DataSourceHandlers[src];
+
+                // 若插件自身提供 togglePlayback 钩子（针对独立音频实例）优先交给插件
+                if (handler && typeof handler.togglePlayback === 'function') {
+                    try { handler.togglePlayback(file); }
+                    catch (e) { console.warn('[togglePlaySong] handler.togglePlayback 失败:', e); }
+                } else if (audioPlayer.src) {
+                    // 默认所有数据源最终都走 audioPlayer（本地、Drive、News m3u8 等）
+                    if (audioPlayer.paused) {
+                        audioPlayer.play().catch(err => console.warn('[togglePlaySong] play 失败:', err));
+                        if (isAutoMode) startAutoTimer(10);
+                    } else {
+                        audioPlayer.pause();
+                        clearAutoTimer();
+                    }
+                } else {
+                    // 播放器尚未加载媒体（例如刚刷新未恢复），回退到 playSong 加载流程
+                    playSong(encodedKey, encodedName);
+                    return;
+                }
+
+                updatePlayButton();
+                updatePlayerLikeState();
+                updatePlayerDislikeState();
+                renderTable();   // 同步行内图标 & 高亮
+                return;
+            }
+
+            // 点击的是别的歌：正常切歌
+            playSong(encodedKey, encodedName);
+        }
+        window.togglePlaySong = togglePlaySong;
 
         function playPrev() {
             const list = getFilteredFiles();
@@ -1555,12 +1593,15 @@
                         ? '此来源不支持删除'
                         : (isExternal ? `从 ${file._source} 删除` : '删除檔案');
 
+                    // ★ toggle 修改：播放按钮改用 togglePlaySong，并根据当前播放状态显示图标与 title
+                    const playBtnTitle = (isPlaying && !audioPlayer.paused) ? '暫停' : '播放';
+
                     html += `
                         <tr id="${rowId}" class="${rowClass} transition">
                             <td class="py-3 px-4 md:px-6" colspan="4">
                                 <div class="flex flex-col md:flex-row md:items-center gap-3">
                                     <div class="flex items-center space-x-3 flex-1 min-w-0">
-                                        <button onclick="playSong('${encodedKey}', '${encodedName}')" class="w-9 h-9 rounded-lg ${isPlaying ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-indigo-400 hover:bg-indigo-600 hover:text-white'} flex items-center justify-center transition shadow flex-shrink-0">
+                                        <button onclick="togglePlaySong('${encodedKey}', '${encodedName}')" title="${playBtnTitle}" class="w-9 h-9 rounded-lg ${isPlaying ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-indigo-400 hover:bg-indigo-600 hover:text-white'} flex items-center justify-center transition shadow flex-shrink-0">
                                             <i class="fa-solid ${isPlaying && !audioPlayer.paused ? 'fa-pause' : 'fa-play'} text-xs"></i>
                                         </button>
                                         <div class="overflow-hidden flex-1 min-w-0">
@@ -1783,7 +1824,7 @@
                 if (typeof fn === 'function') return fn.apply(window, args);
             };
             return {
-                version: '2.6',
+                version: '2.7',
                 get allFiles() { return allFiles; },
                 set allFiles(v) { allFiles = v; },
                 get categories() { return categories; },
@@ -1832,6 +1873,10 @@
                 cleanupFileMetadata: (key) => cleanupFileMetadata(key),
 
                 showCustomModal: (...a) => call('showCustomModal', ...a),
+
+                // ★ toggle 修改：对外暴露行内 toggle 逻辑
+                playSong: (...a) => call('playSong', ...a),
+                togglePlaySong: (...a) => call('togglePlaySong', ...a),
 
                 setupSidebarCards: () => call('setupSidebarCards'),
                 toggleSidebarCard: (key) => call('toggleSidebarCard', key)
@@ -2132,7 +2177,6 @@
             `;
             slot.appendChild(uiRoot);
 
-            // 让新注入的卡片应用已保存的折叠状态
             if (typeof window.MP3SetupSidebarCards === 'function') {
                 try { window.MP3SetupSidebarCards(); } catch (e) {}
             }
