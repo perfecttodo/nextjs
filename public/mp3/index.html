@@ -23,49 +23,18 @@
             50%      { background-color: rgba(49, 46, 129, 0.45); }
         }
         tr.playing-row { animation: playingHighlight 1.6s ease-in-out 3; }
-
-        /* ===== 侧边栏卡片折叠 ===== */
-        .sidebar-card {
-            flex-shrink: 0;
-            min-width: 0;
-        }
-        .sidebar-card-header {
-            transition: background-color 0.15s ease;
-            cursor: pointer;
-            user-select: none;
-        }
+        .sidebar-card { flex-shrink: 0; min-width: 0; }
+        .sidebar-card-header { transition: background-color 0.15s ease; cursor: pointer; user-select: none; }
         .sidebar-card-header:hover { background-color: rgba(30, 41, 59, 0.45); }
-
-        .sidebar-card-body {
-            display: grid;
-            grid-template-rows: 1fr;
-        }
-        .sidebar-card-body > .inner {
-            overflow: hidden;
-            min-height: 0;
-            box-sizing: border-box;
-            padding-bottom: 1rem;
-        }
-        .sidebar-card.is-collapsed .sidebar-card-body > .inner {
-            padding-bottom: 0;
-        }
-        .sidebar-card.is-ready .sidebar-card-body {
-            transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .sidebar-card.is-ready .sidebar-card-body > .inner {
-            transition: padding-bottom 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .sidebar-card.is-collapsed .sidebar-card-body {
-            grid-template-rows: 0fr;
-        }
-
+        .sidebar-card-body { display: grid; grid-template-rows: 1fr; }
+        .sidebar-card-body > .inner { overflow: hidden; min-height: 0; box-sizing: border-box; padding-bottom: 1rem; }
+        .sidebar-card.is-collapsed .sidebar-card-body > .inner { padding-bottom: 0; }
+        .sidebar-card.is-ready .sidebar-card-body { transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-card.is-ready .sidebar-card-body > .inner { transition: padding-bottom 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-card.is-collapsed .sidebar-card-body { grid-template-rows: 0fr; }
         .sidebar-card-chevron { display: inline-block; }
-        .sidebar-card.is-ready .sidebar-card-chevron {
-            transition: transform 0.25s ease;
-        }
-        .sidebar-card.is-collapsed .sidebar-card-chevron {
-            transform: rotate(-90deg);
-        }
+        .sidebar-card.is-ready .sidebar-card-chevron { transition: transform 0.25s ease; }
+        .sidebar-card.is-collapsed .sidebar-card-chevron { transform: rotate(-90deg); }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 h-screen flex flex-col overflow-hidden" style="height: 100dvh;">
@@ -405,7 +374,7 @@
         };
         const modeNames = { 'loop': '循環', 'shuffle': '隨機', 'single': '單曲', 'sequence': '順序' };
 
-        // ==================== 侧边栏卡片展开/收起 ====================
+        // ==================== 侧边栏卡片 ====================
         function setupSidebarCards() {
             document.querySelectorAll('.sidebar-card[data-collapse-key]').forEach(card => {
                 if (card.dataset.collapseReady === '1') return;
@@ -471,7 +440,7 @@
         function getDislikedMap() { try { return JSON.parse(localStorage.getItem('mp3_disliked_map') || '{}'); } catch (e) { return {}; } }
         function saveDislikedMap(map) { localStorage.setItem('mp3_disliked_map', JSON.stringify(map)); }
 
-        // ==================== 媒体会话 / 通知栏 ====================
+        // ==================== 媒体会话 ====================
         const APP_TITLE = 'MP3 智慧管理與分類系統';
         const APP_ARTIST_FALLBACK = 'MP3 雲端管理';
         const ARTWORK_URL = 'https://cdn-icons-png.flaticon.com/512/3388/3388823.png';
@@ -515,16 +484,13 @@
                         { src: ARTWORK_URL, sizes: '512x512', type: 'image/png' }
                     ]
                 });
-            } catch (e) {
-                console.warn('[MediaSession] 设置 metadata 失败:', e);
-            }
+            } catch (e) {}
         }
 
         function syncMediaSessionFromCurrent() {
             if (!currentPlayingFile) return;
             const file = allFiles.find(f => getFileKey(f) === currentPlayingFile);
             if (!file) return;
-
             const displayName = file.displayName || file.filename || '';
             updateDocumentTitle(displayName);
             updateMediaSessionMetadata(displayName, getSourceArtist(file));
@@ -562,15 +528,11 @@
         function handleGlobalVisibilityChange() {
             if (document.visibilityState === 'hidden') {
                 wasPlayingBeforeHidden = !audioPlayer.paused;
-                console.log('[MediaSession] Page hidden, wasPlaying =', wasPlayingBeforeHidden);
             } else if (document.visibilityState === 'visible') {
-                console.log('[MediaSession] Page visible');
                 if (currentPlayingFile) {
                     syncMediaSessionFromCurrent();
                     if (wasPlayingBeforeHidden && audioPlayer.paused) {
-                        audioPlayer.play().catch((e) => {
-                            console.warn('[MediaSession] Resume playback failed:', e);
-                        });
+                        audioPlayer.play().catch(() => {});
                     }
                 }
             }
@@ -641,20 +603,14 @@
                     clearAutoTimer();
                     updatePlayButton();
                 });
-            } catch (e) {
-                console.warn('[MediaSession] 设置扩展 action 失败:', e);
-            }
+            } catch (e) {}
 
-            audioPlayer.addEventListener('play', () => {
-                syncMediaSessionFromCurrent();
-            });
+            audioPlayer.addEventListener('play', () => syncMediaSessionFromCurrent());
             audioPlayer.addEventListener('loadedmetadata', () => {
                 syncMediaSessionFromCurrent();
                 syncMediaSessionPosition();
             });
-            audioPlayer.addEventListener('durationchange', () => {
-                syncMediaSessionPosition();
-            });
+            audioPlayer.addEventListener('durationchange', () => syncMediaSessionPosition());
 
             document.addEventListener('visibilitychange', handleGlobalVisibilityChange);
         }
@@ -1085,11 +1041,14 @@
         }
 
         // ==================== 播放 UI 统一同步 ====================
-        function applyPlaybackUI(uniqueKey, file, displayName) {
+        function applyPlaybackUI(uniqueKey, file, displayName, opts) {
             if (!file) return;
+            const scroll = !opts || opts.scroll !== false;
             currentPlayingFile = uniqueKey;
-            pendingScrollToCurrentSong = true;
-            syncPageToFile(uniqueKey);
+            if (scroll) {
+                pendingScrollToCurrentSong = true;
+                syncPageToFile(uniqueKey);
+            }
 
             const titleEl = document.getElementById('currentSongTitle');
             const catEl   = document.getElementById('currentSongCategory');
@@ -1107,7 +1066,6 @@
 
             updatePlayerLikeState();
             updatePlayerDislikeState();
-
             renderTable();
             updatePlayButton();
         }
@@ -1117,7 +1075,6 @@
             const file = allFiles.find(f => getFileKey(f) === uniqueKey);
             if (!file) return;
 
-            // 重置所有数据源插件状态
             if (window.MP3DataSourceHandlers) {
                 Object.entries(window.MP3DataSourceHandlers).forEach(([k, h]) => {
                     if (h && typeof h.reset === 'function') { try { h.reset(); } catch (e) {} }
@@ -1128,7 +1085,7 @@
                 ? decodeURIComponent(encodedName)
                 : ((file.displayName || file.filename) || uniqueKey);
 
-            // ========== 外部来源 ==========
+            // 外部来源
             if (file._source && file._source !== 'local'
                 && window.MP3DataSourceHandlers
                 && window.MP3DataSourceHandlers[file._source]) {
@@ -1146,7 +1103,6 @@
                     return;
                 }
 
-                // 同一首歌再次点击：仅同步状态，不重新滚动 / 不重置播放器
                 if (wasCurrentSong) {
                     updatePlayerLikeState();
                     updatePlayerDislikeState();
@@ -1155,17 +1111,20 @@
                     return;
                 }
 
-                // 新歌：从最新 allFiles 重新取引用（插件内部可能重建了列表）
                 const refreshed = allFiles.find(f => getFileKey(f) === uniqueKey) || file;
                 applyPlaybackUI(uniqueKey, refreshed, displayName);
                 return;
             }
 
-            // ========== 本地来源 ==========
+            // 本地來源
             const { apiBase, dir, originalKey } = getFileRequestParams(file);
             const streamUrl = `${apiBase}?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(originalKey)}`;
 
             if (currentPlayingFile !== uniqueKey) {
+                // ★ 切到本地源时，销毁可能残留的 HLS 实例
+                if (window.MP3HlsPlayer) {
+                    try { window.MP3HlsPlayer.destroy(); } catch (e) {}
+                }
                 audioPlayer.src = streamUrl;
                 audioPlayer.play();
                 applyPlaybackUI(uniqueKey, file, displayName);
@@ -1181,25 +1140,19 @@
             else clearAutoTimer();
         }
 
-        // ★ toggle 修改：行内按钮点击入口
-        //   若点击的就是当前播放曲目 → 只做 pause / resume，不再走 playSong 的重建流程
-        //   若点击的是别的曲目 → 等价于 playSong
         function togglePlaySong(encodedKey, encodedName) {
             const uniqueKey = decodeURIComponent(encodedKey);
             if (!uniqueKey) return;
 
-            // 点击的就是当前这首：仅暂停/恢复，避免重建播放器与插件 reset
             if (currentPlayingFile === uniqueKey) {
                 const file = allFiles.find(f => getFileKey(f) === uniqueKey);
                 const src = (file && file._source) || 'local';
                 const handler = window.MP3DataSourceHandlers && window.MP3DataSourceHandlers[src];
 
-                // 若插件自身提供 togglePlayback 钩子（针对独立音频实例）优先交给插件
                 if (handler && typeof handler.togglePlayback === 'function') {
                     try { handler.togglePlayback(file); }
                     catch (e) { console.warn('[togglePlaySong] handler.togglePlayback 失败:', e); }
                 } else if (audioPlayer.src) {
-                    // 默认所有数据源最终都走 audioPlayer（本地、Drive、News m3u8 等）
                     if (audioPlayer.paused) {
                         audioPlayer.play().catch(err => console.warn('[togglePlaySong] play 失败:', err));
                         if (isAutoMode) startAutoTimer(10);
@@ -1208,7 +1161,6 @@
                         clearAutoTimer();
                     }
                 } else {
-                    // 播放器尚未加载媒体（例如刚刷新未恢复），回退到 playSong 加载流程
                     playSong(encodedKey, encodedName);
                     return;
                 }
@@ -1216,11 +1168,9 @@
                 updatePlayButton();
                 updatePlayerLikeState();
                 updatePlayerDislikeState();
-                renderTable();   // 同步行内图标 & 高亮
+                renderTable();
                 return;
             }
-
-            // 点击的是别的歌：正常切歌
             playSong(encodedKey, encodedName);
         }
         window.togglePlaySong = togglePlaySong;
@@ -1451,7 +1401,6 @@
 
                 try {
                     await window.MP3DataSourceHandlers[src].delete(file);
-                    cleanupFileMetadata(uniqueKey);
                 } catch (e) {
                     showCustomModal({ title: '刪除失敗', message: e.message || '未知错误', type: 'error' });
                 }
@@ -1593,7 +1542,6 @@
                         ? '此来源不支持删除'
                         : (isExternal ? `从 ${file._source} 删除` : '删除檔案');
 
-                    // ★ toggle 修改：播放按钮改用 togglePlaySong，并根据当前播放状态显示图标与 title
                     const playBtnTitle = (isPlaying && !audioPlayer.paused) ? '暫停' : '播放';
 
                     html += `
@@ -1755,6 +1703,53 @@
             });
         }
 
+        // ==================== 暴露 API ====================
+        window.getLikedMap = getLikedMap;
+        window.saveLikedMap = saveLikedMap;
+        window.getDislikedMap = getDislikedMap;
+        window.saveDislikedMap = saveDislikedMap;
+        window.getTagsMap = getTagsMap;
+        window.saveTagsMap = saveTagsMap;
+        window.parseLikedAt = parseLikedAt;
+        window.formatLikedAtDate = formatLikedAtDate;
+        window.renderTable = renderTable;
+        window.renderCategories = renderCategories;
+        window.renderTagCloud = renderTagCloud;
+        window.updatePlayButton = updatePlayButton;
+        window.updatePlayerLikeState = updatePlayerLikeState;
+        window.updatePlayerDislikeState = updatePlayerDislikeState;
+        window.showCustomModal = showCustomModal;
+        window.resetMediaSession = resetMediaSession;
+        window.updateUrlParams = updateUrlParams;
+        window.restoreLastPlayedSong = restoreLastPlayedSong;
+        window.loadFiles = loadFiles;
+        window.changeCategory = changeCategory;
+        window.deleteSong = deleteSong;
+        window.toggleLike = toggleLike;
+        window.toggleFileDislike = toggleFileDislike;
+        window.editSongTags = editSongTags;
+        window.filterCategory = filterCategory;
+        window.filterByTag = filterByTag;
+        window.addNewCategory = addNewCategory;
+        window.deleteCategory = deleteCategory;
+        window.manageTagsPrompt = manageTagsPrompt;
+        window.handleSearch = handleSearch;
+        window.goToPage = goToPage;
+        window.changePageSize = changePageSize;
+        window.changeVolume = changeVolume;
+        window.seekAudio = seekAudio;
+        window.updateProgress = updateProgress;
+        window.onAudioEnded = onAudioEnded;
+        window.onAudioError = onAudioError;
+        window.togglePlay = togglePlay;
+        window.playPrev = playPrev;
+        window.playNext = playNext;
+        window.togglePlayMode = togglePlayMode;
+        window.toggleAutoMode = toggleAutoMode;
+        window.togglePlayerLike = togglePlayerLike;
+        window.togglePlayerDislike = togglePlayerDislike;
+        window.playSong = playSong;
+
         window.addEventListener('DOMContentLoaded', () => {
             categories = getSavedCategories();
             const params = new URLSearchParams(window.location.search);
@@ -1824,7 +1819,7 @@
                 if (typeof fn === 'function') return fn.apply(window, args);
             };
             return {
-                version: '2.7',
+                version: '2.9',
                 get allFiles() { return allFiles; },
                 set allFiles(v) { allFiles = v; },
                 get categories() { return categories; },
@@ -1837,6 +1832,7 @@
                 set currentPage(v) { currentPage = v; },
                 get pageSize() { return pageSize; },
                 get audioPlayer() { return audioPlayer; },
+                get isAutoMode() { return isAutoMode; },
 
                 renderAll() {
                     call('renderCategories');
@@ -1853,6 +1849,7 @@
                 saveCategories: (...a) => call('saveCategories', ...a),
                 getLikedMap: () => (typeof getLikedMap === 'function' ? getLikedMap() : {}),
                 getDislikedMap: () => (typeof getDislikedMap === 'function' ? getDislikedMap() : {}),
+                getTagsMap: () => (typeof getTagsMap === 'function' ? getTagsMap() : {}),
                 saveLikedMap: (...a) => call('saveLikedMap', ...a),
                 saveDislikedMap: (...a) => call('saveDislikedMap', ...a),
                 saveTagsMap: (...a) => call('saveTagsMap', ...a),
@@ -1874,15 +1871,270 @@
 
                 showCustomModal: (...a) => call('showCustomModal', ...a),
 
-                // ★ toggle 修改：对外暴露行内 toggle 逻辑
                 playSong: (...a) => call('playSong', ...a),
                 togglePlaySong: (...a) => call('togglePlaySong', ...a),
+                applyPlaybackUI: (key, file, name, opts) => applyPlaybackUI(key, file, name || (file && file.displayName), opts),
 
                 setupSidebarCards: () => call('setupSidebarCards'),
                 toggleSidebarCard: (key) => call('toggleSidebarCard', key)
             };
         })();
         console.log('[MP3AppExtension] ready v' + window.MP3AppExtension.version);
+    </script>
+
+    <!-- ============================================================
+         Core: DataSource Adapter Factory & Shared Helpers
+         ============================================================ -->
+    <script>
+    (function () {
+        'use strict';
+        const ext = window.MP3AppExtension;
+        if (!ext) { console.warn('[Adapter] MP3AppExtension 未就绪'); return; }
+
+        /* ==================== 通用辅助 ==================== */
+
+        ext.ensureSourceCategory = function (name) {
+            if (!name) return;
+            const cats = ext.categories;
+            if (!cats.includes(name)) {
+                cats.push(name);
+                ext.saveCategories(cats);
+            }
+        };
+
+        ext.removeSourceData = function ({ sourceKeys = [], categoryNames = [] } = {}) {
+            if (sourceKeys.length) {
+                ext.allFiles = ext.allFiles.filter(f => !sourceKeys.includes(f._source));
+            }
+            if (categoryNames.length) {
+                const cats = ext.categories.filter(c => !categoryNames.includes(c));
+                ext.categories = cats;
+                ext.saveCategories(cats);
+                if (categoryNames.includes(ext.currentCategory)) {
+                    ext.currentCategory = '全部';
+                }
+            }
+        };
+
+        ext.stopIfPlayingFrom = function (sourceKeys) {
+            const keys = [].concat(sourceKeys);
+            const cur = ext.currentPlayingFile;
+            if (!cur) return false;
+            const file = ext.allFiles.find(f => ext.getFileKey(f) === cur);
+            if (!file || !keys.includes(file._source)) return false;
+
+            const ap = ext.audioPlayer;
+            ap.pause();
+            ap.removeAttribute('src');
+            try { ap.load(); } catch (e) {}
+            ext.currentPlayingFile = null;
+
+            const t = document.getElementById('currentSongTitle');
+            const c = document.getElementById('currentSongCategory');
+            if (t) t.innerText = '尚未選擇播放歌曲';
+            if (c) c.innerText = '就緒';
+            if (typeof window.MP3SetPlayerSourceBadge === 'function') window.MP3SetPlayerSourceBadge(null);
+            ext.updatePlayButton();
+            ext.updatePlayerLikeState();
+            ext.updatePlayerDislikeState();
+            ext.resetMediaSession();
+            return true;
+        };
+
+        ext.decorateFiles = function (rawList, opts) {
+            const { getKey, sourceKey = '' } = opts || {};
+            const keyFn = typeof getKey === 'function' ? getKey : (f) => ext.getFileKey(f);
+            const likedMap = ext.getLikedMap();
+            const dislikedMap = ext.getDislikedMap();
+            const tagsMap = ext.getTagsMap();
+            let lk = false, dk = false, tk = false;
+
+            const out = (rawList || []).map(raw => {
+                const key = keyFn(raw);
+                const fallbackKey = raw.relativePath || raw.filename || '';
+
+                let rawLike = likedMap[key];
+                if (!rawLike && fallbackKey && likedMap[fallbackKey]) {
+                    rawLike = likedMap[fallbackKey];
+                    likedMap[key] = rawLike;
+                    lk = true;
+                }
+                let rawDislike = dislikedMap[key];
+                if (!rawDislike && fallbackKey && dislikedMap[fallbackKey]) {
+                    rawDislike = dislikedMap[fallbackKey];
+                    dislikedMap[key] = rawDislike;
+                    dk = true;
+                }
+                let tags = tagsMap[key];
+                if (!tags && fallbackKey && tagsMap[fallbackKey]) {
+                    tags = tagsMap[fallbackKey];
+                    tagsMap[key] = tags;
+                    tk = true;
+                }
+
+                return Object.assign({}, raw, {
+                    _key: key,
+                    _source: sourceKey || raw._source,
+                    isLiked: !!rawLike,
+                    likedAt: ext.parseLikedAt(rawLike),
+                    isDisliked: !!rawDislike,
+                    tags: tags || []
+                });
+            });
+
+            if (lk) ext.saveLikedMap(likedMap);
+            if (dk) ext.saveDislikedMap(dislikedMap);
+            if (tk) ext.saveTagsMap(tagsMap);
+            return out;
+        };
+
+        /* ==================== HLS 播放器模块懒加载 ==================== */
+
+        const HLS_PLAYER_SRC = 'hls-player.js';
+        let hlsPlayerLoadingPromise = null;
+
+        function ensureHlsPlayerModule() {
+            if (window.MP3HlsPlayer) return Promise.resolve(window.MP3HlsPlayer);
+            if (hlsPlayerLoadingPromise) return hlsPlayerLoadingPromise;
+
+            hlsPlayerLoadingPromise = new Promise((resolve, reject) => {
+                const existing = document.querySelector('script[data-mp3-hls-player]');
+                if (existing) {
+                    if (window.MP3HlsPlayer) { resolve(window.MP3HlsPlayer); return; }
+                    existing.addEventListener('load', () => {
+                        if (window.MP3HlsPlayer) resolve(window.MP3HlsPlayer);
+                        else reject(new Error('hls-player 模块加载后未注册 API'));
+                    });
+                    existing.addEventListener('error', () => reject(new Error('hls-player 模块加载失败')));
+                    return;
+                }
+                const s = document.createElement('script');
+                s.src = HLS_PLAYER_SRC;
+                s.dataset.mp3HlsPlayer = '1';
+                s.onload = () => {
+                    if (window.MP3HlsPlayer) resolve(window.MP3HlsPlayer);
+                    else reject(new Error('hls-player 模块加载后未注册 API'));
+                };
+                s.onerror = () => reject(new Error('hls-player 模块加载失败（路径：' + HLS_PLAYER_SRC + '）'));
+                document.head.appendChild(s);
+            }).catch(e => {
+                hlsPlayerLoadingPromise = null;
+                throw e;
+            });
+
+            return hlsPlayerLoadingPromise;
+        }
+
+        /* ==================== 统一媒体装载 ==================== */
+
+        ext.playMedia = async function (url, { type = 'auto', onStatus } = {}) {
+            const ap = ext.audioPlayer;
+            const isHls = type === 'hls' || (type === 'auto' && /\.m3u8(\?|$)/i.test(url));
+
+            if (isHls) {
+                onStatus?.('正在加载 HLS 播放器…');
+                try {
+                    await ensureHlsPlayerModule();
+                } catch (e) {
+                    onStatus?.('HLS 播放器加载失败：' + e.message, 'error');
+                    throw new Error('HLS 播放器加载失败：' + e.message);
+                }
+                if (!window.MP3HlsPlayer) {
+                    throw new Error('HLS 播放器模块未注册（hls-player.js 未正确加载）');
+                }
+                await window.MP3HlsPlayer.play(ap, url, { onStatus });
+            } else {
+                if (window.MP3HlsPlayer) {
+                    try { window.MP3HlsPlayer.destroy(); } catch (e) {}
+                }
+                ap.removeAttribute('crossorigin');
+                ap.src = url;
+                await ap.play().catch(e => { throw new Error('播放失败：' + e.message); });
+            }
+        };
+
+        ext.ensureHlsPlayerModule = ensureHlsPlayerModule;
+
+        /* ==================== 核心：Source Adapter 工厂 ==================== */
+
+        window.MP3RegisterSourceAdapter = function ({
+            id,
+            categoryName,
+            list,
+            resolveMedia,
+            delete: del,
+            onStatusChange,
+            onPlaying,
+            reset,
+            onUnload,
+        }) {
+            if (!id || typeof list !== 'function' || typeof resolveMedia !== 'function') {
+                throw new Error('registerSourceAdapter: id/list/resolveMedia 必填');
+            }
+            window.MP3DataSourceHandlers = window.MP3DataSourceHandlers || {};
+
+            async function refreshList() {
+                const res = await list({ page: 1, pageSize: 999999 });
+                const decorated = ext.decorateFiles(res.files || [], {
+                    getKey: (f) => ext.getFileKey(f),
+                    sourceKey: id
+                });
+                ext.allFiles = ext.allFiles.filter(f => f._source !== id).concat(decorated);
+                ext.ensureSourceCategory(categoryName);
+                ext.renderAll();
+                return { files: decorated, total: decorated.length, totalPages: 1 };
+            }
+
+            window.MP3DataSourceHandlers[id] = {
+                reset() {
+                    try { reset?.(); } catch (e) { console.warn(`[${id}] reset 失败:`, e); }
+                },
+                async play(file) {
+                    try {
+                        const media = await resolveMedia(file);
+                        if (!media) throw new Error('resolveMedia 返回空');
+                        if (typeof media.play === 'function') {
+                            await media.play(ext.audioPlayer);
+                        } else if (media.url) {
+                            await ext.playMedia(media.url, {
+                                type: media.type || 'auto',
+                                onStatus: (msg, tone) => onStatusChange?.(msg, tone)
+                            });
+                        } else {
+                            throw new Error('resolveMedia 返回格式不正确');
+                        }
+                        onPlaying?.(file);
+                    } catch (e) {
+                        onStatusChange?.('播放失败：' + e.message, 'error');
+                        throw e;
+                    }
+                },
+                async delete(file) {
+                    if (!del) throw new Error('此來源不支援刪除');
+                    await del(file);
+                    const key = ext.getFileKey(file);
+                    const wasPlaying = ext.currentPlayingFile === key;
+                    ext.cleanupFileMetadata(key);
+                    ext.allFiles = ext.allFiles.filter(f => ext.getFileKey(f) !== key);
+                    if (wasPlaying) ext.stopIfPlayingFrom(id);
+                    ext.renderAll();
+                }
+            };
+
+            return {
+                async refresh() { return refreshList(); },
+                async unload() {
+                    try { onUnload?.(); } catch (e) { console.warn(`[${id}] onUnload 异常:`, e); }
+                    ext.stopIfPlayingFrom(id);
+                    ext.removeSourceData({ sourceKeys: [id], categoryNames: [categoryName] });
+                    ext.renderAll();
+                    delete window.MP3DataSourceHandlers[id];
+                }
+            };
+        };
+
+        console.log('[Core] DataSource Adapter v1.2 ready（含 HLS 懒加载）');
+    })();
     </script>
 
     <script>
@@ -1947,8 +2199,8 @@
 
         window.handleSourceFilterChange = function(value) {
             window.currentSourceFilter = value;
-            currentPage = 1;
-            renderTable();
+            window.MP3AppExtension.currentPage = 1;
+            window.MP3AppExtension.renderTable();
         };
     </script>
 

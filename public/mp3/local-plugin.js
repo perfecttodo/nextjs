@@ -1,8 +1,11 @@
 /**
- * 本地目錄插件 v3.1（加固版）
- * - init 顺序：ensureUI → renderRows → 各源并行 loadSource
- * - 每源独立 try/catch，失败只影响该源
- * - 数据"先清后加"，即使抛错也不留半截数据
+ * 本地目錄插件 v4.0（Core API 版）
+ *
+ * 相对 v3.1 的改动：
+ *  - 装饰 liked/disliked/tags（含旧 key 迁移）→ 改用 ext.decorateFiles
+ *  - unload 中的 UI 清理 → 改用 ext.stopIfPlayingFrom + ext.removeSourceData
+ *  - 移除 registerDataSource（本地源由主程序直接处理）
+ *  - 保持：多 API 端点多目录、独立状态、先清后加
  */
 (function () {
     'use strict';
@@ -52,62 +55,25 @@
             const data = await res.json();
             if (!data.success) throw new Error(data.error || '加载失败');
 
-            const likedMap = window.getLikedMap ? window.getLikedMap() : {};
-            const dislikedMap = window.getDislikedMap ? window.getDislikedMap() : {};
-            let tagsMap = {};
-            try { tagsMap = JSON.parse(localStorage.getItem('mp3_tags_map') || '{}'); } catch (e) {}
-
-            let likedChanged = false;
-            let dislikedChanged = false;
-            let tagsChanged = false;
-
-            const newFiles = (data.files || []).map(f => {
-                const fileKey = f.relativePath || f.filename;
-                const uniqueKey = fileKey + '\x00' + src.id;
-
-                let rawLike = likedMap[uniqueKey];
-                if (!rawLike && likedMap[fileKey]) {
-                    rawLike = likedMap[fileKey];
-                    likedMap[uniqueKey] = rawLike;
-                    likedChanged = true;
-                }
-                let rawDislike = dislikedMap[uniqueKey];
-                if (!rawDislike && dislikedMap[fileKey]) {
-                    rawDislike = dislikedMap[fileKey];
-                    dislikedMap[uniqueKey] = rawDislike;
-                    dislikedChanged = true;
-                }
-                let tags = tagsMap[uniqueKey];
-                if (!tags && tagsMap[fileKey]) {
-                    tags = tagsMap[fileKey];
-                    tagsMap[uniqueKey] = tags;
-                    tagsChanged = true;
-                }
-
-                return {
-                    ...f,
-                    _source: 'local',
-                    _sourceId: src.id,
-                    _key: uniqueKey,
-                    _originalKey: fileKey,
-                    _apiBase: src.apiBase,
-                    _dir: src.dir,
-                    isLiked: !!rawLike,
-                    likedAt: window.parseLikedAt ? window.parseLikedAt(rawLike) : null,
-                    isDisliked: !!rawDislike,
-                    tags: tags || []
-                };
-            });
-
-            if (likedChanged) window.saveLikedMap(likedMap);
-            if (dislikedChanged) window.saveDislikedMap(dislikedMap);
-            if (tagsChanged) window.saveTagsMap(tagsMap);
+            // ★ 统一装饰（含旧 key 迁移）
+            const decorated = ext.decorateFiles(data.files || [], {
+                getKey: (f) => {
+                    const fileKey = f.relativePath || f.filename;
+                    return fileKey + '\x00' + src.id;
+                },
+                sourceKey: 'local'
+            }).map(f => Object.assign(f, {
+                _sourceId: src.id,
+                _originalKey: f.relativePath || f.filename,
+                _apiBase: src.apiBase,
+                _dir: src.dir
+            }));
 
             // 先清后加
             ext.allFiles = ext.allFiles.filter(f => !(f._source === 'local' && f._sourceId === src.id));
-            ext.allFiles = [...ext.allFiles, ...newFiles];
+            ext.allFiles = [...ext.allFiles, ...decorated];
 
-            st.count = newFiles.length;
+            st.count = decorated.length;
             st.loading = false;
 
             ext.renderAll();
@@ -145,6 +111,7 @@
         const ext = window.MP3AppExtension;
         if (!ext) return;
 
+        // 检查是否在播本源文件
         const playingKey = ext.currentPlayingFile;
         const wasPlayingFromThis = playingKey && ext.allFiles.find(
             f => window.getFileKey(f) === playingKey && f._sourceId === id
@@ -153,18 +120,21 @@
         ext.allFiles = ext.allFiles.filter(f => !(f._source === 'local' && f._sourceId === id));
 
         if (wasPlayingFromThis) {
-            try { ext.audioPlayer.pause(); } catch (e) {}
-            ext.audioPlayer.removeAttribute('src');
-            try { ext.audioPlayer.load(); } catch (e) {}
+            // 只针对该 source 的播放器清理
+            const ap = ext.audioPlayer;
+            ap.pause();
+            ap.removeAttribute('src');
+            try { ap.load(); } catch (e) {}
             ext.currentPlayingFile = null;
             const t = document.getElementById('currentSongTitle');
             const c = document.getElementById('currentSongCategory');
             if (t) t.innerText = '尚未選擇播放歌曲';
             if (c) c.innerText = '就緒';
             if (typeof window.MP3SetPlayerSourceBadge === 'function') window.MP3SetPlayerSourceBadge(null);
-            if (typeof window.updatePlayButton === 'function') window.updatePlayButton();
-            if (typeof window.updatePlayerLikeState === 'function') window.updatePlayerLikeState();
-            if (typeof window.updatePlayerDislikeState === 'function') window.updatePlayerDislikeState();
+            ext.updatePlayButton();
+            ext.updatePlayerLikeState();
+            ext.updatePlayerDislikeState();
+            ext.resetMediaSession();
         }
 
         ext.renderAll();
@@ -343,13 +313,12 @@
     }
 
     window.MP3LocalPlugin = {
-        version: '3.1.0',
+        version: '4.0.0',
         async init() {
             isActive = true;
             await ensureUI();
             renderRows();
             const sources = loadSources().filter(s => s.enabled);
-            // 每源独立，Promise.allSettled 保证一个失败不影响其他
             await Promise.allSettled(sources.map(s => loadSource(s)));
         },
         async unload() {
@@ -357,26 +326,9 @@
 
             const ext = window.MP3AppExtension;
             if (ext) {
-                const playingKey = ext.currentPlayingFile;
-                const playingFile = playingKey ? ext.allFiles.find(f => window.getFileKey(f) === playingKey) : null;
-                const isPlayingLocal = playingFile && playingFile._source === 'local';
-
+                // 若正在播放本地源的歌，交给 Core 统一清理
+                ext.stopIfPlayingFrom('local');
                 ext.allFiles = ext.allFiles.filter(f => f._source !== 'local');
-
-                if (isPlayingLocal) {
-                    try { ext.audioPlayer.pause(); } catch (e) {}
-                    ext.audioPlayer.removeAttribute('src');
-                    try { ext.audioPlayer.load(); } catch (e) {}
-                    ext.currentPlayingFile = null;
-                    const t = document.getElementById('currentSongTitle');
-                    const c = document.getElementById('currentSongCategory');
-                    if (t) t.innerText = '尚未選擇播放歌曲';
-                    if (c) c.innerText = '就緒';
-                    if (typeof window.MP3SetPlayerSourceBadge === 'function') window.MP3SetPlayerSourceBadge(null);
-                    if (typeof window.updatePlayButton === 'function') window.updatePlayButton();
-                    if (typeof window.updatePlayerLikeState === 'function') window.updatePlayerLikeState();
-                    if (typeof window.updatePlayerDislikeState === 'function') window.updatePlayerDislikeState();
-                }
                 ext.renderAll();
             }
 

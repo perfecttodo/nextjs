@@ -1,601 +1,371 @@
 /**
- * HLS 播放模块 v1.0.0
+ * MP3 HLS Player 模块 v1.2
  *
- * 由数据源插件（如 news-plugin.js）在遇到 m3u8 资源时按需懒加载。
- * 提供：原生 HLS 优先、hls.js 降级、暂停联动、弱网守护、可见性恢复。
- *
- * 通过回调与上层解耦：
- *  - onStatus(msg, tone)：状态显示交给上层 UI（tone: 'error'|'success'|'warn'）
- *  - isActive()：判断当前业务源是否仍是本模块服务的数据源
- *
- * 对外 API（window.MP3HlsPlayer）：
- *  - supports(url)              → boolean
- *  - preflight(url)             → Promise<true>（失败抛出）
- *  - prefetch(url)              → Promise<boolean>（不抛异常）
- *  - play(media, url, options)  → Promise<void>
- *  - destroy()                  → void
- *  - clearCache()               → void
+ * 关键修复：
+ *  1. 原生 HLS 只在 iOS / iPadOS Safari 上启用（其他环境一律走 hls.js / MSE）
+ *  2. 原生失败后彻底清理 audioEl（移除 src + load + 50ms 等待）
+ *  3. 尝试原生前临时禁用 onerror，防止主程序 onAudioError 打断
+ *  4. isActive 默认宽容（切歌由 session 机制处理）
  */
 (function () {
     'use strict';
 
+    const HLS_JS_CDN = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js';
+    const MAX_NETWORK_RETRY = 4;
+
+    let hlsScriptPromise = null;
+    let currentSession = 0;
     let hlsInstance = null;
-    let hlsAttachedMedia = null;
+    let currentAudioEl = null;
+    let currentOnStatus = null;
+    let currentIsActive = null;
+    let mediaErrorRecovered = false;
+    let networkRetryCount = 0;
+    const prefetched = new Set();
+    let recoveryListenersAttached = false;
 
-    let visibilityHandler = null;
-    let wasPlayingBeforeHidden = false;
-
-    let hlsPauseBound = false;
-    let hlsStoppedByPause = false;
-    let hlsBoundMedia = null;
-
-    let hlsStoppedByNetwork = false;
-    let waitingGuardMedia = null;
-    let waitingGuardTimer = null;
-    let networkOfflineHandler = null;
-    let networkOnlineHandler = null;
-
-    let currentOptions = null;
-    const preflightCache = new Map();
-
-    // ==================== 回调 ====================
-    function status(msg, tone) {
-        if (currentOptions && typeof currentOptions.onStatus === 'function') {
-            try { currentOptions.onStatus(msg, tone); } catch (e) {}
-        }
+    /* ============ 设备判定 ============ */
+    function isIOSDevice() {
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) return true;
+        // iPadOS 13+ 伪装成 Mac
+        if (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) return true;
+        return false;
     }
 
-    function isActive() {
-        if (currentOptions && typeof currentOptions.isActive === 'function') {
-            try { return !!currentOptions.isActive(); } catch (e) { return true; }
-        }
-        return true;
+    /**
+     * 原生 HLS 判断：仅 iOS / iPadOS Safari 启用。
+     * 桌面 Chrome / Edge / Firefox / Android Chrome 全部走 hls.js。
+     * 这是有意为之——只有 iOS 上 hls.js 的 MSE 不可用。
+     */
+    function canPlayNative(audioEl) {
+        if (!isIOSDevice()) return false;
+        if (!audioEl || !audioEl.canPlayType) return false;
+        const t = audioEl.canPlayType('application/vnd.apple.mpegurl');
+        return t === 'maybe' || t === 'probably';
     }
 
-    // ==================== 网络状态感知（hls.js 管道） ====================
-    function setupNetworkListeners() {
-        teardownNetworkListeners();
+    /* ============ hls.js 懒加载 ============ */
+    function loadHlsScript() {
+        if (window.Hls) return Promise.resolve(window.Hls);
+        if (hlsScriptPromise) return hlsScriptPromise;
 
-        networkOfflineHandler = () => {
-            console.log('[HLS Network] offline');
-            if (hlsInstance) {
-                try {
-                    hlsInstance.stopLoad();
-                    hlsStoppedByNetwork = true;
-                    console.log('[HLS Network] hls.stopLoad (offline)');
-                } catch (e) {}
-            }
-        };
-
-        networkOnlineHandler = () => {
-            console.log('[HLS Network] online');
-            if (!hlsInstance) return;
-            // 若因 pause 停止加载，交给 play 事件恢复，不在此处干预
-            if (hlsStoppedByPause) return;
-            if (!hlsStoppedByNetwork) return;
-            try {
-                const media = hlsAttachedMedia;
-                const t = media && isFinite(media.currentTime) ? media.currentTime : -1;
-                hlsInstance.startLoad(t > 0 ? t - 1 : -1);
-                hlsStoppedByNetwork = false;
-                console.log('[HLS Network] hls.startLoad (online)', t);
-            } catch (e) {}
-        };
-
-        window.addEventListener('offline', networkOfflineHandler);
-        window.addEventListener('online', networkOnlineHandler);
-    }
-
-    function teardownNetworkListeners() {
-        if (networkOfflineHandler) {
-            window.removeEventListener('offline', networkOfflineHandler);
-            networkOfflineHandler = null;
-        }
-        if (networkOnlineHandler) {
-            window.removeEventListener('online', networkOnlineHandler);
-            networkOnlineHandler = null;
-        }
-    }
-
-    // ==================== 弱网 waiting 守护 ====================
-    function detachWeakNetworkGuard() {
-        if (waitingGuardTimer) {
-            clearTimeout(waitingGuardTimer);
-            waitingGuardTimer = null;
-        }
-        if (waitingGuardMedia) {
-            if (waitingGuardMedia._hlsOnWaiting) waitingGuardMedia.removeEventListener('waiting', waitingGuardMedia._hlsOnWaiting);
-            if (waitingGuardMedia._hlsOnPlaying) waitingGuardMedia.removeEventListener('playing', waitingGuardMedia._hlsOnPlaying);
-            waitingGuardMedia._hlsOnWaiting = null;
-            waitingGuardMedia._hlsOnPlaying = null;
-        }
-        waitingGuardMedia = null;
-    }
-
-    function attachWeakNetworkGuard(media) {
-        if (!media) return;
-        if (waitingGuardMedia === media && media._hlsOnWaiting) return;
-        detachWeakNetworkGuard();
-        waitingGuardMedia = media;
-
-        const onWaiting = () => {
-            console.log('[HLS WeakNet] waiting');
-            if (waitingGuardTimer) clearTimeout(waitingGuardTimer);
-            // 30s 内仍未恢复才介入，给 hls.js 缓冲和重试留出窗口
-            waitingGuardTimer = setTimeout(() => {
-                waitingGuardTimer = null;
-                if (media.readyState >= 3) return; // 已恢复
-                if (!isActive()) return;           // 业务源已切走，不干预
-                if (!navigator.onLine) {
-                    console.log('[HLS WeakNet] still waiting, but offline — hold');
-                    return;
-                }
-                console.log('[HLS WeakNet] waiting too long, attempting recovery');
-                if (hlsInstance) {
-                    try {
-                        hlsInstance.startLoad(media.currentTime || -1);
-                        hlsStoppedByNetwork = false;
-                    } catch (e) {}
-                } else {
-                    // 原生 HLS 管道：轻量重建
-                    const t = media.currentTime || 0;
-                    try {
-                        media.load();
-                        media.currentTime = t;
-                        media.play().catch(() => {});
-                    } catch (e) {}
-                }
-            }, 30000);
-        };
-
-        const onPlaying = () => {
-            if (waitingGuardTimer) {
-                clearTimeout(waitingGuardTimer);
-                waitingGuardTimer = null;
-            }
-        };
-
-        media.addEventListener('waiting', onWaiting);
-        media.addEventListener('playing', onPlaying);
-        media._hlsOnWaiting = onWaiting;
-        media._hlsOnPlaying = onPlaying;
-    }
-
-    // ==================== hls.js CDN 加载 ====================
-    function ensureHlsJs() {
-        return new Promise((resolve, reject) => {
-            if (window.Hls) return resolve();
-            const existing = document.querySelector('script[data-hls-js]');
+        hlsScriptPromise = new Promise((resolve, reject) => {
+            const existing = document.querySelector('script[data-mp3-hls-js]');
             if (existing) {
-                existing.addEventListener('load', () => resolve());
+                if (window.Hls) { resolve(window.Hls); return; }
+                existing.addEventListener('load', () => {
+                    if (window.Hls) resolve(window.Hls);
+                    else reject(new Error('hls.js 加载后未暴露 window.Hls'));
+                });
                 existing.addEventListener('error', () => reject(new Error('hls.js 加载失败')));
                 return;
             }
             const s = document.createElement('script');
-            s.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js';
-            s.dataset.hlsJs = '1';
-            s.onload = () => resolve();
-            s.onerror = () => reject(new Error('hls.js 加载失败'));
+            s.src = HLS_JS_CDN;
+            s.async = true;
+            s.dataset.mp3HlsJs = '1';
+            s.onload = () => {
+                if (window.Hls) resolve(window.Hls);
+                else reject(new Error('hls.js 加载后未暴露 window.Hls'));
+            };
+            s.onerror = () => reject(new Error('无法加载 hls.js（CDN: ' + HLS_JS_CDN + '）'));
             document.head.appendChild(s);
-        });
-    }
-
-    // ==================== m3u8 预检 ====================
-    async function preflightM3u8(url) {
-        try {
-            const res = await fetch(url, { method: 'GET', cache: 'no-cache' });
-            if (!res.ok) throw new Error(`m3u8 无法访问（HTTP ${res.status}）`);
-            const text = await res.text();
-            if (!text.includes('#EXTM3U')) throw new Error('返回内容不是有效的 HLS 播放列表');
-            return true;
-        } catch (e) {
-            if (e instanceof TypeError) throw new Error('m3u8 请求失败，可能是 CORS 未开放：' + e.message);
+        }).catch(e => {
+            hlsScriptPromise = null;
             throw e;
-        }
-    }
-
-    function prefersNativeHls(media) {
-        const ua = navigator.userAgent;
-        const isSafari = /Safari/.test(ua) && !/Chrome|CriOS|Chromium|Edg|OPR|Android/i.test(ua);
-        const isIOS = /iP(hone|ad|od)/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        if (!(isSafari || isIOS)) return false;
-        try {
-            return media.canPlayType('application/vnd.apple.mpegurl') !== '';
-        } catch (e) {
-            return false;
-        }
-    }
-
-    // ==================== 暂停/播放联动 ====================
-    function onHlsPause() {
-        if (!hlsInstance) return;
-        try {
-            hlsInstance.stopLoad();
-            hlsStoppedByPause = true;
-            console.log('[HLS] media pause → hls.stopLoad');
-        } catch (e) {}
-    }
-
-    function onHlsPlay() {
-        if (!hlsInstance || !hlsStoppedByPause) return;
-        try {
-            hlsInstance.startLoad();
-            hlsStoppedByPause = false;
-            hlsStoppedByNetwork = false;
-            console.log('[HLS] media play → hls.startLoad');
-        } catch (e) {}
-    }
-
-    function bindHlsPauseControl(media) {
-        if (!media) return;
-        if (hlsPauseBound && hlsBoundMedia === media) return;
-        if (hlsBoundMedia) {
-            hlsBoundMedia.removeEventListener('pause', onHlsPause);
-            hlsBoundMedia.removeEventListener('play', onHlsPlay);
-        }
-        hlsBoundMedia = media;
-        hlsPauseBound = true;
-        media.addEventListener('pause', onHlsPause);
-        media.addEventListener('play', onHlsPlay);
-    }
-
-    function unbindHlsPauseControl() {
-        if (hlsBoundMedia) {
-            hlsBoundMedia.removeEventListener('pause', onHlsPause);
-            hlsBoundMedia.removeEventListener('play', onHlsPlay);
-        }
-        hlsBoundMedia = null;
-        hlsPauseBound = false;
-        hlsStoppedByPause = false;
-    }
-
-    // ==================== 可见性处理 & 前台恢复 ====================
-    function attachVisibilityHandler(media) {
-        cleanupVisibilityHandler();
-        visibilityHandler = () => {
-            if (document.visibilityState === 'hidden') {
-                wasPlayingBeforeHidden = !media.paused;
-                return;
-            }
-            // visible 分支
-            const offline = !navigator.onLine;
-            if (wasPlayingBeforeHidden && !media.paused && media.readyState < 2) {
-                if (offline) {
-                    console.log('[HLS] foreground recovery skipped (offline)');
-                    return;
-                }
-                console.log('[HLS] foreground recovery: pipe dead, reload');
-                const t = media.currentTime || 0;
-                try {
-                    media.pause();
-                    media.load();
-                    media.currentTime = t;
-                    media.play().catch(() => {});
-                } catch (e) {}
-            }
-            if (wasPlayingBeforeHidden && media.paused) {
-                if (offline) {
-                    console.log('[HLS] foreground resume skipped (offline)');
-                    return;
-                }
-                media.play().catch(() => {});
-            }
-            if (hlsInstance) {
-                try {
-                    const buffered = media.buffered;
-                    let hasBuffer = false;
-                    const t = media.currentTime || 0;
-                    for (let i = 0; i < buffered.length; i++) {
-                        if (buffered.start(i) <= t && buffered.end(i) > t + 0.5) { hasBuffer = true; break; }
-                    }
-                    if (!hasBuffer && !offline) {
-                        hlsInstance.startLoad(t > 0 ? t - 1 : -1);
-                        hlsStoppedByNetwork = false;
-                    }
-                } catch (e) {}
-            }
-        };
-        document.addEventListener('visibilitychange', visibilityHandler);
-    }
-
-    function cleanupVisibilityHandler() {
-        if (visibilityHandler) {
-            document.removeEventListener('visibilitychange', visibilityHandler);
-            visibilityHandler = null;
-        }
-    }
-
-    // ==================== 播放主流程 ====================
-    async function playHls(media, url) {
-        console.log('[HLS] playHls:', url,
-            'nativePreferred =', prefersNativeHls(media),
-            'hlsReuse =', !!(hlsInstance && hlsAttachedMedia === media),
-            'preflightCached =', preflightCache.get(url),
-            'online =', navigator.onLine);
-
-        if (!navigator.onLine) {
-            // 离线时仍允许尝试播放（原生管道可能命中本地缓存），但跳过预检
-            console.log('[HLS] offline, skip preflight');
-        } else if (preflightCache.get(url) !== true) {
-            try {
-                status('正在检查 m3u8…');
-                await preflightM3u8(url);
-                preflightCache.set(url, true);
-            } catch (e) {
-                preflightCache.set(url, false);
-                throw new Error('m3u8 预检失败：' + e.message);
-            }
-        }
-
-        if (prefersNativeHls(media)) {
-            try {
-                status('正在使用原生 HLS…');
-                destroyPipeline();
-                await playWithNativeHls(media, url);
-                return;
-            } catch (e) {
-                console.warn('[HLS] 原生 HLS 失败，降级 hls.js:', e.message);
-            }
-        }
-
-        try {
-            await ensureHlsJs();
-            if (window.Hls && window.Hls.isSupported()) {
-                if (hlsInstance && hlsAttachedMedia === media) {
-                    try {
-                        await switchHlsSource(media, url);
-                        return;
-                    } catch (e) {
-                        console.warn('[HLS] 复用失败，降级重建:', e.message);
-                        destroyPipeline();
-                    }
-                }
-                await createAndPlayHls(media, url);
-                return;
-            }
-        } catch (e) {
-            console.warn('[HLS] hls.js 失败，尝试原生:', e.message);
-        }
-
-        if (media.canPlayType('application/vnd.apple.mpegurl')) {
-            destroyPipeline();
-            await playWithNativeHls(media, url);
-            return;
-        }
-        throw new Error('浏览器不支持 HLS');
-    }
-
-    async function switchHlsSource(media, url) {
-        return new Promise((resolve, reject) => {
-            const hls = hlsInstance;
-            let settled = false;
-            const finish = (fn, arg) => { if (settled) return; settled = true; fn(arg); };
-
-            const onParsed = () => {
-                cleanup();
-                media.play()
-                    .then(() => {
-                        attachVisibilityHandler(media);
-                        bindHlsPauseControl(media);
-                        attachWeakNetworkGuard(media);
-                        finish(resolve);
-                    })
-                    .catch(err => finish(reject, new Error('切换后播放失败: ' + err.message)));
-            };
-
-            const onError = (e, data) => {
-                if (!data.fatal) return;
-                // 弱网保护：离线时不立即判死
-                if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR && !navigator.onLine) {
-                    console.log('[HLS] switch network error while offline, deferring');
-                    hlsStoppedByNetwork = true;
-                    return;
-                }
-                cleanup();
-                finish(reject, new Error(`${data.type}/${data.details}`));
-            };
-
-            const onTimeout = () => { cleanup(); finish(reject, new Error('切换 HLS 源超时')); };
-
-            const cleanup = () => {
-                clearTimeout(timeoutId);
-                try { hls.off(window.Hls.Events.MANIFEST_PARSED, onParsed); } catch (e) {}
-                try { hls.off(window.Hls.Events.ERROR, onError); } catch (e) {}
-            };
-
-            hls.on(window.Hls.Events.MANIFEST_PARSED, onParsed);
-            hls.on(window.Hls.Events.ERROR, onError);
-            const timeoutId = setTimeout(onTimeout, 12000);
-
-            try {
-                try { hls.stopLoad(); } catch (e) {}
-                hls.loadSource(url);
-                if (hls.media !== media) hls.attachMedia(media);
-                try { hls.startLoad(); } catch (e) {}
-                hlsStoppedByPause = false;
-                hlsStoppedByNetwork = false;
-            } catch (e) {
-                cleanup();
-                finish(reject, e);
-            }
         });
+
+        return hlsScriptPromise;
     }
 
-    async function createAndPlayHls(media, url) {
-        return new Promise((resolve, reject) => {
-            const hls = new window.Hls({
-                lowLatencyMode: false,
-                enableWorker: true,
-
-                // ★ 弱网缓冲策略：为缓冲抖动预留空间
-                maxBufferLength: 60,
-                maxMaxBufferLength: 120,
-                backBufferLength: 30,
-
-                // ★ 弱网重试策略：放宽上限
-                manifestLoadingMaxRetry: 3,
-                manifestLoadingRetryDelay: 1000,
-                fragLoadingMaxRetry: 5,
-                fragLoadingRetryDelay: 1000,
-                fragLoadingMaxRetryTimeout: 15000,
-                appendErrorMaxRetry: 3,
-
-                startLevel: -1
-            });
-            hlsInstance = hls;
-            hlsAttachedMedia = media;
-
-            let recoveredNetwork = false;
-            let recoveredMedia = false;
-
-            const timeout = setTimeout(() => {
-                cleanup();
-                reject(new Error('HLS 加载超时（20s）'));
-            }, 20000); // 弱网下稍微放宽
-
-            const cleanup = () => {
-                clearTimeout(timeout);
-                try { hls.off(window.Hls.Events.MANIFEST_PARSED, onParsed); } catch (e) {}
-                try { hls.off(window.Hls.Events.ERROR, onError); } catch (e) {}
-            };
-
-            const onParsed = () => {
-                cleanup();
-                media.play()
-                    .then(() => {
-                        attachVisibilityHandler(media);
-                        bindHlsPauseControl(media);
-                        attachWeakNetworkGuard(media);
-                        resolve();
-                    })
-                    .catch(err => reject(new Error('播放失败: ' + err.message)));
-            };
-
-            const onError = (e, data) => {
-                if (!data.fatal) return;
-
-                // ★ 弱网保护：离线期间不判死，等待 online 事件恢复
-                if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR && !navigator.onLine) {
-                    console.log('[HLS] network error while offline, deferring recovery');
-                    hlsStoppedByNetwork = true;
-                    return;
-                }
-
-                if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR && !recoveredNetwork) {
-                    recoveredNetwork = true;
-                    try { hls.startLoad(); return; } catch (er) {}
-                }
-                if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR && !recoveredMedia) {
-                    recoveredMedia = true;
-                    try { hls.recoverMediaError(); return; } catch (er) {}
-                }
-                cleanup();
-                reject(new Error(`${data.type}/${data.details}`));
-            };
-
-            hls.on(window.Hls.Events.MANIFEST_PARSED, onParsed);
-            hls.on(window.Hls.Events.ERROR, onError);
-
-            hls.loadSource(url);
-            hls.attachMedia(media);
-            hlsStoppedByPause = false;
-            hlsStoppedByNetwork = false;
-        });
+    /* ============ 会话有效性 ============ */
+    function isStillActive(mySession) {
+        if (mySession !== currentSession) return false;
+        if (typeof currentIsActive === 'function') {
+            try { if (!currentIsActive()) return false; } catch (e) {}
+        }
+        return true;
     }
 
-    async function playWithNativeHls(media, url) {
-        return new Promise((resolve, reject) => {
-            try { media.removeAttribute('src'); } catch (e) {}
-            try { media.load(); } catch (e) {}
-
-            media.crossOrigin = 'anonymous';
-            media.src = url;
-            // 弱网下原生管道首次加载可能较慢，超时放宽到 20s
-            const timeout = setTimeout(() => { cleanup(); reject(new Error('原生 HLS 加载超时 20s')); }, 20000);
-            const onLoaded = () => {
-                cleanup();
-                media.play()
-                    .then(() => {
-                        attachVisibilityHandler(media);
-                        attachWeakNetworkGuard(media);
-                        resolve();
-                    })
-                    .catch(err => reject(new Error('原生播放失败: ' + err.message)));
-            };
-            const onError = () => { cleanup(); reject(new Error('原生播放失败')); };
-            const cleanup = () => {
-                clearTimeout(timeout);
-                media.removeEventListener('loadedmetadata', onLoaded);
-                media.removeEventListener('error', onError);
-            };
-            media.addEventListener('loadedmetadata', onLoaded);
-            media.addEventListener('error', onError);
-            media.load();
-        });
-    }
-
-    // ==================== 清理 ====================
-    function destroyPipeline() {
-        cleanupVisibilityHandler();
-        unbindHlsPauseControl();
-        detachWeakNetworkGuard();
-        hlsStoppedByNetwork = false;
+    /* ============ 清理 ============ */
+    function cleanupCurrent() {
         if (hlsInstance) {
             try { hlsInstance.destroy(); } catch (e) {}
             hlsInstance = null;
-            hlsAttachedMedia = null;
+        }
+        currentOnStatus = null;
+        currentIsActive = null;
+        mediaErrorRecovered = false;
+        networkRetryCount = 0;
+    }
+
+    /* ============ 彻底清空 audioEl 状态 ============ */
+    async function resetAudioEl(audioEl) {
+        try { audioEl.pause(); } catch (e) {}
+        try {
+            audioEl.removeAttribute('src');
+            audioEl.load();
+        } catch (e) {}
+        // 等待下一次事件循环，让浏览器完成清理
+        await new Promise(r => setTimeout(r, 50));
+    }
+
+    /* ============ 主入口 ============ */
+    async function play(audioEl, url, { onStatus, isActive } = {}) {
+        if (!audioEl || !url) throw new Error('play: audioEl 或 url 为空');
+
+        const mySession = ++currentSession;
+        cleanupCurrent();
+
+        currentAudioEl = audioEl;
+        currentOnStatus = onStatus || (() => {});
+        currentIsActive = isActive || (() => true);
+
+        // 清掉旧播放
+        try { audioEl.pause(); } catch (e) {}
+        try {
+            audioEl.removeAttribute('src');
+            audioEl.load();
+        } catch (e) {}
+
+        // ★ 临时禁用 onerror，防止主程序 onAudioError 打断（切歌）
+        const prevOnError = audioEl.onerror;
+        audioEl.onerror = (e) => {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            return false;
+        };
+
+        try {
+            // ---------- 仅在 iOS 上尝试原生 ----------
+            if (canPlayNative(audioEl)) {
+                try {
+                    currentOnStatus('正在加载 (原生 HLS)…');
+                    audioEl.removeAttribute('crossorigin');
+                    audioEl.src = url;
+                    await audioEl.play();
+
+                    if (!isStillActive(mySession)) return;
+                    attachRecovery();
+                    currentOnStatus('▶️ 播放中 (原生 HLS)', 'success');
+                    return;
+                } catch (e) {
+                    if (!isStillActive(mySession)) return;
+                    console.warn('[HLS] 原生播放失败，切换 hls.js:', e.message || e);
+                    await resetAudioEl(audioEl);
+                }
+            }
+
+            // ---------- hls.js 兜底 ----------
+            const Hls = await loadHlsScript();
+            if (!isStillActive(mySession)) return;
+
+            if (!Hls || typeof Hls.isSupported !== 'function' || !Hls.isSupported()) {
+                // hls.js 不可用（极端情况，例如老版浏览器）
+                if (canPlayNative(audioEl)) {
+                    try {
+                        audioEl.removeAttribute('crossorigin');
+                        audioEl.src = url;
+                        await audioEl.play();
+                        if (!isStillActive(mySession)) return;
+                        attachRecovery();
+                        currentOnStatus('▶️ 播放中 (原生 HLS)', 'success');
+                        return;
+                    } catch (e) {
+                        throw new Error('HLS 播放失败（原生）：' + (e.message || e));
+                    }
+                }
+                throw new Error('当前浏览器不支持 HLS 播放（MSE 不可用）');
+            }
+
+            currentOnStatus('正在加载 HLS 流…');
+
+            hlsInstance = new Hls({
+                maxBufferLength: 30,
+                maxMaxBufferLength: 60,
+                maxBufferSize: 60 * 1000 * 1000,
+                enableWorker: true,
+                lowLatencyMode: false,
+                manifestLoadingMaxRetry: 3,
+                levelLoadingMaxRetry: 4,
+                fragLoadingMaxRetry: 6,
+            });
+
+            hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+                if (!isStillActive(mySession)) return;
+                networkRetryCount = 0;
+                audioEl.play().catch((err) => {
+                    if (isStillActive(mySession)) {
+                        currentOnStatus('自动播放被浏览器拦截，请点击播放按钮', 'warn');
+                        console.warn('[HLS] autoplay blocked:', err);
+                    }
+                });
+            });
+
+            hlsInstance.on(Hls.Events.ERROR, (event, data) => {
+                if (!isStillActive(mySession)) return;
+                handleHlsError(data, mySession);
+            });
+
+            hlsInstance.on(Hls.Events.FRAG_LOADED, () => {
+                if (!isStillActive(mySession)) return;
+                networkRetryCount = 0;
+                currentOnStatus('▶️ 播放中', 'success');
+            });
+
+            hlsInstance.attachMedia(audioEl);
+            hlsInstance.loadSource(url);
+
+            await new Promise((resolve) => {
+                let settled = false;
+                const finish = () => {
+                    if (settled) return;
+                    settled = true;
+                    audioEl.removeEventListener('playing', finish);
+                    audioEl.removeEventListener('error', finish);
+                    resolve();
+                };
+                audioEl.addEventListener('playing', finish);
+                audioEl.addEventListener('error', finish);
+                setTimeout(finish, 15000);
+            });
+
+            if (!isStillActive(mySession)) return;
+            attachRecovery();
+            currentOnStatus('▶️ 播放中', 'success');
+        } finally {
+            // 恢复 onerror（仅当会话仍有效，防止覆盖新会话的绑定）
+            if (currentSession === mySession) {
+                audioEl.onerror = prevOnError;
+            }
         }
     }
 
+    /* ============ hls.js 错误处理 ============ */
+    function handleHlsError(data, mySession) {
+        const Hls = window.Hls;
+        if (!Hls) return;
+        const { type, details, fatal } = data;
+
+        if (type === Hls.ErrorTypes.NETWORK_ERROR) {
+            if (fatal) {
+                networkRetryCount++;
+                if (networkRetryCount <= MAX_NETWORK_RETRY) {
+                    const delay = Math.min(1000 * networkRetryCount, 5000);
+                    currentOnStatus(`网络不稳定，${(delay / 1000).toFixed(0)}s 后重试 (${networkRetryCount}/${MAX_NETWORK_RETRY})…`, 'warn');
+                    setTimeout(() => {
+                        if (!isStillActive(mySession) || !hlsInstance) return;
+                        try { hlsInstance.startLoad(); } catch (e) {}
+                    }, delay);
+                } else {
+                    currentOnStatus('HLS 流反复失败：' + (details || 'unknown'), 'error');
+                }
+            }
+            return;
+        }
+
+        if (type === Hls.ErrorTypes.MEDIA_ERROR) {
+            if (!mediaErrorRecovered) {
+                mediaErrorRecovered = true;
+                currentOnStatus('媒体错误，正在恢复…', 'warn');
+                try { hlsInstance.recoverMediaError(); } catch (e) {}
+            } else {
+                currentOnStatus('媒体错误无法恢复', 'error');
+            }
+            return;
+        }
+
+        if (fatal) {
+            currentOnStatus('HLS 播放失败: ' + (details || type), 'error');
+        }
+    }
+
+    /* ============ 网络 / 可见性恢复 ============ */
+    function attachRecovery() {
+        if (recoveryListenersAttached) return;
+        recoveryListenersAttached = true;
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        window.addEventListener('online', onOnline);
+        window.addEventListener('offline', onOffline);
+    }
+
+    function onVisibilityChange() {
+        if (document.visibilityState !== 'visible') return;
+        if (!currentAudioEl || !isStillActive(currentSession)) return;
+        if (hlsInstance) {
+            try {
+                if (currentAudioEl.readyState < 3 && !currentAudioEl.paused) {
+                    hlsInstance.startLoad();
+                }
+            } catch (e) {}
+        }
+    }
+
+    function onOnline() {
+        if (!currentAudioEl || !isStillActive(currentSession)) return;
+        if (hlsInstance) {
+            try { hlsInstance.startLoad(); } catch (e) {}
+        } else if (currentAudioEl.paused) {
+            currentAudioEl.play().catch(() => {});
+        }
+    }
+
+    function onOffline() {
+        if (!currentAudioEl || !isStillActive(currentSession)) return;
+        try { currentAudioEl.pause(); } catch (e) {}
+        if (currentOnStatus) currentOnStatus('网络已断开，恢复连接后自动继续', 'warn');
+    }
+
+    /* ============ 销毁 ============ */
     function destroy() {
-        destroyPipeline();
-        teardownNetworkListeners();
-        currentOptions = null;
+        currentSession++;
+        cleanupCurrent();
+        if (currentAudioEl) {
+            try { currentAudioEl.pause(); } catch (e) {}
+            try {
+                currentAudioEl.removeAttribute('src');
+                currentAudioEl.load();
+            } catch (e) {}
+        }
+        currentAudioEl = null;
     }
 
-    // ==================== 对外 API ====================
-    window.MP3HlsPlayer = {
-        version: '1.0.0',
-
-        supports(url) {
-            return /\.m3u8(\?|$)/i.test(String(url || ''));
-        },
-
-        async preflight(url) {
-            if (preflightCache.get(url) === true) return true;
-            try {
-                await preflightM3u8(url);
-                preflightCache.set(url, true);
-                return true;
-            } catch (e) {
-                preflightCache.set(url, false);
-                throw e;
-            }
-        },
-
-        prefetch(url) {
-            return this.preflight(url).catch(() => false);
-        },
-
-        async play(media, url, options) {
-            if (!media) throw new Error('hls-player: media 元素缺失');
-            if (!url) throw new Error('hls-player: url 缺失');
-            currentOptions = options || {};
-            setupNetworkListeners();
-            try {
-                await playHls(media, url);
-            } catch (e) {
-                // 失败清理，但保留 preflightCache（可能是临时网络问题）
-                destroyPipeline();
-                teardownNetworkListeners();
-                throw e;
-            }
-        },
-
-        destroy,
-
-        clearCache() {
-            preflightCache.clear();
+    /* ============ 预取 / 缓存 ============ */
+    function prefetch(url) {
+        if (!url || prefetched.has(url)) return;
+        if (!/\.m3u8(\?|$)/i.test(url)) return;
+        prefetched.add(url);
+        const doPrefetch = () => {
+            fetch(url, { method: 'GET', cache: 'default', credentials: 'same-origin' })
+                .then(r => r.text())
+                .catch(() => {});
+        };
+        if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(doPrefetch, { timeout: 3000 });
+        } else {
+            setTimeout(doPrefetch, 800);
         }
+    }
+
+    function clearCache() {
+        prefetched.clear();
+        hlsScriptPromise = null;
+    }
+
+    function isSupported() {
+        if (isIOSDevice()) return true;
+        if (window.Hls && typeof window.Hls.isSupported === 'function' && window.Hls.isSupported()) return true;
+        return false;
+    }
+
+    /* ============ 导出 ============ */
+    window.MP3HlsPlayer = {
+        version: '1.2.0',
+        play,
+        destroy,
+        prefetch,
+        clearCache,
+        isSupported
     };
+
+    console.log('[MP3HlsPlayer] v' + window.MP3HlsPlayer.version + ' ready');
 })();

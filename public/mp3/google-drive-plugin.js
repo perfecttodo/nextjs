@@ -1,14 +1,18 @@
 /**
- * Google Drive 扩展插件 v3.8
- * 
- * 相对 v3.7 的改动：
- *  1. 注册 delete handler，支持从 Drive 永久删除文件
- *  2. UI 新增「重置删除提示」按钮（清除本地 skip 标记）
- *  3. 删除成功后清理 allFiles、播放器、媒体会话
+ * Google Drive 扩展插件 v4.0（Core Adapter 版）
+ *
+ * 相对 v3.8 的重构：
+ *  - play / delete / unload 内的公共逻辑（UI 同步、播放器清理、
+ *    allFiles 过滤、categories 过滤、MediaSession 复位）全部移除，
+ *    改由 Core 统一负责。
+ *  - 通过 MP3RegisterSourceAdapter 注册，只描述：
+ *      list / resolveMedia / delete / reset / onUnload
+ *  - 保持 v3.8 全部功能（OAuth、文件夹浏览、迁移、备份/恢复、上传、删除）
  */
 window.MP3GoogleDriveConfig = {
     clientId: '802199089900-5n676d4hansnab5c66igukb1mch5m7m1.apps.googleusercontent.com'
-  };
+};
+
 (function () {
     'use strict';
 
@@ -41,7 +45,6 @@ window.MP3GoogleDriveConfig = {
 
     const state = {
         authorized: false,
-        driveFiles: [],
         currentBlobUrl: null,
         uploadingFavorites: false,
         uploadingLocalFiles: false,
@@ -53,6 +56,9 @@ window.MP3GoogleDriveConfig = {
     let accessToken = null;
     let tokenClient = null;
     let uiRoot = null;
+    let adapterHandle = null;
+
+    /* ==================== 基础辅助 ==================== */
 
     function escapeHtml(s) {
         if (typeof window.escapeHtmlAttr === 'function') return window.escapeHtmlAttr(s);
@@ -89,17 +95,14 @@ window.MP3GoogleDriveConfig = {
         return name;
     }
 
-    function pathKey(parts) {
-        return parts.join('/');
-    }
+    function pathKey(parts) { return parts.join('/'); }
 
-    // ==================== 弹窗辅助 ====================
+    /* ==================== 弹窗辅助 ==================== */
+
     function showPluginConfirm({ title, message, confirmText = '确定', type = 'confirm' }) {
         if (typeof window.showCustomModal === 'function') {
             return window.showCustomModal({
-                title, subtitle: '请确认操作',
-                message: escapeHtml(message),
-                type, confirmText
+                title, subtitle: '请确认操作', message: escapeHtml(message), type, confirmText
             });
         }
         return fallbackConfirm({ title, message, confirmText, type, needsCancel: true });
@@ -108,9 +111,7 @@ window.MP3GoogleDriveConfig = {
     function showPluginAlert({ title, message, type = 'info', confirmText = '知道了' }) {
         if (typeof window.showCustomModal === 'function') {
             return window.showCustomModal({
-                title, subtitle: '提示',
-                message: escapeHtml(message),
-                type, confirmText
+                title, subtitle: '提示', message: escapeHtml(message), type, confirmText
             });
         }
         return fallbackConfirm({ title, message, confirmText, type, needsCancel: false });
@@ -167,6 +168,8 @@ window.MP3GoogleDriveConfig = {
         });
     }
 
+    /* ==================== Client ID / Token ==================== */
+
     function getClientId() {
         try {
             const saved = localStorage.getItem(KEY_CLIENT_ID);
@@ -192,7 +195,8 @@ window.MP3GoogleDriveConfig = {
         return trimmed;
     }
 
-    // ==================== 路径配置 ====================
+    /* ==================== 路径配置 ==================== */
+
     function normalizePathParts(input) {
         if (Array.isArray(input)) {
             return input.map(s => String(s == null ? '' : s).trim()).filter(Boolean);
@@ -241,16 +245,9 @@ window.MP3GoogleDriveConfig = {
         try {
             const raw = localStorage.getItem(cacheKey);
             if (!raw) return null;
-            let obj;
-            try { obj = JSON.parse(raw); } catch (e) { obj = null; }
-            if (!obj || typeof obj !== 'object' || !obj.id) {
-                localStorage.removeItem(cacheKey);
-                return null;
-            }
-            if (obj.path !== expectedPath) {
-                localStorage.removeItem(cacheKey);
-                return null;
-            }
+            let obj; try { obj = JSON.parse(raw); } catch (e) { obj = null; }
+            if (!obj || typeof obj !== 'object' || !obj.id) { localStorage.removeItem(cacheKey); return null; }
+            if (obj.path !== expectedPath) { localStorage.removeItem(cacheKey); return null; }
             return obj.id;
         } catch (e) { return null; }
     }
@@ -303,40 +300,33 @@ window.MP3GoogleDriveConfig = {
                 state.authorized = true;
                 showAuthedUI();
                 setStatus('✅ 已授权 Google Drive', 'success');
-                syncDriveFilesToMainList().catch(() => {});
+                adapterHandle?.refresh().catch(() => {});
             }
         });
     }
 
     async function tryRestoreSession() {
         const clientId = getClientId();
-        if (!clientId) {
-            refreshUI();
-            return false;
-        }
+        if (!clientId) { refreshUI(); return false; }
         const cached = loadCachedToken();
         if (cached) {
             accessToken = cached;
             state.authorized = true;
             showAuthedUI();
             setStatus('✅ 已恢复之前的授权', 'success');
-            syncDriveFilesToMainList().catch(() => {});
+            adapterHandle?.refresh().catch(() => {});
             return true;
         }
         try {
             await ensureTokenClient();
             tokenClient.requestAccessToken({ prompt: '' });
-        } catch (e) {
-            console.warn('[GDrive] 静默刷新失败:', e);
-        }
+        } catch (e) { console.warn('[GDrive] 静默刷新失败:', e); }
         return false;
     }
 
     async function driveFetch(url, options = {}) {
         if (!accessToken) throw new Error('尚未授权');
-        const headers = Object.assign({}, options.headers, {
-            'Authorization': 'Bearer ' + accessToken
-        });
+        const headers = Object.assign({}, options.headers, { 'Authorization': 'Bearer ' + accessToken });
         const res = await fetch(url, Object.assign({}, options, { headers }));
         if (res.status === 401) {
             accessToken = null;
@@ -347,6 +337,8 @@ window.MP3GoogleDriveConfig = {
         }
         return res;
     }
+
+    /* ==================== Drive 文件夹/API 辅助 ==================== */
 
     async function ensureFolder(name, parentId) {
         const q = encodeURIComponent(
@@ -383,17 +375,13 @@ window.MP3GoogleDriveConfig = {
             }
         }
         let parentId = 'root';
-        for (const name of pathParts) {
-            parentId = await ensureFolder(name, parentId);
-        }
+        for (const name of pathParts) parentId = await ensureFolder(name, parentId);
         if (cacheKey) writeFolderCache(cacheKey, expectedPath, parentId);
         return parentId;
     }
 
     async function listSubFolders(parentId) {
-        const q = encodeURIComponent(
-            `'${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`
-        );
+        const q = encodeURIComponent(`'${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);
         const res = await driveFetch(
             `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&orderBy=name&pageSize=200`
         );
@@ -431,7 +419,8 @@ window.MP3GoogleDriveConfig = {
         return (await res.json()).id;
     }
 
-    // ==================== 文件夹浏览器 ====================
+    /* ==================== 文件夹浏览器 ==================== */
+
     function openFolderBrowser(initialPathParts) {
         return new Promise((resolve) => {
             const overlay = document.createElement('div');
@@ -555,6 +544,8 @@ window.MP3GoogleDriveConfig = {
         });
     }
 
+    /* ==================== 迁移辅助 ==================== */
+
     async function probeFolder(pathParts) {
         try {
             const resolved = await resolveFolderIdByPath(pathParts);
@@ -573,7 +564,6 @@ window.MP3GoogleDriveConfig = {
     async function migrateFilesBetween(oldPathParts, newPathParts) {
         const oldProbe = await probeFolder(oldPathParts);
         if (!oldProbe.exists || oldProbe.count === 0) return { ok: 0, fail: 0, skipped: true };
-
         const oldParent = oldProbe.id;
         const newParent = await ensureNestedFolder(newPathParts, KEY_FAV_FOLDER_ID);
         const q = encodeURIComponent(
@@ -582,7 +572,6 @@ window.MP3GoogleDriveConfig = {
         const listRes = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=1000`);
         const listData = await listRes.json();
         const files = listData.files || [];
-
         let ok = 0, fail = 0;
         for (const f of files) {
             try {
@@ -681,7 +670,7 @@ window.MP3GoogleDriveConfig = {
                 saveFavoritesFolderPath(newPath);
                 if (uiRoot) { const input = uiRoot.querySelector('.gdrive-path-input'); if (input) input.value = newPath; }
                 refreshPathDisplay();
-                await syncDriveFilesToMainList();
+                await adapterHandle?.refresh();
                 setStatus(`✅ 已切换到 ${newPath}`, 'success');
                 return;
             }
@@ -706,7 +695,7 @@ window.MP3GoogleDriveConfig = {
             } else {
                 setStatus(`已切换到 ${newPath}（旧文件保留在原目录）`, 'success');
             }
-            await syncDriveFilesToMainList();
+            await adapterHandle?.refresh();
         } catch (e) {
             setStatus('切换失败：' + e.message, 'error');
         } finally {
@@ -732,7 +721,7 @@ window.MP3GoogleDriveConfig = {
                 setStatus(`✅ 迁移完成：${result.ok} 个文件已移动到 ${pathKey(currentParts)}`, 'success');
                 try { localStorage.setItem(KEY_MIGRATED, '1'); } catch (e) {}
             } else setStatus(`迁移部分完成：成功 ${result.ok}，失败 ${result.fail}`, 'warn');
-            await syncDriveFilesToMainList();
+            await adapterHandle?.refresh();
         } catch (e) {
             setStatus('迁移失败：' + e.message, 'error');
         } finally {
@@ -747,129 +736,107 @@ window.MP3GoogleDriveConfig = {
         }
     }
 
-    async function syncDriveFilesToMainList() {
-        const ext = window.MP3AppExtension;
-        if (!ext) { setStatus('主应用未就绪', 'error'); return; }
-        try {
-            const folderPath = getFavoritesFolderPath();
-            setStatus(`正在加载 ${pathKey(folderPath)} 音乐列表…`);
-            const folderId = await ensureNestedFolder(folderPath, KEY_FAV_FOLDER_ID);
-            const q = encodeURIComponent(
-                `'${folderId}' in parents and trashed=false and (mimeType='audio/mpeg' or name contains '.mp3')`
-            );
-            const res = await driveFetch(
-                `https://www.googleapis.com/drive/v3/files?q=${q}` +
-                `&fields=files(id,name,size,modifiedTime)&pageSize=1000&orderBy=modifiedTime desc`
-            );
-            if (!res.ok) throw new Error('读取 Drive 列表失败');
-            const data = await res.json();
-            state.driveFiles = data.files || [];
-            const likedMap = ext.getLikedMap ? ext.getLikedMap() : {};
-            const dislikeMap = ext.getDislikedMap ? ext.getDislikedMap() : {};
-            const driveFiles = state.driveFiles.map(f => {
-                const key = `[Drive] ${f.name}`;
-                return {
-                    filename: f.name, displayName: f.name, relativePath: key,
-                    size: Number(f.size) || 0, category: CONFIG.driveCategoryName,
-                    isLiked: !!likedMap[key], isDisliked: !!dislikeMap[key], tags: ['gdrive'],
-                    _source: 'gdrive', _driveFileId: f.id
-                };
-            });
-            const localFiles = ext.allFiles.filter(f => f._source !== 'gdrive');
-            ext.allFiles = [...localFiles, ...driveFiles];
-            if (!ext.categories.includes(CONFIG.driveCategoryName)) {
-                ext.categories.push(CONFIG.driveCategoryName);
-                ext.saveCategories(ext.categories);
-            }
-            ext.renderAll();
-            setStatus(`✅ 已加载 ${driveFiles.length} 首（${pathKey(folderPath)}）`, 'success');
-        } catch (e) {
-            setStatus('加载 Drive 音乐失败：' + e.message, 'error');
-        }
-    }
+    /* ==================== Adapter 注册（核心差异逻辑） ==================== */
 
-    // ==================== 数据源处理器（含 delete） ====================
-    function registerDataSource() {
-        window.MP3DataSourceHandlers = window.MP3DataSourceHandlers || {};
-        window.MP3DataSourceHandlers['gdrive'] = {
-            reset() {
-                if (state.currentBlobUrl) {
-                    try { URL.revokeObjectURL(state.currentBlobUrl); } catch (e) {}
-                    state.currentBlobUrl = null;
-                }
+    function registerAdapter() {
+        adapterHandle = window.MP3RegisterSourceAdapter({
+            id: 'gdrive',
+            categoryName: CONFIG.driveCategoryName,
+            onStatusChange: setStatus,
+
+            // ① 列表：全量拉取当前目录的 mp3
+            list: async () => {
+                if (!state.authorized) throw new Error('请先授权 Google Drive');
+                const folderPath = getFavoritesFolderPath();
+                setStatus(`正在加载 ${pathKey(folderPath)} 音乐列表…`);
+                const folderId = await ensureNestedFolder(folderPath, KEY_FAV_FOLDER_ID);
+                const q = encodeURIComponent(
+                    `'${folderId}' in parents and trashed=false and (mimeType='audio/mpeg' or name contains '.mp3')`
+                );
+                const res = await driveFetch(
+                    `https://www.googleapis.com/drive/v3/files?q=${q}` +
+                    `&fields=files(id,name,size,modifiedTime)&pageSize=1000&orderBy=modifiedTime desc`
+                );
+                if (!res.ok) throw new Error('读取 Drive 列表失败');
+                const data = await res.json();
+                const files = (data.files || []).map(f => ({
+                    filename: f.name,
+                    displayName: f.name,
+                    relativePath: `[Drive] ${f.name}`,
+                    size: Number(f.size) || 0,
+                    category: CONFIG.driveCategoryName,
+                    tags: ['gdrive'],
+                    _driveFileId: f.id
+                }));
+                setStatus(`✅ 已加载 ${files.length} 首（${pathKey(folderPath)}）`, 'success');
+                return { files, total: files.length, totalPages: 1 };
             },
-            play: async (file) => {
-                const ext = window.MP3AppExtension;
-                if (!ext) return;
-                if (ext.currentPlayingFile === file.relativePath &&
-                    state.currentBlobUrl && ext.audioPlayer.src === state.currentBlobUrl) {
-                    if (ext.audioPlayer.paused) ext.audioPlayer.play(); else ext.audioPlayer.pause();
-                    ext.updatePlayButton();
-                    return;
-                }
-                try {
-                    setStatus('正在加载 Drive 音频…');
-                    const res = await driveFetch(`https://www.googleapis.com/drive/v3/files/${file._driveFileId}?alt=media`);
-                    if (!res.ok) throw new Error('下载失败');
-                    const blob = await res.blob();
-                    if (state.currentBlobUrl) { try { URL.revokeObjectURL(state.currentBlobUrl); } catch (e) {} }
-                    state.currentBlobUrl = URL.createObjectURL(blob);
-                    ext.audioPlayer.src = state.currentBlobUrl;
-                    await ext.audioPlayer.play();
-                    ext.currentPlayingFile = file.relativePath;
-                    document.getElementById('currentSongTitle').innerText = file.displayName;
-                    document.getElementById('currentSongCategory').innerText = file.category;
-                    if (typeof window.MP3SetPlayerSourceBadge === 'function') window.MP3SetPlayerSourceBadge(file);
-                    ext.updatePlayerLikeState();
-                    ext.updatePlayerDislikeState();
-                    ext.renderTable();
-                    ext.updatePlayButton();
-                    if (window.MP3AppExtension?.syncMediaSession) window.MP3AppExtension.syncMediaSession();
-                    setStatus('▶️ ' + file.displayName, 'success');
-                } catch (e) {
-                    setStatus('播放失败：' + e.message, 'error');
-                }
+
+            // ② 媒体：下载为 Blob 再播放（Drive 无直链流式接口）
+            resolveMedia: async (file) => {
+                if (!state.authorized) throw new Error('请先授权 Google Drive');
+                return {
+                    play: async (audioPlayer) => {
+                        setStatus('正在加载 Drive 音频…');
+                        const res = await driveFetch(
+                            `https://www.googleapis.com/drive/v3/files/${file._driveFileId}?alt=media`
+                        );
+                        if (!res.ok) throw new Error('下载失败 HTTP ' + res.status);
+                        const blob = await res.blob();
+                        if (state.currentBlobUrl) {
+                            try { URL.revokeObjectURL(state.currentBlobUrl); } catch (e) {}
+                        }
+                        state.currentBlobUrl = URL.createObjectURL(blob);
+                        audioPlayer.src = state.currentBlobUrl;
+                        await audioPlayer.play();
+                        setStatus('▶️ ' + file.displayName, 'success');
+                    }
+                };
             },
+
+            // ③ 删除：只描述"怎么删"，清理交给 Core
             delete: async (file) => {
                 if (!state.authorized) throw new Error('请先授权 Google Drive');
                 setStatus('正在从 Drive 删除：' + file.displayName + '…');
-
                 const res = await driveFetch(
                     `https://www.googleapis.com/drive/v3/files/${file._driveFileId}`,
                     { method: 'DELETE' }
                 );
                 if (!res.ok && res.status !== 204) {
                     const err = await res.json().catch(() => ({}));
-                    const msg = err.error ? err.error.message : ('删除失败 HTTP ' + res.status);
-                    setStatus('删除失败：' + msg, 'error');
-                    throw new Error(msg);
-                }
-
-                const ext = window.MP3AppExtension;
-                if (ext) {
-                    const wasPlaying = ext.currentPlayingFile === file.relativePath;
-                    if (wasPlaying) {
-                        try { ext.audioPlayer.pause(); } catch (e) {}
-                        ext.audioPlayer.removeAttribute('src');
-                        try { ext.audioPlayer.load(); } catch (e) {}
-                        ext.currentPlayingFile = null;
-                        const titleEl = document.getElementById('currentSongTitle');
-                        const catEl = document.getElementById('currentSongCategory');
-                        if (titleEl) titleEl.innerText = '尚未選擇播放歌曲';
-                        if (catEl) catEl.innerText = '就緒';
-                        if (typeof window.MP3SetPlayerSourceBadge === 'function') window.MP3SetPlayerSourceBadge(null);
-                        if (typeof window.updatePlayButton === 'function') window.updatePlayButton();
-                        if (typeof window.updatePlayerLikeState === 'function') window.updatePlayerLikeState();
-                        if (typeof window.updatePlayerDislikeState === 'function') window.updatePlayerDislikeState();
-                        if (typeof window.resetMediaSession === 'function') window.resetMediaSession();
-                    }
-                    ext.allFiles = ext.allFiles.filter(f => !(f._source === 'gdrive' && f._driveFileId === file._driveFileId));
-                    ext.renderAll();
+                    throw new Error(err.error ? err.error.message : ('删除失败 HTTP ' + res.status));
                 }
                 setStatus('✅ 已从 Drive 删除：' + file.displayName, 'success');
+            },
+
+            // ④ 切歌前：清理旧 Blob
+            reset: () => {
+                if (state.currentBlobUrl) {
+                    try { URL.revokeObjectURL(state.currentBlobUrl); } catch (e) {}
+                    state.currentBlobUrl = null;
+                }
+            },
+
+            // ⑤ 卸载：只清理本源特有的东西
+            onUnload: () => {
+                if (state.currentBlobUrl) {
+                    try { URL.revokeObjectURL(state.currentBlobUrl); } catch (e) {}
+                    state.currentBlobUrl = null;
+                }
+                state.authorized = false;
+                state.uploadingFavorites = false;
+                state.uploadingLocalFiles = false;
+                state.cancelLocalUpload = false;
+                state.migrating = false;
+                state.switching = false;
+                accessToken = null;
+                tokenClient = null;
+                if (uiRoot) { uiRoot.remove(); uiRoot = null; }
             }
-        };
+        });
     }
+
+    /* ==================== UI ==================== */
 
     function refreshPathDisplay() {
         if (!uiRoot) return;
@@ -897,6 +864,18 @@ window.MP3GoogleDriveConfig = {
             if (mainEl) mainEl.classList.remove('hidden');
             if (!state.authorized && authBtn) authBtn.classList.remove('hidden');
         }
+    }
+
+    function showAuthedUI() {
+        if (!uiRoot) return;
+        uiRoot.querySelector('.gdrive-auth').classList.add('hidden');
+        uiRoot.querySelector('.gdrive-actions').classList.remove('hidden');
+    }
+    function resetAuthUI() {
+        state.authorized = false;
+        if (!uiRoot) return;
+        uiRoot.querySelector('.gdrive-auth').classList.remove('hidden');
+        uiRoot.querySelector('.gdrive-actions').classList.add('hidden');
     }
 
     function injectUI() {
@@ -1035,7 +1014,9 @@ window.MP3GoogleDriveConfig = {
             } catch (e) { setStatus('授权失败：' + e.message, 'error'); }
         });
 
-        uiRoot.querySelector('.gdrive-sync').addEventListener('click', () => syncDriveFilesToMainList());
+        uiRoot.querySelector('.gdrive-sync').addEventListener('click', () => {
+            adapterHandle?.refresh().catch(() => {});
+        });
         uiRoot.querySelector('.gdrive-backup').addEventListener('click', () => backupToDrive());
         uiRoot.querySelector('.gdrive-restore').addEventListener('click', () => restoreFromDrive());
         uiRoot.querySelector('.gdrive-upload-favorites').addEventListener('click', () => uploadFavoritesToDrive());
@@ -1073,18 +1054,7 @@ window.MP3GoogleDriveConfig = {
         });
     }
 
-    function showAuthedUI() {
-        if (!uiRoot) return;
-        uiRoot.querySelector('.gdrive-auth').classList.add('hidden');
-        uiRoot.querySelector('.gdrive-actions').classList.remove('hidden');
-    }
-    function resetAuthUI() {
-        state.authorized = false;
-        state.driveFiles = [];
-        if (!uiRoot) return;
-        uiRoot.querySelector('.gdrive-auth').classList.remove('hidden');
-        uiRoot.querySelector('.gdrive-actions').classList.add('hidden');
-    }
+    /* ==================== 备份 / 恢复 / 上传 ==================== */
 
     function collectBackupData() {
         const payload = {};
@@ -1214,14 +1184,14 @@ window.MP3GoogleDriveConfig = {
     async function uploadFavoritesToDrive() {
         if (!state.authorized) { setStatus('请先授权。', 'warn'); return; }
         if (state.uploadingFavorites) { setStatus('已有上传任务…', 'warn'); return; }
-        const likedMap = typeof window.getLikedMap === 'function' ? window.getLikedMap() : {};
+        const ext = window.MP3AppExtension;
+        const likedMap = ext ? ext.getLikedMap() : {};
         const likedKeys = Object.keys(likedMap);
         if (likedKeys.length === 0) {
             await showPluginAlert({ title: '「我的最愛」为空', message: '请先在列表中为歌曲点击 ♥ 加入最愛。', type: 'info' });
             return;
         }
-        const dirInput = document.getElementById('dirInput');
-        const sourceDir = dirInput ? dirInput.value.trim() : (window.MP3GetCurrentDir ? window.MP3GetCurrentDir() : '');
+        const sourceDir = window.MP3GetCurrentDir ? window.MP3GetCurrentDir() : '';
         if (!sourceDir) {
             await showPluginAlert({ title: '未指定本地目录', message: '请先在「本地目錄」插件里添加并加载一个目录。', type: 'warning' });
             return;
@@ -1280,7 +1250,7 @@ window.MP3GoogleDriveConfig = {
                     type: 'error'
                 });
             }
-            syncDriveFilesToMainList().catch(() => {});
+            adapterHandle?.refresh().catch(() => {});
         } finally {
             state.uploadingFavorites = false;
             favBtn.disabled = false;
@@ -1365,7 +1335,7 @@ window.MP3GoogleDriveConfig = {
                     type: 'error'
                 });
             }
-            await syncDriveFilesToMainList();
+            await adapterHandle?.refresh();
         } catch (e) {
             setStatus('上传失败：' + e.message, 'error');
         } finally {
@@ -1376,54 +1346,21 @@ window.MP3GoogleDriveConfig = {
         }
     }
 
+    /* ==================== 插件导出 ==================== */
+
     window.MP3GoogleDrivePlugin = {
-        version: '3.8.0',
+        version: '4.0.0',
         async init() {
-            registerDataSource();
+            registerAdapter();
             injectUI();
             await new Promise(r => setTimeout(r, 50));
             refreshUI();
             await tryRestoreSession();
         },
         async unload() {
-            const ext = window.MP3AppExtension;
-            if (state.currentBlobUrl) {
-                try { URL.revokeObjectURL(state.currentBlobUrl); } catch (e) {}
-                state.currentBlobUrl = null;
-            }
-            if (ext) {
-                const playingKey = ext.currentPlayingFile;
-                const isPlayingGdrive = playingKey && String(playingKey).startsWith('[Drive]');
-                ext.allFiles = ext.allFiles.filter(f => f._source !== 'gdrive');
-                ext.categories = ext.categories.filter(c => c !== CONFIG.driveCategoryName);
-                ext.saveCategories(ext.categories);
-                if (isPlayingGdrive) {
-                    try { ext.audioPlayer.pause(); } catch (e) {}
-                    ext.audioPlayer.removeAttribute('src');
-                    try { ext.audioPlayer.load(); } catch (e) {}
-                    ext.currentPlayingFile = null;
-                    const titleEl = document.getElementById('currentSongTitle');
-                    const catEl = document.getElementById('currentSongCategory');
-                    if (titleEl) titleEl.innerText = '尚未選擇播放歌曲';
-                    if (catEl) catEl.innerText = '就緒';
-                    if (typeof window.MP3SetPlayerSourceBadge === 'function') window.MP3SetPlayerSourceBadge(null);
-                }
-                ext.updatePlayButton();
-                ext.updatePlayerLikeState();
-                ext.updatePlayerDislikeState();
-                ext.renderAll();
-            }
-            if (window.MP3DataSourceHandlers) delete window.MP3DataSourceHandlers['gdrive'];
-            if (uiRoot) { uiRoot.remove(); uiRoot = null; }
+            await adapterHandle?.unload();
+            adapterHandle = null;
             if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
-            state.authorized = false;
-            state.driveFiles = [];
-            state.uploadingFavorites = false;
-            state.uploadingLocalFiles = false;
-            state.cancelLocalUpload = false;
-            state.migrating = false;
-            state.switching = false;
-            accessToken = null; tokenClient = null;
         },
         getFavoritesPath: () => pathKey(getFavoritesFolderPath()),
         openFolderBrowser: (initialPath) => openFolderBrowser(initialPath || getFavoritesFolderPath())

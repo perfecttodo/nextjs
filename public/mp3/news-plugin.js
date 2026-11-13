@@ -1,14 +1,13 @@
 /**
- * News 播放列表插件 v2.11
+ * News 播放列表插件 v3.0（Core API 版）
  *
- * 相对 v2.10 的改动：
- *  1. 抽离 HLS 管道为独立模块 hls-player.js，在真正遇到 m3u8 时按需懒加载。
- *  2. 直链（mp3 等）不再触发 hls-player 加载，避免无谓的模块初始化和网络监听。
- *  3. 本插件保留：数据加载、分页、UI、loop 回绕、兜底切歌、MediaSession。
- *  4. HLS 管道内的弱网恢复、可见性恢复、暂停联动全部移交 hls-player 模块。
- *
- * 依赖（运行时按需）：
- *  - /plugins/news/hls-player.js  → window.MP3HlsPlayer
+ * 相对 v2.11 的改动：
+ *  - play 内的 UI 同步（标题/badge/renderTable/updatePlayButton/syncMediaSession）
+ *    全部删除，改由主程序 applyPlaybackUI 统一处理
+ *  - 加载使用 ext.decorateFiles / ext.ensureSourceCategory
+ *  - 卸载使用 ext.stopIfPlayingFrom / ext.removeSourceData
+ *  - HLS 播放统一用 ext.playMedia（不再自己 ensureHlsPlayer / destroy）
+ *  - 保留 news 特有：分页加载、loop 回绕、预取、兜底切歌、MediaSession 覆盖
  */
 (function () {
     'use strict';
@@ -19,28 +18,20 @@
         apiPageSize: 30
     };
 
-    // hls-player 模块脚本地址，按实际部署路径调整
-    const HLS_PLAYER_SRC = 'hls-player.js';
-
     let uiRoot = null;
     let lastMeta = null;
     let loadedPages = new Set();
     let loading = false;
 
-    // loop 回绕控制
     let newsLoopMedia = null;
     let newsLoopBound = false;
     let lastSeekTime = 0;
     let playedPastStart = false;
 
-    // 兜底 & 切歌 & MediaSession
     let bgEndTimer = null;
     let bgEndKey = null;
     let switchingNext = false;
     let mediaSessionSetup = false;
-
-    // hls-player 懒加载
-    let hlsPlayerLoadingPromise = null;
 
     // ==================== 音频会话 / Media Session ====================
     function setupAudioSession() {
@@ -63,39 +54,6 @@
         if (!('mediaSession' in navigator)) return;
         try { navigator.mediaSession.setActionHandler('nexttrack', null); } catch (e) {}
         mediaSessionSetup = false;
-    }
-
-    // ==================== HLS 模块懒加载 ====================
-    function ensureHlsPlayer() {
-        if (window.MP3HlsPlayer) return Promise.resolve(window.MP3HlsPlayer);
-        if (hlsPlayerLoadingPromise) return hlsPlayerLoadingPromise;
-
-        hlsPlayerLoadingPromise = new Promise((resolve, reject) => {
-            const existing = document.querySelector('script[data-mp3-hls-player]');
-            if (existing) {
-                existing.addEventListener('load', () => {
-                    if (window.MP3HlsPlayer) resolve(window.MP3HlsPlayer);
-                    else reject(new Error('hls-player 模块加载后未注册 API'));
-                });
-                existing.addEventListener('error', () => reject(new Error('hls-player 模块加载失败')));
-                return;
-            }
-            const s = document.createElement('script');
-            s.src = HLS_PLAYER_SRC;
-            s.dataset.mp3HlsPlayer = '1';
-            s.onload = () => {
-                if (window.MP3HlsPlayer) resolve(window.MP3HlsPlayer);
-                else reject(new Error('hls-player 模块加载后未注册 API'));
-            };
-            s.onerror = () => reject(new Error('hls-player 模块加载失败'));
-            document.head.appendChild(s);
-        }).catch(e => {
-            // 失败后允许下次重试
-            hlsPlayerLoadingPromise = null;
-            throw e;
-        });
-
-        return hlsPlayerLoadingPromise;
     }
 
     // ==================== UI 状态 ====================
@@ -121,8 +79,6 @@
             relativePath: key,
             size: 0,
             category: CONFIG.categoryName,
-            isLiked: false,
-            isDisliked: false,
             tags: item.group ? [item.group] : ['News'],
             _source: 'news',
             _newsItem: item
@@ -170,7 +126,6 @@
             const from = lastSeekTime;
             const to = media.currentTime || 0;
             if (isNaturalWrap(from, to, media.duration)) {
-                console.log('[News Loop] natural wrap:', from.toFixed(2), '→', to.toFixed(2));
                 try { media.pause(); } catch (e) {}
                 playNextNewsInBackground();
             } else if (to > 1) {
@@ -180,7 +135,6 @@
         };
 
         const onEnded = () => {
-            console.log('[News Loop] unexpected ended, switching');
             playNextNewsInBackground();
         };
 
@@ -189,7 +143,6 @@
                 const ext = window.MP3AppExtension;
                 const key = ext?.currentPlayingFile;
                 if (!key || !String(key).startsWith('[News]')) {
-                    console.log('[News Loop] detached (source changed)');
                     detachNewsLoopControl();
                 }
             }, 500);
@@ -225,7 +178,6 @@
 
     // ==================== 预取 & 兜底 ====================
     function prefetchNextNews() {
-        // 模块尚未加载时直接跳过；避免为了预取而主动加载 HLS 模块
         if (!window.MP3HlsPlayer) return;
         const next = getNextNewsFile();
         const url = next?._newsItem?.url;
@@ -254,11 +206,9 @@
             if (!ext || ext.currentPlayingFile !== bgEndKey) { stopBackgroundEndCheck(); return; }
             if (!media || media.paused) { lastT = media.currentTime || 0; stagnant = 0; return; }
             const t = media.currentTime || 0;
-            // 有足够缓冲但时间不走 → 可能是管道卡死（区别于弱网缓冲）
             if (Math.abs(t - lastT) < 0.1 && media.readyState >= 3) {
                 stagnant++;
                 if (stagnant >= 3) {
-                    console.log('[News Fallback] playback stalled, forcing switch');
                     try { media.pause(); } catch (e) {}
                     playNextNewsInBackground();
                     return;
@@ -286,7 +236,6 @@
                 .catch(e => console.warn('[News BG] next failed:', e))
                 .finally(() => { switchingNext = false; });
         } catch (e) {
-            console.warn('[News BG] next throw:', e);
             switchingNext = false;
         }
     }
@@ -304,20 +253,16 @@
             total: Number(data.total) || 0,
             totalPages: Number(data.totalPages) || 1
         };
-        const likedMap = ext.getLikedMap ? ext.getLikedMap() : {};
-        const dislikeMap = ext.getDislikedMap ? ext.getDislikedMap() : {};
-        const newFiles = (data.data || []).map(item => {
-            const entry = buildFileEntry(item);
-            entry.isLiked = !!likedMap[entry.relativePath];
-            entry.isDisliked = !!dislikeMap[entry.relativePath];
-            return entry;
+
+        // ★ 用 Core 统一装饰
+        const decorated = ext.decorateFiles((data.data || []).map(buildFileEntry), {
+            getKey: (f) => window.getFileKey(f),
+            sourceKey: 'news'
         });
-        ext.allFiles = [...ext.allFiles, ...newFiles];
+
+        ext.allFiles = [...ext.allFiles, ...decorated];
         loadedPages.add(page);
-        if (!ext.categories.includes(CONFIG.categoryName)) {
-            ext.categories.push(CONFIG.categoryName);
-            ext.saveCategories(ext.categories);
-        }
+        ext.ensureSourceCategory(CONFIG.categoryName);
         ext.renderAll();
     }
 
@@ -380,56 +325,36 @@
                 const ext = window.MP3AppExtension;
                 if (!ext) return;
                 const item = file._newsItem;
-                if (!item || !item.url) { setStatus('该条新闻缺少播放地址', 'error'); return; }
-                const url = item.url;
-                const isHls = /\.m3u8(\?|$)/i.test(url) || item.format === 'application/vnd.apple.mpegurl';
+                if (!item || !item.url) { setStatus('该条新闻缺少播放地址', 'error'); throw new Error('无播放地址'); }
 
                 setupAudioSession();
                 stopBackgroundEndCheck();
 
                 try {
                     setStatus('正在加载音频…');
+                    const isHls = /\.m3u8(\?|$)/i.test(item.url) || item.format === 'application/vnd.apple.mpegurl';
 
-                    if (isHls) {
-                        // ★ 只有 m3u8 才懒加载 HLS 模块
-                        const hls = await ensureHlsPlayer();
-                        await hls.play(ext.audioPlayer, url, {
-                            onStatus: setStatus,
-                            isActive: () => {
-                                const key = window.MP3AppExtension?.currentPlayingFile;
-                                return !!key && String(key).startsWith('[News]');
-                            }
-                        });
-                    } else {
-                        // 直链：防御性销毁可能残留的 HLS 管道（例如上一条是 HLS）
-                        if (window.MP3HlsPlayer) {
-                            try { window.MP3HlsPlayer.destroy(); } catch (e) {}
+                    // ★ 统一用 Core 的 playMedia，HLS / 直链判断自动化
+                    await ext.playMedia(item.url, {
+                        type: isHls ? 'hls' : 'auto',
+                        onStatus: setStatus,
+                        isActive: () => {
+                            const key = ext.currentPlayingFile;
+                            return !!key && String(key).startsWith('[News]');
                         }
-                        ext.audioPlayer.crossOrigin = null;
-                        ext.audioPlayer.src = url;
-                        await ext.audioPlayer.play().catch(e => { throw new Error('播放失败：' + e.message); });
-                    }
+                    });
 
-                    // —— 以下为公共后续，与 HLS / 直链无关 ——
-                    ext.currentPlayingFile = window.getFileKey(file);
-                    document.getElementById('currentSongTitle').innerText = file.displayName;
-                    document.getElementById('currentSongCategory').innerText = file.category;
-                    if (typeof window.MP3SetPlayerSourceBadge === 'function') window.MP3SetPlayerSourceBadge(file);
-                    ext.updatePlayerLikeState();
-                    ext.updatePlayerDislikeState();
-                    ext.renderTable();
-                    ext.updatePlayButton();
-                    if (window.MP3AppExtension?.syncMediaSession) window.MP3AppExtension.syncMediaSession();
-
+                    // ★ 以下为 news 特有逻辑（UI 同步由主程序 applyPlaybackUI 统一负责）
                     attachNewsLoopControl(ext.audioPlayer);
                     prefetchNextNews();
                     setupMediaSessionForNews();
-                    startFallbackCheck(ext.audioPlayer, ext.currentPlayingFile);
+                    startFallbackCheck(ext.audioPlayer, window.getFileKey(file));
 
                     setStatus('▶️ ' + file.displayName, 'success');
                 } catch (e) {
                     console.error('[News] 播放失败:', e);
                     setStatus('播放失败：' + e.message, 'error');
+                    throw e;
                 }
             }
         };
@@ -472,7 +397,7 @@
 
     // ==================== 插件导出 ====================
     window.MP3NewsPlugin = {
-        version: '2.11.0',
+        version: '3.0.0',
         async init() {
             setupAudioSession();
             registerDataSource();
@@ -487,32 +412,19 @@
             teardownMediaSession();
             switchingNext = false;
 
-            // HLS 模块由它自己管理网络/可见性监听，这里统一销毁
             if (window.MP3HlsPlayer) {
                 try { window.MP3HlsPlayer.destroy(); } catch (e) {}
                 try { window.MP3HlsPlayer.clearCache(); } catch (e) {}
             }
 
             if (ext) {
-                const playingKey = ext.currentPlayingFile;
-                const isPlayingNews = playingKey && String(playingKey).startsWith('[News]');
-                ext.allFiles = ext.allFiles.filter(f => f._source !== 'news');
-                ext.categories = ext.categories.filter(c => c !== CONFIG.categoryName);
-                ext.saveCategories(ext.categories);
-                if (isPlayingNews) {
-                    try { ext.audioPlayer.pause(); } catch (e) {}
-                    ext.audioPlayer.removeAttribute('src');
-                    try { ext.audioPlayer.load(); } catch (e) {}
-                    ext.currentPlayingFile = null;
-                    const titleEl = document.getElementById('currentSongTitle');
-                    const catEl = document.getElementById('currentSongCategory');
-                    if (titleEl) titleEl.innerText = '尚未選擇播放歌曲';
-                    if (catEl) catEl.innerText = '就緒';
-                    if (typeof window.MP3SetPlayerSourceBadge === 'function') window.MP3SetPlayerSourceBadge(null);
-                }
+                // ★ 用 Core 统一清理
+                ext.stopIfPlayingFrom('news');
+                ext.removeSourceData({
+                    sourceKeys: ['news'],
+                    categoryNames: [CONFIG.categoryName]
+                });
                 ext.updatePlayButton();
-                ext.updatePlayerLikeState();
-                ext.updatePlayerDislikeState();
                 ext.renderAll();
             }
             if (uiRoot) { uiRoot.remove(); uiRoot = null; }
@@ -521,7 +433,6 @@
             lastMeta = null;
             loadedPages.clear();
             loading = false;
-            // hlsPlayerLoadingPromise 保留，重复 init 可复用已加载的 script
         },
         maybeAutoLoad
     };
