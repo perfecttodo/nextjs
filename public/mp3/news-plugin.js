@@ -1,15 +1,17 @@
 /**
- * News 播放列表插件 v2.8
+ * News 播放列表插件 v2.10
  *
- * 相对 v2.7 的改动（iPhone 后台播放顺滑性）：
- *  1. 新增 setupAudioSession()：navigator.audioSession.type = 'playback'，
- *     让 iOS 把 HLS 播放识别为"媒体播放"，避免后台被当作网页音效掐断。
- *  2. 新增后台切歌守护：startBackgroundEndCheck / stopBackgroundEndCheck。
- *     在播放结束前约 0.6s 主动切到下一首（同步 pause → 换源 → play），
- *     避免音频"自然结束"导致 iOS 关闭音频会话、后台无法再 play。
- *  3. 新增 playNextNewsInBackground / getNextNewsFile：News 列表内循环切歌。
- *  4. 新增 Media Session nexttrack handler，锁屏"下一首"可触发切歌。
- *  5. 切歌期间若用户已切到非 News 文件，定时器自动停止，不影响其他数据源。
+ * 相对 v2.9 的改动（弱网下后台播放稳定性）：
+ *  1. 网络状态感知：offline → hls.stopLoad，online → hls.startLoad（hls.js 管道）。
+ *     原生 HLS 管道下浏览器自行管理，仅靠 waiting 守护兜底。
+ *  2. hls.js 缓冲策略放宽：maxBufferLength 30→60s，maxMaxBufferLength 120s，
+ *     fragLoadingMaxRetry 3→5，为弱网争取更多容错时间。
+ *  3. 弱网错误恢复：NETWORK_ERROR 且 navigator.onLine===false 时不立即判死，
+ *     延迟到 online 事件恢复，避免离线状态下的假性致命错误。
+ *  4. waiting 事件驱动的保活守护：仅在缓冲停滞时启动一个 30s 低频 setTimeout，
+ *     替代高频轮询，为弱网恢复留出窗口。
+ *  5. 弱网下前台恢复更宽容：offline 期间切回前台不强行 play，避免未就绪状态下
+ *     触发 iOS 的 NotAllowedError。
  */
 (function () {
     'use strict';
@@ -30,37 +32,164 @@
     let visibilityHandler = null;
     let wasPlayingBeforeHidden = false;
 
-    // ★ HLS 暂停/播放联动状态
+    // HLS 暂停/播放联动
     let hlsPauseBound = false;
     let hlsStoppedByPause = false;
     let hlsBoundMedia = null;
 
-    // ★ 后台切歌守护状态
+    // loop 回绕控制
+    let newsLoopMedia = null;
+    let newsLoopBound = false;
+    let lastSeekTime = 0;
+    let playedPastStart = false;
+
+    // 兜底 & 预取 & MediaSession
     let bgEndTimer = null;
     let bgEndKey = null;
     let switchingNext = false;
+    let mediaSessionSetup = false;
+    const preflightCache = new Map();
+
+    // ★ 弱网相关
+    let hlsStoppedByNetwork = false;
+    let waitingGuardMedia = null;
+    let waitingGuardTimer = null;
+    let networkOfflineHandler = null;
+    let networkOnlineHandler = null;
 
     // ==================== 音频会话 / Media Session ====================
     function setupAudioSession() {
         if (navigator.audioSession) {
-            try {
-                navigator.audioSession.type = 'playback';
-            } catch (e) { /* 静默失败 */ }
+            try { navigator.audioSession.type = 'playback'; } catch (e) {}
         }
     }
 
     function setupMediaSessionForNews() {
-        if (!('mediaSession' in navigator)) return;
+        if (mediaSessionSetup || !('mediaSession' in navigator)) return;
         try {
             navigator.mediaSession.setActionHandler('nexttrack', () => {
                 playNextNewsInBackground();
             });
+            mediaSessionSetup = true;
         } catch (e) {}
     }
 
     function teardownMediaSession() {
         if (!('mediaSession' in navigator)) return;
         try { navigator.mediaSession.setActionHandler('nexttrack', null); } catch (e) {}
+        mediaSessionSetup = false;
+    }
+
+    // ==================== 网络状态感知（hls.js 管道） ====================
+    function setupNetworkListeners() {
+        teardownNetworkListeners();
+
+        networkOfflineHandler = () => {
+            console.log('[News Network] offline');
+            if (hlsInstance) {
+                try {
+                    hlsInstance.stopLoad();
+                    hlsStoppedByNetwork = true;
+                    console.log('[News Network] hls.stopLoad (offline)');
+                } catch (e) {}
+            }
+        };
+
+        networkOnlineHandler = () => {
+            console.log('[News Network] online');
+            if (!hlsInstance) return;
+            // 若因 pause 停止加载，交给 play 事件恢复，不在此处干预
+            if (hlsStoppedByPause) return;
+            if (!hlsStoppedByNetwork) return;
+            try {
+                const media = hlsAttachedMedia;
+                const t = media && isFinite(media.currentTime) ? media.currentTime : -1;
+                hlsInstance.startLoad(t > 0 ? t - 1 : -1);
+                hlsStoppedByNetwork = false;
+                console.log('[News Network] hls.startLoad (online)', t);
+            } catch (e) {}
+        };
+
+        window.addEventListener('offline', networkOfflineHandler);
+        window.addEventListener('online', networkOnlineHandler);
+    }
+
+    function teardownNetworkListeners() {
+        if (networkOfflineHandler) {
+            window.removeEventListener('offline', networkOfflineHandler);
+            networkOfflineHandler = null;
+        }
+        if (networkOnlineHandler) {
+            window.removeEventListener('online', networkOnlineHandler);
+            networkOnlineHandler = null;
+        }
+    }
+
+    // ==================== 弱网 waiting 守护 ====================
+    function detachWeakNetworkGuard() {
+        if (waitingGuardTimer) {
+            clearTimeout(waitingGuardTimer);
+            waitingGuardTimer = null;
+        }
+        if (waitingGuardMedia) {
+            if (waitingGuardMedia._newsOnWaiting) waitingGuardMedia.removeEventListener('waiting', waitingGuardMedia._newsOnWaiting);
+            if (waitingGuardMedia._newsOnPlaying) waitingGuardMedia.removeEventListener('playing', waitingGuardMedia._newsOnPlaying);
+            waitingGuardMedia._newsOnWaiting = null;
+            waitingGuardMedia._newsOnPlaying = null;
+        }
+        waitingGuardMedia = null;
+    }
+
+    function attachWeakNetworkGuard(media) {
+        if (!media) return;
+        if (waitingGuardMedia === media && media._newsOnWaiting) return;
+        detachWeakNetworkGuard();
+        waitingGuardMedia = media;
+
+        const onWaiting = () => {
+            console.log('[News WeakNet] waiting');
+            if (waitingGuardTimer) clearTimeout(waitingGuardTimer);
+            // 30s 内仍未恢复才介入，给 hls.js 缓冲和重试留出窗口
+            waitingGuardTimer = setTimeout(() => {
+                waitingGuardTimer = null;
+                if (media.readyState >= 3) return; // 已恢复
+                // 若离线或用户已切换，不强行操作
+                const ext = window.MP3AppExtension;
+                const key = ext?.currentPlayingFile;
+                if (!key || !String(key).startsWith('[News]')) return;
+                if (!navigator.onLine) {
+                    console.log('[News WeakNet] still waiting, but offline — hold');
+                    return;
+                }
+                console.log('[News WeakNet] waiting too long, attempting recovery');
+                if (hlsInstance) {
+                    try {
+                        hlsInstance.startLoad(media.currentTime || -1);
+                        hlsStoppedByNetwork = false;
+                    } catch (e) {}
+                } else {
+                    // 原生 HLS 管道：轻量重建
+                    const t = media.currentTime || 0;
+                    try {
+                        media.load();
+                        media.currentTime = t;
+                        media.play().catch(() => {});
+                    } catch (e) {}
+                }
+            }, 30000);
+        };
+
+        const onPlaying = () => {
+            if (waitingGuardTimer) {
+                clearTimeout(waitingGuardTimer);
+                waitingGuardTimer = null;
+            }
+        };
+
+        media.addEventListener('waiting', onWaiting);
+        media.addEventListener('playing', onPlaying);
+        media._newsOnWaiting = onWaiting;
+        media._newsOnPlaying = onPlaying;
     }
 
     function setStatus(msg, tone) {
@@ -110,7 +239,7 @@
         };
     }
 
-    // ==================== 后台连续播放：切歌守护 ====================
+    // ==================== loop 回绕控制（主路径） ====================
     function getNextNewsFile() {
         const ext = window.MP3AppExtension;
         if (!ext) return null;
@@ -122,6 +251,99 @@
         return newsFiles[(idx + 1) % newsFiles.length];
     }
 
+    function isNaturalWrap(from, to, dur) {
+        if (!playedPastStart) return false;
+        if (!isFinite(dur) || dur < 5) return false;
+        return from > 3 && to < 1.5 && (from - to) > 2;
+    }
+
+    function attachNewsLoopControl(media) {
+        if (!media) return;
+        if (newsLoopBound && newsLoopMedia === media) {
+            media.loop = true;
+            return;
+        }
+        detachNewsLoopControl();
+        newsLoopMedia = media;
+        newsLoopBound = true;
+        media.loop = true;
+        playedPastStart = false;
+        lastSeekTime = media.currentTime || 0;
+
+        const onTimeUpdate = () => {
+            const t = media.currentTime || 0;
+            if (t > 1) playedPastStart = true;
+            lastSeekTime = t;
+        };
+
+        const onSeeking = () => {
+            const from = lastSeekTime;
+            const to = media.currentTime || 0;
+            if (isNaturalWrap(from, to, media.duration)) {
+                console.log('[News Loop] natural wrap:', from.toFixed(2), '→', to.toFixed(2));
+                try { media.pause(); } catch (e) {}
+                playNextNewsInBackground();
+            } else if (to > 1) {
+                playedPastStart = true;
+            }
+            lastSeekTime = to;
+        };
+
+        const onEnded = () => {
+            console.log('[News Loop] unexpected ended, switching');
+            playNextNewsInBackground();
+        };
+
+        const onEmptied = () => {
+            setTimeout(() => {
+                const ext = window.MP3AppExtension;
+                const key = ext?.currentPlayingFile;
+                if (!key || !String(key).startsWith('[News]')) {
+                    console.log('[News Loop] detached (source changed)');
+                    detachNewsLoopControl();
+                }
+            }, 500);
+        };
+
+        media.addEventListener('timeupdate', onTimeUpdate);
+        media.addEventListener('seeking', onSeeking);
+        media.addEventListener('ended', onEnded);
+        media.addEventListener('emptied', onEmptied);
+
+        media._newsOnTimeUpdate = onTimeUpdate;
+        media._newsOnSeeking = onSeeking;
+        media._newsOnEnded = onEnded;
+        media._newsOnEmptied = onEmptied;
+    }
+
+    function detachNewsLoopControl() {
+        if (newsLoopMedia) {
+            try { newsLoopMedia.loop = false; } catch (e) {}
+            if (newsLoopMedia._newsOnTimeUpdate) newsLoopMedia.removeEventListener('timeupdate', newsLoopMedia._newsOnTimeUpdate);
+            if (newsLoopMedia._newsOnSeeking) newsLoopMedia.removeEventListener('seeking', newsLoopMedia._newsOnSeeking);
+            if (newsLoopMedia._newsOnEnded) newsLoopMedia.removeEventListener('ended', newsLoopMedia._newsOnEnded);
+            if (newsLoopMedia._newsOnEmptied) newsLoopMedia.removeEventListener('emptied', newsLoopMedia._newsOnEmptied);
+            newsLoopMedia._newsOnTimeUpdate = null;
+            newsLoopMedia._newsOnSeeking = null;
+            newsLoopMedia._newsOnEnded = null;
+            newsLoopMedia._newsOnEmptied = null;
+        }
+        newsLoopMedia = null;
+        newsLoopBound = false;
+        playedPastStart = false;
+    }
+
+    // ==================== 预取 & 兜底 ====================
+    function prefetchNextNews() {
+        const next = getNextNewsFile();
+        const url = next?._newsItem?.url;
+        if (!url) return;
+        if (preflightCache.get(url) === true) return;
+        preflightM3u8(url)
+            .then(() => preflightCache.set(url, true))
+            .catch(() => preflightCache.set(url, false));
+    }
+
     function stopBackgroundEndCheck() {
         if (bgEndTimer) {
             clearInterval(bgEndTimer);
@@ -130,25 +352,32 @@
         bgEndKey = null;
     }
 
-    function startBackgroundEndCheck(media, fileKey) {
+    function startFallbackCheck(media, fileKey) {
         stopBackgroundEndCheck();
         if (!media || !fileKey) return;
         bgEndKey = fileKey;
+        let lastT = media.currentTime || 0;
+        let stagnant = 0;
         bgEndTimer = setInterval(() => {
             if (switchingNext) return;
             const ext = window.MP3AppExtension;
-            if (!ext) { stopBackgroundEndCheck(); return; }
-            // 用户已切到其他源/文件 → 停止守护
-            if (ext.currentPlayingFile !== bgEndKey) { stopBackgroundEndCheck(); return; }
-            if (!media || media.paused) return;
-            const dur = media.duration;
-            if (!isFinite(dur) || dur <= 0) return;
-            // 在自然结束前主动切歌，避免 iOS 关闭音频会话
-            if (media.currentTime >= dur - 0.6) {
-                stopBackgroundEndCheck();
-                playNextNewsInBackground();
+            if (!ext || ext.currentPlayingFile !== bgEndKey) { stopBackgroundEndCheck(); return; }
+            if (!media || media.paused) { lastT = media.currentTime || 0; stagnant = 0; return; }
+            const t = media.currentTime || 0;
+            // 有足够缓冲但时间不走 → 可能是管道卡死（区别于弱网缓冲）
+            if (Math.abs(t - lastT) < 0.1 && media.readyState >= 3) {
+                stagnant++;
+                if (stagnant >= 3) {
+                    console.log('[News Fallback] playback stalled, forcing switch');
+                    try { media.pause(); } catch (e) {}
+                    playNextNewsInBackground();
+                    return;
+                }
+            } else {
+                stagnant = 0;
             }
-        }, 400);
+            lastT = t;
+        }, 2000);
     }
 
     function playNextNewsInBackground() {
@@ -163,7 +392,6 @@
             return;
         }
         try {
-            // 直接同步调用，play() 会在同一事件循环内发起
             Promise.resolve(handler.play(nextFile))
                 .catch(e => console.warn('[News BG] next failed:', e))
                 .finally(() => { switchingNext = false; });
@@ -188,6 +416,7 @@
         try {
             hlsInstance.startLoad();
             hlsStoppedByPause = false;
+            hlsStoppedByNetwork = false;
             console.log('[News HLS] media play → hls.startLoad');
         } catch (e) {}
     }
@@ -203,7 +432,6 @@
         hlsPauseBound = true;
         media.addEventListener('pause', onHlsPause);
         media.addEventListener('play', onHlsPlay);
-        console.log('[News HLS] bind pause/play control');
     }
 
     function unbindHlsPauseControl() {
@@ -216,15 +444,38 @@
         hlsStoppedByPause = false;
     }
 
-    // ==================== 可见性处理 ====================
+    // ==================== 可见性处理 & 前台恢复 ====================
     function attachVisibilityHandler(media) {
         cleanupVisibilityHandler();
         visibilityHandler = () => {
-            if (!hlsInstance) return;
             if (document.visibilityState === 'hidden') {
                 wasPlayingBeforeHidden = !media.paused;
-            } else if (document.visibilityState === 'visible') {
-                if (wasPlayingBeforeHidden && media.paused) media.play().catch(() => {});
+                return;
+            }
+            // visible 分支
+            const offline = !navigator.onLine;
+            if (wasPlayingBeforeHidden && !media.paused && media.readyState < 2) {
+                if (offline) {
+                    console.log('[News] foreground recovery skipped (offline)');
+                    return;
+                }
+                console.log('[News] foreground recovery: pipe dead, reload');
+                const t = media.currentTime || 0;
+                try {
+                    media.pause();
+                    media.load();
+                    media.currentTime = t;
+                    media.play().catch(() => {});
+                } catch (e) {}
+            }
+            if (wasPlayingBeforeHidden && media.paused) {
+                if (offline) {
+                    console.log('[News] foreground resume skipped (offline)');
+                    return;
+                }
+                media.play().catch(() => {});
+            }
+            if (hlsInstance) {
                 try {
                     const buffered = media.buffered;
                     let hasBuffer = false;
@@ -232,8 +483,9 @@
                     for (let i = 0; i < buffered.length; i++) {
                         if (buffered.start(i) <= t && buffered.end(i) > t + 0.5) { hasBuffer = true; break; }
                     }
-                    if (!hasBuffer && hlsInstance) {
+                    if (!hasBuffer && !offline) {
                         hlsInstance.startLoad(t > 0 ? t - 1 : -1);
+                        hlsStoppedByNetwork = false;
                     }
                 } catch (e) {}
             }
@@ -360,20 +612,28 @@
 
         console.log('[News HLS] playHls:', url,
             'nativePreferred =', prefersNativeHls(media),
-            'hlsReuse =', !!(hlsInstance && hlsAttachedMedia === media));
+            'hlsReuse =', !!(hlsInstance && hlsAttachedMedia === media),
+            'preflightCached =', preflightCache.get(url),
+            'online =', navigator.onLine);
 
-        try {
-            setStatus('正在检查 m3u8…');
-            await preflightM3u8(url);
-        } catch (e) {
-            throw new Error('m3u8 预检失败：' + e.message);
+        if (!navigator.onLine) {
+            // 离线时仍允许尝试播放（原生管道可能命中本地缓存），但跳过预检
+            console.log('[News HLS] offline, skip preflight');
+        } else if (preflightCache.get(url) !== true) {
+            try {
+                setStatus('正在检查 m3u8…');
+                await preflightM3u8(url);
+                preflightCache.set(url, true);
+            } catch (e) {
+                preflightCache.set(url, false);
+                throw new Error('m3u8 预检失败：' + e.message);
+            }
         }
 
-        // ★ Safari / iOS：优先原生 HLS
         if (prefersNativeHls(media)) {
             try {
                 setStatus('正在使用原生 HLS…');
-                destroyHls(); // 清理旧 hls.js 实例，避免干扰原生管道
+                destroyHls();
                 await playWithNativeHls(media, url);
                 return;
             } catch (e) {
@@ -412,42 +672,33 @@
         return new Promise((resolve, reject) => {
             const hls = hlsInstance;
             let settled = false;
-
-            console.log('[News HLS] switchHlsSource:', url);
-
-            const finish = (fn, arg) => {
-                if (settled) return;
-                settled = true;
-                fn(arg);
-            };
+            const finish = (fn, arg) => { if (settled) return; settled = true; fn(arg); };
 
             const onParsed = () => {
-                console.log('[News HLS] switch MANIFEST_PARSED');
                 cleanup();
                 media.play()
                     .then(() => {
                         attachVisibilityHandler(media);
                         bindHlsPauseControl(media);
+                        attachWeakNetworkGuard(media);
                         finish(resolve);
                     })
-                    .catch(err => {
-                        console.warn('[News HLS] switch play rejected:', err);
-                        finish(reject, new Error('切换后播放失败: ' + err.message));
-                    });
+                    .catch(err => finish(reject, new Error('切换后播放失败: ' + err.message)));
             };
 
             const onError = (e, data) => {
                 if (!data.fatal) return;
-                console.warn('[News HLS] switch fatal error:', data.type, data.details);
+                // 弱网保护：离线时不立即判死
+                if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR && !navigator.onLine) {
+                    console.log('[News HLS] switch network error while offline, deferring');
+                    hlsStoppedByNetwork = true;
+                    return;
+                }
                 cleanup();
                 finish(reject, new Error(`${data.type}/${data.details}`));
             };
 
-            const onTimeout = () => {
-                console.warn('[News HLS] switch timeout');
-                cleanup();
-                finish(reject, new Error('切换 HLS 源超时'));
-            };
+            const onTimeout = () => { cleanup(); finish(reject, new Error('切换 HLS 源超时')); };
 
             const cleanup = () => {
                 clearTimeout(timeoutId);
@@ -461,15 +712,11 @@
 
             try {
                 try { hls.stopLoad(); } catch (e) {}
-
                 hls.loadSource(url);
-
-                if (hls.media !== media) {
-                    hls.attachMedia(media);
-                }
-
+                if (hls.media !== media) hls.attachMedia(media);
                 try { hls.startLoad(); } catch (e) {}
                 hlsStoppedByPause = false;
+                hlsStoppedByNetwork = false;
             } catch (e) {
                 cleanup();
                 finish(reject, e);
@@ -482,12 +729,20 @@
             const hls = new window.Hls({
                 lowLatencyMode: false,
                 enableWorker: true,
-                manifestLoadingMaxRetry: 2,
-                manifestLoadingRetryDelay: 800,
-                fragLoadingMaxRetry: 3,
-                fragLoadingRetryDelay: 800,
-                fragLoadingMaxRetryTimeout: 8000,
-                appendErrorMaxRetry: 2,
+
+                // ★ 弱网缓冲策略：为缓冲抖动预留空间
+                maxBufferLength: 60,
+                maxMaxBufferLength: 120,
+                backBufferLength: 30,
+
+                // ★ 弱网重试策略：放宽上限
+                manifestLoadingMaxRetry: 3,
+                manifestLoadingRetryDelay: 1000,
+                fragLoadingMaxRetry: 5,
+                fragLoadingRetryDelay: 1000,
+                fragLoadingMaxRetryTimeout: 15000,
+                appendErrorMaxRetry: 3,
+
                 startLevel: -1
             });
             hlsInstance = hls;
@@ -498,8 +753,8 @@
 
             const timeout = setTimeout(() => {
                 cleanup();
-                reject(new Error('HLS 加载超时（15s）'));
-            }, 15000);
+                reject(new Error('HLS 加载超时（20s）'));
+            }, 20000); // 弱网下稍微放宽
 
             const cleanup = () => {
                 clearTimeout(timeout);
@@ -508,20 +763,27 @@
             };
 
             const onParsed = () => {
-                console.log('[News HLS] create MANIFEST_PARSED');
                 cleanup();
                 media.play()
                     .then(() => {
                         attachVisibilityHandler(media);
                         bindHlsPauseControl(media);
+                        attachWeakNetworkGuard(media);
                         resolve();
                     })
                     .catch(err => reject(new Error('播放失败: ' + err.message)));
             };
 
             const onError = (e, data) => {
-                console.warn('[News HLS] create fatal error:', data.type, data.details);
                 if (!data.fatal) return;
+
+                // ★ 弱网保护：离线期间不判死，等待 online 事件恢复
+                if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR && !navigator.onLine) {
+                    console.log('[News HLS] network error while offline, deferring recovery');
+                    hlsStoppedByNetwork = true;
+                    return;
+                }
+
                 if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR && !recoveredNetwork) {
                     recoveredNetwork = true;
                     try { hls.startLoad(); return; } catch (er) {}
@@ -540,6 +802,7 @@
             hls.loadSource(url);
             hls.attachMedia(media);
             hlsStoppedByPause = false;
+            hlsStoppedByNetwork = false;
         });
     }
 
@@ -550,11 +813,16 @@
 
             media.crossOrigin = 'anonymous';
             media.src = url;
-            const timeout = setTimeout(() => { cleanup(); reject(new Error('原生 HLS 加载超时 15s')); }, 15000);
+            // 弱网下原生管道首次加载可能较慢，超时放宽到 20s
+            const timeout = setTimeout(() => { cleanup(); reject(new Error('原生 HLS 加载超时 20s')); }, 20000);
             const onLoaded = () => {
                 cleanup();
                 media.play()
-                    .then(() => { attachVisibilityHandler(media); resolve(); })
+                    .then(() => {
+                        attachVisibilityHandler(media);
+                        attachWeakNetworkGuard(media);
+                        resolve();
+                    })
                     .catch(err => reject(new Error('原生播放失败: ' + err.message)));
             };
             const onError = () => { cleanup(); reject(new Error('原生播放失败')); };
@@ -572,6 +840,8 @@
     function destroyHls() {
         cleanupVisibilityHandler();
         unbindHlsPauseControl();
+        detachWeakNetworkGuard();
+        hlsStoppedByNetwork = false;
         if (hlsInstance) {
             try { hlsInstance.destroy(); } catch (e) {}
             hlsInstance = null;
@@ -592,10 +862,7 @@
                 const url = item.url;
                 const isHls = /\.m3u8(\?|$)/i.test(url) || item.format === 'application/vnd.apple.mpegurl';
 
-                // ★ 声明音频会话为 playback
                 setupAudioSession();
-
-                // 切歌前先停掉上一个守护
                 stopBackgroundEndCheck();
 
                 try {
@@ -607,6 +874,7 @@
                         ext.audioPlayer.crossOrigin = null;
                         ext.audioPlayer.src = url;
                         await ext.audioPlayer.play().catch(e => { throw new Error('播放失败：' + e.message); });
+                        attachWeakNetworkGuard(ext.audioPlayer);
                     }
                     ext.currentPlayingFile = window.getFileKey(file);
                     document.getElementById('currentSongTitle').innerText = file.displayName;
@@ -618,9 +886,10 @@
                     ext.updatePlayButton();
                     if (window.MP3AppExtension?.syncMediaSession) window.MP3AppExtension.syncMediaSession();
 
-                    // ★ 启动后台切歌守护 + Media Session 下一首
+                    attachNewsLoopControl(ext.audioPlayer);
+                    prefetchNextNews();
                     setupMediaSessionForNews();
-                    startBackgroundEndCheck(ext.audioPlayer, ext.currentPlayingFile);
+                    startFallbackCheck(ext.audioPlayer, ext.currentPlayingFile);
 
                     setStatus('▶️ ' + file.displayName, 'success');
                 } catch (e) {
@@ -668,9 +937,10 @@
 
     // ==================== 插件导出 ====================
     window.MP3NewsPlugin = {
-        version: '2.8.0',
+        version: '2.10.0',
         async init() {
             setupAudioSession();
+            setupNetworkListeners();
             registerDataSource();
             injectUI();
             await refresh();
@@ -678,10 +948,11 @@
         async unload() {
             const ext = window.MP3AppExtension;
 
-            // ★ 停止后台切歌守护 + 清理 Media Session
             stopBackgroundEndCheck();
-            switchingNext = false;
+            detachNewsLoopControl();
             teardownMediaSession();
+            teardownNetworkListeners();
+            switchingNext = false;
 
             destroyHls();
             if (ext) {
@@ -709,6 +980,7 @@
             if (uiRoot) { uiRoot.remove(); uiRoot = null; }
             if (window.MP3DataSourceHandlers) delete window.MP3DataSourceHandlers['news'];
             if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
+            preflightCache.clear();
             lastMeta = null;
             loadedPages.clear();
             loading = false;
