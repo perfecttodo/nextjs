@@ -55,7 +55,6 @@
             const data = await res.json();
             if (!data.success) throw new Error(data.error || '加载失败');
 
-            // ★ 统一装饰（含旧 key 迁移）
             const decorated = ext.decorateFiles(data.files || [], {
                 getKey: (f) => {
                     const fileKey = f.relativePath || f.filename;
@@ -69,7 +68,6 @@
                 _dir: src.dir
             }));
 
-            // 先清后加
             ext.allFiles = ext.allFiles.filter(f => !(f._source === 'local' && f._sourceId === src.id));
             ext.allFiles = [...ext.allFiles, ...decorated];
 
@@ -111,7 +109,6 @@
         const ext = window.MP3AppExtension;
         if (!ext) return;
 
-        // 检查是否在播本源文件
         const playingKey = ext.currentPlayingFile;
         const wasPlayingFromThis = playingKey && ext.allFiles.find(
             f => window.getFileKey(f) === playingKey && f._sourceId === id
@@ -120,7 +117,6 @@
         ext.allFiles = ext.allFiles.filter(f => !(f._source === 'local' && f._sourceId === id));
 
         if (wasPlayingFromThis) {
-            // 只针对该 source 的播放器清理
             const ap = ext.audioPlayer;
             ap.pause();
             ap.removeAttribute('src');
@@ -326,7 +322,6 @@
 
             const ext = window.MP3AppExtension;
             if (ext) {
-                // 若正在播放本地源的歌，交给 Core 统一清理
                 ext.stopIfPlayingFrom('local');
                 ext.allFiles = ext.allFiles.filter(f => f._source !== 'local');
                 ext.renderAll();

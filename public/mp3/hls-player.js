@@ -35,7 +35,6 @@
     /**
      * 原生 HLS 判断：仅 iOS / iPadOS Safari 启用。
      * 桌面 Chrome / Edge / Firefox / Android Chrome 全部走 hls.js。
-     * 这是有意为之——只有 iOS 上 hls.js 的 MSE 不可用。
      */
     function canPlayNative(audioEl) {
         if (!isIOSDevice()) return false;
@@ -106,7 +105,6 @@
             audioEl.removeAttribute('src');
             audioEl.load();
         } catch (e) {}
-        // 等待下一次事件循环，让浏览器完成清理
         await new Promise(r => setTimeout(r, 50));
     }
 
@@ -121,7 +119,6 @@
         currentOnStatus = onStatus || (() => {});
         currentIsActive = isActive || (() => true);
 
-        // 清掉旧播放
         try { audioEl.pause(); } catch (e) {}
         try {
             audioEl.removeAttribute('src');
@@ -160,7 +157,6 @@
             if (!isStillActive(mySession)) return;
 
             if (!Hls || typeof Hls.isSupported !== 'function' || !Hls.isSupported()) {
-                // hls.js 不可用（极端情况，例如老版浏览器）
                 if (canPlayNative(audioEl)) {
                     try {
                         audioEl.removeAttribute('crossorigin');

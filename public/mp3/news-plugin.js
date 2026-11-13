@@ -1,13 +1,11 @@
 /**
- * News 播放列表插件 v3.0（Core API 版）
+ * News 播放列表插件 v3.1（Core API 版）
  *
- * 相对 v2.11 的改动：
- *  - play 内的 UI 同步（标题/badge/renderTable/updatePlayButton/syncMediaSession）
- *    全部删除，改由主程序 applyPlaybackUI 统一处理
- *  - 加载使用 ext.decorateFiles / ext.ensureSourceCategory
- *  - 卸载使用 ext.stopIfPlayingFrom / ext.removeSourceData
- *  - HLS 播放统一用 ext.playMedia（不再自己 ensureHlsPlayer / destroy）
- *  - 保留 news 特有：分页加载、loop 回绕、预取、兜底切歌、MediaSession 覆盖
+ * v3.1 相对 v3.0：
+ *  - ext.playMedia 不再接收 isActive（Core 与 hls-player 已用 session 机制处理切歌）
+ *
+ * 保留 news 特有：
+ *  - 分页加载、loop 回绕控制、预取、兜底切歌、MediaSession 覆盖
  */
 (function () {
     'use strict';
@@ -178,12 +176,18 @@
 
     // ==================== 预取 & 兜底 ====================
     function prefetchNextNews() {
-        if (!window.MP3HlsPlayer) return;
         const next = getNextNewsFile();
         const url = next?._newsItem?.url;
         if (!url) return;
         if (!/\.m3u8(\?|$)/i.test(url)) return;
-        window.MP3HlsPlayer.prefetch(url);
+
+        if (window.MP3HlsPlayer) {
+            window.MP3HlsPlayer.prefetch(url);
+        } else if (window.MP3AppExtension && window.MP3AppExtension.ensureHlsPlayerModule) {
+            window.MP3AppExtension.ensureHlsPlayerModule()
+                .then(() => window.MP3HlsPlayer?.prefetch(url))
+                .catch(() => {});
+        }
     }
 
     function stopBackgroundEndCheck() {
@@ -254,7 +258,6 @@
             totalPages: Number(data.totalPages) || 1
         };
 
-        // ★ 用 Core 统一装饰
         const decorated = ext.decorateFiles((data.data || []).map(buildFileEntry), {
             getKey: (f) => window.getFileKey(f),
             sourceKey: 'news'
@@ -334,17 +337,12 @@
                     setStatus('正在加载音频…');
                     const isHls = /\.m3u8(\?|$)/i.test(item.url) || item.format === 'application/vnd.apple.mpegurl';
 
-                    // ★ 统一用 Core 的 playMedia，HLS / 直链判断自动化
                     await ext.playMedia(item.url, {
                         type: isHls ? 'hls' : 'auto',
-                        onStatus: setStatus,
-                        isActive: () => {
-                            const key = ext.currentPlayingFile;
-                            return !!key && String(key).startsWith('[News]');
-                        }
+                        onStatus: setStatus
                     });
 
-                    // ★ 以下为 news 特有逻辑（UI 同步由主程序 applyPlaybackUI 统一负责）
+                    // news 特有逻辑
                     attachNewsLoopControl(ext.audioPlayer);
                     prefetchNextNews();
                     setupMediaSessionForNews();
@@ -397,7 +395,7 @@
 
     // ==================== 插件导出 ====================
     window.MP3NewsPlugin = {
-        version: '3.0.0',
+        version: '3.1.0',
         async init() {
             setupAudioSession();
             registerDataSource();
@@ -418,7 +416,6 @@
             }
 
             if (ext) {
-                // ★ 用 Core 统一清理
                 ext.stopIfPlayingFrom('news');
                 ext.removeSourceData({
                     sourceKeys: ['news'],

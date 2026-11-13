@@ -2,9 +2,7 @@
  * Google Drive 扩展插件 v4.0（Core Adapter 版）
  *
  * 相对 v3.8 的重构：
- *  - play / delete / unload 内的公共逻辑（UI 同步、播放器清理、
- *    allFiles 过滤、categories 过滤、MediaSession 复位）全部移除，
- *    改由 Core 统一负责。
+ *  - play / delete / unload 内的公共逻辑全部移除，改由 Core 统一负责。
  *  - 通过 MP3RegisterSourceAdapter 注册，只描述：
  *      list / resolveMedia / delete / reset / onUnload
  *  - 保持 v3.8 全部功能（OAuth、文件夹浏览、迁移、备份/恢复、上传、删除）
@@ -338,7 +336,7 @@ window.MP3GoogleDriveConfig = {
         return res;
     }
 
-    /* ==================== Drive 文件夹/API 辅助 ==================== */
+    /* ==================== Drive API 辅助 ==================== */
 
     async function ensureFolder(name, parentId) {
         const q = encodeURIComponent(
@@ -736,7 +734,7 @@ window.MP3GoogleDriveConfig = {
         }
     }
 
-    /* ==================== Adapter 注册（核心差异逻辑） ==================== */
+    /* ==================== Adapter 注册 ==================== */
 
     function registerAdapter() {
         adapterHandle = window.MP3RegisterSourceAdapter({
@@ -744,7 +742,6 @@ window.MP3GoogleDriveConfig = {
             categoryName: CONFIG.driveCategoryName,
             onStatusChange: setStatus,
 
-            // ① 列表：全量拉取当前目录的 mp3
             list: async () => {
                 if (!state.authorized) throw new Error('请先授权 Google Drive');
                 const folderPath = getFavoritesFolderPath();
@@ -772,7 +769,6 @@ window.MP3GoogleDriveConfig = {
                 return { files, total: files.length, totalPages: 1 };
             },
 
-            // ② 媒体：下载为 Blob 再播放（Drive 无直链流式接口）
             resolveMedia: async (file) => {
                 if (!state.authorized) throw new Error('请先授权 Google Drive');
                 return {
@@ -794,7 +790,6 @@ window.MP3GoogleDriveConfig = {
                 };
             },
 
-            // ③ 删除：只描述"怎么删"，清理交给 Core
             delete: async (file) => {
                 if (!state.authorized) throw new Error('请先授权 Google Drive');
                 setStatus('正在从 Drive 删除：' + file.displayName + '…');
@@ -809,7 +804,6 @@ window.MP3GoogleDriveConfig = {
                 setStatus('✅ 已从 Drive 删除：' + file.displayName, 'success');
             },
 
-            // ④ 切歌前：清理旧 Blob
             reset: () => {
                 if (state.currentBlobUrl) {
                     try { URL.revokeObjectURL(state.currentBlobUrl); } catch (e) {}
@@ -817,7 +811,6 @@ window.MP3GoogleDriveConfig = {
                 }
             },
 
-            // ⑤ 卸载：只清理本源特有的东西
             onUnload: () => {
                 if (state.currentBlobUrl) {
                     try { URL.revokeObjectURL(state.currentBlobUrl); } catch (e) {}
