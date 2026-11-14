@@ -22,7 +22,16 @@
             0%, 100% { background-color: rgba(49, 46, 129, 0.30); }
             50%      { background-color: rgba(49, 46, 129, 0.45); }
         }
-        tr.playing-row { animation: playingHighlight 1.6s ease-in-out 3; }
+        tr.playing-row {
+            background-color: rgba(79, 70, 229, 0.22);
+            box-shadow: inset 4px 0 0 0 #6366f1; /* 左側醒目的 Indigo 粗邊框 */
+            animation: playingPulse 2.2s ease-in-out infinite; /* 改為平滑且具呼吸感的持續循環動畫 */
+            transition: background-color 0.3s ease;
+        }
+
+        tr.playing-row:hover {
+            background-color: rgba(79, 70, 229, 0.35) !important;
+        }
         .sidebar-card { flex-shrink: 0; min-width: 0; }
         .sidebar-card-header { transition: background-color 0.15s ease; cursor: pointer; user-select: none; }
         .sidebar-card-header:hover { background-color: rgba(30, 41, 59, 0.45); }
