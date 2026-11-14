@@ -1099,7 +1099,6 @@
 
                 const wasCurrentSong = (currentPlayingFile === uniqueKey);
                 try {
-                    // ★ 乐观 UI 由 handler 内部驱动（Core Adapter 的 play 方法）
                     await window.MP3DataSourceHandlers[file._source].play(file);
                 } catch (e) {
                     console.error(`[DataSource] ${file._source}.play 失败:`, e);
@@ -1119,14 +1118,15 @@
                     return;
                 }
 
-                // handler 已经调过 applyPlaybackUI（乐观）+ 一次确认
-                // 这里再补一次滚动定位，让用户能立刻看到正在播放的行
+                // ★ 关键修复：无论 handler 内部是否调过 applyPlaybackUI，
+                //   主程序都统一设置一次，确保 currentPlayingFile / 标题 / 高亮都正确。
+                //   - Core Adapter 注册的源（Drive/filesystem）已在 handler 内部
+                //     调过一次（scroll:false）；这里再调一次（scroll:true）
+                //     只是补滚动，幂等无副作用。
+                //   - 手动注册的源（News）依赖这一行来设置 currentPlayingFile，
+                //     否则 playNext 会因 currentPlayingFile=null 而回到第一首。
                 const refreshed = allFiles.find(f => getFileKey(f) === uniqueKey) || file;
-                if (refreshed) {
-                    pendingScrollToCurrentSong = true;
-                    syncPageToFile(uniqueKey);
-                    renderTable();
-                }
+                applyPlaybackUI(uniqueKey, refreshed, displayName, { scroll: true });
                 return;
             }
 
@@ -1157,7 +1157,6 @@
             const uniqueKey = decodeURIComponent(encodedKey);
             if (!uniqueKey) return;
 
-            // ★ 正在加载这首歌：忽略重复点击（防止二次下载 / 状态错乱）
             if (playbackLoadingKey === uniqueKey) {
                 console.log('[togglePlaySong] 加载中，忽略点击');
                 return;
@@ -1269,7 +1268,6 @@
             const btn = document.getElementById('playPauseBtn');
             if (!btn) return;
 
-            // ★ 播放加载中：显示 spinner
             if (playbackLoadingKey && playbackLoadingKey === currentPlayingFile) {
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i>';
                 if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
@@ -1544,7 +1542,6 @@
                 try {
                     const uniqueKey = getFileKey(file);
                     const isPlaying = currentPlayingFile === uniqueKey;
-                    // ★ 加载态判断
                     const isLoadingRow = isPlaying && (playbackLoadingKey === uniqueKey);
 
                     const sizeMb = file.size ? ((file.size / (1024 * 1024)).toFixed(1) + ' MB') : '';
@@ -1576,7 +1573,6 @@
                         ? '此来源不支持删除'
                         : (isExternal ? `从 ${file._source} 删除` : '删除檔案');
 
-                    // ★ 播放按钮图标 / 文案
                     const playBtnTitle = isLoadingRow
                         ? '載入中…'
                         : ((isPlaying && !audioPlayer.paused) ? '暫停' : '播放');
@@ -1859,7 +1855,7 @@
                 if (typeof fn === 'function') return fn.apply(window, args);
             };
             return {
-                version: '3.0',
+                version: '3.1',
                 get allFiles() { return allFiles; },
                 set allFiles(v) { allFiles = v; },
                 get categories() { return categories; },
@@ -2136,7 +2132,6 @@
                 async play(file) {
                     const key = ext.getFileKey(file);
                     try {
-                        // ★ 乐观 UI：先更新界面 + 显示 spinner，再真正加载
                         if (typeof ext.setPlaybackLoading === 'function') ext.setPlaybackLoading(key);
                         try {
                             ext.applyPlaybackUI(key, file, file.displayName, { scroll: false });
@@ -2157,14 +2152,12 @@
                             throw new Error('resolveMedia 返回格式不正确');
                         }
 
-                        // ★ 加载成功：清除 spinner
                         if (typeof ext.setPlaybackLoading === 'function') ext.setPlaybackLoading(null);
                         try { ext.updatePlayButton(); } catch (e) {}
                         try { ext.renderTable(); } catch (e) {}
 
                         onPlaying?.(file);
                     } catch (e) {
-                        // ★ 加载失败：清除 spinner + 还原主按钮
                         if (typeof ext.setPlaybackLoading === 'function') ext.setPlaybackLoading(null);
                         try { ext.updatePlayButton(); } catch (err) {}
                         try { ext.renderTable(); } catch (err) {}
