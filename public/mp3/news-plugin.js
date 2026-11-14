@@ -1,10 +1,17 @@
 /**
- * News 播放列表插件 v4.0
+ * News 播放列表插件 v4.1（Player-agnostic）
  *
  * 职责边界：
- *  - 只负责数据加载（list）、分页、预取下一首、UI
- *  - 播放控制完全交给 hls-player + 主程序 onAudioEnded
- *  - 不再干预 loop、切歌、MediaSession、stalled 检测
+ *  - 通过 API 加载新闻列表（分页）
+ *  - 提供 resolveMedia：只返回 { url, mimeType }，由 core-player 决定怎么播
+ *  - UI 状态显示
+ *  - 下一首 prefetch（性能优化，无副作用）
+ *
+ * 不负责：
+ *  - HLS 播放 / loop / ended 检测   → hls-player + core-player
+ *  - 播放器实例 / audioPlayer.src   → core-player
+ *  - currentPlayingFile / UI 同步   → 主程序 applyPlaybackUI
+ *  - 数据清理（stopIfPlayingFrom）  → Core Adapter.unload
  */
 (function () {
     'use strict';
@@ -16,9 +23,11 @@
     };
 
     let uiRoot = null;
+    let adapterHandle = null;
     let lastMeta = null;
     let loadedPages = new Set();
     let loading = false;
+    let rawCache = []; // 原始新闻条目（未装饰），adapter.list() 返回此数组
 
     // ==================== UI 状态 ====================
     function setStatus(msg, tone) {
@@ -49,32 +58,8 @@
         };
     }
 
-    // ==================== 预取下一首 manifest（性能优化，无副作用） ====================
-    function prefetchNextNews() {
-        const ext = window.MP3AppExtension;
-        if (!ext) return;
-        const newsFiles = ext.allFiles.filter(f => f._source === 'news');
-        if (!newsFiles.length) return;
-        const curKey = ext.currentPlayingFile;
-        const idx = newsFiles.findIndex(f => window.getFileKey(f) === curKey);
-        const next = idx < 0 ? newsFiles[0] : newsFiles[(idx + 1) % newsFiles.length];
-        const url = next?._newsItem?.url;
-        if (!url) return;
-        if (!/\.m3u8(\?|$)/i.test(url)) return;
-
-        if (window.MP3HlsPlayer) {
-            window.MP3HlsPlayer.prefetch(url);
-        } else if (ext.ensureHlsPlayerModule) {
-            ext.ensureHlsPlayerModule()
-                .then(() => window.MP3HlsPlayer?.prefetch(url))
-                .catch(() => {});
-        }
-    }
-
-    // ==================== 数据加载 ====================
-    async function loadPage(page) {
-        const ext = window.MP3AppExtension;
-        if (!ext) throw new Error('MP3AppExtension 未就绪');
+    // ==================== 分页加载（只入 rawCache） ====================
+    async function fetchPageIntoCache(page) {
         const url = `${CONFIG.apiBase}?page=${page}&limit=${CONFIG.apiPageSize}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -84,29 +69,22 @@
             total: Number(data.total) || 0,
             totalPages: Number(data.totalPages) || 1
         };
-
-        const decorated = ext.decorateFiles((data.data || []).map(buildFileEntry), {
-            getKey: (f) => window.getFileKey(f),
-            sourceKey: 'news'
-        });
-
-        ext.allFiles = [...ext.allFiles, ...decorated];
+        const rawFiles = (data.data || []).map(buildFileEntry);
+        rawCache = rawCache.concat(rawFiles);
         loadedPages.add(page);
-        ext.ensureSourceCategory(CONFIG.categoryName);
-        ext.renderAll();
     }
 
     async function refresh() {
         if (loading) return;
-        const ext = window.MP3AppExtension;
-        if (!ext) return;
         loading = true;
         setStatus('正在加载…');
         try {
-            ext.allFiles = ext.allFiles.filter(f => f._source !== 'news');
+            rawCache = [];
             loadedPages.clear();
             lastMeta = null;
-            await loadPage(1);
+            await fetchPageIntoCache(1);
+            // 让 adapter 从 rawCache 拉数据并替换 allFiles 里的 news 项
+            await adapterHandle?.refresh();
             setStatus(`✅ 已加载 ${CONFIG.apiPageSize} 条`, 'success');
             renderCard();
         } catch (e) {
@@ -117,16 +95,15 @@
     }
 
     async function loadMore() {
-        if (loading) return;
-        const ext = window.MP3AppExtension;
-        if (!ext || !lastMeta) return;
+        if (loading || !lastMeta) return;
         const maxLoaded = loadedPages.size > 0 ? Math.max(...loadedPages) : 0;
         const nextPage = maxLoaded + 1;
         if (nextPage > lastMeta.totalPages) return;
         loading = true;
         setStatus(`正在加载第 ${nextPage} 页…`);
         try {
-            await loadPage(nextPage);
+            await fetchPageIntoCache(nextPage);
+            await adapterHandle?.refresh();
             setStatus(`✅ 已加载第 ${nextPage} 页`, 'success');
             renderCard();
         } catch (e) {
@@ -146,35 +123,72 @@
         if (newsCount < need && maxLoaded < lastMeta.totalPages) loadMore();
     }
 
-    // ==================== 数据源注册（极简：只提供 URL） ====================
-    function registerDataSource() {
-        window.MP3DataSourceHandlers = window.MP3DataSourceHandlers || {};
-        window.MP3DataSourceHandlers['news'] = {
-            reset() {},
-            play: async (file) => {
-                const ext = window.MP3AppExtension;
-                if (!ext) return;
+    // ==================== 下一首预取 ====================
+    function prefetchNextNews(currentFile) {
+        const ext = window.MP3AppExtension;
+        if (!ext) return;
+        const newsFiles = ext.allFiles.filter(f => f._source === 'news');
+        if (newsFiles.length < 1) return;
+
+        const curKey = ext.getFileKey(currentFile);
+        const idx = newsFiles.findIndex(f => ext.getFileKey(f) === curKey);
+        if (idx < 0) return;
+
+        const next = newsFiles[(idx + 1) % newsFiles.length];
+        const url = next?._newsItem?.url;
+        if (!url) return;
+        if (!/\.m3u8(\?|$)/i.test(url)) return;
+
+        // hls-player 已加载 → 直接预热 manifest
+        if (window.MP3HlsPlayer) {
+            window.MP3HlsPlayer.prefetch(url);
+            return;
+        }
+        // 尚未加载 → 让 core-player 触发加载后再预热
+        if (typeof ext.ensureHlsPlayer === 'function') {
+            ext.ensureHlsPlayer()
+                .then(() => window.MP3HlsPlayer?.prefetch(url))
+                .catch(() => {});
+        }
+    }
+
+    // ==================== Adapter 注册 ====================
+    function registerAdapter() {
+        adapterHandle = window.MP3RegisterSourceAdapter({
+            id: 'news',
+            categoryName: CONFIG.categoryName,
+            onStatusChange: setStatus,
+
+            // 返回原始数据（未装饰），adapter 内部会统一 decorate
+            list: async () => {
+                return { files: rawCache, total: rawCache.length, totalPages: 1 };
+            },
+
+            // 按 URL 后缀决定 mimeType，由 core-player 分发
+            resolveMedia: async (file) => {
                 const item = file._newsItem;
-                if (!item || !item.url) {
-                    setStatus('该条新闻缺少播放地址', 'error');
-                    throw new Error('无播放地址');
-                }
-
-                setStatus('正在加载音频…');
+                if (!item || !item.url) throw new Error('该条新闻缺少播放地址');
                 const isHls = /\.m3u8(\?|$)/i.test(item.url);
+                return {
+                    url: item.url,
+                    mimeType: isHls ? 'application/vnd.apple.mpegurl' : 'audio/mpeg'
+                };
+            },
 
-                // 完全交给 Core → hls-player 处理
-                await ext.playMedia(item.url, {
-                    type: isHls ? 'hls' : 'auto',
-                    onStatus: setStatus
-                });
-
-                // 播放开始后预取下一首（性能优化）
-                prefetchNextNews();
-
+            // 播放开始后的副作用：预取下一首
+            onPlaying: (file) => {
+                prefetchNextNews(file);
                 setStatus('▶️ ' + file.displayName, 'success');
+            },
+
+            // 卸载时的本源特有清理（核心清理由 adapter.unload 负责）
+            onUnload: () => {
+                rawCache = [];
+                loadedPages.clear();
+                lastMeta = null;
+                if (uiRoot) { uiRoot.remove(); uiRoot = null; }
             }
-        };
+        });
     }
 
     // ==================== UI ====================
@@ -214,38 +228,31 @@
 
     // ==================== 插件导出 ====================
     window.MP3NewsPlugin = {
-        version: '4.0.0',
+        version: '4.1.0',
         async init() {
-            registerDataSource();
+            registerAdapter();
             injectUI();
             await refresh();
         },
         async unload() {
-            const ext = window.MP3AppExtension;
-
-            // 清理 HLS 实例
+            // 清理 HLS 实例（若 news 正在播）
             if (window.MP3HlsPlayer) {
                 try { window.MP3HlsPlayer.destroy(); } catch (e) {}
                 try { window.MP3HlsPlayer.clearCache(); } catch (e) {}
             }
-
-            // 交给 Core 处理播放停止 + 数据清理
-            if (ext) {
-                ext.stopIfPlayingFrom('news');
-                ext.removeSourceData({
-                    sourceKeys: ['news'],
-                    categoryNames: [CONFIG.categoryName]
-                });
-                ext.renderAll();
+            // adapter.unload 内部会：
+            //   1) 调 onUnload() 清本源 cache / UI
+            //   2) stopIfPlayingFrom('news') → ext.destroyPlayer()
+            //   3) removeSourceData({ sourceKeys:['news'], categoryNames:[...] })
+            //   4) 删除 MP3DataSourceHandlers['news']
+            await adapterHandle?.unload();
+            adapterHandle = null;
+            if (typeof window.refreshSourceFilterOptions === 'function') {
+                window.refreshSourceFilterOptions();
             }
-
-            if (uiRoot) { uiRoot.remove(); uiRoot = null; }
-            if (window.MP3DataSourceHandlers) delete window.MP3DataSourceHandlers['news'];
-            if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
-            lastMeta = null;
-            loadedPages.clear();
-            loading = false;
         },
         maybeAutoLoad
     };
+
+    console.log('[MP3NewsPlugin] v4.1.0 ready（Player-agnostic）');
 })();

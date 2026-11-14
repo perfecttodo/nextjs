@@ -354,7 +354,6 @@
         let currentTagFilter = null;
         let currentPlayingFile = null;
 
-        // ★ 正在加载中的 key（用于显示 spinner / 阻止重复点击）
         let playbackLoadingKey = null;
         window.MP3SetPlaybackLoading = function (key) { playbackLoadingKey = key; };
         window.MP3GetPlaybackLoading = function () { return playbackLoadingKey; };
@@ -1118,28 +1117,31 @@
                     return;
                 }
 
-                // ★ 关键修复：无论 handler 内部是否调过 applyPlaybackUI，
-                //   主程序都统一设置一次，确保 currentPlayingFile / 标题 / 高亮都正确。
-                //   - Core Adapter 注册的源（Drive/filesystem）已在 handler 内部
-                //     调过一次（scroll:false）；这里再调一次（scroll:true）
-                //     只是补滚动，幂等无副作用。
-                //   - 手动注册的源（News）依赖这一行来设置 currentPlayingFile，
-                //     否则 playNext 会因 currentPlayingFile=null 而回到第一首。
                 const refreshed = allFiles.find(f => getFileKey(f) === uniqueKey) || file;
                 applyPlaybackUI(uniqueKey, refreshed, displayName, { scroll: true });
                 return;
             }
 
-            // 本地來源
+            // 本地來源：走统一的 playMedia 分发
             const { apiBase, dir, originalKey } = getFileRequestParams(file);
             const streamUrl = `${apiBase}?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(originalKey)}`;
 
             if (currentPlayingFile !== uniqueKey) {
-                if (window.MP3HlsPlayer) {
-                    try { window.MP3HlsPlayer.destroy(); } catch (e) {}
+                try {
+                    await window.MP3AppExtension.playMedia(
+                        { url: streamUrl, mimeType: 'audio/mpeg' },
+                        {
+                            onStatus: (msg, tone) => {
+                                if (tone === 'error') {
+                                    showCustomModal({ title: '播放失败', message: msg, type: 'error' });
+                                }
+                            }
+                        }
+                    );
+                } catch (e) {
+                    showCustomModal({ title: '播放失败', message: e.message, type: 'error' });
+                    return;
                 }
-                audioPlayer.src = streamUrl;
-                audioPlayer.play();
                 applyPlaybackUI(uniqueKey, file, displayName);
             } else {
                 if (audioPlayer.paused) audioPlayer.play(); else audioPlayer.pause();
@@ -1855,7 +1857,7 @@
                 if (typeof fn === 'function') return fn.apply(window, args);
             };
             return {
-                version: '3.1',
+                version: '3.2',
                 get allFiles() { return allFiles; },
                 set allFiles(v) { allFiles = v; },
                 get categories() { return categories; },
@@ -1923,7 +1925,16 @@
     </script>
 
     <!-- ============================================================
+         Core: Player Registry（按媒体类型分发播放器）
+         - 提供 ext.playMedia / registerPlayer / unregisterPlayer / destroyPlayer
+         - 内置 native（兜底）+ hls（.m3u8 / 对应 MIME）
+         ============================================================ -->
+    <script src="core-player.js"></script>
+
+    <!-- ============================================================
          Core: DataSource Adapter Factory & Shared Helpers
+         - 不再包含 playMedia / HLS 懒加载（已移交 core-player.js）
+         - 提供 ext.decorateFiles / stopIfPlayingFrom / removeSourceData / registerSourceAdapter
          ============================================================ -->
     <script>
     (function () {
@@ -1963,10 +1974,15 @@
             const file = ext.allFiles.find(f => ext.getFileKey(f) === cur);
             if (!file || !keys.includes(file._source)) return false;
 
-            const ap = ext.audioPlayer;
-            ap.pause();
-            ap.removeAttribute('src');
-            try { ap.load(); } catch (e) {}
+            // ★ 统一通过 destroyPlayer 清理当前 player 的内部状态
+            if (typeof ext.destroyPlayer === 'function') {
+                try { ext.destroyPlayer(); } catch (e) { console.warn('[stopIfPlayingFrom] destroyPlayer 失败:', e); }
+            } else {
+                const ap = ext.audioPlayer;
+                ap.pause();
+                ap.removeAttribute('src');
+                try { ap.load(); } catch (e) {}
+            }
             ext.currentPlayingFile = null;
 
             const t = document.getElementById('currentSongTitle');
@@ -2028,74 +2044,7 @@
             return out;
         };
 
-        /* ==================== HLS 播放器模块懒加载 ==================== */
-
-        const HLS_PLAYER_SRC = 'hls-player.js';
-        let hlsPlayerLoadingPromise = null;
-
-        function ensureHlsPlayerModule() {
-            if (window.MP3HlsPlayer) return Promise.resolve(window.MP3HlsPlayer);
-            if (hlsPlayerLoadingPromise) return hlsPlayerLoadingPromise;
-
-            hlsPlayerLoadingPromise = new Promise((resolve, reject) => {
-                const existing = document.querySelector('script[data-mp3-hls-player]');
-                if (existing) {
-                    if (window.MP3HlsPlayer) { resolve(window.MP3HlsPlayer); return; }
-                    existing.addEventListener('load', () => {
-                        if (window.MP3HlsPlayer) resolve(window.MP3HlsPlayer);
-                        else reject(new Error('hls-player 模块加载后未注册 API'));
-                    });
-                    existing.addEventListener('error', () => reject(new Error('hls-player 模块加载失败')));
-                    return;
-                }
-                const s = document.createElement('script');
-                s.src = HLS_PLAYER_SRC;
-                s.dataset.mp3HlsPlayer = '1';
-                s.onload = () => {
-                    if (window.MP3HlsPlayer) resolve(window.MP3HlsPlayer);
-                    else reject(new Error('hls-player 模块加载后未注册 API'));
-                };
-                s.onerror = () => reject(new Error('hls-player 模块加载失败（路径：' + HLS_PLAYER_SRC + '）'));
-                document.head.appendChild(s);
-            }).catch(e => {
-                hlsPlayerLoadingPromise = null;
-                throw e;
-            });
-
-            return hlsPlayerLoadingPromise;
-        }
-
-        /* ==================== 统一媒体装载 ==================== */
-
-        ext.playMedia = async function (url, { type = 'auto', onStatus } = {}) {
-            const ap = ext.audioPlayer;
-            const isHls = type === 'hls' || (type === 'auto' && /\.m3u8(\?|$)/i.test(url));
-
-            if (isHls) {
-                onStatus?.('正在加载 HLS 播放器…');
-                try {
-                    await ensureHlsPlayerModule();
-                } catch (e) {
-                    onStatus?.('HLS 播放器加载失败：' + e.message, 'error');
-                    throw new Error('HLS 播放器加载失败：' + e.message);
-                }
-                if (!window.MP3HlsPlayer) {
-                    throw new Error('HLS 播放器模块未注册（hls-player.js 未正确加载）');
-                }
-                await window.MP3HlsPlayer.play(ap, url, { onStatus });
-            } else {
-                if (window.MP3HlsPlayer) {
-                    try { window.MP3HlsPlayer.destroy(); } catch (e) {}
-                }
-                ap.removeAttribute('crossorigin');
-                ap.src = url;
-                await ap.play().catch(e => { throw new Error('播放失败：' + e.message); });
-            }
-        };
-
-        ext.ensureHlsPlayerModule = ensureHlsPlayerModule;
-
-        /* ==================== 核心：Source Adapter 工厂 ==================== */
+        /* ==================== Source Adapter 工厂 ==================== */
 
         window.MP3RegisterSourceAdapter = function ({
             id,
@@ -2138,18 +2087,19 @@
                         } catch (e) { console.warn('[adapter.play] applyPlaybackUI 失败:', e); }
                         try { ext.updatePlayButton(); } catch (e) {}
 
+                        // resolveMedia 可返回：
+                        //   1) { url, mimeType? }
+                        //   2) { blob, mimeType? }
+                        //   3) { play: (audioEl) => Promise }  ← 兼容
                         const media = await resolveMedia(file);
                         if (!media) throw new Error('resolveMedia 返回空');
 
                         if (typeof media.play === 'function') {
                             await media.play(ext.audioPlayer);
-                        } else if (media.url) {
-                            await ext.playMedia(media.url, {
-                                type: media.type || 'auto',
+                        } else {
+                            await ext.playMedia(media, {
                                 onStatus: (msg, tone) => onStatusChange?.(msg, tone)
                             });
-                        } else {
-                            throw new Error('resolveMedia 返回格式不正确');
                         }
 
                         if (typeof ext.setPlaybackLoading === 'function') ext.setPlaybackLoading(null);
@@ -2189,7 +2139,7 @@
             };
         };
 
-        console.log('[Core] DataSource Adapter v1.3 ready（乐观 UI + HLS 懒加载）');
+        console.log('[Core] DataSource Adapter v1.4 ready（player-agnostic）');
     })();
     </script>
 
