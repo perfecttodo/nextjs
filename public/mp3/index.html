@@ -2,8 +2,8 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">   
-     <title>MP3 智慧管理與分類系統</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MP3 智慧管理與分類系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -24,14 +24,11 @@
         }
         tr.playing-row {
             background-color: rgba(79, 70, 229, 0.22);
-            box-shadow: inset 4px 0 0 0 #6366f1; /* 左側醒目的 Indigo 粗邊框 */
-            animation: playingPulse 2.2s ease-in-out infinite; /* 改為平滑且具呼吸感的持續循環動畫 */
+            box-shadow: inset 4px 0 0 0 #6366f1;
+            animation: playingPulse 2.2s ease-in-out infinite;
             transition: background-color 0.3s ease;
         }
-
-        tr.playing-row:hover {
-            background-color: rgba(79, 70, 229, 0.35) !important;
-        }
+        tr.playing-row:hover { background-color: rgba(79, 70, 229, 0.35) !important; }
         .sidebar-card { flex-shrink: 0; min-width: 0; }
         .sidebar-card-header { transition: background-color 0.15s ease; cursor: pointer; user-select: none; }
         .sidebar-card-header:hover { background-color: rgba(30, 41, 59, 0.45); }
@@ -225,37 +222,28 @@
                 </div>
             </div>
 
-            <!-- 中間：播放控制 (已優化手機端佈局與點擊區域) -->
             <div class="flex flex-col items-center w-full md:w-2/4 space-y-2">
                 <div class="flex items-center justify-center w-full max-w-md mx-auto gap-3 md:gap-4">
                     <button onclick="togglePlayMode()" id="playModeBtn" class="p-2.5 md:p-2 text-slate-400 hover:text-indigo-400 hover:bg-slate-800/60 rounded-full transition flex items-center justify-center shrink-0" title="播放模式">
                         <svg class="w-5 h-5 md:w-4 md:h-4 fill-current" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
                     </button>
-                    
                     <button onclick="playPrev()" class="p-2.5 md:p-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-full transition flex items-center justify-center shrink-0" title="上一首 (P)">
                         <i class="fa-solid fa-backward-step text-lg md:text-base"></i>
                     </button>
-                    
                     <button onclick="togglePlay()" id="playPauseBtn" class="w-12 h-12 md:w-10 md:h-10 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 transition shrink-0" title="播放/暫停 (空白鍵)">
                         <i class="fa-solid fa-play text-sm md:text-xs"></i>
                     </button>
-                    
                     <button onclick="playNext()" class="p-2.5 md:p-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-full transition flex items-center justify-center shrink-0" title="下一首 (N)">
                         <i class="fa-solid fa-forward-step text-lg md:text-base"></i>
                     </button>
-                    
                     <button id="playerLikeBtn" onclick="togglePlayerLike()" class="p-2.5 md:p-2 text-slate-500 hover:text-rose-400 hover:bg-slate-800/60 rounded-full transition hidden shrink-0" title="加入最愛 (L)">
                         <i id="playerLikeIcon" class="fa-regular fa-heart text-lg md:text-base"></i>
                     </button>
-                    
                     <button id="playerDislikeBtn" onclick="togglePlayerDislike()" class="p-2.5 md:p-2 text-slate-500 hover:text-amber-400 hover:bg-slate-800/60 rounded-full transition hidden shrink-0" title="隱藏此歌曲">
                         <i id="playerDislikeIcon" class="fa-regular fa-thumbs-down text-lg md:text-base"></i>
                     </button>
-                    
                     <span id="modeText" class="hidden sm:inline-block text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded shrink-0">循環</span>
                 </div>
-                
-                <!-- 進度條 (已優化防擠壓) -->
                 <div class="w-full flex items-center gap-2 md:gap-3 text-xs text-slate-400 px-2 md:px-0">
                     <span id="currentTime" class="shrink-0 font-mono w-9 text-right">00:00</span>
                     <input type="range" id="progressBar" value="0" max="100" step="0.1" onchange="seekAudio(this.value)"
@@ -265,7 +253,6 @@
                 </div>
             </div>
 
-            <!-- 右側：音量 -->
             <div class="hidden md:flex items-center space-x-3 w-1/4 justify-end">
                 <i class="fa-solid fa-volume-high text-slate-400 text-sm"></i>
                 <input type="range" id="volumeControl" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this.value)"
@@ -929,17 +916,6 @@
             if (prevKey !== uniqueKey) emitEvent('songchange', file, prevKey);
         }
 
-        /**
-         * ★ 核心改动：点击 / playNext 的瞬间，立即
-         *   1) 设置 currentPlayingFile + playbackLoadingKey
-         *   2) 切页（如果目标不在当前页）
-         *   3) 高亮目标行 + 显示 spinner
-         *   4) 居中滚动
-         *   5) emit songchange
-         *
-         * 然后才走实际的加载流程（下载 / 播放）。这样用户点的那一刻就看到列表定位，
-         * 而不是等几秒下载完成后才跳转。
-         */
         async function playSong(encodedKey, encodedName) {
             const uniqueKey = decodeURIComponent(encodedKey);
             const file = allFiles.find(f => getFileKey(f) === uniqueKey);
@@ -951,12 +927,11 @@
 
             const prevKey = currentPlayingFile;
 
-            // ========== 立即反馈（同步执行，点击瞬间生效）==========
             if (prevKey !== uniqueKey) {
                 currentPlayingFile = uniqueKey;
-                playbackLoadingKey = uniqueKey;   // 立即显示 spinner
+                playbackLoadingKey = uniqueKey;
                 pendingScrollToCurrentSong = true;
-                syncPageToFile(uniqueKey);        // 切到目标页（如果不在当前页）
+                syncPageToFile(uniqueKey);
                 try { renderTable(); } catch (e) { console.warn('[playSong] renderTable:', e); }
                 try { updatePlayButton(); } catch (e) {}
                 try { updatePlayerLikeState(); } catch (e) {}
@@ -964,7 +939,6 @@
                 try { emitEvent('songchange', file, prevKey); } catch (e) {}
             }
 
-            // 通知各 handler 重置
             if (window.MP3DataSourceHandlers) {
                 Object.entries(window.MP3DataSourceHandlers).forEach(([k, h]) => {
                     if (h && typeof h.reset === 'function') { try { h.reset(); } catch (e) {} }
@@ -972,7 +946,6 @@
             }
 
             try {
-                // ========== 外部来源 ==========
                 if (file._source && file._source !== 'local'
                     && window.MP3DataSourceHandlers
                     && window.MP3DataSourceHandlers[file._source]) {
@@ -981,7 +954,6 @@
                     try {
                         await window.MP3DataSourceHandlers[file._source].play(file);
                     } catch (e) {
-                        // 加载失败 → 回滚到原状态
                         if (prevKey !== uniqueKey) {
                             currentPlayingFile = prevKey || null;
                             pendingScrollToCurrentSong = false;
@@ -1008,12 +980,10 @@
                     }
 
                     const refreshed = allFiles.find(f => getFileKey(f) === uniqueKey) || file;
-                    // scroll: false → 不重复滚动（入口已滚动）
                     applyPlaybackUI(uniqueKey, refreshed, displayName, { scroll: false });
                     return;
                 }
 
-                // ========== 本地来源 ==========
                 const { apiBase, dir, originalKey } = getFileRequestParams(file);
                 const streamUrl = `${apiBase}?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(originalKey)}`;
 
@@ -1030,7 +1000,6 @@
                             }
                         );
                     } catch (e) {
-                        // 加载失败 → 回滚
                         currentPlayingFile = prevKey || null;
                         pendingScrollToCurrentSong = false;
                         try { renderTable(); } catch (err) {}
@@ -1049,7 +1018,6 @@
                     updatePlayButton();
                 }
             } finally {
-                // 清除 loading 状态（若仍指向本次 key）
                 if (playbackLoadingKey === uniqueKey) {
                     playbackLoadingKey = null;
                     try { updatePlayButton(); } catch (e) {}
@@ -1327,9 +1295,6 @@
         function goToPage(p) { currentPage = p; pendingScrollToCurrentSong = false; updateUrlParams(); renderTable(); }
         function changePageSize(sz) { pageSize = parseInt(sz); currentPage = 1; pendingScrollToCurrentSong = false; updateUrlParams(); renderTable(); }
 
-        /**
-         * 居中滚动：使用原生 scrollIntoView + sticky header 补偿
-         */
         function scrollToCurrentSongInTable(retries = 20) {
             if (!currentPlayingFile) return;
             const container = document.getElementById('tableContainer');
@@ -1341,7 +1306,6 @@
                 return;
             }
 
-            // 原生居中
             try {
                 row.scrollIntoView({ block: 'center', behavior: 'auto', inline: 'nearest' });
             } catch (e) {
@@ -1351,7 +1315,6 @@
                 container.scrollTop += (rr.top - cr.top) + rr.height / 2 - cr.height / 2;
             }
 
-            // sticky header 补偿
             requestAnimationFrame(() => {
                 if (!row.isConnected) return;
                 const rowStill = document.getElementById(rowId);
@@ -1880,7 +1843,6 @@
                     const key = ext.getFileKey(file);
                     try {
                         if (typeof ext.setPlaybackLoading === 'function') ext.setPlaybackLoading(key);
-                        // scroll:false → 主程序入口已经滚动过了，这里不重复滚动
                         try { ext.applyPlaybackUI(key, file, file.displayName, { scroll: false }); }
                         catch (e) { console.warn('[adapter.play] applyPlaybackUI 失败:', e); }
                         try { ext.updatePlayButton(); } catch (e) {}
@@ -1991,273 +1953,8 @@
         };
     </script>
 
-    <script>
-    (function() {
-        'use strict';
-        const REGISTRY = {
-            local: { id: 'local', name: '本地目錄', description: '支援多個 API 端點與多個目錄',
-                icon: 'fa-solid fa-folder-open', iconClass: 'text-slate-400',
-                scriptSrc: 'local-plugin.js', globalVar: 'MP3LocalPlugin', autoEnable: true, dataSourceKeys: [] },
-            multiUser: { id: 'multiUser', name: '多用戶', description: '每個用戶獨立的 Like 記憶',
-                icon: 'fa-solid fa-user-shield', iconClass: 'text-indigo-400',
-                scriptSrc: 'multi-user-plugin.js', globalVar: 'MP3MultiUserPlugin', autoEnable: true, dataSourceKeys: [] },
-            autoPlay: { id: 'autoPlay', name: '自动播放', description: '定时自动切换下一首',
-                icon: 'fa-solid fa-bolt', iconClass: 'text-amber-400',
-                scriptSrc: 'autoplay-plugin.js', globalVar: 'MP3AutoPlayPlugin', autoEnable: true, dataSourceKeys: [] },
-            copyFav: { id: 'copyFav', name: '複製我的最愛', description: '把「我的最愛」複製到指定本地目錄',
-                icon: 'fa-solid fa-copy', iconClass: 'text-rose-400',
-                scriptSrc: 'copy-favorites-plugin.js', globalVar: 'MP3CopyFavoritesPlugin', dataSourceKeys: [] },
-            news: { id: 'news', name: 'News 播放列表', description: '通過 /api/mp3/news 加載新聞音頻（m3u8）',
-                icon: 'fa-solid fa-newspaper', iconClass: 'text-amber-400',
-                scriptSrc: 'news-plugin.js', globalVar: 'MP3NewsPlugin', dataSourceKeys: ['news'] },
-            gdrive: { id: 'gdrive', name: 'Google Drive 音樂', description: '從 Drive 的 music/fav 加載音樂',
-                icon: 'fa-brands fa-google-drive', iconClass: 'text-emerald-400',
-                scriptSrc: 'google-drive-plugin.js', globalVar: 'MP3GoogleDrivePlugin', dataSourceKeys: ['gdrive'] },
-            filesystem: { id: 'filesystem', name: '本地檔案（瀏覽器）', description: '直接讀取本機目錄，無需 API（Chrome / Edge）',
-                icon: 'fa-solid fa-folder-tree', iconClass: 'text-cyan-400',
-                scriptSrc: 'filesystem-plugin.js', globalVar: 'MP3FileSystemPlugin', dataSourceKeys: ['filesystem'] },
-            videoPlayer: { id: 'videoPlayer', name: '视频渲染', description: '检测到视频轨道时显示悬浮小窗，支持全屏/画中画',
-                icon: 'fa-solid fa-tv', iconClass: 'text-purple-400',
-                scriptSrc: 'video-player-plugin.js', globalVar: 'MP3VideoPlayerPlugin', autoEnable: true, dataSourceKeys: [] },
-                urlMedia: { id: 'urlMedia', name: 'URL 媒體', description: '貼上 URL 加入媒體庫（音訊/影片/串流）',
-    icon: 'fa-solid fa-link', iconClass: 'text-fuchsia-400',
-    scriptSrc: 'url-media-plugin.js', globalVar: 'MP3UrlMediaPlugin', autoEnable: true, dataSourceKeys: ['urlmedia'] },
-    share: { id: 'share', name: '分享與接受分享', description: '多選媒體、問題保護、URL 分享與接收',
-    icon: 'fa-solid fa-share-nodes', iconClass: 'text-sky-400',
-    scriptSrc: 'share-plugin.js', globalVar: 'MP3SharePlugin', autoEnable: true, dataSourceKeys: [] },
-        };
-
-        const STORAGE_KEY = 'mp3_enabled_dynamic_plugins';
-        const enabled = new Set();
-        const storedRaw = localStorage.getItem(STORAGE_KEY);
-        if (storedRaw === null) {
-            Object.values(REGISTRY).forEach(meta => { if (meta.autoEnable) enabled.add(meta.id); });
-            try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...enabled])); } catch (e) {}
-        } else {
-            try {
-                const parsed = JSON.parse(storedRaw);
-                if (Array.isArray(parsed)) parsed.forEach(id => { if (REGISTRY[id]) enabled.add(id); });
-            } catch (e) {}
-        }
-
-        const loadedPlugins = {};
-        const loadingPlugins = {};
-        const loadedScripts = new Set();
-        let uiRoot = null;
-
-        function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...enabled])); } catch(e) {} }
-        function withTimeout(promise, ms, msg) {
-            return Promise.race([
-                Promise.resolve(promise),
-                new Promise((_, reject) => setTimeout(() => reject(new Error(msg || `操作超时（${ms}ms）`)), ms))
-            ]);
-        }
-        function getBodyContainer(id) { return uiRoot ? uiRoot.querySelector(`.plugin-body[data-plugin-id="${id}"]`) : null; }
-        function cleanupDataSources(meta) {
-            if (!window.MP3DataSourceHandlers) return;
-            const keys = Array.isArray(meta.dataSourceKeys) ? meta.dataSourceKeys : [meta.id];
-            keys.forEach(k => { try { delete window.MP3DataSourceHandlers[k]; } catch (e) {} });
-        }
-
-        async function rollbackPlugin(id, meta, plugin) {
-            console.warn(`[PluginManager] 回滚插件 ${id}…`);
-            if (plugin && typeof plugin.unload === 'function') {
-                try { await withTimeout(plugin.unload(), 4000, 'unload 超时'); }
-                catch (e) { console.warn(`[PluginManager] ${id}.unload 异常:`, e); }
-            }
-            const bodyEl = getBodyContainer(id);
-            if (bodyEl) bodyEl.innerHTML = '';
-            cleanupDataSources(meta);
-            try { delete window[meta.globalVar]; } catch (e) {}
-            const ext = window.MP3AppExtension;
-            if (ext && Array.isArray(ext.allFiles)) {
-                const sourceKeys = Array.isArray(meta.dataSourceKeys) ? meta.dataSourceKeys : [];
-                if (sourceKeys.length > 0) {
-                    try {
-                        ext.allFiles = ext.allFiles.filter(f => !sourceKeys.includes(f._source));
-                        if (typeof window.renderTable === 'function') window.renderTable();
-                    } catch (e) { console.warn('[PluginManager] 清理 allFiles 失败:', e); }
-                }
-            }
-            enabled.delete(id);
-            persist();
-        }
-
-        function loadScriptOnce(src) {
-            if (loadedScripts.has(src)) return Promise.resolve();
-            return new Promise((resolve, reject) => {
-                const s = document.createElement('script');
-                s.src = src;
-                s.dataset.pluginSrc = src;
-                s.onload = () => { loadedScripts.add(src); resolve(); };
-                s.onerror = () => reject(new Error('无法加载插件脚本：' + src));
-                document.head.appendChild(s);
-            });
-        }
-
-        async function enablePlugin(id) {
-            const meta = REGISTRY[id];
-            if (!meta) throw new Error('未知插件：' + id);
-            if (loadedPlugins[id]) return loadedPlugins[id];
-            if (loadingPlugins[id]) return loadingPlugins[id];
-
-            const task = (async () => {
-                let plugin = null;
-                try {
-                    await withTimeout(loadScriptOnce(meta.scriptSrc), 10000, '加载脚本超时');
-                    plugin = window[meta.globalVar];
-                    if (!plugin) throw new Error(`插件未暴露全局变量：${meta.globalVar}`);
-                    if (typeof plugin.init !== 'function') throw new Error(`插件版本 ${plugin.version || '未知'} 缺少 init() 方法`);
-                    await withTimeout(plugin.init(), 15000, 'init 超时');
-                    loadedPlugins[id] = plugin;
-                    enabled.add(id);
-                    persist();
-                    return plugin;
-                } catch (err) {
-                    console.error(`[PluginManager] 插件「${meta.name}」启用失败:`, err);
-                    await rollbackPlugin(id, meta, plugin || window[meta.globalVar]);
-                    throw err;
-                }
-            })();
-
-            loadingPlugins[id] = task;
-            try { return await task; }
-            finally { delete loadingPlugins[id]; }
-        }
-
-        async function disablePlugin(id) {
-            const meta = REGISTRY[id];
-            const plugin = loadedPlugins[id];
-            if (plugin && typeof plugin.unload === 'function') {
-                try { await withTimeout(plugin.unload(), 5000, 'unload 超时'); }
-                catch (e) { console.warn(`[PluginManager] ${id}.unload 异常:`, e); }
-            }
-            delete loadedPlugins[id];
-            enabled.delete(id);
-            persist();
-            const bodyEl = getBodyContainer(id);
-            if (bodyEl) bodyEl.innerHTML = '';
-            cleanupDataSources(meta);
-        }
-
-        function injectUI() {
-            const slot = document.getElementById('pluginSlot');
-            if (!slot) { setTimeout(injectUI, 200); return; }
-            if (uiRoot) return;
-
-            uiRoot = document.createElement('div');
-            uiRoot.id = 'pluginManagerCard';
-            uiRoot.className = 'sidebar-card bg-slate-900/80 border border-slate-800 rounded-2xl shadow-xl overflow-hidden';
-            uiRoot.dataset.collapseKey = 'plugins';
-
-            const itemsHtml = Object.values(REGISTRY).map(meta => `
-                <div class="plugin-item py-2 border-b border-slate-800/60 last:border-none">
-                    <div class="flex items-center justify-between gap-2">
-                        <div class="flex items-center gap-2 min-w-0">
-                            <i class="${meta.icon} ${meta.iconClass || 'text-indigo-400'} text-sm shrink-0"></i>
-                            <div class="min-w-0">
-                                <div class="text-xs text-slate-200 font-medium truncate">${escapeHtmlAttr(meta.name)}</div>
-                                <div class="text-[10px] text-slate-500 truncate plugin-desc">${escapeHtmlAttr(meta.description)}</div>
-                            </div>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
-                            <input type="checkbox" class="plugin-toggle sr-only peer" data-plugin-id="${meta.id}" ${enabled.has(meta.id) ? 'checked' : ''}>
-                            <div class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:bg-indigo-600 transition"></div>
-                            <span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition peer-checked:translate-x-4"></span>
-                        </label>
-                    </div>
-                    <div class="plugin-body mt-2" data-plugin-id="${meta.id}"></div>
-                </div>
-            `).join('');
-
-            uiRoot.innerHTML = `
-                <button type="button" class="sidebar-card-header w-full flex items-center justify-between gap-2 px-4 py-3 text-left" onclick="toggleSidebarCard('plugins')" aria-expanded="true">
-                    <span class="flex items-center gap-2 min-w-0">
-                        <i class="fa-solid fa-puzzle-piece text-indigo-400 text-xs"></i>
-                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider truncate">插件中心</span>
-                    </span>
-                    <span class="flex items-center gap-2 shrink-0">
-                        <span class="text-[10px] text-slate-600">按需加載</span>
-                        <i class="fa-solid fa-chevron-down sidebar-card-chevron text-slate-500 text-[10px]"></i>
-                    </span>
-                </button>
-                <div class="sidebar-card-body">
-                    <div class="inner px-4">${itemsHtml}</div>
-                </div>
-            `;
-            slot.appendChild(uiRoot);
-
-            if (typeof window.MP3SetupSidebarCards === 'function') {
-                try { window.MP3SetupSidebarCards(); } catch (e) {}
-            }
-
-            uiRoot.querySelectorAll('.plugin-toggle').forEach(toggle => {
-                toggle.addEventListener('change', async (e) => {
-                    const id = e.target.dataset.pluginId;
-                    const on = e.target.checked;
-                    const meta = REGISTRY[id];
-                    const itemEl = e.target.closest('.plugin-item');
-                    const descEl = itemEl ? itemEl.querySelector('.plugin-desc') : null;
-                    const origDesc = meta.description;
-
-                    try {
-                        if (on) await enablePlugin(id);
-                        else await disablePlugin(id);
-                        if (descEl) descEl.textContent = origDesc;
-                    } catch (err) {
-                        e.target.checked = !on;
-                        if (descEl) {
-                            descEl.textContent = '⚠️ ' + (err.message || '启用失败');
-                            descEl.classList.add('text-rose-400');
-                            setTimeout(() => { descEl.textContent = origDesc; descEl.classList.remove('text-rose-400'); }, 5000);
-                        }
-                    }
-
-                    try {
-                        if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
-                        if (typeof window.renderTable === 'function') window.renderTable();
-                    } catch (e) { console.warn('[PluginManager] 刷新失败:', e); }
-                });
-            });
-        }
-
-        async function restoreAll() {
-            const order = Object.keys(REGISTRY).sort((a, b) => {
-                const rank = id => id === 'multiUser' ? 0 : id === 'local' ? 1 : 2;
-                return rank(a) - rank(b);
-            });
-            if (enabled.has('multiUser')) {
-                try { await enablePlugin('multiUser'); }
-                catch (e) { console.error('[PluginManager] multiUser 恢复失败:', e); }
-            }
-            const rest = order.filter(id => id !== 'multiUser' && enabled.has(id));
-            const results = await Promise.allSettled(rest.map(id => enablePlugin(id)));
-            results.forEach((r, i) => {
-                if (r.status === 'rejected') console.error(`[PluginManager] ${rest[i]} 恢复失败:`, r.reason);
-            });
-            persist();
-        }
-
-        window.MP3PluginManager = {
-            REGISTRY,
-            enable: enablePlugin,
-            disable: disablePlugin,
-            isEnabled: (id) => enabled.has(id),
-            isLoaded: (id) => !!loadedPlugins[id],
-            getBodyContainer
-        };
-
-        window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(async () => {
-                injectUI();
-                await restoreAll();
-                if (typeof window.refreshSourceFilterOptions === 'function') {
-                    try { window.refreshSourceFilterOptions(); } catch (e) {}
-                }
-            }, 400);
-        });
-    })();
-    </script>
+<!-- 插件中心：所有插件腳本位於 ./plugins/ -->
+<script src="plugins/plugin-center.js"></script>
 
 </body>
 </html>
