@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MP3 智慧管理與分類系統</title>
+    <title>影音雲端管理</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="brand.js"></script>
     <style>
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -53,11 +54,11 @@
                 <i class="fa-solid fa-bars text-base"></i>
             </button>
             <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/35 shrink-0">
-                <i class="fa-solid fa-headphones-simple text-lg"></i>
+                <i class="fa-solid fa-photo-film text-lg"></i>
             </div>
             <div class="min-w-0">
-                <h1 class="text-base md:text-lg font-bold tracking-wide truncate">MP3 雲端管理</h1>
-                <p class="text-[11px] text-slate-400 hidden sm:block truncate">即時串流、分類與標籤管理</p>
+                <h1 data-brand="name" class="text-base md:text-lg font-bold tracking-wide truncate">影音雲端管理</h1>
+                <p data-brand="tagline" class="text-[11px] text-slate-400 hidden sm:block truncate">影音串流・分類・標籤・分享</p>
             </div>
         </div>
     </header>
@@ -153,7 +154,7 @@
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
                             <i class="fa-solid fa-magnifying-glass text-xs"></i>
                         </span>
-                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜尋歌名或目錄..."
+                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜尋媒體或目錄..."
                             class="w-full bg-slate-800/80 border border-slate-700 text-sm rounded-xl pl-9 pr-3 py-1.5 focus:outline-none focus:border-indigo-500 text-slate-200">
                     </div>
 
@@ -185,7 +186,7 @@
                     <table class="w-full text-left border-collapse table-fixed">
                         <thead class="sticky top-0 bg-slate-950/90 backdrop-blur z-10 hidden md:table-header-group">
                             <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
-                                <th class="py-3 px-4 md:px-6 w-auto">來源 / 歌名與路徑</th>
+                                <th class="py-3 px-4 md:px-6 w-auto">來源 / 名稱與路徑</th>
                                 <th class="py-3 px-3 md:px-4 w-44">分類 / 標籤</th>
                                 <th class="py-3 px-3 md:px-4 w-20 hidden lg:table-cell">大小</th>
                                 <th class="py-3 px-4 md:px-6 text-right w-24">操作</th>
@@ -216,7 +217,7 @@
                 <div class="overflow-hidden flex-1 min-w-0">
                     <div class="flex items-center gap-1.5">
                         <span id="currentSongSourceBadge" class="hidden"></span>
-                        <div id="currentSongTitle" class="text-xs md:text-sm font-medium truncate text-slate-200">尚未選擇播放歌曲</div>
+                        <div id="currentSongTitle" class="text-xs md:text-sm font-medium truncate text-slate-200">尚未選擇播放媒體</div>
                     </div>
                     <div id="currentSongCategory" class="text-xs text-indigo-400">就緒</div>
                 </div>
@@ -227,19 +228,19 @@
                     <button onclick="togglePlayMode()" id="playModeBtn" class="p-2.5 md:p-2 text-slate-400 hover:text-indigo-400 hover:bg-slate-800/60 rounded-full transition flex items-center justify-center shrink-0" title="播放模式">
                         <svg class="w-5 h-5 md:w-4 md:h-4 fill-current" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
                     </button>
-                    <button onclick="playPrev()" class="p-2.5 md:p-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-full transition flex items-center justify-center shrink-0" title="上一首 (P)">
+                    <button onclick="playPrev()" class="p-2.5 md:p-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-full transition flex items-center justify-center shrink-0" title="上一個 (P)">
                         <i class="fa-solid fa-backward-step text-lg md:text-base"></i>
                     </button>
                     <button onclick="togglePlay()" id="playPauseBtn" class="w-12 h-12 md:w-10 md:h-10 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 transition shrink-0" title="播放/暫停 (空白鍵)">
                         <i class="fa-solid fa-play text-sm md:text-xs"></i>
                     </button>
-                    <button onclick="playNext()" class="p-2.5 md:p-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-full transition flex items-center justify-center shrink-0" title="下一首 (N)">
+                    <button onclick="playNext()" class="p-2.5 md:p-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-full transition flex items-center justify-center shrink-0" title="下一個 (N)">
                         <i class="fa-solid fa-forward-step text-lg md:text-base"></i>
                     </button>
                     <button id="playerLikeBtn" onclick="togglePlayerLike()" class="p-2.5 md:p-2 text-slate-500 hover:text-rose-400 hover:bg-slate-800/60 rounded-full transition hidden shrink-0" title="加入最愛 (L)">
                         <i id="playerLikeIcon" class="fa-regular fa-heart text-lg md:text-base"></i>
                     </button>
-                    <button id="playerDislikeBtn" onclick="togglePlayerDislike()" class="p-2.5 md:p-2 text-slate-500 hover:text-amber-400 hover:bg-slate-800/60 rounded-full transition hidden shrink-0" title="隱藏此歌曲">
+                    <button id="playerDislikeBtn" onclick="togglePlayerDislike()" class="p-2.5 md:p-2 text-slate-500 hover:text-amber-400 hover:bg-slate-800/60 rounded-full transition hidden shrink-0" title="隱藏此媒體">
                         <i id="playerDislikeIcon" class="fa-regular fa-thumbs-down text-lg md:text-base"></i>
                     </button>
                     <span id="modeText" class="hidden sm:inline-block text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded shrink-0">循環</span>
@@ -431,8 +432,8 @@
         function getDislikedMap() { try { return JSON.parse(localStorage.getItem('mp3_disliked_map') || '{}'); } catch (e) { return {}; } }
         function saveDislikedMap(map) { localStorage.setItem('mp3_disliked_map', JSON.stringify(map)); }
 
-        const APP_TITLE = 'MP3 智慧管理與分類系統';
-        const APP_ARTIST_FALLBACK = 'MP3 雲端管理';
+        const APP_TITLE = (window.MediaBrand && window.MediaBrand.fullTitle) || '影音雲端管理';
+        const APP_ARTIST_FALLBACK = (window.MediaBrand && window.MediaBrand.artistFallback) || '影音雲端管理';
         const ARTWORK_URL = 'https://cdn-icons-png.flaticon.com/512/3388/3388823.png';
         let wasPlayingBeforeHidden = false;
 
@@ -444,10 +445,11 @@
         function getSourceArtist(file) {
             if (!file) return APP_ARTIST_FALLBACK;
             switch (file._source) {
-                case 'local': return '本地音樂';
+                case 'local': return '本地媒體';
                 case 'gdrive': return 'Google Drive';
                 case 'news': return 'News';
                 case 'filesystem': return '本機檔案';
+                case 'urlmedia': return '連結媒體';
                 case 'pan123': return '123 云盘';
                 case 'onedrive': return 'OneDrive';
                 default: return APP_ARTIST_FALLBACK;
@@ -663,7 +665,7 @@
         async function deleteCategory(encodedCat) {
             const catName = safeDecodeURI(encodedCat);
             if (catName === '未分類' || catName === '全部' || catName === '我的最愛') return;
-            const confirmed = await showCustomModal({ title: '刪除分類', message: `確定要刪除分類「${catName}」嗎？\n原先屬於此分類的歌曲將自動歸為「未分類」。`, type: 'danger', confirmText: '確認刪除' });
+            const confirmed = await showCustomModal({ title: '刪除分類', message: `確定要刪除分類「${catName}」嗎？\n原先屬於此分類的媒體將自動歸為「未分類」。`, type: 'danger', confirmText: '確認刪除' });
             if (!confirmed) return;
             allFiles.forEach(f => { if (f.category === catName) f.category = '未分類'; });
             categories = categories.filter(c => c !== catName);
@@ -705,7 +707,7 @@
                 `;
             });
             container.innerHTML = html;
-            document.getElementById('count-badge').innerText = `${validFilesCount} 首`;
+            document.getElementById('count-badge').innerText = `${validFilesCount} 筆`;
             updateMobileFilterBadge();
         }
 
@@ -759,7 +761,7 @@
             const tagsMap = getTagsMap();
             const currentTags = tagsMap[uniqueKey] || [];
             const inputTags = await showCustomModal({
-                title: '管理歌曲標籤', subtitle: displayName,
+                title: '管理媒體標籤', subtitle: displayName,
                 message: '請輸入標籤（多個標籤請用半形逗號 , 隔開）：',
                 type: 'confirm', isPrompt: true, defaultValue: currentTags.join(', '), confirmText: '儲存標籤'
             });
@@ -772,7 +774,7 @@
         }
 
         function manageTagsPrompt() {
-            showCustomModal({ title: '標籤管理提示', message: '點擊每首歌右側的「+標籤」按鈕可為該曲目新增或修改標籤，點擊左側標籤即可過濾歌曲。', type: 'info' });
+            showCustomModal({ title: '標籤管理提示', message: '點擊每個媒體右側的「+標籤」按鈕可新增或修改標籤，點擊左側標籤即可過濾。', type: 'info' });
         }
 
         function getFilteredFiles() {
@@ -870,7 +872,7 @@
                 btn.title = '取消隱藏';
             } else {
                 icon.className = 'fa-regular fa-thumbs-down text-slate-500 hover:text-amber-400';
-                btn.title = '隱藏此歌曲';
+                btn.title = '隱藏此媒體';
             }
         }
 
@@ -964,8 +966,8 @@
                         }
                         console.error(`[DataSource] ${file._source}.play 失败:`, e);
                         showCustomModal({
-                            title: '播放失败',
-                            message: `「${file._source}」插件无法播放该文件：\n${e.message || '未知错误'}`,
+                            title: '播放失敗',
+                            message: `「${file._source}」插件無法播放該媒體：\n${e.message || '未知錯誤'}`,
                             type: 'error'
                         });
                         return;
@@ -994,7 +996,7 @@
                             {
                                 onStatus: (msg, tone) => {
                                     if (tone === 'error') {
-                                        showCustomModal({ title: '播放失败', message: msg, type: 'error' });
+                                        showCustomModal({ title: '播放失敗', message: msg, type: 'error' });
                                     }
                                 }
                             }
@@ -1006,7 +1008,7 @@
                         try { updatePlayButton(); } catch (err) {}
                         try { updatePlayerLikeState(); } catch (err) {}
                         try { updatePlayerDislikeState(); } catch (err) {}
-                        showCustomModal({ title: '播放失败', message: e.message, type: 'error' });
+                        showCustomModal({ title: '播放失敗', message: e.message, type: 'error' });
                         return;
                     }
                     applyPlaybackUI(uniqueKey, file, displayName, { scroll: false });
@@ -1108,7 +1110,7 @@
         }
         function onAudioError() {
             const titleEl = document.getElementById('currentSongTitle');
-            if (titleEl) titleEl.innerText = "⚠️ 檔案損毀或無法播放，自動跳過...";
+            if (titleEl) titleEl.innerText = "⚠️ 媒體損毀或無法播放，自動跳過...";
             setTimeout(() => playNext(), 1000);
         }
 
@@ -1181,6 +1183,7 @@
             gdrive: { name: 'Google Drive', icon: 'fa-brands fa-google-drive', color: 'text-emerald-400', bg: 'bg-emerald-500/20' },
             news: { name: 'News', icon: 'fa-solid fa-newspaper', color: 'text-amber-400', bg: 'bg-amber-500/20' },
             filesystem: { name: '本機檔案', icon: 'fa-solid fa-hard-drive', color: 'text-cyan-400', bg: 'bg-cyan-500/20' },
+            urlmedia: { name: '連結媒體清單', icon: 'fa-solid fa-link', color: 'text-fuchsia-400', bg: 'bg-fuchsia-500/20' },
             pan123: { name: '123 云盘', icon: 'fa-solid fa-cloud', color: 'text-orange-400', bg: 'bg-orange-500/20' },
             onedrive: { name: 'OneDrive', icon: 'fa-brands fa-microsoft', color: 'text-sky-400', bg: 'bg-sky-500/20' }
         };
@@ -1266,7 +1269,7 @@
 
             const confirmed = await showCustomModal({
                 title: '刪除檔案確認', subtitle: '此操作無法復原',
-                message: '確定要從硬碟中刪除這個 MP3 檔案嗎？',
+                message: '確定要從硬碟中刪除這個媒體檔案嗎？',
                 type: 'danger', confirmText: '確認刪除'
             });
             if (!confirmed) return;
@@ -1354,10 +1357,10 @@
         function renderTableInner() {
             const tbody = document.getElementById('fileTableBody');
             let filtered = getFilteredFiles();
-            document.getElementById('fileCountText').innerText = `共 ${filtered.length} 首`;
+            document.getElementById('fileCountText').innerText = `共 ${filtered.length} 筆`;
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-slate-500"><i class="fa-solid fa-music text-3xl mb-2 block"></i>沒有找到符合的 MP3 檔案</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-slate-500"><i class="fa-solid fa-photo-film text-3xl mb-2 block"></i>沒有找到符合的媒體檔案</td></tr>`;
                 document.getElementById('paginationContainer').innerHTML = '';
                 document.getElementById('topPageIndicator').innerText = `1 / 1`;
                 document.getElementById('topPrevBtn').disabled = true;
@@ -1398,7 +1401,7 @@
                         ? `<div class="text-[10px] text-rose-400/80 mt-0.5 flex items-center gap-1"><i class="fa-solid fa-clock text-[9px]"></i><span>收藏于 ${formatLikedAtDate(file.likedAt)}</span></div>`
                         : '';
                     const rowClass = isPlaying ? 'playing-row bg-indigo-950/30 border-l-4 border-indigo-500' : 'hover:bg-slate-900/50';
-                    const deleteTitle = !deletable ? '此来源不支持删除' : (isExternal ? `从 ${file._source} 删除` : '删除檔案');
+                    const deleteTitle = !deletable ? '此來源不支援刪除' : (isExternal ? `從 ${file._source} 刪除` : '刪除檔案');
                     const playBtnTitle = isLoadingRow ? '載入中…' : ((isPlaying && !audioPlayer.paused) ? '暫停' : '播放');
                     const playBtnIcon = isLoadingRow ? 'fa-spinner fa-spin' : (isPlaying && !audioPlayer.paused ? 'fa-pause' : 'fa-play');
 
@@ -1431,7 +1434,7 @@
                                     </div>
                                     <div class="hidden lg:block w-20 flex-shrink-0 text-xs text-slate-400 whitespace-nowrap">${sizeMb}</div>
                                     <div class="flex items-center justify-end gap-1 md:w-20 flex-shrink-0">
-                                        <button onclick="toggleFileDislike('${encodedKey}')" class="p-1.5 rounded-lg transition ${file.isDisliked ? 'text-amber-400 hover:text-amber-300' : 'text-slate-500 hover:text-amber-400'}" title="${file.isDisliked ? '取消隱藏' : '隱藏此歌曲'}">
+                                        <button onclick="toggleFileDislike('${encodedKey}')" class="p-1.5 rounded-lg transition ${file.isDisliked ? 'text-amber-400 hover:text-amber-300' : 'text-slate-500 hover:text-amber-400'}" title="${file.isDisliked ? '取消隱藏' : '隱藏此媒體'}">
                                             <i class="${file.isDisliked ? 'fa-solid' : 'fa-regular'} fa-thumbs-down text-sm"></i>
                                         </button>
                                         <button onclick="deleteSong('${encodedKey}')" class="text-slate-500 hover:text-rose-400 p-1.5 transition ${deletable ? '' : 'opacity-30 cursor-not-allowed'}" ${deletable ? `title="${escapeHtmlAttr(deleteTitle)}"` : `disabled title="${escapeHtmlAttr(deleteTitle)}"`}>
@@ -1601,7 +1604,7 @@
                 let sources = [];
                 try { sources = JSON.parse(localStorage.getItem('mp3_local_sources') || '[]'); } catch (e) {}
                 if (sources.length === 0) {
-                    sources.push({ id: 'src_default', name: '本地音樂', apiBase: '/api/mp3', dir: dirParam, enabled: true });
+                    sources.push({ id: 'src_default', name: '本地媒體', apiBase: '/api/mp3', dir: dirParam, enabled: true });
                     localStorage.setItem('mp3_local_sources', JSON.stringify(sources));
                 }
             }
@@ -1776,7 +1779,7 @@
             ext.currentPlayingFile = null;
             const t = document.getElementById('currentSongTitle');
             const c = document.getElementById('currentSongCategory');
-            if (t) t.innerText = '尚未選擇播放歌曲';
+            if (t) t.innerText = '尚未選擇播放媒體';
             if (c) c.innerText = '就緒';
             if (typeof window.MP3SetPlayerSourceBadge === 'function') window.MP3SetPlayerSourceBadge(null);
             ext.updatePlayButton();
@@ -1899,7 +1902,8 @@
             local: { label: '本地', icon: 'fa-solid fa-hard-drive', badgeClass: 'bg-slate-800/80 text-slate-300 border-slate-600/60', dotClass: 'bg-slate-400' },
             gdrive: { label: 'Drive', icon: 'fa-brands fa-google-drive', badgeClass: 'bg-emerald-950/50 text-emerald-300 border-emerald-500/30', dotClass: 'bg-emerald-400' },
             news: { label: 'News', icon: 'fa-solid fa-newspaper', badgeClass: 'bg-amber-950/50 text-amber-300 border-amber-500/30', dotClass: 'bg-amber-400' },
-            filesystem: { label: '本機', icon: 'fa-solid fa-hard-drive', badgeClass: 'bg-cyan-950/50 text-cyan-300 border-cyan-500/30', dotClass: 'bg-cyan-400' }
+            filesystem: { label: '本機', icon: 'fa-solid fa-hard-drive', badgeClass: 'bg-cyan-950/50 text-cyan-300 border-cyan-500/30', dotClass: 'bg-cyan-400' },
+            urlmedia: { label: '連結', icon: 'fa-solid fa-link', badgeClass: 'bg-fuchsia-950/50 text-fuchsia-300 border-fuchsia-500/30', dotClass: 'bg-fuchsia-400' }
         };
         window.MP3GetSourceMeta = function(file) {
             const key = (file && file._source) || 'local';
@@ -1909,7 +1913,7 @@
         };
         window.MP3RenderSourceBadge = function(file) {
             const meta = window.MP3GetSourceMeta(file);
-            return `<span class="source-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-medium shrink-0 ${meta.badgeClass}" title="来源：${escapeHtmlAttr(meta.label)}"><i class="${meta.icon} text-[9px]"></i><span>${escapeHtmlAttr(meta.label)}</span></span>`;
+            return `<span class="source-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-medium shrink-0 ${meta.badgeClass}" title="來源：${escapeHtmlAttr(meta.label)}"><i class="${meta.icon} text-[9px]"></i><span>${escapeHtmlAttr(meta.label)}</span></span>`;
         };
         window.MP3SetPlayerSourceBadge = function(file) {
             const el = document.getElementById('currentSongSourceBadge');
@@ -1953,8 +1957,8 @@
         };
     </script>
 
-<!-- 插件中心：所有插件腳本位於 ./plugins/ -->
-<script src="plugins/plugin-center.js"></script>
+    <!-- 插件中心：所有插件腳本位於 ./plugins/ -->
+    <script src="plugins/plugin-center.js"></script>
 
 </body>
 </html>
