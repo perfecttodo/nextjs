@@ -218,9 +218,6 @@
 
             <div class="flex flex-col items-center w-full md:w-2/4 space-y-1">
                 <div class="flex items-center space-x-3 md:space-x-4">
-                    <button onclick="toggleAutoMode()" id="autoModeBtn" class="text-xs px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1">
-                        <i class="fa-solid fa-bolt text-[10px]"></i><span>自動</span>
-                    </button>
                     <button onclick="togglePlayMode()" id="playModeBtn" class="text-slate-400 hover:text-indigo-400 transition flex items-center justify-center p-1" title="播放模式">
                         <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
                     </button>
@@ -363,13 +360,19 @@
         let currentPage = 1;
         let pageSize = 20;
         let playMode = 'loop';
-        let isAutoMode = false;
-        let autoTimer = null;
-        let autoCountdownInterval = null;
-        let remainingSeconds = 10;
         let pendingScrollToCurrentSong = false;
         let lastPauseTime = 0;
         const PAUSE_TO_PLAY_DELAY = 900;
+
+        // ★ 事件系统（供插件订阅播放 / 切歌 / like 等事件）
+        const _eventListeners = {};
+        function emitEvent(event, ...args) {
+            const list = _eventListeners[event];
+            if (!list || list.length === 0) return;
+            for (const cb of list.slice()) {
+                try { cb(...args); } catch (e) { console.error(`[Event:${event}]`, e); }
+            }
+        }
 
         const modeIconsSVG = {
             'loop': `<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>`,
@@ -555,7 +558,6 @@
                 lastPauseTime = Date.now();
                 if (!audioPlayer.paused) {
                     audioPlayer.pause();
-                    clearAutoTimer();
                     updatePlayButton();
                 }
             });
@@ -571,7 +573,6 @@
                     if (audioPlayer.paused) {
                         audioPlayer.play();
                         updatePlayButton();
-                        if (isAutoMode) startAutoTimer(10);
                     }
                     return;
                 }
@@ -579,7 +580,6 @@
                 if (audioPlayer.paused) {
                     audioPlayer.play();
                     updatePlayButton();
-                    if (isAutoMode) startAutoTimer(10);
                 }
             });
 
@@ -606,7 +606,6 @@
                 ms.setActionHandler('stop', () => {
                     audioPlayer.pause();
                     audioPlayer.currentTime = 0;
-                    clearAutoTimer();
                     updatePlayButton();
                 });
             } catch (e) {}
@@ -917,13 +916,7 @@
             renderCategories();
             renderTable();
 
-            if (isAutoMode && currentPlayingFile === uniqueKey && file.isLiked) {
-                clearAutoTimer();
-                const timerText = document.getElementById('autoTimerText');
-                timerText.classList.remove('hidden');
-                timerText.innerText = '[已Like，3秒後換歌...]';
-                autoTimer = setTimeout(() => { if (isAutoMode) playNext(); }, 3000);
-            }
+            emitEvent(file.isLiked ? 'liked' : 'unliked', file);
         }
 
         function toggleFileDislike(encodedKey) {
@@ -1002,53 +995,15 @@
             document.getElementById('modeText').innerText = modeNames[playMode];
         }
 
-        function toggleAutoMode() {
-            isAutoMode = !isAutoMode;
-            localStorage.setItem('mp3_last_auto_mode', isAutoMode);
-            const btn = document.getElementById('autoModeBtn');
-            if (isAutoMode) {
-                btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-400 transition flex items-center space-x-1 shadow-md';
-                if (currentPlayingFile && !audioPlayer.paused) startAutoTimer(10);
-            } else {
-                btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition flex items-center space-x-1';
-                clearAutoTimer();
-            }
-        }
-
         function changeVolume(val) {
             audioPlayer.volume = val;
             localStorage.setItem('mp3_last_volume', val);
         }
 
-        function startAutoTimer(seconds) {
-            clearAutoTimer();
-            if (!isAutoMode) return;
-            remainingSeconds = seconds;
-            updateTimerDisplay(remainingSeconds);
-            autoCountdownInterval = setInterval(() => {
-                remainingSeconds--;
-                if (remainingSeconds > 0) updateTimerDisplay(remainingSeconds);
-                else { updateTimerDisplay(0); clearInterval(autoCountdownInterval); }
-            }, 1000);
-            autoTimer = setTimeout(() => { if (isAutoMode) playNext(); }, seconds * 1000);
-        }
-        function clearAutoTimer() {
-            if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
-            if (autoCountdownInterval) { clearInterval(autoCountdownInterval); autoCountdownInterval = null; }
-            const timerText = document.getElementById('autoTimerText');
-            timerText.classList.add('hidden');
-            timerText.innerText = '';
-        }
-        function updateTimerDisplay(sec) {
-            const timerText = document.getElementById('autoTimerText');
-            if (!isAutoMode) { timerText.classList.add('hidden'); return; }
-            timerText.classList.remove('hidden');
-            timerText.innerText = `[自動換歌: ${sec}s]`;
-        }
-
         // ==================== 播放 UI 统一同步 ====================
         function applyPlaybackUI(uniqueKey, file, displayName, opts) {
             if (!file) return;
+            const prevKey = currentPlayingFile;
             const scroll = !opts || opts.scroll !== false;
             currentPlayingFile = uniqueKey;
             if (scroll) {
@@ -1074,6 +1029,10 @@
             updatePlayerDislikeState();
             renderTable();
             updatePlayButton();
+
+            if (prevKey !== uniqueKey) {
+                emitEvent('songchange', file, prevKey);
+            }
         }
 
         async function playSong(encodedKey, encodedName) {
@@ -1150,9 +1109,6 @@
                 renderTable();
                 updatePlayButton();
             }
-
-            if (isAutoMode && !audioPlayer.paused) startAutoTimer(10);
-            else clearAutoTimer();
         }
 
         function togglePlaySong(encodedKey, encodedName) {
@@ -1175,10 +1131,8 @@
                 } else if (audioPlayer.src) {
                     if (audioPlayer.paused) {
                         audioPlayer.play().catch(err => console.warn('[togglePlaySong] play 失败:', err));
-                        if (isAutoMode) startAutoTimer(10);
                     } else {
                         audioPlayer.pause();
-                        clearAutoTimer();
                     }
                 } else {
                     playSong(encodedKey, encodedName);
@@ -1206,7 +1160,6 @@
         }
 
         function playNext() {
-            clearAutoTimer();
             const list = getFilteredFiles();
             if (list.length === 0) return;
             if (playMode === 'shuffle') {
@@ -1237,6 +1190,7 @@
         }
 
         function onAudioEnded() {
+            emitEvent('ended');
             if (playMode === 'single') { audioPlayer.currentTime = 0; audioPlayer.play(); return; }
             playNext();
         }
@@ -1257,10 +1211,8 @@
             }
             if (audioPlayer.paused) {
                 audioPlayer.play();
-                if (isAutoMode) startAutoTimer(10);
             } else {
                 audioPlayer.pause();
-                clearAutoTimer();
             }
             updatePlayButton();
             renderTable();
@@ -1458,7 +1410,6 @@
                         sessionStorage.removeItem('mp3_last_played_time');
                         updatePlayerLikeState();
                         updatePlayerDislikeState();
-                        clearAutoTimer();
                         resetMediaSession();
                     }
                     cleanupFileMetadata(uniqueKey);
@@ -1475,21 +1426,60 @@
         function goToPage(p) { currentPage = p; pendingScrollToCurrentSong = false; updateUrlParams(); renderTable(); }
         function changePageSize(sz) { pageSize = parseInt(sz); currentPage = 1; pendingScrollToCurrentSong = false; updateUrlParams(); renderTable(); }
 
-        function scrollToCurrentSongInTable() {
+        /**
+         * 把正在播放的行滚动到列表可视区域的垂直中心。
+         * ★ 使用浏览器原生 scrollIntoView({ block: 'center' }) —— 最可靠
+         * ★ 之后再对 sticky header 做一次微调
+         */
+        function scrollToCurrentSongInTable(retries = 20) {
             if (!currentPlayingFile) return;
             const container = document.getElementById('tableContainer');
             if (!container) return;
 
             const rowId = `row-${encodeInlineArg(currentPlayingFile).replace(/[%._-]/g, '_')}`;
             const row = document.getElementById(rowId);
-            if (!row) return;
 
-            const containerRect = container.getBoundingClientRect();
-            const rowRect = row.getBoundingClientRect();
-            const delta = (rowRect.top - containerRect.top) + rowRect.height / 2 - containerRect.height / 2;
+            // 行不存在或高度为 0 → 布局未完成，重试
+            if (!row || row.offsetHeight === 0) {
+                if (retries > 0) {
+                    setTimeout(() => scrollToCurrentSongInTable(retries - 1), 40);
+                }
+                return;
+            }
 
-            if (Math.abs(delta) < 2) return;
-            container.scrollBy({ top: delta, behavior: 'smooth' });
+            // ★ 步骤 1：原生 scrollIntoView 居中
+            try {
+                row.scrollIntoView({ block: 'center', behavior: 'auto', inline: 'nearest' });
+            } catch (e) {
+                // Fallback：手动计算
+                const containerRect = container.getBoundingClientRect();
+                const rowRect = row.getBoundingClientRect();
+                const delta = (rowRect.top - containerRect.top) + rowRect.height / 2 - containerRect.height / 2;
+                container.style.scrollBehavior = 'auto';
+                container.scrollTop += delta;
+            }
+
+            // ★ 步骤 2：sticky header 补偿（scrollIntoView 不知道 sticky header 的存在）
+            requestAnimationFrame(() => {
+                if (!row.isConnected) return;
+                const rowStill = document.getElementById(rowId);
+                if (!rowStill) return;
+
+                const containerRect = container.getBoundingClientRect();
+                const rowRect = rowStill.getBoundingClientRect();
+                const header = container.querySelector('thead');
+                const headerHeight = (header && header.offsetHeight > 0) ? header.offsetHeight : 0;
+
+                const visibleHeight = containerRect.height - headerHeight;
+                const rowCenter = (rowRect.top - containerRect.top) + rowRect.height / 2;
+                const targetCenter = headerHeight + visibleHeight / 2;
+                const delta = rowCenter - targetCenter;
+
+                if (Math.abs(delta) > 2) {
+                    container.style.scrollBehavior = 'auto';
+                    container.scrollTop = container.scrollTop + delta;
+                }
+            });
         }
 
         function isFileDeletable(file) {
@@ -1783,7 +1773,6 @@
         window.playPrev = playPrev;
         window.playNext = playNext;
         window.togglePlayMode = togglePlayMode;
-        window.toggleAutoMode = toggleAutoMode;
         window.togglePlayerLike = togglePlayerLike;
         window.togglePlayerDislike = togglePlayerDislike;
         window.playSong = playSong;
@@ -1819,13 +1808,6 @@
                 document.getElementById('modeText').innerText = modeNames[savedPlayMode];
             }
 
-            const savedAutoMode = localStorage.getItem('mp3_last_auto_mode');
-            if (savedAutoMode === 'true') {
-                isAutoMode = true;
-                const btn = document.getElementById('autoModeBtn');
-                btn.className = 'text-xs px-2.5 py-1 rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-400 transition flex items-center space-x-1 shadow-md';
-            }
-
             const savedVolume = localStorage.getItem('mp3_last_volume');
             if (savedVolume !== null) {
                 const vol = parseFloat(savedVolume);
@@ -1844,6 +1826,9 @@
                 });
             }
 
+            audioPlayer.addEventListener('play', () => emitEvent('play'));
+            audioPlayer.addEventListener('pause', () => emitEvent('pause'));
+
             initMediaSession();
             initKeyboardShortcuts();
             setupSidebarCards();
@@ -1857,7 +1842,7 @@
                 if (typeof fn === 'function') return fn.apply(window, args);
             };
             return {
-                version: '3.2',
+                version: '3.5',
                 get allFiles() { return allFiles; },
                 set allFiles(v) { allFiles = v; },
                 get categories() { return categories; },
@@ -1870,11 +1855,42 @@
                 set currentPage(v) { currentPage = v; },
                 get pageSize() { return pageSize; },
                 get audioPlayer() { return audioPlayer; },
-                get isAutoMode() { return isAutoMode; },
                 get playbackLoadingKey() { return playbackLoadingKey; },
 
                 setPlaybackLoading: (key) => { playbackLoadingKey = key; },
                 getPlaybackLoading: () => playbackLoadingKey,
+
+                on: (event, cb) => {
+                    if (typeof cb !== 'function') return;
+                    if (!_eventListeners[event]) _eventListeners[event] = [];
+                    if (!_eventListeners[event].includes(cb)) _eventListeners[event].push(cb);
+                },
+                off: (event, cb) => {
+                    const list = _eventListeners[event];
+                    if (!list) return;
+                    const idx = list.indexOf(cb);
+                    if (idx >= 0) list.splice(idx, 1);
+                },
+
+                playNext: (...a) => call('playNext', ...a),
+                playPrev: (...a) => call('playPrev', ...a),
+
+                setTimerText: (msg, tone) => {
+                    const el = document.getElementById('autoTimerText');
+                    if (!el) return;
+                    if (!msg) {
+                        el.classList.add('hidden');
+                        el.innerText = '';
+                        return;
+                    }
+                    el.classList.remove('hidden');
+                    el.innerText = msg;
+                    el.className = 'text-[11px] font-mono whitespace-nowrap ' + (
+                        tone === 'warn' ? 'text-amber-400' :
+                        tone === 'success' ? 'text-emerald-400' :
+                        'text-amber-400'
+                    );
+                },
 
                 renderAll() {
                     call('renderCategories');
@@ -1924,25 +1940,13 @@
         console.log('[MP3AppExtension] ready v' + window.MP3AppExtension.version);
     </script>
 
-    <!-- ============================================================
-         Core: Player Registry（按媒体类型分发播放器）
-         - 提供 ext.playMedia / registerPlayer / unregisterPlayer / destroyPlayer
-         - 内置 native（兜底）+ hls（.m3u8 / 对应 MIME）
-         ============================================================ -->
     <script src="core-player.js"></script>
 
-    <!-- ============================================================
-         Core: DataSource Adapter Factory & Shared Helpers
-         - 不再包含 playMedia / HLS 懒加载（已移交 core-player.js）
-         - 提供 ext.decorateFiles / stopIfPlayingFrom / removeSourceData / registerSourceAdapter
-         ============================================================ -->
     <script>
     (function () {
         'use strict';
         const ext = window.MP3AppExtension;
         if (!ext) { console.warn('[Adapter] MP3AppExtension 未就绪'); return; }
-
-        /* ==================== 通用辅助 ==================== */
 
         ext.ensureSourceCategory = function (name) {
             if (!name) return;
@@ -1974,7 +1978,6 @@
             const file = ext.allFiles.find(f => ext.getFileKey(f) === cur);
             if (!file || !keys.includes(file._source)) return false;
 
-            // ★ 统一通过 destroyPlayer 清理当前 player 的内部状态
             if (typeof ext.destroyPlayer === 'function') {
                 try { ext.destroyPlayer(); } catch (e) { console.warn('[stopIfPlayingFrom] destroyPlayer 失败:', e); }
             } else {
@@ -2044,8 +2047,6 @@
             return out;
         };
 
-        /* ==================== Source Adapter 工厂 ==================== */
-
         window.MP3RegisterSourceAdapter = function ({
             id,
             categoryName,
@@ -2087,10 +2088,6 @@
                         } catch (e) { console.warn('[adapter.play] applyPlaybackUI 失败:', e); }
                         try { ext.updatePlayButton(); } catch (e) {}
 
-                        // resolveMedia 可返回：
-                        //   1) { url, mimeType? }
-                        //   2) { blob, mimeType? }
-                        //   3) { play: (audioEl) => Promise }  ← 兼容
                         const media = await resolveMedia(file);
                         if (!media) throw new Error('resolveMedia 返回空');
 
@@ -2139,7 +2136,7 @@
             };
         };
 
-        console.log('[Core] DataSource Adapter v1.4 ready（player-agnostic）');
+        console.log('[Core] DataSource Adapter v1.6 ready（scrollIntoView 居中）');
     })();
     </script>
 
@@ -2227,6 +2224,17 @@
                 icon: 'fa-solid fa-user-shield', iconClass: 'text-indigo-400',
                 scriptSrc: 'multi-user-plugin.js', globalVar: 'MP3MultiUserPlugin',
                 autoEnable: true, dataSourceKeys: []
+            },
+            autoPlay: {
+                id: 'autoPlay',
+                name: '自动播放',
+                description: '定时自动切换下一首',
+                icon: 'fa-solid fa-bolt',
+                iconClass: 'text-amber-400',
+                scriptSrc: 'autoplay-plugin.js',
+                globalVar: 'MP3AutoPlayPlugin',
+                autoEnable: true,
+                dataSourceKeys: []
             },
             copyFav: {
                 id: 'copyFav', name: '複製我的最愛', description: '把「我的最愛」複製到指定本地目錄',
