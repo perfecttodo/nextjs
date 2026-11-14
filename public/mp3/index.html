@@ -342,6 +342,15 @@
         let currentTagFilter = null;
         let currentPlayingFile = null;
 
+        // ★ 空分類折疊：默認收起，狀態持久化
+        let showEmptyCategories = localStorage.getItem('mp3_show_empty_categories') === '1';
+        function toggleEmptyCategories() {
+            showEmptyCategories = !showEmptyCategories;
+            try { localStorage.setItem('mp3_show_empty_categories', showEmptyCategories ? '1' : '0'); } catch (e) {}
+            renderCategories();
+        }
+        window.toggleEmptyCategories = toggleEmptyCategories;
+
         let playbackLoadingKey = null;
         window.MP3SetPlaybackLoading = function (key) { playbackLoadingKey = key; };
         window.MP3GetPlaybackLoading = function () { return playbackLoadingKey; };
@@ -659,6 +668,9 @@
             categories.push(catName);
             saveCategories(categories);
             inputEl.value = '';
+            // ★ 新建的分類必為空，自動展開空分類組讓用戶立刻看到
+            showEmptyCategories = true;
+            try { localStorage.setItem('mp3_show_empty_categories', '1'); } catch (e) {}
             renderCategories(); renderTable();
         }
 
@@ -692,20 +704,47 @@
                 </button>
             `;
 
+            // ★ 分為「有內容 / 空」兩組；當前選中的分類即使為 0 也始終顯示
+            const nonEmpty = [];
+            const empty = [];
             categories.forEach(cat => {
                 const count = allFiles.filter(f => f.category === cat && !f.isDisliked).length;
                 const isActive = (currentCategory === cat && !currentTagFilter);
+                if (count > 0 || isActive) nonEmpty.push({ cat, count, isActive });
+                else empty.push({ cat, count, isActive });
+            });
+
+            const renderCatRow = (cat, count, isActive, dimmed) => {
                 const canDelete = (cat !== '未分類');
                 const encCat = encodeInlineArg(cat);
-                html += `
-                    <div class="flex items-center space-x-1 w-full group">
+                return `
+                    <div class="flex items-center space-x-1 w-full group ${dimmed ? 'opacity-60 hover:opacity-100 transition-opacity' : ''}">
                         <button onclick="filterCategory('${encCat}')" class="cat-btn flex-1 text-left px-3.5 py-2 rounded-xl text-xs md:text-sm font-medium transition flex items-center justify-between ${isActive ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300'}">
                             <span>${escapeHtmlAttr(cat)}</span><span class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full">${count}</span>
                         </button>
                         ${canDelete ? `<button onclick="deleteCategory('${encCat}')" class="opacity-0 group-hover:opacity-100 p-1.5 text-slate-500 hover:text-rose-400 text-xs transition"><i class="fa-solid fa-xmark"></i></button>` : ''}
                     </div>
                 `;
-            });
+            };
+
+            nonEmpty.forEach(({ cat, count, isActive }) => { html += renderCatRow(cat, count, isActive, false); });
+
+            // ★ 空分類折疊成一行入口，點擊展開 / 收合
+            if (empty.length > 0) {
+                html += `
+                    <button onclick="toggleEmptyCategories()" class="w-full flex items-center justify-between px-3.5 py-1.5 rounded-xl text-[10px] text-slate-500 hover:text-slate-300 hover:bg-slate-800/50 transition" title="展開 / 收合空分類">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fa-solid ${showEmptyCategories ? 'fa-chevron-down' : 'fa-chevron-right'} text-[8px]"></i>
+                            空分類
+                        </span>
+                        <span class="text-[9px] bg-slate-800/80 px-1.5 py-0.5 rounded-full font-mono">${empty.length}</span>
+                    </button>
+                `;
+                if (showEmptyCategories) {
+                    empty.forEach(({ cat, count, isActive }) => { html += renderCatRow(cat, count, isActive, true); });
+                }
+            }
+
             container.innerHTML = html;
             document.getElementById('count-badge').innerText = `${validFilesCount} 筆`;
             updateMobileFilterBadge();
