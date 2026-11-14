@@ -2018,7 +2018,10 @@
                 scriptSrc: 'filesystem-plugin.js', globalVar: 'MP3FileSystemPlugin', dataSourceKeys: ['filesystem'] },
             videoPlayer: { id: 'videoPlayer', name: '视频渲染', description: '检测到视频轨道时显示悬浮小窗，支持全屏/画中画',
                 icon: 'fa-solid fa-tv', iconClass: 'text-purple-400',
-                scriptSrc: 'video-player-plugin.js', globalVar: 'MP3VideoPlayerPlugin', autoEnable: true, dataSourceKeys: [] }
+                scriptSrc: 'video-player-plugin.js', globalVar: 'MP3VideoPlayerPlugin', autoEnable: true, dataSourceKeys: [] },
+                urlMedia: { id: 'urlMedia', name: 'URL 媒體', description: '貼上 URL 加入媒體庫（音訊/影片/串流）',
+    icon: 'fa-solid fa-link', iconClass: 'text-fuchsia-400',
+    scriptSrc: 'url-media-plugin.js', globalVar: 'MP3UrlMediaPlugin', autoEnable: true, dataSourceKeys: ['urlmedia'] },
         };
 
         const STORAGE_KEY = 'mp3_enabled_dynamic_plugins';
