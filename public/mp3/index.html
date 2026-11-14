@@ -225,33 +225,47 @@
                 </div>
             </div>
 
-            <div class="flex flex-col items-center w-full md:w-2/4 space-y-1">
-                <div class="flex items-center space-x-3 md:space-x-4">
-                    <button onclick="togglePlayMode()" id="playModeBtn" class="text-slate-400 hover:text-indigo-400 transition flex items-center justify-center p-1" title="播放模式">
-                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+            <!-- 中間：播放控制 (已優化手機端佈局與點擊區域) -->
+            <div class="flex flex-col items-center w-full md:w-2/4 space-y-2">
+                <div class="flex items-center justify-center w-full max-w-md mx-auto gap-3 md:gap-4">
+                    <button onclick="togglePlayMode()" id="playModeBtn" class="p-2.5 md:p-2 text-slate-400 hover:text-indigo-400 hover:bg-slate-800/60 rounded-full transition flex items-center justify-center shrink-0" title="播放模式">
+                        <svg class="w-5 h-5 md:w-4 md:h-4 fill-current" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
                     </button>
-                    <button onclick="playPrev()" class="text-slate-400 hover:text-white transition" title="上一首 (P)"><i class="fa-solid fa-backward-step"></i></button>
-                    <button onclick="togglePlay()" id="playPauseBtn" class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg transition" title="播放/暫停 (空白鍵)">
-                        <i class="fa-solid fa-play text-xs"></i>
+                    
+                    <button onclick="playPrev()" class="p-2.5 md:p-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-full transition flex items-center justify-center shrink-0" title="上一首 (P)">
+                        <i class="fa-solid fa-backward-step text-lg md:text-base"></i>
                     </button>
-                    <button onclick="playNext()" class="text-slate-400 hover:text-white transition" title="下一首 (N)"><i class="fa-solid fa-forward-step"></i></button>
-                    <button id="playerLikeBtn" onclick="togglePlayerLike()" class="text-slate-500 hover:text-rose-400 transition hidden ml-1 text-base" title="加入最愛 (L)">
-                        <i id="playerLikeIcon" class="fa-regular fa-heart"></i>
+                    
+                    <button onclick="togglePlay()" id="playPauseBtn" class="w-12 h-12 md:w-10 md:h-10 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 transition shrink-0" title="播放/暫停 (空白鍵)">
+                        <i class="fa-solid fa-play text-sm md:text-xs"></i>
                     </button>
-                    <button id="playerDislikeBtn" onclick="togglePlayerDislike()" class="text-slate-500 hover:text-amber-400 transition hidden text-base" title="隱藏此歌曲">
-                        <i id="playerDislikeIcon" class="fa-regular fa-thumbs-down"></i>
+                    
+                    <button onclick="playNext()" class="p-2.5 md:p-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-full transition flex items-center justify-center shrink-0" title="下一首 (N)">
+                        <i class="fa-solid fa-forward-step text-lg md:text-base"></i>
                     </button>
-                    <span id="modeText" class="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded ml-2">循環</span>
+                    
+                    <button id="playerLikeBtn" onclick="togglePlayerLike()" class="p-2.5 md:p-2 text-slate-500 hover:text-rose-400 hover:bg-slate-800/60 rounded-full transition hidden shrink-0" title="加入最愛 (L)">
+                        <i id="playerLikeIcon" class="fa-regular fa-heart text-lg md:text-base"></i>
+                    </button>
+                    
+                    <button id="playerDislikeBtn" onclick="togglePlayerDislike()" class="p-2.5 md:p-2 text-slate-500 hover:text-amber-400 hover:bg-slate-800/60 rounded-full transition hidden shrink-0" title="隱藏此歌曲">
+                        <i id="playerDislikeIcon" class="fa-regular fa-thumbs-down text-lg md:text-base"></i>
+                    </button>
+                    
+                    <span id="modeText" class="hidden sm:inline-block text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded shrink-0">循環</span>
                 </div>
-                <div class="w-full flex items-center space-x-3 text-xs text-slate-400">
-                    <span id="currentTime">00:00</span>
+                
+                <!-- 進度條 (已優化防擠壓) -->
+                <div class="w-full flex items-center gap-2 md:gap-3 text-xs text-slate-400 px-2 md:px-0">
+                    <span id="currentTime" class="shrink-0 font-mono w-9 text-right">00:00</span>
                     <input type="range" id="progressBar" value="0" max="100" step="0.1" onchange="seekAudio(this.value)"
-                        class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
-                    <span id="durationTime">00:00</span>
-                    <span id="autoTimerText" class="text-[11px] text-amber-400 font-mono hidden whitespace-nowrap"></span>
+                        class="flex-1 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                    <span id="durationTime" class="shrink-0 font-mono w-9">00:00</span>
+                    <span id="autoTimerText" class="shrink-0 text-[11px] text-amber-400 font-mono hidden whitespace-nowrap"></span>
                 </div>
             </div>
 
+            <!-- 右側：音量 -->
             <div class="hidden md:flex items-center space-x-3 w-1/4 justify-end">
                 <i class="fa-solid fa-volume-high text-slate-400 text-sm"></i>
                 <input type="range" id="volumeControl" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this.value)"
