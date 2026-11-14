@@ -353,6 +353,12 @@
         let currentCategory = '全部';
         let currentTagFilter = null;
         let currentPlayingFile = null;
+
+        // ★ 正在加载中的 key（用于显示 spinner / 阻止重复点击）
+        let playbackLoadingKey = null;
+        window.MP3SetPlaybackLoading = function (key) { playbackLoadingKey = key; };
+        window.MP3GetPlaybackLoading = function () { return playbackLoadingKey; };
+
         const audioPlayer = document.getElementById('audioPlayer');
 
         let currentPage = 1;
@@ -461,6 +467,7 @@
                 case 'local': return '本地音樂';
                 case 'gdrive': return 'Google Drive';
                 case 'news': return 'News';
+                case 'filesystem': return '本機檔案';
                 case 'pan123': return '123 云盘';
                 case 'onedrive': return 'OneDrive';
                 default: return APP_ARTIST_FALLBACK;
@@ -1092,6 +1099,7 @@
 
                 const wasCurrentSong = (currentPlayingFile === uniqueKey);
                 try {
+                    // ★ 乐观 UI 由 handler 内部驱动（Core Adapter 的 play 方法）
                     await window.MP3DataSourceHandlers[file._source].play(file);
                 } catch (e) {
                     console.error(`[DataSource] ${file._source}.play 失败:`, e);
@@ -1111,8 +1119,14 @@
                     return;
                 }
 
+                // handler 已经调过 applyPlaybackUI（乐观）+ 一次确认
+                // 这里再补一次滚动定位，让用户能立刻看到正在播放的行
                 const refreshed = allFiles.find(f => getFileKey(f) === uniqueKey) || file;
-                applyPlaybackUI(uniqueKey, refreshed, displayName);
+                if (refreshed) {
+                    pendingScrollToCurrentSong = true;
+                    syncPageToFile(uniqueKey);
+                    renderTable();
+                }
                 return;
             }
 
@@ -1121,7 +1135,6 @@
             const streamUrl = `${apiBase}?dir=${encodeURIComponent(dir)}&action=stream&filename=${encodeURIComponent(originalKey)}`;
 
             if (currentPlayingFile !== uniqueKey) {
-                // ★ 切到本地源时，销毁可能残留的 HLS 实例
                 if (window.MP3HlsPlayer) {
                     try { window.MP3HlsPlayer.destroy(); } catch (e) {}
                 }
@@ -1143,6 +1156,12 @@
         function togglePlaySong(encodedKey, encodedName) {
             const uniqueKey = decodeURIComponent(encodedKey);
             if (!uniqueKey) return;
+
+            // ★ 正在加载这首歌：忽略重复点击（防止二次下载 / 状态错乱）
+            if (playbackLoadingKey === uniqueKey) {
+                console.log('[togglePlaySong] 加载中，忽略点击');
+                return;
+            }
 
             if (currentPlayingFile === uniqueKey) {
                 const file = allFiles.find(f => getFileKey(f) === uniqueKey);
@@ -1248,7 +1267,18 @@
 
         function updatePlayButton() {
             const btn = document.getElementById('playPauseBtn');
-            btn.innerHTML = audioPlayer.paused ? '<i class="fa-solid fa-play text-xs"></i>' : '<i class="fa-solid fa-pause text-xs"></i>';
+            if (!btn) return;
+
+            // ★ 播放加载中：显示 spinner
+            if (playbackLoadingKey && playbackLoadingKey === currentPlayingFile) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i>';
+                if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+                return;
+            }
+
+            btn.innerHTML = audioPlayer.paused
+                ? '<i class="fa-solid fa-play text-xs"></i>'
+                : '<i class="fa-solid fa-pause text-xs"></i>';
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.playbackState = audioPlayer.paused ? 'paused' : 'playing';
             }
@@ -1300,6 +1330,7 @@
         const EXTERNAL_SOURCE_INFO = {
             gdrive: { name: 'Google Drive', icon: 'fa-brands fa-google-drive', color: 'text-emerald-400', bg: 'bg-emerald-500/20' },
             news: { name: 'News', icon: 'fa-solid fa-newspaper', color: 'text-amber-400', bg: 'bg-amber-500/20' },
+            filesystem: { name: '本機檔案', icon: 'fa-solid fa-hard-drive', color: 'text-cyan-400', bg: 'bg-cyan-500/20' },
             pan123: { name: '123 云盘', icon: 'fa-solid fa-cloud', color: 'text-orange-400', bg: 'bg-orange-500/20' },
             onedrive: { name: 'OneDrive', icon: 'fa-brands fa-microsoft', color: 'text-sky-400', bg: 'bg-sky-500/20' }
         };
@@ -1513,6 +1544,9 @@
                 try {
                     const uniqueKey = getFileKey(file);
                     const isPlaying = currentPlayingFile === uniqueKey;
+                    // ★ 加载态判断
+                    const isLoadingRow = isPlaying && (playbackLoadingKey === uniqueKey);
+
                     const sizeMb = file.size ? ((file.size / (1024 * 1024)).toFixed(1) + ' MB') : '';
                     const catOptions = categories.map(c => {
                         const safe = escapeHtmlAttr(c);
@@ -1542,7 +1576,13 @@
                         ? '此来源不支持删除'
                         : (isExternal ? `从 ${file._source} 删除` : '删除檔案');
 
-                    const playBtnTitle = (isPlaying && !audioPlayer.paused) ? '暫停' : '播放';
+                    // ★ 播放按钮图标 / 文案
+                    const playBtnTitle = isLoadingRow
+                        ? '載入中…'
+                        : ((isPlaying && !audioPlayer.paused) ? '暫停' : '播放');
+                    const playBtnIcon = isLoadingRow
+                        ? 'fa-spinner fa-spin'
+                        : (isPlaying && !audioPlayer.paused ? 'fa-pause' : 'fa-play');
 
                     html += `
                         <tr id="${rowId}" class="${rowClass} transition">
@@ -1550,7 +1590,7 @@
                                 <div class="flex flex-col md:flex-row md:items-center gap-3">
                                     <div class="flex items-center space-x-3 flex-1 min-w-0">
                                         <button onclick="togglePlaySong('${encodedKey}', '${encodedName}')" title="${playBtnTitle}" class="w-9 h-9 rounded-lg ${isPlaying ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-indigo-400 hover:bg-indigo-600 hover:text-white'} flex items-center justify-center transition shadow flex-shrink-0">
-                                            <i class="fa-solid ${isPlaying && !audioPlayer.paused ? 'fa-pause' : 'fa-play'} text-xs"></i>
+                                            <i class="fa-solid ${playBtnIcon} text-xs"></i>
                                         </button>
                                         <div class="overflow-hidden flex-1 min-w-0">
                                             <div class="flex items-center space-x-2">
@@ -1819,7 +1859,7 @@
                 if (typeof fn === 'function') return fn.apply(window, args);
             };
             return {
-                version: '2.9',
+                version: '3.0',
                 get allFiles() { return allFiles; },
                 set allFiles(v) { allFiles = v; },
                 get categories() { return categories; },
@@ -1833,6 +1873,10 @@
                 get pageSize() { return pageSize; },
                 get audioPlayer() { return audioPlayer; },
                 get isAutoMode() { return isAutoMode; },
+                get playbackLoadingKey() { return playbackLoadingKey; },
+
+                setPlaybackLoading: (key) => { playbackLoadingKey = key; },
+                getPlaybackLoading: () => playbackLoadingKey,
 
                 renderAll() {
                     call('renderCategories');
@@ -2090,9 +2134,18 @@
                     try { reset?.(); } catch (e) { console.warn(`[${id}] reset 失败:`, e); }
                 },
                 async play(file) {
+                    const key = ext.getFileKey(file);
                     try {
+                        // ★ 乐观 UI：先更新界面 + 显示 spinner，再真正加载
+                        if (typeof ext.setPlaybackLoading === 'function') ext.setPlaybackLoading(key);
+                        try {
+                            ext.applyPlaybackUI(key, file, file.displayName, { scroll: false });
+                        } catch (e) { console.warn('[adapter.play] applyPlaybackUI 失败:', e); }
+                        try { ext.updatePlayButton(); } catch (e) {}
+
                         const media = await resolveMedia(file);
                         if (!media) throw new Error('resolveMedia 返回空');
+
                         if (typeof media.play === 'function') {
                             await media.play(ext.audioPlayer);
                         } else if (media.url) {
@@ -2103,8 +2156,18 @@
                         } else {
                             throw new Error('resolveMedia 返回格式不正确');
                         }
+
+                        // ★ 加载成功：清除 spinner
+                        if (typeof ext.setPlaybackLoading === 'function') ext.setPlaybackLoading(null);
+                        try { ext.updatePlayButton(); } catch (e) {}
+                        try { ext.renderTable(); } catch (e) {}
+
                         onPlaying?.(file);
                     } catch (e) {
+                        // ★ 加载失败：清除 spinner + 还原主按钮
+                        if (typeof ext.setPlaybackLoading === 'function') ext.setPlaybackLoading(null);
+                        try { ext.updatePlayButton(); } catch (err) {}
+                        try { ext.renderTable(); } catch (err) {}
                         onStatusChange?.('播放失败：' + e.message, 'error');
                         throw e;
                     }
@@ -2133,7 +2196,7 @@
             };
         };
 
-        console.log('[Core] DataSource Adapter v1.2 ready（含 HLS 懒加载）');
+        console.log('[Core] DataSource Adapter v1.3 ready（乐观 UI + HLS 懒加载）');
     })();
     </script>
 
@@ -2141,7 +2204,8 @@
         window.MP3SourceRegistry = window.MP3SourceRegistry || {
             local: { label: '本地', icon: 'fa-solid fa-hard-drive', badgeClass: 'bg-slate-800/80 text-slate-300 border-slate-600/60', dotClass: 'bg-slate-400' },
             gdrive: { label: 'Drive', icon: 'fa-brands fa-google-drive', badgeClass: 'bg-emerald-950/50 text-emerald-300 border-emerald-500/30', dotClass: 'bg-emerald-400' },
-            news: { label: 'News', icon: 'fa-solid fa-newspaper', badgeClass: 'bg-amber-950/50 text-amber-300 border-amber-500/30', dotClass: 'bg-amber-400' }
+            news: { label: 'News', icon: 'fa-solid fa-newspaper', badgeClass: 'bg-amber-950/50 text-amber-300 border-amber-500/30', dotClass: 'bg-amber-400' },
+            filesystem: { label: '本機', icon: 'fa-solid fa-hard-drive', badgeClass: 'bg-cyan-950/50 text-cyan-300 border-cyan-500/30', dotClass: 'bg-cyan-400' }
         };
 
         window.MP3GetSourceMeta = function(file) {
@@ -2239,6 +2303,16 @@
                 scriptSrc: 'google-drive-plugin.js', globalVar: 'MP3GoogleDrivePlugin',
                 dataSourceKeys: ['gdrive']
             },
+            filesystem: {
+                id: 'filesystem',
+                name: '本地檔案（瀏覽器）',
+                description: '直接讀取本機目錄，無需 API（Chrome / Edge）',
+                icon: 'fa-solid fa-folder-tree',
+                iconClass: 'text-cyan-400',
+                scriptSrc: 'filesystem-plugin.js',
+                globalVar: 'MP3FileSystemPlugin',
+                dataSourceKeys: ['filesystem']
+            },
             videoPlayer: {
                 id: 'videoPlayer',
                 name: '视频渲染',
@@ -2249,17 +2323,7 @@
                 globalVar: 'MP3VideoPlayerPlugin',
                 autoEnable: true,
                 dataSourceKeys: []
-            },
-            filesystem: {
-            id: 'filesystem',
-            name: '本地檔案（瀏覽器）',
-            description: '直接讀取本機目錄，無需 API（Chrome / Edge）',
-            icon: 'fa-solid fa-folder-tree',
-            iconClass: 'text-cyan-400',
-            scriptSrc: 'filesystem-plugin.js',
-            globalVar: 'MP3FileSystemPlugin',
-            dataSourceKeys: ['filesystem']
-        },
+            }
         };
 
         const STORAGE_KEY = 'mp3_enabled_dynamic_plugins';

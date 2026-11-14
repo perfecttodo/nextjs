@@ -1,11 +1,13 @@
 /**
- * Google Drive 扩展插件 v4.0（Core Adapter 版）
+ * Google Drive 扩展插件 v4.1
  *
- * 相对 v3.8 的重构：
- *  - play / delete / unload 内的公共逻辑全部移除，改由 Core 统一负责。
- *  - 通过 MP3RegisterSourceAdapter 注册，只描述：
- *      list / resolveMedia / delete / reset / onUnload
- *  - 保持 v3.8 全部功能（OAuth、文件夹浏览、迁移、备份/恢复、上传、删除）
+ * v4.1 相对 v4.0 的优化：
+ *  - 新增 Blob LRU 缓存（默认 5 首），重复点击同首歌秒开
+ *  - 新增预加载下一首（延迟 3 秒，不阻塞当前播放）
+ *  - resolveMedia 命中缓存时跳过下载
+ *  - 配合主程序的乐观 UI + 加载态
+ *
+ * 其余功能与 v4.0 一致（OAuth、文件夹浏览、迁移、备份/恢复、上传、删除）
  */
 window.MP3GoogleDriveConfig = {
     clientId: '802199089900-5n676d4hansnab5c66igukb1mch5m7m1.apps.googleusercontent.com'
@@ -55,6 +57,93 @@ window.MP3GoogleDriveConfig = {
     let tokenClient = null;
     let uiRoot = null;
     let adapterHandle = null;
+
+    /* ==================== Blob LRU 缓存 ==================== */
+
+    const blobCache = new Map();       // fileId -> { url, ts }
+    const MAX_CACHE_SIZE = 5;
+
+    function getCachedBlobUrl(fileId) {
+        const entry = blobCache.get(fileId);
+        if (!entry) return null;
+        // LRU：命中时移到末尾
+        blobCache.delete(fileId);
+        blobCache.set(fileId, entry);
+        return entry.url;
+    }
+
+    function setCachedBlobUrl(fileId, url) {
+        if (blobCache.has(fileId)) {
+            const old = blobCache.get(fileId);
+            if (old.url && old.url !== url) {
+                try { URL.revokeObjectURL(old.url); } catch (e) {}
+            }
+            blobCache.delete(fileId);
+        }
+        blobCache.set(fileId, { url, ts: Date.now() });
+
+        while (blobCache.size > MAX_CACHE_SIZE) {
+            const firstKey = blobCache.keys().next().value;
+            const firstVal = blobCache.get(firstKey);
+            blobCache.delete(firstKey);
+            if (firstVal && firstVal.url) {
+                try { URL.revokeObjectURL(firstVal.url); } catch (e) {}
+            }
+        }
+    }
+
+    function clearBlobCache() {
+        blobCache.forEach(entry => {
+            if (entry && entry.url) {
+                try { URL.revokeObjectURL(entry.url); } catch (e) {}
+            }
+        });
+        blobCache.clear();
+    }
+
+    /* ==================== 预加载下一首 ==================== */
+
+    let prefetchTimer = null;
+
+    function schedulePrefetchNext() {
+        if (prefetchTimer) clearTimeout(prefetchTimer);
+        prefetchTimer = setTimeout(() => {
+            prefetchTimer = null;
+            prefetchNextDriveFile().catch(() => {});
+        }, 3000);
+    }
+
+    async function prefetchNextDriveFile() {
+        if (!state.authorized) return;
+        const ext = window.MP3AppExtension;
+        if (!ext || !ext.currentPlayingFile) return;
+
+        const cur = ext.allFiles.find(f => ext.getFileKey(f) === ext.currentPlayingFile);
+        if (!cur || cur._source !== 'gdrive') return;
+
+        const driveFiles = ext.allFiles.filter(f => f._source === 'gdrive');
+        if (driveFiles.length < 2) return;
+
+        const idx = driveFiles.findIndex(f => ext.getFileKey(f) === ext.currentPlayingFile);
+        if (idx < 0) return;
+
+        const next = driveFiles[(idx + 1) % driveFiles.length];
+        if (!next || !next._driveFileId) return;
+        if (getCachedBlobUrl(next._driveFileId)) return;   // 已缓存
+
+        try {
+            const res = await driveFetch(
+                `https://www.googleapis.com/drive/v3/files/${next._driveFileId}?alt=media`
+            );
+            if (!res.ok) return;
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            setCachedBlobUrl(next._driveFileId, url);
+            console.log('[GDrive] 预加载完成:', next.displayName);
+        } catch (e) {
+            // 静默失败，不影响主流程
+        }
+    }
 
     /* ==================== 基础辅助 ==================== */
 
@@ -771,21 +860,38 @@ window.MP3GoogleDriveConfig = {
 
             resolveMedia: async (file) => {
                 if (!state.authorized) throw new Error('请先授权 Google Drive');
+                const fileId = file._driveFileId;
                 return {
                     play: async (audioPlayer) => {
-                        setStatus('正在加载 Drive 音频…');
-                        const res = await driveFetch(
-                            `https://www.googleapis.com/drive/v3/files/${file._driveFileId}?alt=media`
-                        );
-                        if (!res.ok) throw new Error('下载失败 HTTP ' + res.status);
-                        const blob = await res.blob();
-                        if (state.currentBlobUrl) {
-                            try { URL.revokeObjectURL(state.currentBlobUrl); } catch (e) {}
+                        // ★ 命中缓存 → 秒开
+                        let blobUrl = getCachedBlobUrl(fileId);
+
+                        if (!blobUrl) {
+                            setStatus('正在下载 Drive 音频…');
+                            const res = await driveFetch(
+                                `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`
+                            );
+                            if (!res.ok) throw new Error('下载失败 HTTP ' + res.status);
+                            const blob = await res.blob();
+                            blobUrl = URL.createObjectURL(blob);
+                            setCachedBlobUrl(fileId, blobUrl);
+                        } else {
+                            setStatus('▶️ 从缓存播放…');
                         }
-                        state.currentBlobUrl = URL.createObjectURL(blob);
-                        audioPlayer.src = state.currentBlobUrl;
+
+                        // 清理上一个 currentBlobUrl（如果不在缓存里）
+                        const prevUrl = state.currentBlobUrl;
+                        state.currentBlobUrl = blobUrl;
+                        if (prevUrl && prevUrl !== blobUrl && !Array.from(blobCache.values()).some(e => e.url === prevUrl)) {
+                            try { URL.revokeObjectURL(prevUrl); } catch (e) {}
+                        }
+
+                        audioPlayer.src = blobUrl;
                         await audioPlayer.play();
                         setStatus('▶️ ' + file.displayName, 'success');
+
+                        // ★ 播放开始后：延迟预加载下一首
+                        schedulePrefetchNext();
                     }
                 };
             },
@@ -801,21 +907,32 @@ window.MP3GoogleDriveConfig = {
                     const err = await res.json().catch(() => ({}));
                     throw new Error(err.error ? err.error.message : ('删除失败 HTTP ' + res.status));
                 }
+                // 从缓存移除
+                if (blobCache.has(file._driveFileId)) {
+                    const entry = blobCache.get(file._driveFileId);
+                    if (entry && entry.url) {
+                        try { URL.revokeObjectURL(entry.url); } catch (e) {}
+                    }
+                    blobCache.delete(file._driveFileId);
+                }
                 setStatus('✅ 已从 Drive 删除：' + file.displayName, 'success');
             },
 
             reset: () => {
-                if (state.currentBlobUrl) {
-                    try { URL.revokeObjectURL(state.currentBlobUrl); } catch (e) {}
-                    state.currentBlobUrl = null;
+                if (prefetchTimer) {
+                    clearTimeout(prefetchTimer);
+                    prefetchTimer = null;
                 }
+                // 不清空 blobCache（缓存要跨曲目保留）
             },
 
             onUnload: () => {
-                if (state.currentBlobUrl) {
-                    try { URL.revokeObjectURL(state.currentBlobUrl); } catch (e) {}
-                    state.currentBlobUrl = null;
+                if (prefetchTimer) {
+                    clearTimeout(prefetchTimer);
+                    prefetchTimer = null;
                 }
+                clearBlobCache();
+                state.currentBlobUrl = null;
                 state.authorized = false;
                 state.uploadingFavorites = false;
                 state.uploadingLocalFiles = false;
@@ -1342,7 +1459,7 @@ window.MP3GoogleDriveConfig = {
     /* ==================== 插件导出 ==================== */
 
     window.MP3GoogleDrivePlugin = {
-        version: '4.0.0',
+        version: '4.1.0',
         async init() {
             registerAdapter();
             injectUI();
