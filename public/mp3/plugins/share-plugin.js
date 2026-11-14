@@ -16,7 +16,7 @@
  *   - selectionEntries() 誤用未定義變數 file，導致勾選媒體時 ReferenceError。
  *
  *  功能：
- *   ．在檔案列表多選媒體（支援本頁全選、全選可分享、反選、清除）
+ *   ．在影音列表多選媒體（支援本頁全選、全選可分享、反選、清除）
  *   ．可選設定「問題 + 答案」保護：以答案加密媒體清單（HTTPS 下 AES-GCM）
  *   ．產生分享 URL（資料置於 #hash，不上傳伺服器）
  *   ．對方開啟該 URL 自動彈出接收畫面；有問題保護時需先答對
@@ -471,7 +471,7 @@
         if (panelHint) {
             panelHint.textContent = stats.blocked
                 ? '另有 ' + stats.blocked + ' 筆來源無法轉成公開連結，將自動排除'
-                : '於檔案列表按「選取分享」勾選媒體';
+                : '於影音列表按「選取分享」勾選媒體';
         }
     }
 
@@ -639,7 +639,7 @@
     function openShareModal() {
         if (shareBusy) return;
         const stats = selectionStats();
-        if (stats.portable === 0) { showStatus('請先在檔案列表勾選可分享的媒體', 'warn'); return; }
+        if (stats.portable === 0) { showStatus('請先在影音列表勾選可分享的媒體', 'warn'); return; }
         return new Promise((resolve) => {
             const overlay = mountOverlay('');
             activeResolve = resolve;
@@ -1126,7 +1126,7 @@
                 <button id="mp3SharePanelCreate" disabled class="w-full inline-flex items-center justify-center gap-1.5 bg-gradient-to-r from-sky-600 to-fuchsia-600 hover:from-sky-500 hover:to-fuchsia-500 text-white text-[11px] font-medium px-2.5 py-2 rounded-xl transition shadow-lg shadow-sky-950/40 disabled:opacity-40 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-share-nodes text-[10px]"></i> 建立分享連結（0 筆）
                 </button>
-                <div id="mp3SharePanelHint" class="text-[9px] text-slate-600 leading-relaxed">於檔案列表按「選取分享」勾選媒體</div>
+                <div id="mp3SharePanelHint" class="text-[9px] text-slate-600 leading-relaxed">於影音列表按「選取分享」勾選媒體</div>
                 <div class="pt-2 border-t border-slate-800">
                     <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5"><i class="fa-solid fa-inbox text-fuchsia-400 mr-1"></i>接收分享</div>
                     <div class="flex items-center gap-1.5">
