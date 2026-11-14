@@ -1,13 +1,16 @@
 /**
  * ============================================================
- *  share-plugin.js — 「分享與接受分享」獨立插件 v1.0.2
+ *  share-plugin.js — 「分享與接受分享」獨立插件 v1.0.3
+ *
+ *  v1.0.3 新增：
+ *   - 接收分享按鈕（mp3ShareReceiveBtn）於輸入框留空時，自動讀取剪貼簿；
+ *     若剪貼簿含有分享連結即直接使用，否則提示手動貼上。
+ *     讀取過程顯示 spinner，權限失敗 / 無連結 / 瀏覽器不支援皆有狀態提示。
  *
  *  v1.0.2 修復：
  *   - 複製連結按鈕在 await 之後使用 e.currentTarget（事件派發結束後為 null），
- *     導致 TypeError: Cannot set properties of null (setting 'innerHTML')。
- *     改為在 await 前捕獲按鈕引用，並在更新 UI 前檢查 isConnected。
- *   - 所有非同步流程（產生 / 解鎖 / 匯入 / 初始解包）補上弹窗已關閉保護，
- *     匯入狀態一律在 finally 復位，避免卡死。
+ *     導致 TypeError。改為在 await 前捕獲按鈕引用並檢查 isConnected。
+ *   - 所有非同步流程補上彈窗已關閉保護，匯入狀態一律在 finally 復位。
  *
  *  v1.0.1 修復：
  *   - selectionEntries() 誤用未定義變數 file，導致勾選媒體時 ReferenceError。
@@ -44,7 +47,7 @@
     'use strict';
 
     const PLUGIN_ID = 'share';
-    const VERSION = '1.0.2';
+    const VERSION = '1.0.3';
     const HASH_KEY = 'mp3share';
     const RECENT_KEY = 'mp3_share_recent';
     const FROM_KEY = 'mp3_share_from';
@@ -73,6 +76,7 @@
     let activeResolve = null;
     let shareBusy = false;
     let importBusy = false;
+    let receiveBusy = false;
 
     // ==================== 基礎工具 ====================
     function esc(s) {
@@ -818,7 +822,6 @@
                 const backBtn = panel.querySelector('#mp3ShareBackEdit');
                 out.addEventListener('focus', () => out.select());
 
-                // ★ 修復重點：在 await 前捕獲按鈕引用；await 後 e.currentTarget 會變成 null
                 copyBtn.addEventListener('click', async () => {
                     const ok = await copyText(url);
                     if (!copyBtn.isConnected) return;
@@ -1127,12 +1130,13 @@
                 <div class="pt-2 border-t border-slate-800">
                     <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5"><i class="fa-solid fa-inbox text-fuchsia-400 mr-1"></i>接收分享</div>
                     <div class="flex items-center gap-1.5">
-                        <input id="mp3ShareReceiveInput" type="text" placeholder="貼上分享連結…"
+                        <input id="mp3ShareReceiveInput" type="text" placeholder="貼上分享連結（留空＝讀取剪貼簿）…"
                             class="flex-1 min-w-0 bg-slate-800 border border-slate-700 text-[11px] rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-fuchsia-500 text-slate-200 placeholder:text-slate-600">
-                        <button id="mp3ShareReceiveBtn" class="bg-slate-800 hover:bg-fuchsia-600 border border-slate-700 hover:border-fuchsia-500 text-slate-300 hover:text-white px-2.5 py-1.5 rounded-xl text-[11px] transition" title="接收分享">
+                        <button id="mp3ShareReceiveBtn" class="bg-slate-800 hover:bg-fuchsia-600 border border-slate-700 hover:border-fuchsia-500 text-slate-300 hover:text-white px-2.5 py-1.5 rounded-xl text-[11px] transition" title="接收分享（輸入框留空時讀取剪貼簿）">
                             <i class="fa-solid fa-arrow-right-to-bracket"></i>
                         </button>
                     </div>
+                    <div class="text-[9px] text-slate-600 mt-1 leading-relaxed"><i class="fa-regular fa-clipboard mr-1"></i>輸入框留空時，按鈕會自動讀取剪貼簿中的分享連結</div>
                 </div>
                 <div id="mp3ShareStatus" class="hidden"></div>
                 <div class="pt-2 border-t border-slate-800">
@@ -1150,14 +1154,66 @@
         renderRecent();
         updateSelectionUI();
     }
-    function receiveFromInput() {
+
+    /**
+     * 接收分享：
+     * 1) 輸入框有內容 → 直接解析；
+     * 2) 輸入框留空 → 讀取剪貼簿，若含分享連結則直接使用；
+     *    剪貼簿無連結 / 權限失敗 / 瀏覽器不支援 → 提示手動貼上。
+     */
+    async function receiveFromInput() {
+        if (receiveBusy) return;
         const input = document.getElementById('mp3ShareReceiveInput');
+        const btn = document.getElementById('mp3ShareReceiveBtn');
         if (!input) return;
-        const token = tokenFromInput(input.value);
-        if (!token) { showStatus('請貼上有效的分享連結', 'warn'); input.focus(); return; }
-        input.value = '';
-        handleToken(token);
+
+        const raw = (input.value || '').trim();
+        if (raw) {
+            const token = tokenFromInput(raw);
+            if (!token) { showStatus('請貼上有效的分享連結', 'warn'); input.focus(); return; }
+            input.value = '';
+            handleToken(token);
+            return;
+        }
+
+        if (!navigator.clipboard || typeof navigator.clipboard.readText !== 'function') {
+            showStatus('此瀏覽器無法讀取剪貼簿，請手動貼上分享連結', 'warn');
+            input.focus();
+            return;
+        }
+
+        receiveBusy = true;
+        const originalBtnHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        }
+        try {
+            let clipText = '';
+            try {
+                clipText = await navigator.clipboard.readText();
+            } catch (err) {
+                showStatus('無法讀取剪貼簿（權限或瀏覽器限制），請手動貼上分享連結', 'warn');
+                input.focus();
+                return;
+            }
+            const token = tokenFromInput(clipText);
+            if (!token) {
+                showStatus('剪貼簿中沒有分享連結，請手動貼上', 'warn');
+                input.focus();
+                return;
+            }
+            showStatus('已從剪貼簿讀取分享連結', 'success');
+            handleToken(token);
+        } finally {
+            receiveBusy = false;
+            if (btn && btn.isConnected) {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHtml;
+            }
+        }
     }
+    function receiveFromInputOld() { /* 保留空殼，避免舊引用報錯 */ }
 
     // ==================== Hash 自動接收 ====================
     function consumeHash() {
@@ -1210,6 +1266,7 @@
         if (body) { body.innerHTML = ''; delete body.dataset.mp3ShareReady; }
         shareBusy = false;
         importBusy = false;
+        receiveBusy = false;
     }
 
     window.MP3SharePlugin = {
