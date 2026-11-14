@@ -1,9 +1,11 @@
 /**
  * ============================================================
- *  url-media-plugin.js — 「URL 媒體」獨立插件 v1.0
+ *  url-media-plugin.js — 「URL 媒體」獨立插件 v1.1
  *  功能：貼上一或多筆媒體 URL，直接加入檔案列表（媒體庫）。
+ *        v1.1：輸入支援「換行 / 逗號（含全形）/ 空白」分隔；
+ *              「從剪貼簿貼上」與「加入媒體庫」都會先彈出
+ *              確認清單，可逐筆修改顯示名稱、勾選後再新增。
  *        支援音訊 / 影片直連與 m3u8 串流（自動啟用 hls.js）。
- *        可播放、重新命名、複製 URL、移除、清空；
  *        清單持久化於 localStorage，重新啟用插件後自動恢復。
  *  掛載：插件中心（MP3PluginManager）
  *  依賴：MP3AppExtension / MP3RegisterSourceAdapter / MP3SourceRegistry
@@ -41,6 +43,10 @@
     let hlsLoadPromise = null;
     let statusTimer = null;
     let uiRetry = 0;
+    let previewBusy = false;
+    let modalOverlay = null;
+    let modalResolve = null;
+    let modalKeyHandler = null;
     const boundEvents = [];
 
     // ==================== 儲存 ====================
@@ -90,6 +96,12 @@
         catch (e) { return ''; }
     }
     function hostOf(url) { try { return new URL(url).hostname; } catch (e) { return ''; } }
+    function shortUrl(url) {
+        try {
+            const u = new URL(url);
+            return u.hostname + (u.pathname !== '/' ? u.pathname : '') + (u.search ? '?…' : '');
+        } catch (e) { return url; }
+    }
     function deriveName(url) {
         const base = basenameOf(url);
         if (base) {
@@ -103,7 +115,11 @@
         return url || '未命名媒體';
     }
 
-    /** 解析輸入：每行一筆；支援「URL | 自訂名稱」；同一行多個 URL 以空白分隔 */
+    /**
+     * 解析輸入：支援「換行 / 逗號（含全形，）/ 空白」分隔，可批次。
+     * 「URL | 名稱」可自訂名稱（名稱內可含空白與逗號）。
+     * 逗號僅在「後面接著新 URL」時才視為分隔符，避免誤斷 URL 內部的逗號（如 ?ids=1,2）。
+     */
     function parseInput(text) {
         const out = [];
         String(text || '').split(/[\r\n]+/).forEach(line => {
@@ -112,9 +128,36 @@
             let name = '';
             const bar = line.indexOf('|');
             if (bar > -1) { name = line.slice(bar + 1).trim(); line = line.slice(0, bar).trim(); }
-            line.split(/\s+/).forEach(u => { if (u) out.push({ url: u, name: name }); });
+            line.split(/[,，](?=\s*https?:\/\/)/i).forEach(part => {
+                part.split(/\s+/).forEach(u => {
+                    u = u.replace(/[,，]+$/, '');
+                    if (u) out.push({ url: u, name: name });
+                });
+            });
         });
         return out;
+    }
+
+    /** 整理候選清單：驗證、批次內去重、標記媒體庫已存在者、預填名稱 */
+    function collectCandidates(text) {
+        const entries = parseInput(text);
+        const seen = new Set(items.map(it => it.url));
+        const candidates = [];
+        let invalid = 0;
+        entries.forEach(entry => {
+            if (!isValidUrl(entry.url)) { invalid++; return; }
+            const isDup = seen.has(entry.url);
+            seen.add(entry.url);
+            const e = extOf(entry.url);
+            candidates.push({
+                url: entry.url,
+                name: entry.name || deriveName(entry.url),
+                ext: e,
+                kind: kindOf(e),
+                isDup: isDup
+            });
+        });
+        return { candidates: candidates, invalid: invalid };
     }
 
     function toFile(item) {
@@ -157,7 +200,6 @@
     async function playHlsUrl(player, url) {
         const Hls = await ensureHlsLib();
         if (!Hls || !Hls.isSupported()) {
-            // 無 hls.js → 交給播放器原生嘗試（Safari 等）
             destroyHls();
             player.src = url;
             await player.play();
@@ -208,20 +250,128 @@
         };
     }
 
+    // ==================== 名稱確認彈窗 ====================
+    function closeNameModal(result) {
+        if (modalKeyHandler) {
+            document.removeEventListener('keydown', modalKeyHandler, true);
+            modalKeyHandler = null;
+        }
+        if (modalOverlay) { modalOverlay.remove(); modalOverlay = null; }
+        if (modalResolve) {
+            const r = modalResolve;
+            modalResolve = null;
+            r(result == null ? null : result);
+        }
+    }
+
+    /** 彈出候選清單：可逐筆改名、勾選；resolve 選中的 {url, name}[]，取消 resolve null */
+    function openNameConfirmModal(candidates) {
+        return new Promise((resolve) => {
+            closeNameModal(null);
+            modalResolve = resolve;
+            const freshCount = candidates.filter(c => !c.isDup).length;
+            let rowsHtml = '';
+            candidates.forEach((c, i) => {
+                const dupBadge = c.isDup
+                    ? '<span class="ml-1 px-1 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[9px] shrink-0">已存在</span>'
+                    : '';
+                rowsHtml += `
+                    <div class="flex items-start gap-2 p-2 rounded-xl bg-slate-950/50 border border-slate-800 ${c.isDup ? 'opacity-50' : ''}" data-idx="${i}">
+                        <input type="checkbox" data-role="pick" class="mt-2 w-3.5 h-3.5 accent-fuchsia-500 shrink-0" ${c.isDup ? 'disabled' : 'checked'}>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-1 text-[10px] text-slate-500 mb-1 min-w-0">
+                                <i class="${kindIcon(c.kind)} text-[9px] shrink-0"></i>
+                                <span class="truncate" title="${esc(c.url)}">${esc(shortUrl(c.url))}</span>
+                                ${dupBadge}
+                            </div>
+                            <input type="text" data-role="name" value="${esc(c.name)}" ${c.isDup ? 'disabled' : ''} placeholder="顯示名稱…"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-fuchsia-500">
+                        </div>
+                    </div>`;
+            });
+            const overlay = document.createElement('div');
+            modalOverlay = overlay;
+            overlay.className = 'fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] flex items-center justify-center p-4';
+            overlay.innerHTML = `
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[82vh]">
+                    <div class="flex items-center gap-3 px-5 pt-4 pb-3 border-b border-slate-800 shrink-0">
+                        <div class="w-9 h-9 rounded-xl bg-fuchsia-500/20 text-fuchsia-400 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <h3 class="text-sm font-bold text-slate-100">確認新增媒體</h3>
+                            <p class="text-[11px] text-slate-400">可修改顯示名稱、取消勾選不想新增的項目</p>
+                        </div>
+                    </div>
+                    <div data-role="rows" class="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-2">${rowsHtml}</div>
+                    <div class="flex items-center justify-between gap-2 px-5 py-3.5 border-t border-slate-800 shrink-0">
+                        <span data-role="count" class="text-[11px] text-slate-400"></span>
+                        <div class="flex items-center gap-2">
+                            <button data-role="cancel" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 transition">取消</button>
+                            <button data-role="ok" class="px-5 py-2 rounded-xl bg-fuchsia-600 hover:bg-fuchsia-500 text-xs font-medium text-white transition shadow-lg shadow-fuchsia-600/30"></button>
+                        </div>
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+
+            const rowsEl = overlay.querySelector('[data-role="rows"]');
+            const countEl = overlay.querySelector('[data-role="count"]');
+            const okBtn = overlay.querySelector('[data-role="ok"]');
+            const cancelBtn = overlay.querySelector('[data-role="cancel"]');
+
+            function pickedEntries() {
+                const out = [];
+                rowsEl.querySelectorAll('[data-idx]').forEach(row => {
+                    const c = candidates[parseInt(row.dataset.idx, 10)];
+                    const pick = row.querySelector('[data-role="pick"]');
+                    if (!c || c.isDup || !pick.checked) return;
+                    const nameInput = row.querySelector('[data-role="name"]');
+                    const name = (nameInput.value || '').trim();
+                    out.push({ url: c.url, name: name || c.name });
+                });
+                return out;
+            }
+            function refreshCount() {
+                const n = pickedEntries().length;
+                countEl.textContent = '已選 ' + n + ' / ' + freshCount + ' 筆';
+                okBtn.textContent = '確認新增 ' + n + ' 筆';
+                okBtn.disabled = n === 0;
+                okBtn.classList.toggle('opacity-40', n === 0);
+                okBtn.classList.toggle('cursor-not-allowed', n === 0);
+            }
+            modalKeyHandler = (e) => {
+                if (e.key === 'Escape') {
+                    e.preventDefault(); e.stopPropagation();
+                    closeNameModal(null);
+                } else if (e.key === 'Enter' && e.target && e.target.matches && e.target.matches('input[data-role="name"]')) {
+                    e.preventDefault(); e.stopPropagation();
+                    if (!okBtn.disabled) closeNameModal(pickedEntries());
+                }
+            };
+            document.addEventListener('keydown', modalKeyHandler, true);
+            rowsEl.addEventListener('change', refreshCount);
+            cancelBtn.addEventListener('click', () => closeNameModal(null));
+            okBtn.addEventListener('click', () => { if (!okBtn.disabled) closeNameModal(pickedEntries()); });
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) closeNameModal(null); });
+            refreshCount();
+            const first = rowsEl.querySelector('input[data-role="name"]:not([disabled])');
+            if (first) { first.focus(); first.select(); }
+        });
+    }
+
     // ==================== 新增 / 移除 ====================
-    async function addFromText(text) {
-        const entries = parseInput(text);
-        let added = 0, dup = 0, bad = 0;
+    /** 實際入庫（不彈窗）：entries = [{url, name}] */
+    async function addEntries(entries) {
+        let added = 0, dup = 0;
         const seen = new Set(items.map(it => it.url));
         entries.forEach(entry => {
-            if (!isValidUrl(entry.url)) { bad++; return; }
-            if (seen.has(entry.url)) { dup++; return; }
+            if (!isValidUrl(entry.url) || seen.has(entry.url)) { dup++; return; }
             seen.add(entry.url);
             const e = extOf(entry.url);
             items.push({
                 id: uid(),
                 url: entry.url,
-                name: entry.name || deriveName(entry.url),
+                name: (entry.name || '').trim() || deriveName(entry.url),
                 ext: e,
                 kind: kindOf(e),
                 mime: MIME_MAP[e] || '',
@@ -234,19 +384,47 @@
             if (adapter) { try { await adapter.refresh(); } catch (e) { console.warn('[UrlMedia] refresh 失败:', e); } }
         }
         renderList();
-        return { added: added, dup: dup, bad: bad };
+        return { added: added, dup: dup };
     }
 
-    async function handleAdd() {
+    /** 「加入媒體庫」與「從剪貼簿貼上」共用：先彈出確認清單再入庫 */
+    async function previewAndAdd() {
+        if (previewBusy) return;
         const input = document.getElementById('urlMediaInput');
         if (!input) return;
         if (!input.value.trim()) { showStatus('請先貼上媒體 URL', 'warn'); return; }
-        const r = await addFromText(input.value);
-        if (r.added > 0) input.value = '';
-        const parts = ['新增 ' + r.added + ' 筆'];
-        if (r.dup) parts.push('重複 ' + r.dup + ' 筆');
-        if (r.bad) parts.push('無效 ' + r.bad + ' 筆');
-        showStatus(parts.join('，'), r.added > 0 ? 'success' : 'warn');
+        const res = collectCandidates(input.value);
+        const fresh = res.candidates.filter(c => !c.isDup);
+        if (res.candidates.length === 0) {
+            showStatus('沒有有效的 URL' + (res.invalid ? '（無效 ' + res.invalid + ' 筆）' : ''), 'warn');
+            return;
+        }
+        if (fresh.length === 0) {
+            showStatus('全部 ' + res.candidates.length + ' 筆 URL 已存在於媒體庫', 'warn');
+            return;
+        }
+        previewBusy = true;
+        try {
+            const picked = await openNameConfirmModal(res.candidates);
+            if (!picked) return; // 取消：保留輸入框內容
+            const r = await addEntries(picked);
+            // 未勾選的項目留在輸入框，方便稍後再新增
+            const remaining = fresh.filter(c => !picked.some(p => p.url === c.url));
+            input.value = remaining.map(c => c.url + ' | ' + c.name).join('\n');
+            const skipped = res.candidates.length - r.added;
+            const parts = ['新增 ' + r.added + ' 筆'];
+            if (skipped > 0) parts.push('略過 ' + skipped + ' 筆');
+            if (res.invalid > 0) parts.push('無效 ' + res.invalid + ' 筆');
+            showStatus(parts.join('，'), r.added > 0 ? 'success' : 'warn');
+        } finally { previewBusy = false; }
+    }
+
+    /** 程式化直接新增（不彈窗），供 console / 其他插件調用 */
+    async function addFromText(text) {
+        const res = collectCandidates(text);
+        const fresh = res.candidates.filter(c => !c.isDup).map(c => ({ url: c.url, name: c.name }));
+        const r = await addEntries(fresh);
+        return { added: r.added, dup: res.candidates.length - fresh.length + r.dup, bad: res.invalid };
     }
 
     async function removeItem(item) {
@@ -288,16 +466,16 @@
     async function handlePaste() {
         const input = document.getElementById('urlMediaInput');
         if (!input) return;
-        try {
-            const text = await navigator.clipboard.readText();
-            if (!text || !text.trim()) { showStatus('剪貼簿是空的', 'warn'); return; }
-            input.value = (input.value ? input.value.replace(/\s+$/, '') + '\n' : '') + text.trim();
-            input.focus();
-            showStatus('已貼上，點擊「加入媒體庫」完成新增', 'info');
-        } catch (e) {
+        let text = '';
+        try { text = await navigator.clipboard.readText(); }
+        catch (e) {
             input.focus();
             showStatus('無法讀取剪貼簿，請直接 Ctrl+V 貼上', 'warn');
+            return;
         }
+        if (!text || !text.trim()) { showStatus('剪貼簿是空的', 'warn'); return; }
+        input.value = (input.value ? input.value.replace(/\s+$/, '') + '\n' : '') + text.trim();
+        await previewAndAdd(); // 貼上後直接彈出確認清單
     }
 
     // ==================== 插件 UI ====================
@@ -322,14 +500,14 @@
         body.innerHTML = `
             <div class="space-y-2 pt-1">
                 <textarea id="urlMediaInput" rows="2" spellcheck="false"
-                    placeholder="貼上媒體 URL（每行一筆，可批次新增）…"
+                    placeholder="貼上媒體 URL（支援換行、逗號、空白分隔，可批次）…"
                     class="w-full bg-slate-800 border border-slate-700 text-[11px] rounded-xl px-2.5 py-2 focus:outline-none focus:border-fuchsia-500 text-slate-200 placeholder:text-slate-600 resize-y"></textarea>
-                <div class="text-[9px] text-slate-600 leading-relaxed">支援 mp3 / mp4 / webm / m3u8 等直連；可用「URL | 名稱」自訂顯示名稱</div>
+                <div class="text-[9px] text-slate-600 leading-relaxed">支援 mp3 / mp4 / webm / m3u8 等直連；「URL | 名稱」可自訂名稱；加入前會彈出清單供確認與改名</div>
                 <div class="flex items-center gap-1.5">
                     <button id="urlMediaAddBtn" class="flex-1 bg-fuchsia-600/80 hover:bg-fuchsia-600 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-xl transition flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-plus text-[10px]"></i> 加入媒體庫
                     </button>
-                    <button id="urlMediaPasteBtn" title="從剪貼簿貼上" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-2.5 py-1.5 rounded-xl text-[11px] transition">
+                    <button id="urlMediaPasteBtn" title="從剪貼簿貼上並確認" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-2.5 py-1.5 rounded-xl text-[11px] transition">
                         <i class="fa-solid fa-paste"></i>
                     </button>
                     <button id="urlMediaClearBtn" title="清空全部" class="bg-slate-800 hover:bg-rose-600/80 border border-slate-700 text-slate-400 hover:text-white px-2.5 py-1.5 rounded-xl text-[11px] transition">
@@ -344,12 +522,12 @@
                 <div id="urlMediaList" class="space-y-1 max-h-60 overflow-y-auto pr-0.5"></div>
             </div>
         `;
-        body.querySelector('#urlMediaAddBtn').addEventListener('click', handleAdd);
+        body.querySelector('#urlMediaAddBtn').addEventListener('click', previewAndAdd);
         body.querySelector('#urlMediaPasteBtn').addEventListener('click', handlePaste);
         body.querySelector('#urlMediaClearBtn').addEventListener('click', handleClearAll);
         body.querySelector('#urlMediaList').addEventListener('click', onListClick);
         body.querySelector('#urlMediaInput').addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); handleAdd(); }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); previewAndAdd(); }
         });
         renderList();
     }
@@ -482,12 +660,13 @@
         });
         await adapter.refresh();
         renderList();
-        console.log('[UrlMediaPlugin] ready v1.0，已恢復 ' + items.length + ' 筆 URL 媒體');
+        console.log('[UrlMediaPlugin] ready v1.1，已恢復 ' + items.length + ' 筆 URL 媒體');
     }
 
     async function unload() {
         if (!initialized) return;
         initialized = false;
+        closeNameModal(null);
         unbindEvents();
         destroyHls();
         if (statusTimer) { clearTimeout(statusTimer); statusTimer = null; }
@@ -500,7 +679,7 @@
     }
 
     window.MP3UrlMediaPlugin = {
-        version: '1.0',
+        version: '1.1',
         init: init,
         unload: unload,
         addUrls: addFromText,
