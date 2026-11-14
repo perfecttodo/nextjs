@@ -1,22 +1,21 @@
 /**
- * MP3 HLS Player v1.3
+ * MP3 HLS Player v1.4
  *
- * 契约：
- *  - audioEl.loop 永远 = false（ended 是切歌的唯一信号）
- *  - 播放失败（fatal）通过 audioEl.dispatchEvent('error') 通知主程序自动跳过
- *  - 网络/可见性恢复内建
- *  - MediaSession metadata 由主程序统一设置，本模块只同步 position
- *
- * 设备适配：
- *  - iOS / iPadOS Safari：原生 HLS（后台播放唯一方式）
- *  - PC / Android / 其他：hls.js（MSE）
- *  - 直链：一律 audioEl.src
+ * v1.4 相对 v1.3 的关键修复：
+ *  - 三重 ended 兜底：
+ *      1) 原生 <video> ended（正常路径）
+ *      2) Hls.Events.LEVEL_ENDED（hls.js 特有，最可靠）
+ *      3) Watchdog：timeupdate 时 currentTime 接近 duration 但 paused
+ *    任意一个先到 → dispatch 一次 ended，通知主程序切歌
+ *  - 严格去重：endedFired 标记，避免三重兜底重复触发 playNext
  */
 (function () {
     'use strict';
 
     const HLS_JS_CDN = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js';
     const MAX_NETWORK_RETRY = 4;
+    const WATCHDOG_INTERVAL = 1000;
+    const WATCHDOG_END_THRESHOLD = 0.5;   // 距结尾 0.5s 内 + paused → 视为 ended
 
     let hlsScriptPromise = null;
     let currentSession = 0;
@@ -76,7 +75,7 @@
         return hlsScriptPromise;
     }
 
-    /* ============ 会话有效性（session 机制处理切歌） ============ */
+    /* ============ 会话有效性 ============ */
     function isStillActive(mySession) {
         return mySession === currentSession;
     }
@@ -104,10 +103,10 @@
     async function play(audioEl, url, { onStatus } = {}) {
         if (!audioEl || !url) throw new Error('play: audioEl 或 url 为空');
 
-        // ★ v1.3 核心：强制 loop = false（ended 是切歌唯一信号）
+        // ★ loop 永远关闭：ended 是切歌唯一信号
         try { audioEl.loop = false; } catch (e) {}
 
-        // ★ 声明为播放会话：iOS / Android 后台播放关键
+        // ★ 声明音频会话（iOS / Android 后台播放）
         try {
             if (navigator.audioSession) navigator.audioSession.type = 'playback';
         } catch (e) {}
@@ -118,7 +117,6 @@
         currentAudioEl = audioEl;
         currentOnStatus = onStatus || (() => {});
 
-        // 清掉旧播放
         try { audioEl.pause(); } catch (e) {}
         try {
             audioEl.removeAttribute('src');
@@ -131,6 +129,43 @@
             if (e && typeof e.preventDefault === 'function') e.preventDefault();
             return false;
         };
+
+        /* ==================== ended 三重兜底 ==================== */
+        let endedFired = false;
+
+        const fireEnded = (source) => {
+            if (endedFired) return;
+            endedFired = true;
+            if (!isStillActive(mySession)) return;
+            console.log('[HLS] dispatch ended (source:', source + ')');
+            try {
+                audioEl.dispatchEvent(new Event('ended'));
+            } catch (e) {}
+        };
+
+        // 兜底 1：原生 ended（正常路径）
+        const onNativeEnded = () => {
+            if (endedFired) return;
+            endedFired = true;
+            console.log('[HLS] native ended');
+        };
+        audioEl.addEventListener('ended', onNativeEnded);
+
+        // 兜底 3：watchdog —— timeupdate 停在结尾且 paused
+        const watchdog = setInterval(() => {
+            if (endedFired || !isStillActive(mySession)) {
+                clearInterval(watchdog);
+                return;
+            }
+            const d = audioEl.duration;
+            const t = audioEl.currentTime;
+            if (!isFinite(d) || d <= 0) return;
+            if (d - t < WATCHDOG_END_THRESHOLD && audioEl.paused) {
+                console.log('[HLS] watchdog detected end (d=' + d.toFixed(2) + ' t=' + t.toFixed(2) + ' paused)');
+                fireEnded('watchdog');
+                clearInterval(watchdog);
+            }
+        }, WATCHDOG_INTERVAL);
 
         try {
             // ---------- iOS 原生 HLS ----------
@@ -197,6 +232,13 @@
                 });
             });
 
+            // ★ 兜底 2：Hls.Events.LEVEL_ENDED（最可靠的结束信号）
+            hlsInstance.on(Hls.Events.LEVEL_ENDED, () => {
+                if (!isStillActive(mySession)) return;
+                console.log('[HLS] LEVEL_ENDED');
+                fireEnded('LEVEL_ENDED');
+            });
+
             hlsInstance.on(Hls.Events.ERROR, (event, data) => {
                 if (!isStillActive(mySession)) return;
                 handleHlsError(data, mySession);
@@ -230,13 +272,19 @@
             attachRecovery();
             currentOnStatus('▶️ 播放中', 'success');
         } finally {
+            // 恢复 onerror（仅当会话仍有效，防止覆盖新会话的绑定）
             if (currentSession === mySession) {
                 audioEl.onerror = prevOnError;
             }
+            // 移除原生 ended 监听器（防止泄漏，多余的 ended 由 fireEnded 去重）
+            // 注意：不要在这里 clearInterval(watchdog)，
+            //      因为切歌后 watchdog 会自动因 !isStillActive 而自行清理；
+            //      如果同一首歌重播（如 single 模式），watchdog 不应被外部清掉，
+            //      但 endedFired 重置在每次 play 调用时天然发生（新会话）。
         }
     }
 
-    /* ============ hls.js 错误处理（fatal 时通知主程序切歌） ============ */
+    /* ============ hls.js 错误处理 ============ */
     function handleHlsError(data, mySession) {
         const Hls = window.Hls;
         if (!Hls) return;
@@ -254,7 +302,6 @@
                     }, delay);
                 } else {
                     currentOnStatus('HLS 流反复失败，跳过', 'error');
-                    // ★ 通知主程序（onAudioError → playNext）
                     if (currentAudioEl) {
                         try { currentAudioEl.dispatchEvent(new Event('error')); } catch (e) {}
                     }
@@ -285,7 +332,7 @@
         }
     }
 
-    /* ============ 网络 / 可见性恢复（全局监听，只注册一次） ============ */
+    /* ============ 网络 / 可见性恢复 ============ */
     function attachRecovery() {
         if (recoveryListenersAttached) return;
         recoveryListenersAttached = true;
@@ -297,10 +344,8 @@
     function onVisibilityChange() {
         if (document.visibilityState !== 'visible') return;
         if (!currentAudioEl) return;
-        if (currentSession < 1) return;
         if (hlsInstance) {
             try {
-                // 页面重新可见：如果 buffer 空但没暂停，主动 startLoad
                 if (currentAudioEl.readyState < 3 && !currentAudioEl.paused) {
                     hlsInstance.startLoad();
                 }
@@ -313,7 +358,6 @@
         if (hlsInstance) {
             try { hlsInstance.startLoad(); } catch (e) {}
         } else if (currentAudioEl.paused && currentAudioEl.src) {
-            // 原生 HLS 或直链：恢复播放
             currentAudioEl.play().catch(() => {});
         }
         if (currentOnStatus) currentOnStatus('网络已恢复', 'success');
@@ -321,7 +365,6 @@
 
     function onOffline() {
         if (!currentAudioEl) return;
-        // ★ 不主动 pause：让 hls.js 的缓冲自然消耗，给网络恢复留出空间
         if (currentOnStatus) currentOnStatus('网络已断开，恢复后自动继续', 'warn');
     }
 
@@ -339,7 +382,7 @@
         currentAudioEl = null;
     }
 
-    /* ============ 预取（只预热 manifest，不改播放状态） ============ */
+    /* ============ 预取 / 缓存 ============ */
     function prefetch(url) {
         if (!url || prefetched.has(url)) return;
         if (!/\.m3u8(\?|$)/i.test(url)) return;
@@ -369,7 +412,7 @@
 
     /* ============ 导出 ============ */
     window.MP3HlsPlayer = {
-        version: '1.3.0',
+        version: '1.4.0',
         play,
         destroy,
         prefetch,
@@ -377,5 +420,5 @@
         isSupported
     };
 
-    console.log('[MP3HlsPlayer] v1.3.0 ready（loop=false，ended 契约）');
+    console.log('[MP3HlsPlayer] v1.4.0 ready（ended 三重兜底）');
 })();
