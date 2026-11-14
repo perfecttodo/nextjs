@@ -1,11 +1,10 @@
 /**
- * News 播放列表插件 v3.1（Core API 版）
+ * News 播放列表插件 v4.0
  *
- * v3.1 相对 v3.0：
- *  - ext.playMedia 不再接收 isActive（Core 与 hls-player 已用 session 机制处理切歌）
- *
- * 保留 news 特有：
- *  - 分页加载、loop 回绕控制、预取、兜底切歌、MediaSession 覆盖
+ * 职责边界：
+ *  - 只负责数据加载（list）、分页、预取下一首、UI
+ *  - 播放控制完全交给 hls-player + 主程序 onAudioEnded
+ *  - 不再干预 loop、切歌、MediaSession、stalled 检测
  */
 (function () {
     'use strict';
@@ -20,39 +19,6 @@
     let lastMeta = null;
     let loadedPages = new Set();
     let loading = false;
-
-    let newsLoopMedia = null;
-    let newsLoopBound = false;
-    let lastSeekTime = 0;
-    let playedPastStart = false;
-
-    let bgEndTimer = null;
-    let bgEndKey = null;
-    let switchingNext = false;
-    let mediaSessionSetup = false;
-
-    // ==================== 音频会话 / Media Session ====================
-    function setupAudioSession() {
-        if (navigator.audioSession) {
-            try { navigator.audioSession.type = 'playback'; } catch (e) {}
-        }
-    }
-
-    function setupMediaSessionForNews() {
-        if (mediaSessionSetup || !('mediaSession' in navigator)) return;
-        try {
-            navigator.mediaSession.setActionHandler('nexttrack', () => {
-                playNextNewsInBackground();
-            });
-            mediaSessionSetup = true;
-        } catch (e) {}
-    }
-
-    function teardownMediaSession() {
-        if (!('mediaSession' in navigator)) return;
-        try { navigator.mediaSession.setActionHandler('nexttrack', null); } catch (e) {}
-        mediaSessionSetup = false;
-    }
 
     // ==================== UI 状态 ====================
     function setStatus(msg, tone) {
@@ -83,164 +49,25 @@
         };
     }
 
-    // ==================== loop 回绕控制 ====================
-    function getNextNewsFile() {
+    // ==================== 预取下一首 manifest（性能优化，无副作用） ====================
+    function prefetchNextNews() {
         const ext = window.MP3AppExtension;
-        if (!ext) return null;
+        if (!ext) return;
         const newsFiles = ext.allFiles.filter(f => f._source === 'news');
-        if (!newsFiles.length) return null;
+        if (!newsFiles.length) return;
         const curKey = ext.currentPlayingFile;
         const idx = newsFiles.findIndex(f => window.getFileKey(f) === curKey);
-        if (idx < 0) return newsFiles[0];
-        return newsFiles[(idx + 1) % newsFiles.length];
-    }
-
-    function isNaturalWrap(from, to, dur) {
-        if (!playedPastStart) return false;
-        if (!isFinite(dur) || dur < 5) return false;
-        return from > 3 && to < 1.5 && (from - to) > 2;
-    }
-
-    function attachNewsLoopControl(media) {
-        if (!media) return;
-        if (newsLoopBound && newsLoopMedia === media) {
-            media.loop = true;
-            return;
-        }
-        detachNewsLoopControl();
-        newsLoopMedia = media;
-        newsLoopBound = true;
-        media.loop = true;
-        playedPastStart = false;
-        lastSeekTime = media.currentTime || 0;
-
-        const onTimeUpdate = () => {
-            const t = media.currentTime || 0;
-            if (t > 1) playedPastStart = true;
-            lastSeekTime = t;
-        };
-
-        const onSeeking = () => {
-            const from = lastSeekTime;
-            const to = media.currentTime || 0;
-            if (isNaturalWrap(from, to, media.duration)) {
-                try { media.pause(); } catch (e) {}
-                playNextNewsInBackground();
-            } else if (to > 1) {
-                playedPastStart = true;
-            }
-            lastSeekTime = to;
-        };
-
-        const onEnded = () => {
-            playNextNewsInBackground();
-        };
-
-        const onEmptied = () => {
-            setTimeout(() => {
-                const ext = window.MP3AppExtension;
-                const key = ext?.currentPlayingFile;
-                if (!key || !String(key).startsWith('[News]')) {
-                    detachNewsLoopControl();
-                }
-            }, 500);
-        };
-
-        media.addEventListener('timeupdate', onTimeUpdate);
-        media.addEventListener('seeking', onSeeking);
-        media.addEventListener('ended', onEnded);
-        media.addEventListener('emptied', onEmptied);
-
-        media._newsOnTimeUpdate = onTimeUpdate;
-        media._newsOnSeeking = onSeeking;
-        media._newsOnEnded = onEnded;
-        media._newsOnEmptied = onEmptied;
-    }
-
-    function detachNewsLoopControl() {
-        if (newsLoopMedia) {
-            try { newsLoopMedia.loop = false; } catch (e) {}
-            if (newsLoopMedia._newsOnTimeUpdate) newsLoopMedia.removeEventListener('timeupdate', newsLoopMedia._newsOnTimeUpdate);
-            if (newsLoopMedia._newsOnSeeking) newsLoopMedia.removeEventListener('seeking', newsLoopMedia._newsOnSeeking);
-            if (newsLoopMedia._newsOnEnded) newsLoopMedia.removeEventListener('ended', newsLoopMedia._newsOnEnded);
-            if (newsLoopMedia._newsOnEmptied) newsLoopMedia.removeEventListener('emptied', newsLoopMedia._newsOnEmptied);
-            newsLoopMedia._newsOnTimeUpdate = null;
-            newsLoopMedia._newsOnSeeking = null;
-            newsLoopMedia._newsOnEnded = null;
-            newsLoopMedia._newsOnEmptied = null;
-        }
-        newsLoopMedia = null;
-        newsLoopBound = false;
-        playedPastStart = false;
-    }
-
-    // ==================== 预取 & 兜底 ====================
-    function prefetchNextNews() {
-        const next = getNextNewsFile();
+        const next = idx < 0 ? newsFiles[0] : newsFiles[(idx + 1) % newsFiles.length];
         const url = next?._newsItem?.url;
         if (!url) return;
         if (!/\.m3u8(\?|$)/i.test(url)) return;
 
         if (window.MP3HlsPlayer) {
             window.MP3HlsPlayer.prefetch(url);
-        } else if (window.MP3AppExtension && window.MP3AppExtension.ensureHlsPlayerModule) {
-            window.MP3AppExtension.ensureHlsPlayerModule()
+        } else if (ext.ensureHlsPlayerModule) {
+            ext.ensureHlsPlayerModule()
                 .then(() => window.MP3HlsPlayer?.prefetch(url))
                 .catch(() => {});
-        }
-    }
-
-    function stopBackgroundEndCheck() {
-        if (bgEndTimer) {
-            clearInterval(bgEndTimer);
-            bgEndTimer = null;
-        }
-        bgEndKey = null;
-    }
-
-    function startFallbackCheck(media, fileKey) {
-        stopBackgroundEndCheck();
-        if (!media || !fileKey) return;
-        bgEndKey = fileKey;
-        let lastT = media.currentTime || 0;
-        let stagnant = 0;
-        bgEndTimer = setInterval(() => {
-            if (switchingNext) return;
-            const ext = window.MP3AppExtension;
-            if (!ext || ext.currentPlayingFile !== bgEndKey) { stopBackgroundEndCheck(); return; }
-            if (!media || media.paused) { lastT = media.currentTime || 0; stagnant = 0; return; }
-            const t = media.currentTime || 0;
-            if (Math.abs(t - lastT) < 0.1 && media.readyState >= 3) {
-                stagnant++;
-                if (stagnant >= 3) {
-                    try { media.pause(); } catch (e) {}
-                    playNextNewsInBackground();
-                    return;
-                }
-            } else {
-                stagnant = 0;
-            }
-            lastT = t;
-        }, 2000);
-    }
-
-    function playNextNewsInBackground() {
-        if (switchingNext) return;
-        const nextFile = getNextNewsFile();
-        if (!nextFile) return;
-        switchingNext = true;
-        stopBackgroundEndCheck();
-        const handler = window.MP3DataSourceHandlers && window.MP3DataSourceHandlers['news'];
-        if (!handler || typeof handler.play !== 'function') {
-            switchingNext = false;
-            return;
-        }
-        try {
-            Promise.resolve(handler.play(nextFile))
-                .catch(e => console.warn('[News BG] next failed:', e))
-                .finally(() => { switchingNext = false; });
-        } catch (e) {
-            switchingNext = false;
         }
     }
 
@@ -319,7 +146,7 @@
         if (newsCount < need && maxLoaded < lastMeta.totalPages) loadMore();
     }
 
-    // ==================== 数据源注册 ====================
+    // ==================== 数据源注册（极简：只提供 URL） ====================
     function registerDataSource() {
         window.MP3DataSourceHandlers = window.MP3DataSourceHandlers || {};
         window.MP3DataSourceHandlers['news'] = {
@@ -328,32 +155,24 @@
                 const ext = window.MP3AppExtension;
                 if (!ext) return;
                 const item = file._newsItem;
-                if (!item || !item.url) { setStatus('该条新闻缺少播放地址', 'error'); throw new Error('无播放地址'); }
-
-                setupAudioSession();
-                stopBackgroundEndCheck();
-
-                try {
-                    setStatus('正在加载音频…');
-                    const isHls = /\.m3u8(\?|$)/i.test(item.url) || item.format === 'application/vnd.apple.mpegurl';
-
-                    await ext.playMedia(item.url, {
-                        type: isHls ? 'hls' : 'auto',
-                        onStatus: setStatus
-                    });
-
-                    // news 特有逻辑
-                    attachNewsLoopControl(ext.audioPlayer);
-                    prefetchNextNews();
-                    setupMediaSessionForNews();
-                    startFallbackCheck(ext.audioPlayer, window.getFileKey(file));
-
-                    setStatus('▶️ ' + file.displayName, 'success');
-                } catch (e) {
-                    console.error('[News] 播放失败:', e);
-                    setStatus('播放失败：' + e.message, 'error');
-                    throw e;
+                if (!item || !item.url) {
+                    setStatus('该条新闻缺少播放地址', 'error');
+                    throw new Error('无播放地址');
                 }
+
+                setStatus('正在加载音频…');
+                const isHls = /\.m3u8(\?|$)/i.test(item.url);
+
+                // 完全交给 Core → hls-player 处理
+                await ext.playMedia(item.url, {
+                    type: isHls ? 'hls' : 'auto',
+                    onStatus: setStatus
+                });
+
+                // 播放开始后预取下一首（性能优化）
+                prefetchNextNews();
+
+                setStatus('▶️ ' + file.displayName, 'success');
             }
         };
     }
@@ -395,9 +214,8 @@
 
     // ==================== 插件导出 ====================
     window.MP3NewsPlugin = {
-        version: '3.1.0',
+        version: '4.0.0',
         async init() {
-            setupAudioSession();
             registerDataSource();
             injectUI();
             await refresh();
@@ -405,25 +223,22 @@
         async unload() {
             const ext = window.MP3AppExtension;
 
-            stopBackgroundEndCheck();
-            detachNewsLoopControl();
-            teardownMediaSession();
-            switchingNext = false;
-
+            // 清理 HLS 实例
             if (window.MP3HlsPlayer) {
                 try { window.MP3HlsPlayer.destroy(); } catch (e) {}
                 try { window.MP3HlsPlayer.clearCache(); } catch (e) {}
             }
 
+            // 交给 Core 处理播放停止 + 数据清理
             if (ext) {
                 ext.stopIfPlayingFrom('news');
                 ext.removeSourceData({
                     sourceKeys: ['news'],
                     categoryNames: [CONFIG.categoryName]
                 });
-                ext.updatePlayButton();
                 ext.renderAll();
             }
+
             if (uiRoot) { uiRoot.remove(); uiRoot = null; }
             if (window.MP3DataSourceHandlers) delete window.MP3DataSourceHandlers['news'];
             if (typeof window.refreshSourceFilterOptions === 'function') window.refreshSourceFilterOptions();
