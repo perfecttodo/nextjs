@@ -1,10 +1,16 @@
 /**
  * ============================================================
- *  share-plugin.js — 「分享與接受分享」獨立插件 v1.0.1
+ *  share-plugin.js — 「分享與接受分享」獨立插件 v1.0.2
+ *
+ *  v1.0.2 修復：
+ *   - 複製連結按鈕在 await 之後使用 e.currentTarget（事件派發結束後為 null），
+ *     導致 TypeError: Cannot set properties of null (setting 'innerHTML')。
+ *     改為在 await 前捕獲按鈕引用，並在更新 UI 前檢查 isConnected。
+ *   - 所有非同步流程（產生 / 解鎖 / 匯入 / 初始解包）補上弹窗已關閉保護，
+ *     匯入狀態一律在 finally 復位，避免卡死。
  *
  *  v1.0.1 修復：
- *   - selectionEntries() 誤用未定義變數 file，導致勾選媒體時
- *     拋出 ReferenceError；已改用正確的 f。
+ *   - selectionEntries() 誤用未定義變數 file，導致勾選媒體時 ReferenceError。
  *
  *  功能：
  *   ．在檔案列表多選媒體（支援本頁全選、全選可分享、反選、清除）
@@ -38,7 +44,7 @@
     'use strict';
 
     const PLUGIN_ID = 'share';
-    const VERSION = '1.0.1';
+    const VERSION = '1.0.2';
     const HASH_KEY = 'mp3share';
     const RECENT_KEY = 'mp3_share_recent';
     const FROM_KEY = 'mp3_share_from';
@@ -79,7 +85,6 @@
             ? window.encodeInlineArg(s)
             : encodeURIComponent(String(s == null ? '' : s)).replace(/'/g, '%27');
     }
-    function hostOf(url) { try { return new URL(url).hostname; } catch (e) { return ''; } }
     function shortUrl(url) {
         try {
             const u = new URL(url);
@@ -645,6 +650,7 @@
             };
 
             function renderConfig(errorMsg) {
+                if (!panel.isConnected) return;
                 const listHtml = stats.entries.map((en, i) => {
                     const ok = !!en.share;
                     const meta = window.MP3GetSourceMeta ? window.MP3GetSourceMeta({ _source: en.source }) : { label: en.source };
@@ -733,23 +739,35 @@
                     qaEl.parentNode.classList.toggle('bg-slate-950/40', !cfg.protect);
                 });
                 panel.querySelector('#mp3ShareGenerate').addEventListener('click', generate);
-                setTimeout(() => { const t = panel.querySelector('#mp3ShareTitle'); if (t) { t.focus(); t.select(); } }, 30);
+                setTimeout(() => {
+                    if (!panel.isConnected) return;
+                    const t = panel.querySelector('#mp3ShareTitle');
+                    if (t) { t.focus(); t.select(); }
+                }, 30);
             }
 
             async function generate() {
-                if (shareBusy) return;
-                cfg.title = (panel.querySelector('#mp3ShareTitle').value || '').trim() || defaultTitle(stats.portable);
-                cfg.from = (panel.querySelector('#mp3ShareFrom').value || '').trim();
-                cfg.protect = panel.querySelector('#mp3ShareProtect').checked;
-                cfg.q = (panel.querySelector('#mp3ShareQ').value || '').trim();
-                cfg.a = (panel.querySelector('#mp3ShareA').value || '').trim();
+                if (shareBusy || !panel.isConnected) return;
+                const titleInput = panel.querySelector('#mp3ShareTitle');
+                const fromInput = panel.querySelector('#mp3ShareFrom');
+                const protectInput = panel.querySelector('#mp3ShareProtect');
+                const qInput = panel.querySelector('#mp3ShareQ');
+                const aInput = panel.querySelector('#mp3ShareA');
+                if (!titleInput || !fromInput || !protectInput || !qInput || !aInput) return;
+                cfg.title = (titleInput.value || '').trim() || defaultTitle(stats.portable);
+                cfg.from = (fromInput.value || '').trim();
+                cfg.protect = protectInput.checked;
+                cfg.q = (qInput.value || '').trim();
+                cfg.a = (aInput.value || '').trim();
                 if (cfg.protect && (!cfg.q || !cfg.a)) { renderConfig('開啟問題保護時，問題與答案都必須填寫'); return; }
                 shareBusy = true;
                 const btn = panel.querySelector('#mp3ShareGenerate');
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>產生中…';
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>產生中…';
+                }
                 try {
-                    localStorage.setItem(FROM_KEY, cfg.from);
+                    try { localStorage.setItem(FROM_KEY, cfg.from); } catch (e) {}
                     const items = stats.ok.map(en => ({
                         n: en.name.slice(0, MAX_NAME_LEN),
                         u: en.share.url,
@@ -760,20 +778,21 @@
                     const payload = await packPayload({ title: cfg.title, from: cfg.from, q: cfg.protect ? cfg.q : '', at: Date.now(), count: items.length }, items, cfg.protect ? cfg.a : '');
                     const url = shareUrlFromPayload(payload);
                     pushRecent({ id: 's' + Date.now().toString(36), title: cfg.title, count: items.length, url: url, at: Date.now(), protected: cfg.protect });
-                    renderResult(url, payload, items.length);
+                    if (panel.isConnected) renderResult(url, payload, items.length);
                 } catch (e) {
-                    renderConfig(e.message || '產生失敗');
+                    if (panel.isConnected) renderConfig(e.message || '產生失敗');
                 } finally {
                     shareBusy = false;
                 }
             }
 
             function renderResult(url, payload, count) {
+                if (!panel.isConnected) return;
                 const longWarn = url.length > 30000 ? '<div class="text-[10px] text-amber-400 mt-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i>連結較長，部分通訊軟體可能截斷，建議減少分享筆數</div>' : '';
                 panel.innerHTML = `
                     ${modalHeader('fa-solid fa-circle-check text-white', 'bg-gradient-to-br from-emerald-500 to-sky-600', '分享連結已產生', count + ' 首 · ' + (payload.q ? '問題保護' : '公開連結') + ' · ' + url.length.toLocaleString() + ' 字元')}
                     <div class="mp3share-scroll flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-3">
-                        ${payload.q ? `<div class="rounded-xl bg-amber-950/20 border border-amber-500/30 p-3 text-xs text-amber-200"><i class="fa-solid fa-lock mr-1.5"></i>問題：<b>${esc(payload.q)}</b><br><span class="text-[10px] text-amber-400/80">請把答案另行告知對方（答案不會出现在連結中）</span></div>` : ''}
+                        ${payload.q ? `<div class="rounded-xl bg-amber-950/20 border border-amber-500/30 p-3 text-xs text-amber-200"><i class="fa-solid fa-lock mr-1.5"></i>問題：<b>${esc(payload.q)}</b><br><span class="text-[10px] text-amber-400/80">請把答案另行告知對方（答案不會出現在連結中）</span></div>` : ''}
                         <textarea id="mp3ShareUrlOut" readonly rows="5" spellcheck="false"
                             class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-[11px] font-mono text-sky-200 focus:outline-none focus:border-sky-500 mp3share-scroll">${esc(url)}</textarea>
                         ${longWarn}
@@ -784,7 +803,7 @@
                             <button id="mp3SharePreview" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition">
                                 <i class="fa-solid fa-eye mr-1.5"></i>預覽接收畫面
                             </button>
-                            ${payload.q ? '<button id="mp3ShareOpenNow" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition"><i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i>開啟連結</button>' : ''}
+                            <button id="mp3ShareOpenNow" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition"><i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i>開啟連結</button>
                         </div>
                     </div>
                     <div class="flex items-center justify-between gap-2 px-5 py-3.5 border-t border-slate-800 shrink-0">
@@ -793,21 +812,31 @@
                     </div>`;
                 bindCloseButtons(panel);
                 const out = panel.querySelector('#mp3ShareUrlOut');
+                const copyBtn = panel.querySelector('#mp3ShareCopyUrl');
+                const previewBtn = panel.querySelector('#mp3SharePreview');
+                const openBtn = panel.querySelector('#mp3ShareOpenNow');
+                const backBtn = panel.querySelector('#mp3ShareBackEdit');
                 out.addEventListener('focus', () => out.select());
-                panel.querySelector('#mp3ShareCopyUrl').addEventListener('click', async (e) => {
+
+                // ★ 修復重點：在 await 前捕獲按鈕引用；await 後 e.currentTarget 會變成 null
+                copyBtn.addEventListener('click', async () => {
                     const ok = await copyText(url);
-                    const b = e.currentTarget;
-                    b.innerHTML = ok ? '<i class="fa-solid fa-check mr-1.5"></i>已複製' : '<i class="fa-solid fa-triangle-exclamation mr-1.5"></i>複製失敗';
-                    setTimeout(() => { b.innerHTML = '<i class="fa-regular fa-copy mr-1.5"></i>複製連結'; }, 1600);
+                    if (!copyBtn.isConnected) return;
+                    copyBtn.innerHTML = ok
+                        ? '<i class="fa-solid fa-check mr-1.5"></i>已複製'
+                        : '<i class="fa-solid fa-triangle-exclamation mr-1.5"></i>複製失敗';
+                    setTimeout(() => {
+                        if (!copyBtn.isConnected) return;
+                        copyBtn.innerHTML = '<i class="fa-regular fa-copy mr-1.5"></i>複製連結';
+                    }, 1600);
                 });
-                panel.querySelector('#mp3SharePreview').addEventListener('click', () => {
+                previewBtn.addEventListener('click', () => {
                     closeActiveModal(null);
                     const token = tokenFromInput(url);
                     if (token) handleToken(token);
                 });
-                const openNow = panel.querySelector('#mp3ShareOpenNow');
-                if (openNow) openNow.addEventListener('click', () => { window.open(url, '_blank', 'noopener'); });
-                panel.querySelector('#mp3ShareBackEdit').addEventListener('click', () => renderConfig());
+                openBtn.addEventListener('click', () => { window.open(url, '_blank', 'noopener'); });
+                backBtn.addEventListener('click', () => renderConfig());
             }
 
             renderConfig();
@@ -828,7 +857,7 @@
             ext.showCustomModal({ title: '接收分享失敗', message: e.message, type: 'error' });
             return;
         }
-        openReceiveModal(payload);
+        return openReceiveModal(payload);
     }
     function openReceiveModal(payload) {
         return new Promise((resolve) => {
@@ -841,6 +870,7 @@
             let items = null;
 
             function renderLocked(errorMsg) {
+                if (!panel.isConnected) return;
                 panel.innerHTML = `
                     ${modalHeader('fa-solid fa-lock text-white', 'bg-gradient-to-br from-amber-500 to-rose-600', '受保護的分享', title + (from ? ' · 來自 ' + from : ''))}
                     <div class="px-5 py-5 space-y-4">
@@ -865,30 +895,35 @@
                 bindCloseButtons(panel);
                 const input = panel.querySelector('#mp3ShareAnswer');
                 const btn = panel.querySelector('#mp3ShareUnlock');
+                const originalBtnHtml = btn.innerHTML;
                 async function unlock() {
                     const ans = (input.value || '').trim();
-                    if (!ans) { input.classList.add('mp3share-shake', 'border-rose-500'); input.focus(); return; }
+                    if (!ans) {
+                        input.classList.add('mp3share-shake', 'border-rose-500');
+                        input.focus();
+                        setTimeout(() => { if (input.isConnected) input.classList.remove('mp3share-shake'); }, 350);
+                        return;
+                    }
                     btn.disabled = true;
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>解鎖中…';
                     try {
                         items = await unpackPayload(payload, ans);
                         if (items.length === 0) throw new Error('分享內沒有可匯入的媒體');
-                        renderList();
+                        if (panel.isConnected) renderList();
                     } catch (e) {
-                        renderLocked(e.message || '解鎖失敗');
+                        if (panel.isConnected) renderLocked(e.message || '解鎖失敗');
+                        else if (btn.isConnected) { btn.disabled = false; btn.innerHTML = originalBtnHtml; }
                     }
                 }
                 btn.addEventListener('click', unlock);
                 input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); unlock(); } });
-                setTimeout(() => input.focus(), 30);
+                setTimeout(() => { if (input.isConnected) input.focus(); }, 30);
             }
 
             function renderList(errorMsg) {
+                if (!panel.isConnected || !items) return;
                 const existing = existingUrlSet();
-                const rows = items.map((it, i) => {
-                    const dup = existing.has(it.u);
-                    return { it: it, dup: dup, idx: i };
-                });
+                const rows = items.map((it, i) => ({ it: it, dup: existing.has(it.u), idx: i }));
                 const freshCount = rows.filter(r => !r.dup).length;
                 panel.innerHTML = `
                     ${modalHeader('fa-solid fa-inbox text-white', 'bg-gradient-to-br from-fuchsia-500 to-sky-600', '確認接收媒體', title + (from ? ' · 來自 ' + from : '') + ' · ' + rows.length + ' 筆')}
@@ -929,12 +964,14 @@
                         const r = rows[parseInt(row.dataset.recvIdx, 10)];
                         const pick = row.querySelector('[data-recv-pick]');
                         if (!r || r.dup || !pick.checked) return;
-                        const name = (row.querySelector('[data-recv-name]').value || '').trim();
+                        const nameInput = row.querySelector('[data-recv-name]');
+                        const name = (nameInput && nameInput.value || '').trim();
                         out.push({ n: name || r.it.n, u: r.it.u });
                     });
                     return out;
                 }
                 function refresh() {
+                    if (!panel.isConnected) return;
                     const n = picked().length;
                     countEl.textContent = '已選 ' + n + ' / ' + freshCount + ' 筆新項目';
                     importBtn.textContent = '匯入所選 ' + n + ' 筆';
@@ -944,6 +981,7 @@
                 }
                 panel.querySelectorAll('[data-recv-pick]').forEach(p => p.addEventListener('change', refresh));
                 importBtn.addEventListener('click', async () => {
+                    if (!panel.isConnected) return;
                     const pickedItems = picked();
                     if (pickedItems.length === 0 || importBusy) return;
                     importBusy = true;
@@ -951,27 +989,36 @@
                     importBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>匯入中…';
                     try {
                         const result = await importItems(pickedItems);
-                        renderDone(result);
+                        if (panel.isConnected) renderDone(result);
                     } catch (e) {
+                        if (panel.isConnected) {
+                            const scroll = panel.querySelector('.mp3share-scroll');
+                            if (scroll) {
+                                const err = document.createElement('div');
+                                err.className = 'text-[11px] text-rose-400 pt-1';
+                                err.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i>' + esc(e.message || '匯入失敗');
+                                scroll.appendChild(err);
+                            }
+                        }
+                    } finally {
                         importBusy = false;
-                        refresh();
-                        const err = document.createElement('div');
-                        err.className = 'text-[11px] text-rose-400 pt-1';
-                        err.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i>' + esc(e.message || '匯入失敗');
-                        panel.querySelector('.mp3share-scroll').appendChild(err);
+                        if (panel.isConnected && importBtn.isConnected) refresh();
                     }
                 });
                 refresh();
                 if (freshCount === 0) {
-                    const note = document.createElement('div');
-                    note.className = 'text-[11px] text-amber-400 rounded-xl bg-amber-950/20 border border-amber-500/30 px-3 py-2';
-                    note.innerHTML = '<i class="fa-solid fa-circle-info mr-1"></i>這份分享的所有媒體都已在你的媒體庫中';
-                    panel.querySelector('.mp3share-scroll').prepend(note);
+                    const scroll = panel.querySelector('.mp3share-scroll');
+                    if (scroll) {
+                        const note = document.createElement('div');
+                        note.className = 'text-[11px] text-amber-400 rounded-xl bg-amber-950/20 border border-amber-500/30 px-3 py-2';
+                        note.innerHTML = '<i class="fa-solid fa-circle-info mr-1"></i>這份分享的所有媒體都已在你的媒體庫中';
+                        scroll.prepend(note);
+                    }
                 }
             }
 
             function renderDone(result) {
-                importBusy = false;
+                if (!panel.isConnected) return;
                 panel.innerHTML = `
                     ${modalHeader('fa-solid fa-circle-check text-white', 'bg-gradient-to-br from-emerald-500 to-sky-600', '匯入完成', title)}
                     <div class="px-5 py-6 text-center space-y-3">
@@ -1005,12 +1052,14 @@
                     try {
                         items = await unpackPayload(payload, '');
                         if (items.length === 0) throw new Error('分享內沒有可匯入的媒體');
-                        renderList();
+                        if (panel.isConnected) renderList();
                     } catch (e) {
-                        panel.innerHTML = `${modalHeader('fa-solid fa-triangle-exclamation text-white', 'bg-rose-600', '無法讀取分享', title)}
-                            <div class="px-5 py-5 text-sm text-rose-300">${esc(e.message)}</div>
-                            <div class="flex justify-end px-5 py-3.5 border-t border-slate-800"><button data-close class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200">關閉</button></div>`;
-                        bindCloseButtons(panel);
+                        if (panel.isConnected) {
+                            panel.innerHTML = `${modalHeader('fa-solid fa-triangle-exclamation text-white', 'bg-rose-600', '無法讀取分享', title)}
+                                <div class="px-5 py-5 text-sm text-rose-300">${esc(e.message)}</div>
+                                <div class="flex justify-end px-5 py-3.5 border-t border-slate-800"><button data-close class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200">關閉</button></div>`;
+                            bindCloseButtons(panel);
+                        }
                     }
                 })();
             }
@@ -1044,7 +1093,10 @@
             tone === 'warn' ? 'text-amber-400' :
             tone === 'error' ? 'text-rose-400' : 'text-slate-400');
         if (statusTimer) clearTimeout(statusTimer);
-        statusTimer = setTimeout(() => { el.classList.add('hidden'); }, 4000);
+        statusTimer = setTimeout(() => {
+            const current = document.getElementById('mp3ShareStatus');
+            if (current) current.classList.add('hidden');
+        }, 4000);
     }
     function renderPanel() {
         if (!initialized) return;
@@ -1109,6 +1161,7 @@
 
     // ==================== Hash 自動接收 ====================
     function consumeHash() {
+        if (!initialized) return;
         const m = location.hash.match(/mp3share=([A-Za-z0-9\-_]+)/);
         if (!m) return;
         const token = m[1];
@@ -1155,6 +1208,8 @@
         if (styleEl) { styleEl.remove(); styleEl = null; }
         const body = window.MP3PluginManager && window.MP3PluginManager.getBodyContainer(PLUGIN_ID);
         if (body) { body.innerHTML = ''; delete body.dataset.mp3ShareReady; }
+        shareBusy = false;
+        importBusy = false;
     }
 
     window.MP3SharePlugin = {
