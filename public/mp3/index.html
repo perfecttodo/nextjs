@@ -2022,6 +2022,9 @@
                 urlMedia: { id: 'urlMedia', name: 'URL 媒體', description: '貼上 URL 加入媒體庫（音訊/影片/串流）',
     icon: 'fa-solid fa-link', iconClass: 'text-fuchsia-400',
     scriptSrc: 'url-media-plugin.js', globalVar: 'MP3UrlMediaPlugin', autoEnable: true, dataSourceKeys: ['urlmedia'] },
+    share: { id: 'share', name: '分享與接受分享', description: '多選媒體、問題保護、URL 分享與接收',
+    icon: 'fa-solid fa-share-nodes', iconClass: 'text-sky-400',
+    scriptSrc: 'share-plugin.js', globalVar: 'MP3SharePlugin', autoEnable: true, dataSourceKeys: [] },
         };
 
         const STORAGE_KEY = 'mp3_enabled_dynamic_plugins';
