@@ -1,6 +1,6 @@
 /**
  * ============================================================
- *  plugins/plugin-center.js — 插件中心（精簡扁平版）
+ *  plugins/plugin-center.js — 插件中心（雙 Tab 精簡版）
  *
  *  目錄結構：
  *   index.html
@@ -22,13 +22,13 @@
  *   <script src="plugins/plugin-center.js"></script>
  *
  *  設計：
- *   - 無分組，單一扁平清單，手風琴展开（同時只展開一個插件面板）
- *   - 頂部僅保留一個搜尋框；顏色全程 indigo / slate，與主介面一致
- *   - 啟用開關、狀態點、邊框、滾動條皆使用主介面 indigo 色系
- *   - .plugin-body[data-plugin-id] 容器永远保留在 DOM（只收合不銷毀），
+ *   - 「已啟用 / 未啟用」兩個 Tab，只顯示當前 Tab 的插件，側欄更省空間
+ *   - 無分組、扁平清單、手風琴展開（同時只展開一個插件面板）
+ *   - 顏色全程 indigo / slate，與主介面一致；滾動條同色系
+ *   - .plugin-body[data-plugin-id] 容器永遠保留在 DOM（只隱藏不銷毀），
  *     所有現有插件无需修改即可照常渲染
  *   - 已啟用清單沿用 mp3_enabled_dynamic_plugins；
- *     展開狀態存於 mp3_plugin_center_expanded
+ *     Tab 狀態存於 mp3_plugin_center_tab；展開狀態存於 mp3_plugin_center_expanded
  * ============================================================
  */
 (function () {
@@ -71,6 +71,7 @@
     };
 
     const STORAGE_KEY = 'mp3_enabled_dynamic_plugins';
+    const TAB_KEY = 'mp3_plugin_center_tab';
     const EXPANDED_KEY = 'mp3_plugin_center_expanded';
     const enabled = new Set();
     const loadedPlugins = {};
@@ -84,8 +85,11 @@
     let uiBuilt = false;
     let query = '';
     let expandedId = null;
+    let activeTab = 'on';
 
     try {
+        const savedTab = localStorage.getItem(TAB_KEY);
+        if (savedTab === 'on' || savedTab === 'off') activeTab = savedTab;
         const savedExpanded = localStorage.getItem(EXPANDED_KEY);
         if (savedExpanded && REGISTRY[savedExpanded]) expandedId = savedExpanded;
     } catch (e) {}
@@ -109,6 +113,7 @@
             : String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
     function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...enabled])); } catch (e) {} }
+    function persistTab() { try { localStorage.setItem(TAB_KEY, activeTab); } catch (e) {} }
     function persistExpanded() {
         try {
             if (expandedId) localStorage.setItem(EXPANDED_KEY, expandedId);
@@ -213,15 +218,20 @@
 
     // ==================== 樣式（indigo / slate，與主介面一致） ====================
     function injectStyles() {
-        if (document.getElementById('pluginCenterSimpleStyles')) return;
+        if (document.getElementById('pluginCenterTabStyles')) return;
         const style = document.createElement('style');
-        style.id = 'pluginCenterSimpleStyles';
+        style.id = 'pluginCenterTabStyles';
         style.textContent = `
             #pluginManagerCard .pc-scroll{scrollbar-width:thin;scrollbar-color:rgba(99,102,241,.45) rgba(15,23,42,.6)}
             #pluginManagerCard .pc-scroll::-webkit-scrollbar{width:6px;height:6px}
             #pluginManagerCard .pc-scroll::-webkit-scrollbar-track{background:rgba(15,23,42,.6);border-radius:999px}
             #pluginManagerCard .pc-scroll::-webkit-scrollbar-thumb{background:rgba(99,102,241,.5);border-radius:999px}
             #pluginManagerCard .pc-scroll::-webkit-scrollbar-thumb:hover{background:rgba(129,140,248,.75)}
+            #pluginManagerCard .pc-tab{border-color:rgba(51,65,85,.8);background:rgba(30,41,59,.5);color:#94a3b8;transition:all .18s ease}
+            #pluginManagerCard .pc-tab:hover{border-color:rgba(99,102,241,.35);color:#c7d2fe}
+            #pluginManagerCard .pc-tab.is-active{border-color:rgba(99,102,241,.5);background:rgba(99,102,241,.18);color:#a5b4fc;box-shadow:inset 0 -2px 0 rgba(99,102,241,.7)}
+            #pluginManagerCard .pc-tab-count{border-color:rgba(71,85,105,.7);background:rgba(15,23,42,.5);color:#94a3b8}
+            #pluginManagerCard .pc-tab.is-active .pc-tab-count{border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.22);color:#c7d2fe}
             #pluginManagerCard .pc-item{border-color:rgba(51,65,85,.7);background:rgba(15,23,42,.35);transition:border-color .18s ease,background .18s ease,box-shadow .18s ease}
             #pluginManagerCard .pc-item:hover{border-color:rgba(99,102,241,.3);background:rgba(30,41,59,.45)}
             #pluginManagerCard .pc-item.is-enabled{border-color:rgba(99,102,241,.35);background:rgba(99,102,241,.08);box-shadow:inset 2px 0 0 rgba(99,102,241,.9)}
@@ -238,7 +248,7 @@
             #pluginManagerCard .pc-panel>div{overflow:hidden;min-height:0}
             #pluginManagerCard .pc-chevron{transition:transform .22s ease}
             #pluginManagerCard .pc-item.is-open .pc-chevron{transform:rotate(180deg)}
-            #pluginManagerCard .pc-expand:focus-visible{outline:2px solid rgba(99,102,241,.6);outline-offset:2px;border-radius:8px}
+            #pluginManagerCard .pc-expand:focus-visible,#pluginManagerCard .pc-tab:focus-visible{outline:2px solid rgba(99,102,241,.6);outline-offset:2px;border-radius:10px}
             @keyframes pcPulse{0%,100%{opacity:1}50%{opacity:.35}}
         `;
         document.head.appendChild(style);
@@ -319,18 +329,26 @@
             </button>
             <div class="sidebar-card-body">
                 <div class="inner px-4">
+                    <div class="flex items-center gap-1.5 mb-2" role="tablist" aria-label="插件狀態">
+                        <button type="button" class="pc-tab is-active flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-xl border text-[11px] font-medium" data-tab="on" role="tab" aria-selected="true">
+                            <i class="fa-solid fa-toggle-on text-[10px]"></i>
+                            <span>已啟用</span>
+                            <span class="pc-tab-count text-[9px] font-mono px-1.5 py-0.5 rounded-full border" data-count="on">0</span>
+                        </button>
+                        <button type="button" class="pc-tab flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-xl border text-[11px] font-medium" data-tab="off" role="tab" aria-selected="false">
+                            <i class="fa-solid fa-toggle-off text-[10px]"></i>
+                            <span>未啟用</span>
+                            <span class="pc-tab-count text-[9px] font-mono px-1.5 py-0.5 rounded-full border" data-count="off">0</span>
+                        </button>
+                    </div>
                     <div class="relative mb-2.5">
                         <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-500"></i>
-                        <input type="text" class="pc-search w-full bg-slate-800/70 border border-slate-700 rounded-xl pl-7 pr-7 py-1.5 text-[11px] text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500" placeholder="搜尋插件…">
+                        <input type="text" class="pc-search w-full bg-slate-800/70 border border-slate-700 rounded-xl pl-7 pr-7 py-1.5 text-[11px] text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500" placeholder="搜尋已啟用的插件…">
                         <button type="button" class="pc-search-clear absolute right-1.5 top-1/2 -translate-y-1/2 hidden p-1 text-slate-500 hover:text-white" title="清除搜尋"><i class="fa-solid fa-xmark text-[10px]"></i></button>
                     </div>
-                    <div class="pc-scroll max-h-[52vh] overflow-y-auto space-y-1.5 pr-0.5">
+                    <div class="pc-scroll max-h-[46vh] overflow-y-auto space-y-1.5 pr-0.5" role="tabpanel">
                         ${rowsHtml}
-                        <div class="pc-empty hidden text-center py-6">
-                            <i class="fa-solid fa-magnifying-glass text-slate-700 text-lg mb-2 block"></i>
-                            <div class="text-[11px] text-slate-500">沒有符合的插件</div>
-                            <button type="button" class="pc-empty-reset mt-2 text-[10px] text-indigo-400 hover:text-indigo-300 underline">清除搜尋</button>
-                        </div>
+                        <div class="pc-empty hidden text-center py-6"></div>
                     </div>
                 </div>
             </div>`;
@@ -339,8 +357,10 @@
         refs.search = uiRoot.querySelector('.pc-search');
         refs.clear = uiRoot.querySelector('.pc-search-clear');
         refs.empty = uiRoot.querySelector('.pc-empty');
-        refs.emptyReset = uiRoot.querySelector('.pc-empty-reset');
         refs.count = uiRoot.querySelector('.pc-count');
+        refs.tabs = Array.from(uiRoot.querySelectorAll('.pc-tab'));
+        refs.tabOnCount = uiRoot.querySelector('[data-count="on"]');
+        refs.tabOffCount = uiRoot.querySelector('[data-count="off"]');
 
         Object.values(REGISTRY).forEach(meta => {
             const row = uiRoot.querySelector('.pc-item[data-plugin-id="' + meta.id + '"]');
@@ -373,6 +393,7 @@
             r.retry.addEventListener('click', () => handleToggle(meta.id, true));
         });
 
+        refs.tabs.forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
         refs.search.addEventListener('input', () => {
             query = refs.search.value || '';
             updateUI();
@@ -383,11 +404,18 @@
             updateUI();
             refs.search.focus();
         });
-        refs.emptyReset.addEventListener('click', () => {
-            query = '';
-            refs.search.value = '';
-            updateUI();
-            refs.search.focus();
+        refs.empty.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-empty-act]');
+            if (!btn) return;
+            const act = btn.dataset.emptyAct;
+            if (act === 'clear') {
+                query = '';
+                refs.search.value = '';
+                updateUI();
+                refs.search.focus();
+            } else if (act === 'go-off') {
+                switchTab('off');
+            }
         });
 
         if (typeof window.MP3SetupSidebarCards === 'function') {
@@ -402,6 +430,18 @@
         return (meta.name + ' ' + meta.description + ' ' + meta.id + ' ' + (meta.globalVar || '')).toLowerCase().indexOf(q) !== -1;
     }
 
+    function switchTab(tab) {
+        if (tab !== 'on' && tab !== 'off') return;
+        if (activeTab === tab) return;
+        activeTab = tab;
+        persistTab();
+        expandedId = null;
+        persistExpanded();
+        query = '';
+        if (refs.search) refs.search.value = '';
+        updateUI();
+    }
+
     function updateRow(id) {
         const r = rowRefs[id];
         const meta = REGISTRY[id];
@@ -409,7 +449,8 @@
         const isEn = enabled.has(id);
         const isBusy = !!busyMap[id];
         const err = errorMap[id] || '';
-        const visible = matches(meta);
+        const inTab = activeTab === 'on' ? isEn : !isEn;
+        const visible = inTab && matches(meta);
 
         r.row.classList.toggle('hidden', !visible);
         r.row.classList.toggle('is-enabled', isEn);
@@ -432,17 +473,59 @@
         return visible;
     }
 
+    function renderEmpty(visibleCount) {
+        if (!refs.empty) return;
+        if (visibleCount > 0) {
+            refs.empty.classList.add('hidden');
+            refs.empty.innerHTML = '';
+            return;
+        }
+        refs.empty.classList.remove('hidden');
+        if (query.trim()) {
+            refs.empty.innerHTML = `
+                <i class="fa-solid fa-magnifying-glass text-slate-700 text-lg mb-2 block"></i>
+                <div class="text-[11px] text-slate-500">沒有符合的插件</div>
+                <button type="button" data-empty-act="clear" class="mt-2 text-[10px] text-indigo-400 hover:text-indigo-300 underline">清除搜尋</button>`;
+        } else if (activeTab === 'on') {
+            refs.empty.innerHTML = `
+                <i class="fa-solid fa-plug-circle-xmark text-slate-700 text-lg mb-2 block"></i>
+                <div class="text-[11px] text-slate-500">尚未啟用任何插件</div>
+                <button type="button" data-empty-act="go-off" class="mt-2 text-[10px] text-indigo-400 hover:text-indigo-300 underline">查看未啟用插件</button>`;
+        } else {
+            refs.empty.innerHTML = `
+                <i class="fa-solid fa-circle-check text-slate-700 text-lg mb-2 block"></i>
+                <div class="text-[11px] text-slate-500">所有插件皆已啟用</div>`;
+        }
+    }
+
     function updateUI() {
         if (!uiBuilt) return;
+        const total = Object.keys(REGISTRY).length;
+        const onCount = enabled.size;
+        const offCount = total - onCount;
+        refs.count.textContent = onCount + ' / ' + total;
+        if (refs.tabOnCount) refs.tabOnCount.textContent = String(onCount);
+        if (refs.tabOffCount) refs.tabOffCount.textContent = String(offCount);
+        refs.tabs.forEach(tab => {
+            const act = tab.dataset.tab === activeTab;
+            tab.classList.toggle('is-active', act);
+            tab.setAttribute('aria-selected', String(act));
+        });
+        if (refs.search) {
+            refs.search.placeholder = activeTab === 'on' ? '搜尋已啟用的插件…' : '搜尋未啟用的插件…';
+        }
         let visibleCount = 0;
         Object.keys(REGISTRY).forEach(id => { if (updateRow(id)) visibleCount++; });
-        refs.count.textContent = enabled.size + ' / ' + Object.keys(REGISTRY).length;
-        refs.empty.classList.toggle('hidden', visibleCount > 0);
-        refs.clear.classList.toggle('hidden', !query);
+        if (refs.clear) refs.clear.classList.toggle('hidden', !query);
+        renderEmpty(visibleCount);
     }
 
     function expandPlugin(id) {
         if (!REGISTRY[id]) return;
+        activeTab = enabled.has(id) ? 'on' : 'off';
+        persistTab();
+        query = '';
+        if (refs.search) refs.search.value = '';
         expandedId = id;
         persistExpanded();
         updateUI();
