@@ -1,14 +1,24 @@
 /**
  * ============================================================
- *  url-media-plugin.js — 「URL 媒體」獨立插件 v1.1
+ *  url-media-plugin.js — 「URL 媒體」獨立插件 v1.2
  *  功能：貼上一或多筆媒體 URL，直接加入檔案列表（媒體庫）。
- *        v1.1：輸入支援「換行 / 逗號（含全形）/ 空白」分隔；
- *              「從剪貼簿貼上」與「加入媒體庫」都會先彈出
- *              確認清單，可逐筆修改顯示名稱、勾選後再新增。
- *        支援音訊 / 影片直連與 m3u8 串流（自動啟用 hls.js）。
- *        清單持久化於 localStorage，重新啟用插件後自動恢復。
+ *        ．輸入支援「換行 / 逗號（含全形，）/ 空白」分隔，可批次。
+ *        ．「從剪貼簿貼上」與「加入媒體庫」都會先彈出確認清單，
+ *          清單顯示序號，可逐筆修改顯示名稱、勾選後再新增。
+ *        ．支援音訊 / 影片直連與 m3u8 串流（自動啟用 hls.js）。
+ *        ．可播放、重新命名、複製 URL、移除、清空；
+ *          清單持久化於 localStorage，重新啟用插件後自動恢復。
  *  掛載：插件中心（MP3PluginManager）
  *  依賴：MP3AppExtension / MP3RegisterSourceAdapter / MP3SourceRegistry
+ *
+ *  安裝：
+ *    1) 將本文件放在與其他插件相同的目錄。
+ *    2) 在主頁插件註冊表 REGISTRY 中加入（若尚未加入）：
+ *       urlMedia: { id: 'urlMedia', name: 'URL 媒體', description: '貼上 URL 加入媒體庫（音訊/影片/串流）',
+ *           icon: 'fa-solid fa-link', iconClass: 'text-fuchsia-400',
+ *           scriptSrc: 'url-media-plugin.js', globalVar: 'MP3UrlMediaPlugin',
+ *           autoEnable: true, dataSourceKeys: ['urlmedia'] },
+ *    3) 重新整理頁面，於「插件中心」開啟「URL 媒體」。
  * ============================================================
  */
 (function () {
@@ -188,11 +198,19 @@
         if (window.Hls) return Promise.resolve(window.Hls);
         if (hlsLoadPromise) return hlsLoadPromise;
         hlsLoadPromise = new Promise((resolve) => {
+            let settled = false;
+            const done = (lib) => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                if (!lib) hlsLoadPromise = null; // 失敗允許下次重試
+                resolve(lib || null);
+            };
             const s = document.createElement('script');
             s.src = HLS_CDN;
-            const timer = setTimeout(() => resolve(null), 8000);
-            s.onload = () => { clearTimeout(timer); resolve(window.Hls || null); };
-            s.onerror = () => { clearTimeout(timer); resolve(null); };
+            const timer = setTimeout(() => done(null), 8000);
+            s.onload = () => done(window.Hls || null);
+            s.onerror = () => done(null);
             document.head.appendChild(s);
         });
         return hlsLoadPromise;
@@ -200,6 +218,7 @@
     async function playHlsUrl(player, url) {
         const Hls = await ensureHlsLib();
         if (!Hls || !Hls.isSupported()) {
+            // 無 hls.js → 交給播放器原生嘗試（Safari 等）
             destroyHls();
             player.src = url;
             await player.play();
@@ -250,7 +269,7 @@
         };
     }
 
-    // ==================== 名稱確認彈窗 ====================
+    // ==================== 名稱確認彈窗（含序號） ====================
     function closeNameModal(result) {
         if (modalKeyHandler) {
             document.removeEventListener('keydown', modalKeyHandler, true);
@@ -264,7 +283,7 @@
         }
     }
 
-    /** 彈出候選清單：可逐筆改名、勾選；resolve 選中的 {url, name}[]，取消 resolve null */
+    /** 彈出候選清單：顯示序號、可逐筆改名、勾選；resolve 選中的 {url, name}[]，取消 resolve null */
     function openNameConfirmModal(candidates) {
         return new Promise((resolve) => {
             closeNameModal(null);
@@ -277,6 +296,7 @@
                     : '';
                 rowsHtml += `
                     <div class="flex items-start gap-2 p-2 rounded-xl bg-slate-950/50 border border-slate-800 ${c.isDup ? 'opacity-50' : ''}" data-idx="${i}">
+                        <span class="mt-1.5 min-w-[1.25rem] text-right text-[10px] font-mono text-slate-500 shrink-0 select-none">${i + 1}</span>
                         <input type="checkbox" data-role="pick" class="mt-2 w-3.5 h-3.5 accent-fuchsia-500 shrink-0" ${c.isDup ? 'disabled' : 'checked'}>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-1 text-[10px] text-slate-500 mb-1 min-w-0">
@@ -293,7 +313,8 @@
             modalOverlay = overlay;
             overlay.className = 'fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] flex items-center justify-center p-4';
             overlay.innerHTML = `
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[82vh]">
+                <div role="dialog" aria-modal="true" aria-label="確認新增媒體"
+                     class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[82vh]">
                     <div class="flex items-center gap-3 px-5 pt-4 pb-3 border-b border-slate-800 shrink-0">
                         <div class="w-9 h-9 rounded-xl bg-fuchsia-500/20 text-fuchsia-400 flex items-center justify-center shrink-0">
                             <i class="fa-solid fa-link text-sm"></i>
@@ -660,7 +681,7 @@
         });
         await adapter.refresh();
         renderList();
-        console.log('[UrlMediaPlugin] ready v1.1，已恢復 ' + items.length + ' 筆 URL 媒體');
+        console.log('[UrlMediaPlugin] ready v1.2，已恢復 ' + items.length + ' 筆 URL 媒體');
     }
 
     async function unload() {
@@ -679,7 +700,7 @@
     }
 
     window.MP3UrlMediaPlugin = {
-        version: '1.1',
+        version: '1.2',
         init: init,
         unload: unload,
         addUrls: addFromText,
