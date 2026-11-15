@@ -6,11 +6,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>SparkFlow 灵流 — 随手记灵感，一步转目标</title>
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Google Fonts: Inter & Noto Sans SC -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
@@ -35,46 +32,20 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    @keyframes voiceWave {
-      0%, 100% { transform: scaleY(0.28); }
-      50% { transform: scaleY(1); }
-    }
-    .wave-active {
-      animation: voiceWave 0.7s ease-in-out infinite;
-      transform-origin: center;
-    }
+    @keyframes voiceWave { 0%, 100% { transform: scaleY(0.28); } 50% { transform: scaleY(1); } }
+    .wave-active { animation: voiceWave 0.7s ease-in-out infinite; transform-origin: center; }
 
-    @keyframes sheetSlideUp {
-      from { transform: translateY(100%); opacity: 0.7; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    .animate-sheet-up {
-      animation: sheetSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
+    @keyframes sheetSlideUp { from { transform: translateY(100%); opacity: 0.7; } to { transform: translateY(0); opacity: 1; } }
+    .animate-sheet-up { animation: sheetSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-    @keyframes popIn {
-      from { transform: scale(0.94); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-    .animate-pop-in {
-      animation: popIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
+    @keyframes popIn { from { transform: scale(0.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .animate-pop-in { animation: popIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-    @keyframes sidebarSlideIn {
-      from { transform: translateX(-100%); }
-      to { transform: translateX(0); }
-    }
-    .animate-sidebar-in {
-      animation: sidebarSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
+    @keyframes sidebarSlideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+    .animate-sidebar-in { animation: sidebarSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-    .swipe-card-inner {
-      transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-      will-change: transform;
-    }
-    .swipe-card-inner.dragging {
-      transition: none;
-    }
+    .swipe-card-inner { transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); will-change: transform; }
+    .swipe-card-inner.dragging { transition: none; }
   </style>
 </head>
 <body class="bg-[#F8FAFC] text-slate-900 dark:bg-[#0B0E14] dark:text-slate-100 antialiased selection:bg-indigo-500/20">
@@ -82,9 +53,8 @@
   <!-- 侧栏遮罩 (仅移动端) -->
   <div id="sidebarBackdrop" class="fixed inset-0 z-40 hidden bg-slate-950/50 backdrop-blur-xs md:hidden transition-opacity" onclick="closeSidebar()"></div>
 
-  <!-- 响应式侧栏 -->
+  <!-- 响应式侧栏 (z-30 确保盖在 Header 边框之上) -->
   <aside id="sidebar" class="fixed top-0 left-0 z-50 h-full w-72 bg-white dark:bg-[#111622] border-r border-slate-200 dark:border-slate-800 transform -translate-x-full md:translate-x-0 transition-transform duration-300 md:z-30 flex flex-col shadow-xl md:shadow-none">
-    <!-- 侧栏头部 -->
     <div class="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
       <div class="flex items-center gap-2.5">
         <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-sm">
@@ -97,7 +67,6 @@
       </button>
     </div>
 
-    <!-- 侧栏导航 -->
     <div class="p-3 space-y-1 shrink-0">
       <button onclick="switchNav('clues'); closeSidebar()" class="nav-sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" data-nav="clues">
         <i data-lucide="inbox" class="w-4 h-4"></i> 线索库
@@ -113,12 +82,8 @@
       </span>
     </div>
 
-    <!-- 侧栏插件列表 (可滚动) -->
-    <div class="flex-1 overflow-y-auto p-3 space-y-2.5 no-scrollbar" id="sidebarPluginsList">
-      <!-- JS 动态渲染 -->
-    </div>
+    <div class="flex-1 overflow-y-auto p-3 space-y-2.5 no-scrollbar" id="sidebarPluginsList"></div>
 
-    <!-- 侧栏底部：自定义插件 (默认折叠) -->
     <div class="p-3 border-t border-slate-200 dark:border-slate-800 shrink-0 bg-slate-50/80 dark:bg-[#0B0E14]/80">
       <details class="group">
         <summary class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 cursor-pointer flex items-center gap-1.5 select-none hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
@@ -146,11 +111,10 @@
     </div>
   </aside>
 
-  <!-- 顶部极简导航栏 -->
-  <header class="sticky top-0 z-20 bg-[#F8FAFC]/90 dark:bg-[#0B0E14]/90 backdrop-blur-md border-b border-slate-200/70 dark:border-slate-800/80 md:ml-72 transition-all">
-    <div class="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
+  <!-- 顶部极简导航栏 (桌面端左对齐，与 Main 完美衔接) -->
+  <header class="sticky top-0 z-20 bg-[#F8FAFC]/90 dark:bg-[#0B0E14]/90 backdrop-blur-md border-b border-slate-200/70 dark:border-slate-800/80 md:ml-72 md:mr-8 transition-all">
+    <div class="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-2 md:max-w-[1400px] md:mx-0 md:px-8">
       <div class="flex items-center gap-2.5">
-        <!-- 移动端汉堡菜单按钮 -->
         <button id="openSidebarBtn" class="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all">
           <i data-lucide="menu" class="w-5 h-5"></i>
         </button>
@@ -164,33 +128,26 @@
         </div>
       </div>
 
-      <!-- 顶部插件动态插槽 -->
       <div id="topPluginSlot" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar"></div>
 
-      <!-- 右侧功能按钮组 -->
       <div class="flex items-center gap-1 shrink-0">
-        <button id="toggleSearchBtn" aria-label="搜索与标签"
-          class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all">
+        <button id="toggleSearchBtn" aria-label="搜索与标签" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all">
           <i data-lucide="search" class="w-4 h-4"></i>
         </button>
-        <button id="openDataMenuBtn" aria-label="数据与引导"
-          class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all">
+        <button id="openDataMenuBtn" aria-label="数据与引导" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all">
           <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
         </button>
-        <button id="themeToggleBtn" aria-label="切换主题"
-          class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all">
+        <button id="themeToggleBtn" aria-label="切换主题" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all">
           <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
           <i data-lucide="sun" class="w-4 h-4 block dark:hidden"></i>
         </button>
       </div>
     </div>
 
-    <!-- 可折叠搜索与 #标签快捷筛选栏 -->
-    <div id="mobileSearchBar" class="hidden max-w-2xl mx-auto px-4 pb-3 space-y-2.5">
+    <div id="mobileSearchBar" class="hidden max-w-2xl mx-auto px-4 pb-3 space-y-2.5 md:max-w-[1400px] md:mx-0 md:px-8">
       <div class="relative">
         <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-        <input id="searchInput" type="search" placeholder="搜索灵感、核心价值、行动项..."
-          class="w-full h-10 pl-10 pr-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-indigo-500" />
+        <input id="searchInput" type="search" placeholder="搜索灵感、核心价值、行动项..." class="w-full h-10 pl-10 pr-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-indigo-500" />
         <button id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 p-1">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
@@ -199,10 +156,9 @@
     </div>
   </header>
 
-  <!-- 主内容容器：桌面端自动右移适配侧栏 -->
-  <main class="max-w-2xl mx-auto px-4 pt-3 space-y-3.5 md:ml-72 md:mr-8 md:max-w-3xl transition-all">
+  <!-- 主内容容器：桌面端左对齐，最大宽度 1400px，消灭右侧空白 -->
+  <main class="max-w-2xl mx-auto px-4 pt-3 space-y-3.5 md:ml-72 md:mr-8 md:max-w-[1400px] md:mx-0 md:px-8 transition-all">
 
-    <!-- 新手演练引导横幅 -->
     <div id="onboardingBanner" class="rounded-2xl bg-gradient-to-r from-indigo-50 via-violet-50 to-indigo-50 dark:from-indigo-950/40 dark:via-violet-950/30 dark:to-indigo-950/40 border border-indigo-200/70 dark:border-indigo-500/20 p-3 flex items-center justify-between gap-2.5">
       <div class="flex items-center gap-2.5 min-w-0">
         <span class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm shrink-0">👋</span>
@@ -212,72 +168,54 @@
         </div>
       </div>
       <div class="flex items-center gap-1.5 shrink-0">
-        <button type="button" id="seedDemoBtn" class="h-8 px-2.5 rounded-lg bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 border border-indigo-200/80 dark:border-slate-700 text-[11px] font-bold active:scale-95">
-          + 演练样本
-        </button>
+        <button type="button" id="seedDemoBtn" class="h-8 px-2.5 rounded-lg bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 border border-indigo-200/80 dark:border-slate-700 text-[11px] font-bold active:scale-95">+ 演练样本</button>
         <button type="button" id="dismissOnboardingBtn" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 flex items-center justify-center">
           <i data-lucide="x" class="w-3.5 h-3.5"></i>
         </button>
       </div>
     </div>
 
-    <!-- 视图：线索库与工作目标视图 -->
     <section id="stageFilterSection" class="space-y-3">
-      <!-- 阶段分段筛选胶囊 -->
       <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5" id="stageTabsContainer">
-        <button data-stage="all" class="stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-slate-900 text-white dark:bg-indigo-600 shadow-xs transition-all">
-          全部 <span class="ml-1 opacity-80" id="countAll">0</span>
-        </button>
-        <button data-stage="clue" class="stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 transition-all">
-          💡 线索 <span class="ml-1 text-amber-600 dark:text-amber-400" id="countClue">0</span>
-        </button>
-        <button data-stage="thinking" class="stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 transition-all">
-          🧠 思考中 <span class="ml-1 text-indigo-600 dark:text-indigo-400" id="countThinking">0</span>
-        </button>
-        <button data-stage="goal" class="stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 transition-all">
-          🎯 工作目标 <span class="ml-1 text-emerald-600 dark:text-emerald-400" id="countGoal">0</span>
-        </button>
+        <button data-stage="all" class="stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-slate-900 text-white dark:bg-indigo-600 shadow-xs transition-all">全部 <span class="ml-1 opacity-80" id="countAll">0</span></button>
+        <button data-stage="clue" class="stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 transition-all">💡 线索 <span class="ml-1 text-amber-600 dark:text-amber-400" id="countClue">0</span></button>
+        <button data-stage="thinking" class="stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 transition-all">🧠 思考中 <span class="ml-1 text-indigo-600 dark:text-indigo-400" id="countThinking">0</span></button>
+        <button data-stage="goal" class="stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 transition-all">🎯 工作目标 <span class="ml-1 text-emerald-600 dark:text-emerald-400" id="countGoal">0</span></button>
       </div>
 
-      <!-- 工作目标专属：本周推进进度环看板 -->
       <div id="goalProgressOverview" class="hidden rounded-3xl bg-white dark:bg-[#131824] border border-slate-200/80 dark:border-slate-800 p-4 flex items-center justify-between gap-4 shadow-xs">
         <div class="space-y-1">
-          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold">
-            <span>🎯</span><span>本周目标推进看板</span>
-          </div>
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold"><span>🎯</span><span>本周目标推进看板</span></div>
           <h3 class="text-base font-bold text-slate-900 dark:text-slate-100" id="goalOverviewTitle">已完成 0 / 0 项关键行动</h3>
           <p class="text-xs text-slate-500 dark:text-slate-400" id="goalOverviewSub">持续将碎片灵感转化为可执行结果</p>
         </div>
         <div class="relative w-16 h-16 shrink-0 flex items-center justify-center">
           <svg class="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
             <circle cx="32" cy="32" r="26" stroke-width="6" fill="none" class="stroke-slate-100 dark:stroke-slate-800" />
-            <circle id="goalRingCircle" cx="32" cy="32" r="26" stroke-width="6" fill="none" stroke-linecap="round"
-              stroke-dasharray="163.36" stroke-dashoffset="163.36"
-              class="stroke-emerald-500 transition-all duration-500" />
+            <circle id="goalRingCircle" cx="32" cy="32" r="26" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="163.36" stroke-dashoffset="163.36" class="stroke-emerald-500 transition-all duration-500" />
           </svg>
           <span id="goalRingPercent" class="absolute text-xs font-extrabold text-slate-800 dark:text-slate-100">0%</span>
         </div>
       </div>
 
-      <!-- 卡片信息流 -->
-      <div id="cardsFeed" class="space-y-3 pb-4">
+      <!-- 核心优化：桌面端双列，超宽屏三列 (xl:grid-cols-3) -->
+      <div id="cardsFeed" class="space-y-3 pb-4 md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-4 md:space-y-0">
         <!-- JS 动态渲染卡片 -->
       </div>
     </section>
 
   </main>
 
-  <!-- 底部固定导航栏 (已移除插件Tab，保持极简) -->
-  <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-[#111622]/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 pb-safe md:hidden">
-    <div class="max-w-2xl mx-auto px-6 h-16 flex items-center justify-between relative">
+  <!-- 底部固定导航栏：与 Header/Main 宽度对齐 -->
+  <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-[#111622]/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 pb-safe md:inset-x-auto md:left-72 md:w-[calc(100%-18rem)] md:rounded-t-3xl md:border md:border-b-0 md:border-slate-200/80 dark:md:border-slate-800 md:mb-4 md:shadow-lg transition-all">
+    <div class="max-w-2xl mx-auto px-6 h-16 flex items-center justify-between relative md:max-w-[1400px] md:mx-0 md:px-8">
       <button type="button" data-nav="clues" class="nav-tab-btn flex flex-col items-center justify-center w-20 h-12 rounded-xl text-indigo-600 dark:text-indigo-400 transition-colors">
         <i data-lucide="inbox" class="w-5 h-5 mb-0.5"></i>
         <span class="text-[11px] font-semibold">线索库</span>
       </button>
 
       <div class="relative -top-4">
-        <button type="button" id="openQuickCaptureFab" aria-label="极速记录灵感"
-          class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/35 flex items-center justify-center active:scale-90 transition-transform">
+        <button type="button" id="openQuickCaptureFab" aria-label="极速记录灵感" class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/35 flex items-center justify-center active:scale-90 transition-transform">
           <i data-lucide="plus" class="w-7 h-7 stroke-[2.5]"></i>
         </button>
       </div>
@@ -291,27 +229,16 @@
 
   <!-- 底部抽屉 1：极速多模态捕获面板 -->
   <div id="captureSheetBackdrop" class="fixed inset-0 z-40 hidden bg-slate-950/50 backdrop-blur-xs transition-opacity">
-    <div id="captureSheetPanel" onclick="event.stopPropagation()"
-      class="fixed bottom-0 inset-x-0 max-w-2xl mx-auto bg-white dark:bg-[#141926] rounded-t-3xl shadow-2xl border-t border-slate-200 dark:border-slate-800 p-5 pb-safe animate-sheet-up">
+    <div id="captureSheetPanel" onclick="event.stopPropagation()" class="fixed bottom-0 inset-x-0 max-w-2xl mx-auto bg-white dark:bg-[#141926] rounded-t-3xl shadow-2xl border-t border-slate-200 dark:border-slate-800 p-5 pb-safe animate-sheet-up md:max-w-3xl">
       <div class="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 mx-auto mb-3.5"></div>
-
       <div class="grid grid-cols-3 gap-2 p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 mb-4">
-        <button type="button" data-mode="text" class="cap-mode-btn h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 shadow-xs transition-all">
-          <span>📝</span><span>文字</span>
-        </button>
-        <button type="button" data-mode="voice" class="cap-mode-btn h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 text-slate-500 dark:text-slate-400 transition-all">
-          <span>🎙️</span><span>语音</span>
-        </button>
-        <button type="button" data-mode="video" class="cap-mode-btn h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 text-slate-500 dark:text-slate-400 transition-all">
-          <span>🎬</span><span>视频</span>
-        </button>
+        <button type="button" data-mode="text" class="cap-mode-btn h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 shadow-xs transition-all"><span>📝</span><span>文字</span></button>
+        <button type="button" data-mode="voice" class="cap-mode-btn h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 text-slate-500 dark:text-slate-400 transition-all"><span>🎙️</span><span>语音</span></button>
+        <button type="button" data-mode="video" class="cap-mode-btn h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 text-slate-500 dark:text-slate-400 transition-all"><span>🎬</span><span>视频</span></button>
       </div>
-
       <div id="sheetTextMode" class="space-y-2">
-        <textarea id="quickTextInput" rows="3" placeholder="此刻想到了什么？输入 #标签 可自动归类..."
-          class="w-full rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 text-base focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+        <textarea id="quickTextInput" rows="3" placeholder="此刻想到了什么？输入 #标签 可自动归类..." class="w-full rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 text-base focus:outline-none focus:border-indigo-500 resize-none"></textarea>
       </div>
-
       <div id="sheetVoiceMode" class="hidden space-y-3">
         <div class="rounded-2xl bg-violet-50/80 dark:bg-violet-950/30 border border-violet-200/70 dark:border-violet-500/20 p-4 flex flex-col items-center text-center gap-2.5">
           <div class="flex items-center justify-between w-full text-[11px]">
@@ -319,44 +246,27 @@
             <span class="font-mono font-bold text-violet-700 dark:text-violet-300" id="sheetVoiceTimer">00:00</span>
           </div>
           <div class="flex items-center gap-1.5 h-9" id="sheetVoiceWaves"></div>
-          <button type="button" id="sheetRecordVoiceBtn"
-            class="w-16 h-16 rounded-full bg-rose-500 active:scale-95 text-white flex items-center justify-center shadow-lg shadow-rose-500/30 transition-all">
-            <i data-lucide="mic" class="w-7 h-7"></i>
-          </button>
+          <button type="button" id="sheetRecordVoiceBtn" class="w-16 h-16 rounded-full bg-rose-500 active:scale-95 text-white flex items-center justify-center shadow-lg shadow-rose-500/30 transition-all"><i data-lucide="mic" class="w-7 h-7"></i></button>
           <p id="sheetVoiceHint" class="text-xs text-slate-500 dark:text-slate-400">点击麦克风开始录音，支持实时语音转文字</p>
           <audio id="sheetVoicePreviewAudio" controls class="hidden w-full h-9 mt-1"></audio>
         </div>
-        <input id="sheetVoiceNote" type="text" placeholder="语音转写文字（说话时实时识别，也可手动微调）..."
-          class="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-indigo-500" />
+        <input id="sheetVoiceNote" type="text" placeholder="语音转写文字（说话时实时识别，也可手动微调）..." class="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-indigo-500" />
       </div>
-
       <div id="sheetVideoMode" class="hidden space-y-3">
         <div class="rounded-2xl bg-slate-950 text-white flex flex-col items-center justify-center relative overflow-hidden aspect-video max-h-48 w-full border border-slate-800">
           <video id="sheetVideoPreview" playsinline muted class="hidden w-full h-full object-cover"></video>
           <div id="sheetVideoPlaceholder" class="flex flex-col items-center justify-center gap-2 p-4 text-center">
-            <div class="w-11 h-11 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
-              <i data-lucide="video" class="w-6 h-6"></i>
-            </div>
+            <div class="w-11 h-11 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center"><i data-lucide="video" class="w-6 h-6"></i></div>
             <p id="videoEngineHint" class="text-xs text-slate-300">点击下方按钮调用摄像头或模拟取景器</p>
           </div>
-          <div id="sheetVideoRecBadge" class="hidden absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-rose-600 text-[10px] font-bold flex items-center gap-1.5 shadow">
-            <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> REC <span id="sheetVideoTimer">00:00</span>
-          </div>
-          <button type="button" id="switchCameraBtn" aria-label="切换前后摄像头"
-            class="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-black/50 backdrop-blur-xs text-white flex items-center justify-center active:scale-90">
-            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-          </button>
+          <div id="sheetVideoRecBadge" class="hidden absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-rose-600 text-[10px] font-bold flex items-center gap-1.5 shadow"><span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> REC <span id="sheetVideoTimer">00:00</span></div>
+          <button type="button" id="switchCameraBtn" aria-label="切换前后摄像头" class="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-black/50 backdrop-blur-xs text-white flex items-center justify-center active:scale-90"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
           <div class="absolute bottom-3 inset-x-0 flex justify-center">
-            <button type="button" id="sheetRecordVideoBtn"
-              class="px-5 py-2 rounded-full bg-rose-500 hover:bg-rose-600 active:scale-95 text-xs font-bold text-white shadow-lg transition-all">
-              开始录制视频灵感
-            </button>
+            <button type="button" id="sheetRecordVideoBtn" class="px-5 py-2 rounded-full bg-rose-500 hover:bg-rose-600 active:scale-95 text-xs font-bold text-white shadow-lg transition-all">开始录制视频灵感</button>
           </div>
         </div>
-        <input id="sheetVideoNote" type="text" placeholder="一句话补充视频画面核心内容..."
-          class="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-indigo-500" />
+        <input id="sheetVideoNote" type="text" placeholder="一句话补充视频画面核心内容..." class="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-indigo-500" />
       </div>
-
       <div class="flex items-center justify-between gap-2 mt-4">
         <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar" id="sheetTagPills">
           <button type="button" data-tag="产品" class="sheet-tag-btn h-9 px-3 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 shrink-0">#产品</button>
@@ -364,49 +274,34 @@
           <button type="button" data-tag="待办" class="sheet-tag-btn h-9 px-3 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 shrink-0">#待办</button>
           <button type="button" data-tag="设计" class="sheet-tag-btn h-9 px-3 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 shrink-0">#设计</button>
         </div>
-        <button type="button" id="submitCaptureBtn"
-          class="h-12 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-sm font-bold shadow-md shadow-indigo-500/25 shrink-0 transition-all">
-          存入线索
-        </button>
+        <button type="button" id="submitCaptureBtn" class="h-12 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-sm font-bold shadow-md shadow-indigo-500/25 shrink-0 transition-all">存入线索</button>
       </div>
     </div>
   </div>
 
   <!-- 底部抽屉 2：启发式思考与目标转化工作台 -->
   <div id="detailSheetBackdrop" class="fixed inset-0 z-40 hidden bg-slate-950/50 backdrop-blur-xs">
-    <div id="detailSheetPanel" onclick="event.stopPropagation()"
-      class="fixed bottom-0 inset-x-0 max-w-2xl mx-auto bg-white dark:bg-[#141926] rounded-t-3xl shadow-2xl border-t border-slate-200 dark:border-slate-800 max-h-[92vh] flex flex-col animate-sheet-up">
+    <div id="detailSheetPanel" onclick="event.stopPropagation()" class="fixed bottom-0 inset-x-0 max-w-2xl mx-auto bg-white dark:bg-[#141926] rounded-t-3xl shadow-2xl border-t border-slate-200 dark:border-slate-800 max-h-[92vh] flex flex-col animate-sheet-up md:max-w-3xl">
       <div class="px-5 pt-3 pb-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
           <span id="detailMediaBadge" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800">📝 文字</span>
           <span id="detailStageBadge" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">💡 灵感线索</span>
         </div>
         <div class="flex items-center gap-1">
-          <button type="button" id="detailPinBtn" title="置顶/取消置顶" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
-            <i data-lucide="pin" class="w-4 h-4"></i>
-          </button>
-          <button type="button" id="detailDeleteBtn" title="删除记录" class="w-9 h-9 rounded-xl flex items-center justify-center text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
-          </button>
-          <button type="button" id="closeDetailSheetBtn" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
-            <i data-lucide="x" class="w-5 h-5"></i>
-          </button>
+          <button type="button" id="detailPinBtn" title="置顶/取消置顶" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="pin" class="w-4 h-4"></i></button>
+          <button type="button" id="detailDeleteBtn" title="删除记录" class="w-9 h-9 rounded-xl flex items-center justify-center text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          <button type="button" id="closeDetailSheetBtn" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
       </div>
-
       <div class="p-5 overflow-y-auto space-y-4 flex-1">
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1.5">灵感原始记录</label>
-          <textarea id="detailContentInput" rows="2"
-            class="w-full rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 text-sm font-medium focus:outline-none focus:border-indigo-500"></textarea>
+          <textarea id="detailContentInput" rows="2" class="w-full rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 text-sm font-medium focus:outline-none focus:border-indigo-500"></textarea>
           <div id="detailMediaPlayerSlot" class="mt-2"></div>
         </div>
-
         <div class="rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/25 border border-indigo-200/70 dark:border-indigo-500/20 p-4 space-y-3">
           <div class="flex items-center justify-between gap-2">
-            <h4 class="text-xs font-bold text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5">
-              <span>🧠</span><span>深度思考梳理</span>
-            </h4>
+            <h4 class="text-xs font-bold text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5"><span>🧠</span><span>深度思考梳理</span></h4>
             <div id="detailExportPluginSlot"></div>
           </div>
           <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
@@ -417,27 +312,20 @@
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">1. 核心价值与痛点分析</label>
-            <textarea id="detailThinkValue" rows="2" placeholder="它解决谁的什么问题？为什么值得做？"
-              class="w-full rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 text-sm focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+            <textarea id="detailThinkValue" rows="2" placeholder="它解决谁的什么问题？为什么值得做？" class="w-full rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 text-sm focus:outline-none focus:border-indigo-500 resize-none"></textarea>
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">2. 下一步最小可行行动</label>
-            <input id="detailThinkNext" type="text" placeholder="今天就能迈出的第一步是什么..."
-              class="w-full h-11 px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:border-indigo-500" />
+            <input id="detailThinkNext" type="text" placeholder="今天就能迈出的第一步是什么..." class="w-full h-11 px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:border-indigo-500" />
           </div>
         </div>
-
         <div class="rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/70 dark:border-emerald-500/20 p-4 space-y-3">
           <div class="flex items-center justify-between">
             <div>
-              <h4 class="text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
-                <span>🎯</span><span>转化为工作目标</span>
-              </h4>
+              <h4 class="text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5"><span>🎯</span><span>转化为工作目标</span></h4>
               <p class="text-[11px] text-slate-500 dark:text-slate-400">开启后可拆分关键行动项（KR）并追踪进度</p>
             </div>
-            <button type="button" id="toggleGoalSwitch" class="w-12 h-7 rounded-full bg-slate-300 dark:bg-slate-700 p-1 transition-colors">
-              <span id="toggleGoalKnob" class="block w-5 h-5 rounded-full bg-white shadow transform transition-transform"></span>
-            </button>
+            <button type="button" id="toggleGoalSwitch" class="w-12 h-7 rounded-full bg-slate-300 dark:bg-slate-700 p-1 transition-colors"><span id="toggleGoalKnob" class="block w-5 h-5 rounded-full bg-white shadow transform transition-transform"></span></button>
           </div>
           <div id="goalConfigArea" class="hidden space-y-3 pt-2 border-t border-emerald-200/60 dark:border-emerald-500/20">
             <div class="grid grid-cols-2 gap-2">
@@ -456,28 +344,21 @@
             </div>
             <div class="space-y-2" id="detailKrList"></div>
             <div class="flex items-center gap-2">
-              <input id="detailNewKrInput" type="text" placeholder="添加关键行动项（KR）..."
-                class="flex-1 h-10 px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-emerald-500" />
+              <input id="detailNewKrInput" type="text" placeholder="添加关键行动项（KR）..." class="flex-1 h-10 px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-emerald-500" />
               <button type="button" id="detailAddKrBtn" class="h-10 px-3.5 rounded-xl bg-emerald-600 text-white text-xs font-bold shrink-0">添加</button>
             </div>
           </div>
         </div>
       </div>
-
       <div class="p-4 border-t border-slate-100 dark:border-slate-800 pb-safe shrink-0">
-        <button type="button" id="saveDetailBtn"
-          class="w-full h-12 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white text-sm font-bold shadow-md transition-all">
-          保存并更新状态
-        </button>
+        <button type="button" id="saveDetailBtn" class="w-full h-12 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white text-sm font-bold shadow-md transition-all">保存并更新状态</button>
       </div>
     </div>
   </div>
 
   <!-- 弹窗：数据管理 & 每日灵感复盘海报 -->
   <div id="modalBackdrop" class="fixed inset-0 z-50 hidden bg-slate-950/55 backdrop-blur-xs flex items-center justify-center p-4">
-    <div id="modalContentBox" onclick="event.stopPropagation()"
-      class="w-full max-w-md rounded-3xl bg-white dark:bg-[#141926] border border-slate-200 dark:border-slate-800 p-5 shadow-2xl animate-pop-in">
-    </div>
+    <div id="modalContentBox" onclick="event.stopPropagation()" class="w-full max-w-md rounded-3xl bg-white dark:bg-[#141926] border border-slate-200 dark:border-slate-800 p-5 shadow-2xl animate-pop-in"></div>
   </div>
 
   <!-- 轻提示 Toast -->
@@ -490,29 +371,9 @@
     const STORAGE_ONBOARDING = 'sparkflow_onboarding_dismissed_v2';
 
     const INITIAL_ITEMS = [
-      {
-        id: 'm-1', stage: 'clue', pinned: true, mediaType: 'text', mediaMeta: {},
-        content: '在地铁上突然想到：做一个专为自由职业者设计的“极简报价单生成器”，30秒生成带收款码的 PDF。',
-        tags: ['产品'], createdAt: '15分钟前', thinking: { value: '', nextStep: '' },
-        goal: { priority: 'P1', deadline: '2026-11-30', tasks: [] }, aiSummary: ''
-      },
-      {
-        id: 'm-2', stage: 'thinking', pinned: false, mediaType: 'voice', mediaMeta: { duration: '00:28', audioUrl: '' },
-        content: '语音速记：每周五下午复盘耗时太长，如果能把平时的语音灵感自动按标签汇总成周报草稿，至少省下1小时。',
-        tags: ['随想'], createdAt: '2小时前',
-        thinking: { value: '消除周五写周报的回忆痛苦，实现碎片记录自动复利', nextStep: '先用多维表格跑通自动汇总原型' },
-        goal: { priority: 'P1', deadline: '2026-12-05', tasks: [] }, aiSummary: ''
-      },
-      {
-        id: 'm-3', stage: 'goal', pinned: false, mediaType: 'text', mediaMeta: {},
-        content: '上线个人作品集网站 2.0，整合近期做的 3 个效率小工具案例',
-        tags: ['待办', '设计'], createdAt: '昨天',
-        thinking: { value: '建立个人专业品牌，吸引高质量独立咨询合作', nextStep: '本周内完成首页响应式排版与案例截图' },
-        goal: { priority: 'P0', deadline: '2026-11-25', tasks: [
-          { id: 't-1', text: '整理 3 个核心项目的痛点与数据成果', done: true },
-          { id: 't-2', text: '适配手机端单手浏览体验', done: false }
-        ]}, aiSummary: ''
-      }
+      { id: 'm-1', stage: 'clue', pinned: true, mediaType: 'text', mediaMeta: {}, content: '在地铁上突然想到：做一个专为自由职业者设计的“极简报价单生成器”，30秒生成带收款码的 PDF。', tags: ['产品'], createdAt: '15分钟前', thinking: { value: '', nextStep: '' }, goal: { priority: 'P1', deadline: '2026-11-30', tasks: [] }, aiSummary: '' },
+      { id: 'm-2', stage: 'thinking', pinned: false, mediaType: 'voice', mediaMeta: { duration: '00:28', audioUrl: '' }, content: '语音速记：每周五下午复盘耗时太长，如果能把平时的语音灵感自动按标签汇总成周报草稿，至少省下1小时。', tags: ['随想'], createdAt: '2小时前', thinking: { value: '消除周五写周报的回忆痛苦，实现碎片记录自动复利', nextStep: '先用多维表格跑通自动汇总原型' }, goal: { priority: 'P1', deadline: '2026-12-05', tasks: [] }, aiSummary: '' },
+      { id: 'm-3', stage: 'goal', pinned: false, mediaType: 'text', mediaMeta: {}, content: '上线个人作品集网站 2.0，整合近期做的 3 个效率小工具案例', tags: ['待办', '设计'], createdAt: '昨天', thinking: { value: '建立个人专业品牌，吸引高质量独立咨询合作', nextStep: '本周内完成首页响应式排版与案例截图' }, goal: { priority: 'P0', deadline: '2026-11-25', tasks: [ { id: 't-1', text: '整理 3 个核心项目的痛点与数据成果', done: true }, { id: 't-2', text: '适配手机端单手浏览体验', done: false } ]}, aiSummary: '' }
     ];
 
     const INITIAL_PLUGINS = [
@@ -524,53 +385,36 @@
     ];
 
     let appState = {
-      items: [], plugins: [],
-      activeNav: 'clues',     // 仅保留 'clues' | 'goals'
-      stageFilter: 'all',
-      tagFilter: '', searchQuery: '', captureMode: 'text', captureTag: '产品',
+      items: [], plugins: [], activeNav: 'clues', stageFilter: 'all', tagFilter: '', searchQuery: '', captureMode: 'text', captureTag: '产品',
       isRecordingVoice: false, voiceSec: 0, voiceTimerId: null, mediaRecorder: null, mediaChunks: [], mediaStream: null, audioCtx: null, analyser: null, animFrameId: null, speechRec: null, recordedAudioUrl: '',
-      isRecordingVideo: false, videoSec: 0, videoTimerId: null, videoFacingMode: 'environment', recordedVideoUrl: '',
-      editingItemId: null, editingIsGoal: false, timers: {}
+      isRecordingVideo: false, videoSec: 0, videoTimerId: null, videoFacingMode: 'environment', recordedVideoUrl: '', editingItemId: null, editingIsGoal: false, timers: {}
     };
 
     window.SparkFlowSDK = {
       register(plugin) {
         if (!plugin || !plugin.name) return;
-        appState.plugins.push({
-          id: plugin.id || 'custom-' + Date.now(), emoji: plugin.emoji || '⚡', name: plugin.name,
-          desc: plugin.desc || plugin.actionText || '自定义快捷动作按钮', actionType: plugin.actionType || 'toast',
-          actionText: plugin.actionText || `已执行「${plugin.name}」`, enabled: true, builtin: false
-        });
+        appState.plugins.push({ id: plugin.id || 'custom-' + Date.now(), emoji: plugin.emoji || '⚡', name: plugin.name, desc: plugin.desc || plugin.actionText || '自定义快捷动作按钮', actionType: plugin.actionType || 'toast', actionText: plugin.actionText || `已执行「${plugin.name}」`, enabled: true, builtin: false });
         persist(); renderAll();
       }
     };
 
     function init() {
       try {
-        const rawItems = localStorage.getItem(STORAGE_ITEMS);
-        const rawPlugins = localStorage.getItem(STORAGE_PLUGINS);
-        const theme = localStorage.getItem(STORAGE_THEME);
-        const dismissed = localStorage.getItem(STORAGE_ONBOARDING);
+        const rawItems = localStorage.getItem(STORAGE_ITEMS), rawPlugins = localStorage.getItem(STORAGE_PLUGINS), theme = localStorage.getItem(STORAGE_THEME), dismissed = localStorage.getItem(STORAGE_ONBOARDING);
         appState.items = rawItems ? JSON.parse(rawItems) : INITIAL_ITEMS;
         appState.plugins = rawPlugins ? JSON.parse(rawPlugins) : INITIAL_PLUGINS;
         if (theme === 'dark') document.documentElement.classList.add('dark');
         if (dismissed === '1') document.getElementById('onboardingBanner').classList.add('hidden');
-      } catch (e) {
-        appState.items = INITIAL_ITEMS; appState.plugins = INITIAL_PLUGINS;
-      }
+      } catch (e) { appState.items = INITIAL_ITEMS; appState.plugins = INITIAL_PLUGINS; }
       buildVoiceWaveBars(); bindEvents(); renderAll(); startTimerLoop();
     }
 
     function persist() {
-      try {
-        localStorage.setItem(STORAGE_ITEMS, JSON.stringify(appState.items));
-        localStorage.setItem(STORAGE_PLUGINS, JSON.stringify(appState.plugins));
-      } catch (e) {}
+      try { localStorage.setItem(STORAGE_ITEMS, JSON.stringify(appState.items)); localStorage.setItem(STORAGE_PLUGINS, JSON.stringify(appState.plugins)); } catch (e) {}
     }
 
     function toast(msg) {
-      const box = document.getElementById('toastBox');
-      const el = document.createElement('div');
+      const box = document.getElementById('toastBox'), el = document.createElement('div');
       el.className = 'bg-slate-900/95 dark:bg-indigo-600 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg transition-all duration-200 translate-y-2 opacity-0 max-w-[90vw] text-center';
       el.textContent = msg; box.appendChild(el);
       requestAnimationFrame(() => el.classList.remove('translate-y-2', 'opacity-0'));
@@ -599,8 +443,7 @@
     }
 
     function renderAll() {
-      renderTopPluginSlot(); renderNavTabs(); renderStageCounts(); renderTagFilterBar();
-      renderGoalProgressOverview(); renderFeed(); renderSidebarPlugins(); lucide.createIcons();
+      renderTopPluginSlot(); renderNavTabs(); renderStageCounts(); renderTagFilterBar(); renderGoalProgressOverview(); renderFeed(); renderSidebarPlugins(); lucide.createIcons();
     }
 
     function renderTopPluginSlot() {
@@ -608,9 +451,7 @@
       const runningEntry = Object.entries(appState.timers).find(([, t]) => t.running);
       if (runningEntry && isPluginOn('focus-timer')) {
         const [itemId, t] = runningEntry;
-        const mm = String(Math.floor(t.sec / 60)).padStart(2, '0');
-        const ss = String(t.sec % 60).padStart(2, '0');
-        html += `<button type="button" onclick="toggleFocusTimer('${itemId}')" class="h-8 px-2.5 rounded-full bg-rose-500 text-white text-[11px] font-mono font-bold flex items-center gap-1 shadow-xs animate-pulse shrink-0"><span>🍅</span><span>${mm}:${ss}</span></button>`;
+        html += `<button type="button" onclick="toggleFocusTimer('${itemId}')" class="h-8 px-2.5 rounded-full bg-rose-500 text-white text-[11px] font-mono font-bold flex items-center gap-1 shadow-xs animate-pulse shrink-0"><span>🍅</span><span>${String(Math.floor(t.sec / 60)).padStart(2, '0')}:${String(t.sec % 60).padStart(2, '0')}</span></button>`;
       }
       if (isPluginOn('daily-review')) {
         html += `<button type="button" onclick="openDailyReviewModal()" class="h-8 px-2.5 rounded-full bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-500/30 text-[11px] font-bold flex items-center gap-1 active:scale-95 shrink-0"><span>📊</span><span>复盘</span></button>`;
@@ -621,21 +462,15 @@
     function renderNavTabs() {
       document.querySelectorAll('.nav-tab-btn').forEach(btn => {
         const active = btn.dataset.nav === appState.activeNav;
-        btn.className = active
-          ? 'nav-tab-btn flex flex-col items-center justify-center w-20 h-12 rounded-xl text-indigo-600 dark:text-indigo-400 transition-colors relative'
-          : 'nav-tab-btn flex flex-col items-center justify-center w-20 h-12 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors relative';
+        btn.className = active ? 'nav-tab-btn flex flex-col items-center justify-center w-20 h-12 rounded-xl text-indigo-600 dark:text-indigo-400 transition-colors relative' : 'nav-tab-btn flex flex-col items-center justify-center w-20 h-12 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors relative';
       });
       document.querySelectorAll('.nav-sidebar-btn').forEach(btn => {
         const active = btn.dataset.nav === appState.activeNav;
-        btn.className = active
-          ? 'nav-sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 transition-colors'
-          : 'nav-sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors';
+        btn.className = active ? 'nav-sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 transition-colors' : 'nav-sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors';
       });
       document.querySelectorAll('.stage-tab').forEach(tab => {
         const active = tab.dataset.stage === appState.stageFilter;
-        tab.className = active
-          ? 'stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-slate-900 text-white dark:bg-indigo-600 shadow-xs transition-all'
-          : 'stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 transition-all';
+        tab.className = active ? 'stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-slate-900 text-white dark:bg-indigo-600 shadow-xs transition-all' : 'stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 transition-all';
       });
     }
 
@@ -647,36 +482,27 @@
     }
 
     function renderTagFilterBar() {
-      const bar = document.getElementById('tagFilterBar');
-      const allTags = Array.from(new Set(appState.items.flatMap(i => i.tags || [])));
+      const bar = document.getElementById('tagFilterBar'), allTags = Array.from(new Set(appState.items.flatMap(i => i.tags || [])));
       if (!allTags.length) { bar.innerHTML = ''; return; }
-      bar.innerHTML = `
-        <button type="button" onclick="setTagFilter('')" class="shrink-0 h-7 px-2.5 rounded-lg text-[11px] font-semibold ${appState.tagFilter === '' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-500 border border-slate-200 dark:border-slate-800'}">全部标签</button>
-        ${allTags.map(tag => `<button type="button" onclick="setTagFilter('${tag}')" class="shrink-0 h-7 px-2.5 rounded-lg text-[11px] font-semibold ${appState.tagFilter === tag ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800'}">#${tag}</button>`).join('')}
-      `;
+      bar.innerHTML = `<button type="button" onclick="setTagFilter('')" class="shrink-0 h-7 px-2.5 rounded-lg text-[11px] font-semibold ${appState.tagFilter === '' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-500 border border-slate-200 dark:border-slate-800'}">全部标签</button>` +
+        allTags.map(tag => `<button type="button" onclick="setTagFilter('${tag}')" class="shrink-0 h-7 px-2.5 rounded-lg text-[11px] font-semibold ${appState.tagFilter === tag ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800'}">#${tag}</button>`).join('');
     }
 
     function setTagFilter(tag) { appState.tagFilter = appState.tagFilter === tag ? '' : tag; renderAll(); }
 
     function renderGoalProgressOverview() {
-      const box = document.getElementById('goalProgressOverview');
-      const show = appState.activeNav === 'goals' || appState.stageFilter === 'goal';
+      const box = document.getElementById('goalProgressOverview'), show = appState.activeNav === 'goals' || appState.stageFilter === 'goal';
       box.classList.toggle('hidden', !show); if (!show) return;
-      const goals = appState.items.filter(i => i.stage === 'goal');
-      const allTasks = goals.flatMap(g => g.goal?.tasks || []);
-      const doneCount = allTasks.filter(t => t.done).length;
-      const totalCount = allTasks.length;
-      const pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
+      const goals = appState.items.filter(i => i.stage === 'goal'), allTasks = goals.flatMap(g => g.goal?.tasks || []);
+      const doneCount = allTasks.filter(t => t.done).length, totalCount = allTasks.length, pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
       document.getElementById('goalOverviewTitle').textContent = `已完成 ${doneCount} / ${totalCount} 项关键行动`;
       document.getElementById('goalOverviewSub').textContent = goals.length ? `当前共有 ${goals.length} 个进行中的工作目标` : '把思考成熟的灵感定为目标，开始追踪进度';
       document.getElementById('goalRingPercent').textContent = `${pct}%`;
-      const circumference = 163.36;
-      document.getElementById('goalRingCircle').style.strokeDashoffset = circumference - (pct / 100) * circumference;
+      document.getElementById('goalRingCircle').style.strokeDashoffset = 163.36 - (pct / 100) * 163.36;
     }
 
     function renderFeed() {
-      const feed = document.getElementById('cardsFeed');
-      const q = appState.searchQuery.trim().toLowerCase();
+      const feed = document.getElementById('cardsFeed'), q = appState.searchQuery.trim().toLowerCase();
       const filtered = appState.items.filter(item => {
         if (appState.stageFilter !== 'all' && item.stage !== appState.stageFilter) return false;
         if (appState.tagFilter && !(item.tags || []).includes(appState.tagFilter)) return false;
@@ -685,7 +511,8 @@
       }).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
 
       if (!filtered.length) {
-        feed.innerHTML = `<div class="rounded-3xl bg-white dark:bg-[#131824] border border-dashed border-slate-200 dark:border-slate-800 p-10 text-center space-y-2.5"><div class="text-3xl">✨</div><p class="text-sm font-semibold text-slate-700 dark:text-slate-300">暂无匹配的灵感记录</p><p class="text-xs text-slate-400">点击底部中央「+」号记下新想法，或清除当前筛选条件</p></div>`;
+        // 优化：桌面端双列/三列下的空状态横跨
+        feed.innerHTML = `<div class="rounded-3xl bg-white dark:bg-[#131824] border border-dashed border-slate-200 dark:border-slate-800 p-10 text-center space-y-2.5 md:col-span-2 xl:col-span-3"><div class="text-3xl">✨</div><p class="text-sm font-semibold text-slate-700 dark:text-slate-300">暂无匹配的灵感记录</p><p class="text-xs text-slate-400">点击底部中央「+」号记下新想法，或清除当前筛选条件</p></div>`;
         return;
       }
       feed.innerHTML = filtered.map(item => renderMobileCard(item)).join('');
@@ -695,17 +522,12 @@
     function renderMobileCard(item) {
       const modalityMap = { text: { icon: '📝', label: '文字' }, voice: { icon: '🎙️', label: `语音 ${item.mediaMeta?.duration || '00:20'}` }, video: { icon: '🎬', label: `视频 ${item.mediaMeta?.duration || '00:35'}` } };
       const mod = modalityMap[item.mediaType] || modalityMap.text;
-      const stageBadgeMap = {
-        clue: `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">💡 线索</span>`,
-        thinking: `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">🧠 思考中</span>`,
-        goal: `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">🎯 工作目标</span>`
-      };
+      const stageBadgeMap = { clue: `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">💡 线索</span>`, thinking: `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">🧠 思考中</span>`, goal: `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">🎯 工作目标</span>` };
 
       let focusTimerHtml = '';
       if (item.stage === 'goal' && isPluginOn('focus-timer')) {
         const t = appState.timers[item.id] || { sec: 1500, running: false };
-        const mm = String(Math.floor(t.sec / 60)).padStart(2, '0'); const ss = String(t.sec % 60).padStart(2, '0');
-        focusTimerHtml = `<div onclick="event.stopPropagation()" class="mb-3 px-3 py-2 rounded-xl bg-rose-50/90 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-500/20 flex items-center justify-between"><span class="text-xs font-semibold text-rose-700 dark:text-rose-300">🍅 番茄专注推进</span><div class="flex items-center gap-2.5"><span class="font-mono text-sm font-bold text-rose-700 dark:text-rose-200">${mm}:${ss}</span><button type="button" onclick="toggleFocusTimer('${item.id}')" class="h-7 px-3 rounded-lg text-xs font-bold ${t.running ? 'bg-slate-800 text-white' : 'bg-rose-500 text-white'} active:scale-95 transition-transform">${t.running ? '暂停' : '开始'}</button></div></div>`;
+        focusTimerHtml = `<div onclick="event.stopPropagation()" class="mb-3 px-3 py-2 rounded-xl bg-rose-50/90 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-500/20 flex items-center justify-between"><span class="text-xs font-semibold text-rose-700 dark:text-rose-300">🍅 番茄专注推进</span><div class="flex items-center gap-2.5"><span class="font-mono text-sm font-bold text-rose-700 dark:text-rose-200">${String(Math.floor(t.sec / 60)).padStart(2, '0')}:${String(t.sec % 60).padStart(2, '0')}</span><button type="button" onclick="toggleFocusTimer('${item.id}')" class="h-7 px-3 rounded-lg text-xs font-bold ${t.running ? 'bg-slate-800 text-white' : 'bg-rose-500 text-white'} active:scale-95 transition-transform">${t.running ? '暂停' : '开始'}</button></div></div>`;
       }
 
       let mediaBarHtml = '';
@@ -724,7 +546,7 @@
 
       let goalHtml = '';
       if (item.stage === 'goal') {
-        const tasks = item.goal?.tasks || []; const done = tasks.filter(t => t.done).length; const pct = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
+        const tasks = item.goal?.tasks || [], done = tasks.filter(t => t.done).length, pct = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
         goalHtml = `<div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 space-y-2"><div class="flex items-center justify-between text-[11px]"><span class="font-bold text-emerald-600 dark:text-emerald-400">${item.goal?.priority || 'P1'} · 截止 ${item.goal?.deadline || '待定'}</span><span class="font-semibold text-slate-500">${done}/${tasks.length} (${pct}%)</span></div><div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div class="h-full bg-emerald-500 transition-all duration-300" style="width:${pct}%"></div></div><div class="space-y-1.5 pt-0.5">${tasks.map(t => `<label onclick="event.stopPropagation()" class="flex items-center gap-2.5 min-h-[30px] text-xs cursor-pointer"><input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleInlineTask('${item.id}', '${t.id}')" class="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" /><span class="${t.done ? 'line-through text-slate-400' : 'text-slate-700 dark:text-slate-200'}">${t.text}</span></label>`).join('')}</div></div>`;
       }
 
@@ -742,7 +564,7 @@
       else if (item.stage === 'thinking') { swipeHintText = '🎯 定为目标'; primaryActionBtn = `<button type="button" onclick="event.stopPropagation(); quickAdvance('${item.id}', 'goal')" class="h-9 px-3.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 text-xs font-bold active:scale-95 transition-all shrink-0">定为目标 →</button>`; }
       else { swipeHintText = '📌 切换置顶'; primaryActionBtn = `<span class="h-9 px-3 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold inline-flex items-center shrink-0">✓ 推进中</span>`; }
 
-      return `<div class="relative rounded-3xl overflow-hidden select-none"><div class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-emerald-500 flex items-center justify-start px-5 text-white text-xs font-bold">${swipeHintText}</div><article data-card-id="${item.id}" onclick="openDetailSheet('${item.id}')" class="swipe-card-inner relative rounded-3xl bg-white dark:bg-[#131824] border ${item.pinned ? 'border-indigo-300 dark:border-indigo-500/40' : 'border-slate-200/80 dark:border-slate-800/90'} p-4 shadow-xs cursor-pointer">${focusTimerHtml}<div class="flex items-center justify-between gap-2 mb-2"><div class="flex items-center gap-1.5 flex-wrap">${item.pinned ? `<span class="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 text-[10px] font-bold">📌 置顶</span>` : ''}<span class="text-xs font-medium text-slate-500 dark:text-slate-400">${mod.icon} ${mod.label}</span>${stageBadgeMap[item.stage]}</div><span class="text-[11px] text-slate-400 shrink-0">${item.createdAt}</span></div><p class="text-[15px] font-medium text-slate-900 dark:text-slate-100 leading-relaxed">${item.content}</p>${mediaBarHtml}${thinkingHtml}${goalHtml}${aiSummaryHtml}<div class="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2"><div class="flex items-center gap-1.5 flex-wrap">${(item.tags || []).map(t => `<button type="button" onclick="event.stopPropagation(); setTagFilter('${t}')" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-medium">#${t}</button>`).join('')}${customActionsHtml}</div>${primaryActionBtn}</div></article></div>`;
+      return `<div class="relative rounded-3xl overflow-hidden select-none h-full"><div class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-emerald-500 flex items-center justify-start px-5 text-white text-xs font-bold">${swipeHintText}</div><article data-card-id="${item.id}" onclick="openDetailSheet('${item.id}')" class="swipe-card-inner relative rounded-3xl bg-white dark:bg-[#131824] border ${item.pinned ? 'border-indigo-300 dark:border-indigo-500/40' : 'border-slate-200/80 dark:border-slate-800/90'} p-4 shadow-xs cursor-pointer h-full flex flex-col">${focusTimerHtml}<div class="flex items-center justify-between gap-2 mb-2"><div class="flex items-center gap-1.5 flex-wrap">${item.pinned ? `<span class="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 text-[10px] font-bold">📌 置顶</span>` : ''}<span class="text-xs font-medium text-slate-500 dark:text-slate-400">${mod.icon} ${mod.label}</span>${stageBadgeMap[item.stage]}</div><span class="text-[11px] text-slate-400 shrink-0">${item.createdAt}</span></div><p class="text-[15px] font-medium text-slate-900 dark:text-slate-100 leading-relaxed flex-1">${item.content}</p>${mediaBarHtml}${thinkingHtml}${goalHtml}${aiSummaryHtml}<div class="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2 flex-wrap"><div class="flex items-center gap-1.5 flex-wrap flex-1">${(item.tags || []).map(t => `<button type="button" onclick="event.stopPropagation(); setTagFilter('${t}')" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-medium">#${t}</button>`).join('')}${customActionsHtml}</div>${primaryActionBtn}</div></article></div>`;
     }
 
     function renderSidebarPlugins() {
@@ -797,9 +619,7 @@
     function quickAdvance(id, nextStage) {
       const item = appState.items.find(i => i.id === id); if (!item) return;
       item.stage = nextStage;
-      if (nextStage === 'goal' && (!item.goal.tasks || item.goal.tasks.length === 0)) {
-        item.goal.tasks = [{ id: 't-' + Date.now(), text: item.thinking?.nextStep || '完成第一步最小可行性验证', done: false }];
-      }
+      if (nextStage === 'goal' && (!item.goal.tasks || item.goal.tasks.length === 0)) item.goal.tasks = [{ id: 't-' + Date.now(), text: item.thinking?.nextStep || '完成第一步最小可行性验证', done: false }];
       persist(); renderAll(); toast(nextStage === 'thinking' ? '🧠 已移入「思考中」' : '🎯 已转化为「工作目标」');
     }
 
