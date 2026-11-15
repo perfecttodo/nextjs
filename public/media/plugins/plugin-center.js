@@ -67,7 +67,11 @@
             scriptSrc: PLUGIN_BASE + 'video-player-plugin.js', globalVar: 'MP3VideoPlayerPlugin', autoEnable: true, dataSourceKeys: [] },
         multiUser: { id: 'multiUser', name: '多用戶', description: '每個用戶獨立的 Like 記憶',
             icon: 'fa-solid fa-user-shield', iconClass: 'text-indigo-400',
-            scriptSrc: PLUGIN_BASE + 'multi-user-plugin.js', globalVar: 'MP3MultiUserPlugin', autoEnable: true, dataSourceKeys: [] }
+            scriptSrc: PLUGIN_BASE + 'multi-user-plugin.js', globalVar: 'MP3MultiUserPlugin', autoEnable: true, dataSourceKeys: [] },
+            youtube: { id: 'youtube', name: 'YouTube 播放清單', description: '匯入多個 YouTube 清單並播放',
+    icon: 'fa-brands fa-youtube', iconClass: 'text-red-500',
+    scriptSrc: 'plugins/youtube-plugin.js', globalVar: 'MP3YouTubePlugin',
+    autoEnable: false, dataSourceKeys: ['youtube'] },
     };
 
     const STORAGE_KEY = 'mp3_enabled_dynamic_plugins';
