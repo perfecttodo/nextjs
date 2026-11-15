@@ -1,12 +1,11 @@
 /**
- * 视频渲染插件 v1.3
- * 
- * 相对 v1.2 的改动：
- *  1. ★ PiP 中关闭小窗 → 设全局隐藏（不只是当前视频），切歌不再弹小窗
- *  2. ★ PiP 退出（用户主动）→ 自动清除全局隐藏，小窗恢复
- *  3. ★ PiP 因媒体变化自动退出（切歌）→ 保留全局隐藏，等用户主动操作
- *  4. ★ 插件卡片新增"显示小窗"按钮（全局隐藏时可用）
- *  5. 插件卡片状态显示"画中画中（小窗已隐藏）"
+ * 视频渲染插件 v1.5
+ *
+ * 相对 v1.4 的改动：
+ *  1. ★ 全屏时控制条隐藏 → 光标同步隐藏；控制条出现 → 光标同步显示
+ *  2. ★ 实现方式：给 .video-stage 增删 fs-hide-cursor 类，CSS 用 :fullscreen 伪类 + cursor:none 兜底
+ *  3. ★ 仅在"全屏 + 播放中 + UI 空闲"时隐藏光标；暂停时保持可见
+ *  4. 其余全屏容器化、PiP、隐藏记忆、拖动等逻辑保持不变
  */
 (function () {
     'use strict';
@@ -16,9 +15,11 @@
     const KEY_GLOBAL_HIDDEN = NS + 'global_hidden';
     const KEY_POSITION = NS + 'position';
     const KEY_FULLSCREEN_INTENT = NS + 'fullscreen_intent';
+    const STYLE_ID = 'mp3_video_player_styles';
 
     const MEDIA_CHANGE_WINDOW = 1500;
     const RESTORE_DEBOUNCE = 300;
+    const FS_UI_IDLE_MS = 3000;
 
     const state = {
         container: null,
@@ -30,7 +31,9 @@
         fullscreenIntent: localStorage.getItem(KEY_FULLSCREEN_INTENT) === 'true',
         userPressedEscape: false,
         lastMediaChangeAt: 0,
-        lastRestoreAttemptAt: 0
+        lastRestoreAttemptAt: 0,
+        fsUiTimer: null,
+        fsSeeking: false
     };
 
     // ==================== 工具 ====================
@@ -62,7 +65,6 @@
         state.hiddenForCurrentSrc = hidden;
     }
 
-    // ★ 全局隐藏：PiP 场景下关闭小窗后，切歌也不弹出
     function isGloballyHidden() {
         return localStorage.getItem(KEY_GLOBAL_HIDDEN) === 'true';
     }
@@ -88,6 +90,72 @@
 
     function isInPip() {
         return state.videoEl && document.pictureInPictureElement === state.videoEl;
+    }
+
+    function isVideoFullscreen() {
+        const stage = state.container ? state.container.querySelector('.video-stage') : null;
+        if (stage && document.fullscreenElement === stage) return true;
+        if (stage && document.webkitFullscreenElement === stage) return true;
+        if (state.videoEl && state.videoEl.webkitDisplayingFullscreen) return true;
+        return false;
+    }
+
+    function formatTime(sec) {
+        if (!isFinite(sec) || sec < 0) sec = 0;
+        sec = Math.floor(sec);
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = sec % 60;
+        if (h > 0) return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        return m + ':' + String(s).padStart(2, '0');
+    }
+
+    // ==================== 注入样式 ====================
+    function injectStyles() {
+        if (document.getElementById(STYLE_ID)) return;
+        const style = document.createElement('style');
+        style.id = STYLE_ID;
+        style.textContent = `
+            /* 全屏时容器铺满视口，覆盖内联 aspect-ratio */
+            #videoPlayerContainer .video-stage:fullscreen {
+                aspect-ratio: auto !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                max-width: none !important;
+                max-height: none !important;
+                background: #000 !important;
+            }
+            #videoPlayerContainer .video-stage:-webkit-full-screen {
+                aspect-ratio: auto !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                max-width: none !important;
+                max-height: none !important;
+                background: #000 !important;
+            }
+            /* 兜底：全屏时隐藏 WebKit 原生控件层 */
+            #videoPlayerContainer .video-stage:fullscreen video::-webkit-media-controls,
+            #videoPlayerContainer .video-stage:fullscreen video::-webkit-media-controls-enclosure {
+                display: none !important;
+            }
+            #videoPlayerContainer .video-stage:-webkit-full-screen video::-webkit-media-controls,
+            #videoPlayerContainer .video-stage:-webkit-full-screen video::-webkit-media-controls-enclosure {
+                display: none !important;
+            }
+            /* ★ 全屏 + UI 空闲 → 隐藏光标（含所有子元素） */
+            #videoPlayerContainer .video-stage:fullscreen.fs-hide-cursor,
+            #videoPlayerContainer .video-stage:-webkit-full-screen.fs-hide-cursor,
+            #videoPlayerContainer .video-stage:fullscreen.fs-hide-cursor *,
+            #videoPlayerContainer .video-stage:-webkit-full-screen.fs-hide-cursor * {
+                cursor: none !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function removeStyles() {
+        const el = document.getElementById(STYLE_ID);
+        if (el) el.remove();
     }
 
     // ==================== 视频容器 ====================
@@ -118,6 +186,23 @@
             </div>
             <div class="video-stage relative bg-black" style="aspect-ratio: 16 / 9;">
                 <div class="video-slot absolute inset-0"></div>
+                <div class="video-fs-ui hidden absolute inset-0 z-20 flex flex-col justify-between pointer-events-none">
+                    <div class="flex justify-end p-3">
+                        <button class="video-fs-exit pointer-events-auto w-9 h-9 rounded-lg bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition" title="退出全屏">
+                            <i class="fa-solid fa-compress text-sm"></i>
+                        </button>
+                    </div>
+                    <div class="video-fs-bottom px-3 pb-3 pt-6 bg-gradient-to-t from-black/80 to-transparent">
+                        <div class="flex items-center gap-2">
+                            <button class="video-fs-play pointer-events-auto w-8 h-8 rounded-md hover:bg-white/10 text-white flex items-center justify-center transition" title="播放/暂停">
+                                <i class="fa-solid fa-play text-sm"></i>
+                            </button>
+                            <span class="video-fs-cur text-[11px] text-white/90 tabular-nums w-9 text-right">0:00</span>
+                            <input type="range" class="video-fs-seek pointer-events-auto flex-1 accent-indigo-400 cursor-pointer" min="0" max="1000" value="0">
+                            <span class="video-fs-dur text-[11px] text-white/90 tabular-nums w-9">0:00</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="video-hint px-2 py-1 bg-slate-900/95 text-[9px] text-slate-500 text-center">
                 拖动顶栏移动 · PiP 中关闭则保持隐藏
@@ -199,21 +284,188 @@
         window.addEventListener('touchend', onEnd);
     }
 
+    // ==================== 自定义全屏控制层 ====================
+    function showFsUi() {
+        if (!state.container) return;
+        const ui = state.container.querySelector('.video-fs-ui');
+        const stage = state.container.querySelector('.video-stage');
+        if (ui) ui.classList.remove('hidden');
+        // ★ 显示 UI 的同时恢复光标
+        if (stage) stage.classList.remove('fs-hide-cursor');
+    }
+
+    function hideFsUi() {
+        if (!state.container) return;
+        const ui = state.container.querySelector('.video-fs-ui');
+        const stage = state.container.querySelector('.video-stage');
+        if (ui) ui.classList.add('hidden');
+        // ★ 隐藏 UI 的同时隐藏光标（仅在真正的全屏 CSS 选择器下生效）
+        if (stage) stage.classList.add('fs-hide-cursor');
+    }
+
+    function scheduleFsUiHide() {
+        clearTimeout(state.fsUiTimer);
+        state.fsUiTimer = null;
+        // 暂停时保持 UI 与光标可见
+        if (!state.videoEl || state.videoEl.paused) return;
+        state.fsUiTimer = setTimeout(() => {
+            if (isVideoFullscreen() && state.videoEl && !state.videoEl.paused) hideFsUi();
+        }, FS_UI_IDLE_MS);
+    }
+
+    function updateFsPlayIcon() {
+        if (!state.container || !state.videoEl) return;
+        const icon = state.container.querySelector('.video-fs-play i');
+        if (!icon) return;
+        icon.className = state.videoEl.paused ? 'fa-solid fa-play text-sm' : 'fa-solid fa-pause text-sm';
+    }
+
+    function updateFsSeek() {
+        if (!state.container || !state.videoEl) return;
+        const seek = state.container.querySelector('.video-fs-seek');
+        const cur = state.container.querySelector('.video-fs-cur');
+        const v = state.videoEl;
+        if (seek && !state.fsSeeking) {
+            const dur = v.duration || 0;
+            seek.value = dur > 0 ? String(Math.round((v.currentTime / dur) * 1000)) : '0';
+        }
+        if (cur) cur.textContent = formatTime(v.currentTime);
+    }
+
+    function updateFsDuration() {
+        if (!state.container || !state.videoEl) return;
+        const dur = state.container.querySelector('.video-fs-dur');
+        if (dur) dur.textContent = formatTime(state.videoEl.duration);
+    }
+
+    function onEnterFullscreenUI() {
+        if (state.videoEl) state.videoEl.controls = false;
+        hideRestoreHint();
+        updateFsPlayIcon();
+        updateFsSeek();
+        updateFsDuration();
+        showFsUi();
+        scheduleFsUiHide();
+    }
+
+    function onExitFullscreenUI() {
+        if (state.videoEl) {
+            const containerVisible = state.container && !state.container.classList.contains('hidden');
+            const hasVideo = (state.videoEl.videoWidth || 0) > 0;
+            state.videoEl.controls = !!(containerVisible && hasVideo);
+        }
+        // ★ 退出全屏：清理光标隐藏状态并关闭 UI
+        const stage = state.container ? state.container.querySelector('.video-stage') : null;
+        if (stage) stage.classList.remove('fs-hide-cursor');
+        const ui = state.container ? state.container.querySelector('.video-fs-ui') : null;
+        if (ui) ui.classList.add('hidden');
+        clearTimeout(state.fsUiTimer);
+        state.fsUiTimer = null;
+    }
+
+    function bindFsUi(container) {
+        const stage = container.querySelector('.video-stage');
+        const ui = container.querySelector('.video-fs-ui');
+        if (!stage || !ui) return;
+
+        const playBtn = ui.querySelector('.video-fs-play');
+        const exitBtn = ui.querySelector('.video-fs-exit');
+        const seek = ui.querySelector('.video-fs-seek');
+
+        if (playBtn) {
+            playBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!state.videoEl) return;
+                if (state.videoEl.paused) state.videoEl.play().catch(() => {});
+                else state.videoEl.pause();
+            });
+        }
+
+        if (exitBtn) {
+            exitBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                try {
+                    if (document.exitFullscreen) await document.exitFullscreen().catch(() => {});
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                    else if (state.videoEl && state.videoEl.webkitExitFullscreen) state.videoEl.webkitExitFullscreen();
+                } catch (err) {}
+            });
+        }
+
+        if (seek) {
+            seek.addEventListener('input', () => {
+                state.fsSeeking = true;
+                const v = state.videoEl;
+                if (!v || !v.duration) return;
+                const t = (Number(seek.value) / 1000) * v.duration;
+                const cur = container.querySelector('.video-fs-cur');
+                if (cur) cur.textContent = formatTime(t);
+            });
+            seek.addEventListener('change', () => {
+                const v = state.videoEl;
+                if (v && v.duration) v.currentTime = (Number(seek.value) / 1000) * v.duration;
+                state.fsSeeking = false;
+            });
+        }
+
+        // ★ 全屏时鼠标/触摸活动 → 显示控件与光标，并重置隐藏定时器
+        //   注意：光标被隐藏时 mousemove 仍会触发，因此能可靠地"唤醒"光标
+        stage.addEventListener('mousemove', () => {
+            if (!isVideoFullscreen()) return;
+            showFsUi();
+            scheduleFsUiHide();
+        });
+        stage.addEventListener('touchstart', () => {
+            if (!isVideoFullscreen()) return;
+            showFsUi();
+            scheduleFsUiHide();
+        }, { passive: true });
+
+        // 全屏时点击画面切换播放/暂停
+        stage.addEventListener('click', (e) => {
+            if (!isVideoFullscreen()) return;
+            if (e.target.closest('.video-fs-ui')) return;
+            if (!state.videoEl) return;
+            if (state.videoEl.paused) state.videoEl.play().catch(() => {});
+            else state.videoEl.pause();
+            showFsUi();
+            scheduleFsUiHide();
+        });
+    }
+
     // ==================== 全屏请求 ====================
     async function requestFullscreenWithIntent() {
-        if (!state.videoEl) return false;
-        const el = state.videoEl;
-        if (document.fullscreenElement && document.fullscreenElement !== el) return false;
+        if (!state.videoEl || !state.container) return false;
+
+        const stage = state.container.querySelector('.video-stage');
+        if (!stage) return false;
+
+        if (document.fullscreenElement && document.fullscreenElement !== stage) return false;
+
         try {
-            if (el.requestFullscreen) await el.requestFullscreen();
-            else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-            else if (el.webkitEnterFullscreen) el.webkitEnterFullscreen();
-            else return false;
+            if (stage.requestFullscreen) {
+                await stage.requestFullscreen();
+            } else if (stage.webkitRequestFullscreen) {
+                stage.webkitRequestFullscreen();
+            } else if (state.videoEl.webkitEnterFullscreen) {
+                // iOS Safari：容器不支持全屏，退回 video 全屏（此路径原生控件与光标由系统控制）
+                state.videoEl.webkitEnterFullscreen();
+            } else {
+                return false;
+            }
             saveFullscreenIntent(true);
             hideRestoreHint();
             return true;
         } catch (e) {
             console.warn('[VideoPlayer] requestFullscreen 失败:', e);
+            try {
+                if (state.videoEl.webkitEnterFullscreen) {
+                    state.videoEl.webkitEnterFullscreen();
+                    saveFullscreenIntent(true);
+                    hideRestoreHint();
+                    return true;
+                }
+            } catch (e2) {}
             return false;
         }
     }
@@ -221,7 +473,7 @@
     async function tryRestoreFullscreen() {
         if (!state.fullscreenIntent) return;
         if (!state.videoEl) return;
-        if (document.fullscreenElement === state.videoEl) return;
+        if (isVideoFullscreen()) return;
         if (isHiddenForCurrentSrc()) return;
         if (Date.now() - state.lastRestoreAttemptAt < RESTORE_DEBOUNCE) return;
         state.lastRestoreAttemptAt = Date.now();
@@ -267,7 +519,6 @@
     function showContainer() {
         if (!state.container) return;
         if (isHiddenForCurrentSrc()) return;
-        // ★ 全局隐藏 + PiP 中 → 不显示
         if (isGloballyHidden() && isInPip()) return;
 
         state.container.classList.remove('hidden');
@@ -284,9 +535,9 @@
             state.videoEl.style.width = '100%';
             state.videoEl.style.height = '100%';
             state.videoEl.style.objectFit = 'contain';
-            state.videoEl.controls = true;
+            state.videoEl.controls = !isVideoFullscreen();
 
-            if (state.videoEl.paused) state.videoEl.play().catch(() => {});
+            if (state.videoEl.paused && !isVideoFullscreen()) state.videoEl.play().catch(() => {});
         }
     }
 
@@ -322,16 +573,13 @@
             return;
         }
 
-        // ★ 全局隐藏：仅当 PiP 还在时才保持隐藏；PiP 已退出则自动清除
         if (isGloballyHidden()) {
             if (isInPip()) {
                 hideContainer();
                 updatePluginCardStatus();
                 return;
             }
-            // PiP 已退出，清除全局隐藏
             setGloballyHidden(false);
-            // 同时把「单视频隐藏」也清除（用户退出 PiP 是明确"想看小窗"的信号）
             try { localStorage.removeItem(KEY_DISABLED_FOR_SRC); } catch (e) {}
             state.hiddenForCurrentSrc = false;
         }
@@ -358,10 +606,12 @@
         state.eventHandlers.push({ el: document, event: 'keydown', handler: onKeyDown });
 
         const onFullscreenChange = () => {
-            if (document.fullscreenElement === state.videoEl) {
+            if (isVideoFullscreen()) {
                 saveFullscreenIntent(true);
                 hideRestoreHint();
+                onEnterFullscreenUI();
             } else {
+                onExitFullscreenUI();
                 if (state.userPressedEscape) {
                     state.userPressedEscape = false;
                     saveFullscreenIntent(false);
@@ -382,28 +632,23 @@
 
     // ==================== PiP 事件 ====================
     function bindPictureInPictureEvents(video) {
-        // 进入 PiP：更新状态（不自动隐藏小窗——用户可能想同时看到两者）
         attach(video, 'enterpictureinpicture', () => {
             console.log('[VideoPlayer] 进入 PiP');
             updatePluginCardStatus();
         });
 
-        // 退出 PiP
         attach(video, 'leavepictureinpicture', () => {
             console.log('[VideoPlayer] 退出 PiP');
             const isMediaChanging = (Date.now() - state.lastMediaChangeAt) < MEDIA_CHANGE_WINDOW;
 
             if (isMediaChanging) {
-                // 切歌导致的 PiP 退出（极少发生，某些浏览器行为），保留全局隐藏
                 console.log('[VideoPlayer] PiP 退出（媒体变化中），保留全局隐藏');
                 updatePluginCardStatus();
                 return;
             }
 
-            // 用户主动退出 PiP → 清除全局隐藏，恢复小窗
             if (isGloballyHidden()) {
                 setGloballyHidden(false);
-                // 同时清除「单视频隐藏」——用户退出 PiP 是想回到小窗视图
                 try { localStorage.removeItem(KEY_DISABLED_FOR_SRC); } catch (e) {}
                 state.hiddenForCurrentSrc = false;
                 console.log('[VideoPlayer] 用户退出 PiP，清除全局隐藏，恢复小窗');
@@ -431,17 +676,18 @@
             state.hiddenForCurrentSrc = isHiddenForCurrentSrc();
             checkVideoTrack();
             updatePluginCardStatus();
+            updateFsDuration();
         });
 
         attach(video, 'playing', () => {
             markMediaChange();
-            if (state.fullscreenIntent && !document.fullscreenElement) {
+            if (state.fullscreenIntent && !isVideoFullscreen()) {
                 tryRestoreFullscreen();
             }
         });
 
         attach(video, 'canplay', () => {
-            if (state.fullscreenIntent && !document.fullscreenElement) {
+            if (state.fullscreenIntent && !isVideoFullscreen()) {
                 tryRestoreFullscreen();
             }
         });
@@ -451,7 +697,43 @@
             updatePluginCardStatus();
         });
 
-        // ★ PiP 事件
+        // 全屏控制层数据同步
+        attach(video, 'timeupdate', () => {
+            if (isVideoFullscreen()) updateFsSeek();
+        });
+        attach(video, 'durationchange', () => {
+            if (isVideoFullscreen()) updateFsDuration();
+        });
+        attach(video, 'play', () => {
+            updateFsPlayIcon();
+            if (isVideoFullscreen()) { showFsUi(); scheduleFsUiHide(); }
+        });
+        attach(video, 'pause', () => {
+            updateFsPlayIcon();
+            // ★ 暂停时强制显示 UI 与光标，并停止隐藏计时
+            if (isVideoFullscreen()) { showFsUi(); clearTimeout(state.fsUiTimer); state.fsUiTimer = null; }
+        });
+
+        // iOS 原生 video 全屏事件
+        attach(video, 'webkitbeginfullscreen', () => {
+            saveFullscreenIntent(true);
+            onEnterFullscreenUI();
+            updatePluginCardStatus();
+        });
+        attach(video, 'webkitendfullscreen', () => {
+            onExitFullscreenUI();
+            if (state.userPressedEscape) {
+                state.userPressedEscape = false;
+                saveFullscreenIntent(false);
+            } else if (state.fullscreenIntent &&
+                       (Date.now() - state.lastMediaChangeAt) < MEDIA_CHANGE_WINDOW) {
+                // 切歌导致，保留意图
+            } else {
+                saveFullscreenIntent(false);
+            }
+            updatePluginCardStatus();
+        });
+
         bindPictureInPictureEvents(video);
     }
 
@@ -541,7 +823,7 @@
             if (globallyHidden && inPip) {
                 el.textContent = '画中画中（小窗已隐藏）';
                 el.className = 'vp-status text-purple-400';
-            } else if (document.fullscreenElement === state.videoEl) {
+            } else if (isVideoFullscreen()) {
                 el.textContent = '全屏播放中';
                 el.className = 'vp-status text-emerald-400';
             } else if (containerVisible) {
@@ -559,7 +841,6 @@
             el.className = 'vp-status text-slate-500';
         }
 
-        // ★ 控制"显示小窗"按钮：有视频轨道但小窗当前不可见时显示
         if (showBtn) {
             const shouldShow = hasVideo && !containerVisible;
             if (shouldShow) showBtn.classList.remove('hidden');
@@ -569,7 +850,6 @@
 
     function bindContainerButtons(container) {
         container.querySelector('.video-btn-close').addEventListener('click', () => {
-            // ★ 若当前在 PiP 中，同时设置全局隐藏
             const inPip = isInPip();
             setHiddenForCurrentSrc(true);
             if (inPip) {
@@ -590,11 +870,13 @@
 
     // ==================== 插件生命周期 ====================
     window.MP3VideoPlayerPlugin = {
-        version: '1.3.0',
+        version: '1.5.0',
         async init() {
+            injectStyles();
             state.container = createContainer();
             bindDrag(state.container);
             bindContainerButtons(state.container);
+            bindFsUi(state.container);
             bindFullscreenEvents();
             await injectUI();
 
@@ -612,11 +894,15 @@
         },
         async unload() {
             try {
-                if (document.fullscreenElement === state.videoEl) {
-                    if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+                if (isVideoFullscreen()) {
+                    if (document.fullscreenElement && document.exitFullscreen) {
+                        await document.exitFullscreen().catch(() => {});
+                    } else if (state.videoEl && state.videoEl.webkitDisplayingFullscreen && state.videoEl.webkitExitFullscreen) {
+                        try { state.videoEl.webkitExitFullscreen(); } catch (e) {}
+                    }
                 }
                 if (document.pictureInPictureElement === state.videoEl) {
-                    if (document.exitPictureInPicture) document.exitPictureInPicture().catch(() => {});
+                    if (document.exitPictureInPicture) await document.exitPictureInPicture().catch(() => {});
                 }
             } catch (e) {}
 
@@ -634,13 +920,18 @@
                 } catch (e) {}
             }
 
+            clearTimeout(state.fsUiTimer);
+            state.fsUiTimer = null;
+
             detachAll();
             if (state.container) { state.container.remove(); state.container = null; }
+            removeStyles();
             state.videoEl = null;
             state.originalParent = null;
             state.dragState = { active: false, startX: 0, startY: 0, originX: 0, originY: 0 };
             state.hiddenForCurrentSrc = false;
             state.userPressedEscape = false;
+            state.fsSeeking = false;
         }
     };
 })();

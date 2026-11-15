@@ -20,7 +20,7 @@ window.MP3GoogleDriveConfig = {
 
     const CFG = window.MP3GoogleDriveConfig || {};
     const CONFIG = {
-        legacyFolderPath: CFG.legacyFolderPath || ['music', 'fav'],
+        legacyFolderPath: CFG.legacyFolderPath || ['media', 'fav'],
         backupFileName: CFG.backupFileName || 'mp3_player_backup.json',
         driveCategoryName: CFG.driveCategoryName || '☁️ Drive 音樂'
     };
