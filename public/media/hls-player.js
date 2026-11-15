@@ -1,18 +1,18 @@
 /**
- * MP3 HLS Player v1.5 — 面向移动端后台连续播放优化
- * 相对 v1.4：
- *  - 复用媒体元素，仅在 native↔MSE 切换/致命错误时才硬重置（保住音频会话）
- *  - 加大缓冲 + backBuffer，后台网络抖动更耐断
- *  - waiting/stalled/online/visibility 自动恢复；audioSession 持续重申
- *  - ended 以 原生ended + LEVEL_ENDED 为准（后台可用）；watchdog 仅前台兜底
- *  - 预取 manifest + 首个分片，缩短切歌间隙
- *  - 新增 markIntent()：区分“用户暂停”与“被系统中断”，避免跟用户抢播放
+ * MP3 HLS Player v1.7-audio — 音频优先播放
+ * 新增：
+ *  - 依据 window.MP3PluginManager.isEnabled("videoPlayer") 决定是否锁定纯音频流
+ *  - resolveAudioOnlyUrl()：从 Master Playlist 解析 EXT-X-STREAM-INF / EXT-X-MEDIA 的纯音频 URI
+ *  - diagnose(url)：诊断主清单结构、是否找到纯音频变体
+ *  - 纯音频场景移除 backBufferLength，修复 ended 丢失/卡住
+ *  - trackEnded 标志修复后台切歌时 pause 误判为系统中断的竞态
  */
 (function () {
     'use strict';
 
     const HLS_JS_CDN = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js';
     const MAX_NETWORK_RETRY = 6;
+    const AUDIO_RESOLVE_TIMEOUT = 3000;
 
     let hlsScriptPromise = null;
     let currentSession = 0;
@@ -23,9 +23,10 @@
     let networkRetryCount = 0;
     const prefetched = new Set();
     let guardiansAttached = false;
-    let intendedPlaying = false;      // 用户“想让它播”
+    let intendedPlaying = false;
     let interruptedWhileHidden = false;
-    let lastPath = null;              // 'native' | 'mse'
+    let trackEnded = false;          // 曲目自然结束标志，避免 pause 误判为系统中断
+    let lastPath = null;             // 'native' | 'mse'
     let watchdogTimer = null;
     let stallTimer = null;
 
@@ -39,6 +40,17 @@
         return t === 'maybe' || t === 'probably';
     }
     function isStillActive(s) { return s === currentSession; }
+
+    /* ===== 插件开关判断 ===== */
+    function isVideoPlayerEnabled() {
+        try {
+            if (window.MP3PluginManager && typeof window.MP3PluginManager.isEnabled === 'function') {
+                return !!window.MP3PluginManager.isEnabled('videoPlayer');
+            }
+        } catch (e) {}
+        // 管理器不存在时默认视为启用，走标准流程，不改变既有行为
+        return true;
+    }
 
     function assertAudioSession() {
         try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
@@ -65,6 +77,94 @@
             document.head.appendChild(s);
         }).catch(e => { hlsScriptPromise = null; throw e; });
         return hlsScriptPromise;
+    }
+
+    /* ============ 纯音频解析 ============ */
+    function isAudioOnlyStreamInf(line) {
+        // 有 RESOLUTION 一定不是纯音频
+        if (/RESOLUTION=/i.test(line)) return false;
+        const codecsMatch = line.match(/CODECS="([^"]+)"/i);
+        if (codecsMatch) {
+            const codecs = codecsMatch[1];
+            // 含任一视频编码标识即排除
+            const videoCodecPattern = /avc1|avc3|hvc1|hev1|hvc|hev|dvh|vp0?9|vp8|av01|mp4v/i;
+            if (videoCodecPattern.test(codecs)) return false;
+            return true;
+        }
+        // 无 RESOLUTION 且无 CODECS，保守视为纯音频（不少音频 HLS 不写 CODECS）
+        return true;
+    }
+
+    async function resolveAudioOnlyUrl(masterUrl, onStatus) {
+        if (!masterUrl || !/\.m3u8(\?|$)/i.test(masterUrl)) {
+            if (onStatus) onStatus('URL 不是 m3u8，无法解析纯音频流', 'warn');
+            return null;
+        }
+
+        let text;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), AUDIO_RESOLVE_TIMEOUT);
+        try {
+            const resp = await fetch(masterUrl, { cache: 'default', credentials: 'same-origin', signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (!resp.ok) {
+                if (onStatus) onStatus('获取 m3u8 主清单失败 (' + resp.status + ')，回退标准播放', 'warn');
+                return null;
+            }
+            text = await resp.text();
+        } catch (e) {
+            clearTimeout(timeoutId);
+            if (onStatus) onStatus('解析 m3u8 主清单异常，回退标准播放', 'warn');
+            console.warn('[MP3HlsPlayer] resolveAudioOnlyUrl fetch failed:', e);
+            return null;
+        }
+
+        const isMaster = /#EXT-X-STREAM-INF/i.test(text) || /#EXT-X-MEDIA/i.test(text);
+        if (!isMaster) {
+            if (onStatus) onStatus('传入的是媒体清单而非主清单，无法切换为纯音频', 'warn');
+            return null;
+        }
+
+        const lines = text.split(/\r?\n/);
+
+        // 策略 1：EXT-X-STREAM-INF 纯音频变体
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line.startsWith('#EXT-X-STREAM-INF')) continue;
+            if (!isAudioOnlyStreamInf(line)) continue;
+            for (let j = i + 1; j < lines.length; j++) {
+                const candidate = lines[j].trim();
+                if (!candidate || candidate.startsWith('#')) continue;
+                try {
+                    const abs = new URL(candidate, masterUrl).href;
+                    console.log('[MP3HlsPlayer] 命中纯音频变体:', abs);
+                    return abs;
+                } catch (e) {
+                    return candidate;
+                }
+            }
+        }
+
+        // 策略 2：EXT-X-MEDIA:TYPE=AUDIO 的 URI（音视频分离但无独立纯音频 variant 时）
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line.startsWith('#EXT-X-MEDIA')) continue;
+            if (!/TYPE=AUDIO/i.test(line)) continue;
+            const uriMatch = line.match(/URI="([^"]+)"/i);
+            if (uriMatch && uriMatch[1]) {
+                try {
+                    const abs = new URL(uriMatch[1], masterUrl).href;
+                    console.log('[MP3HlsPlayer] 命中 EXT-X-MEDIA 音频 URI:', abs);
+                    return abs;
+                } catch (e) {
+                    return uriMatch[1];
+                }
+            }
+        }
+
+        if (onStatus) onStatus('主清单中未找到纯音频流，回退标准播放（可能仍会下载视频数据）', 'warn');
+        console.warn('[MP3HlsPlayer] 未找到纯音频变体。主清单前 1500 字符:\n' + text.slice(0, 1500));
+        return null;
     }
 
     function cleanupCurrent() {
@@ -113,11 +213,11 @@
         window.addEventListener('pageshow', tryResume);
         window.addEventListener('focus', tryResume);
 
-        el.addEventListener('playing', () => { interruptedWhileHidden = false; setMSState('playing'); });
+        el.addEventListener('playing', () => { trackEnded = false; interruptedWhileHidden = false; setMSState('playing'); });
         el.addEventListener('pause', () => {
             setMSState('paused');
-            // 后台被暂停且用户仍想播 → 视为系统中断，回到前台时恢复
-            if (document.visibilityState === 'hidden' && intendedPlaying) interruptedWhileHidden = true;
+            // 曲目自然结束导致的 pause 不视为系统中断
+            if (document.visibilityState === 'hidden' && intendedPlaying && !trackEnded) interruptedWhileHidden = true;
         });
         const onStall = () => {
             if (!intendedPlaying || !currentAudioEl) return;
@@ -146,10 +246,28 @@
         currentOnStatus = onStatus || (() => {});
         intendedPlaying = true;
         interruptedWhileHidden = false;
+        trackEnded = false;
 
+        // ★ 依据 videoPlayer 插件状态决定是否解析纯音频流
+        const videoEnabled = isVideoPlayerEnabled();
         const useNative = canPlayNative(audioEl);
+        let targetUrl = url;
+
+        if (!videoEnabled) {
+            console.log('[MP3HlsPlayer] videoPlayer 未启用，尝试锁定纯音频流');
+            const audioOnlyUrl = await resolveAudioOnlyUrl(url, currentOnStatus);
+            if (!isStillActive(mySession)) return;
+            if (audioOnlyUrl) {
+                targetUrl = audioOnlyUrl;
+                currentOnStatus('视频播放器未启用，已切换为纯音频流', 'success');
+            } else {
+                currentOnStatus('未找到纯音频流，回退标准播放（可能仍会下载视频数据）', 'warn');
+            }
+        } else {
+            console.log('[MP3HlsPlayer] videoPlayer 启用，走标准播放流程');
+        }
+
         const targetPath = useNative ? 'native' : 'mse';
-        // ★ 仅切换播放路径时才硬重置；同路径切歌直接换源，保住音频会话
         if (prevPath && prevPath !== targetPath) await hardReset(audioEl);
         lastPath = targetPath;
 
@@ -159,13 +277,13 @@
         let endedFired = false;
         const fireEnded = (src) => {
             if (endedFired) return;
-            endedFired = true; intendedPlaying = false;
+            endedFired = true;
+            trackEnded = true;       // 只标记曲目结束，不改变用户“想继续播”的意图
             if (!isStillActive(mySession)) return;
             try { audioEl.dispatchEvent(new Event('ended')); } catch (e) {}
         };
-        audioEl.addEventListener('ended', () => { endedFired = true; intendedPlaying = false; }, { once: true });
+        audioEl.addEventListener('ended', () => { endedFired = true; trackEnded = true; }, { once: true });
 
-        // watchdog 仅前台兜底（后台定时器不可靠）
         watchdogTimer = setInterval(() => {
             if (endedFired || !isStillActive(mySession)) { clearInterval(watchdogTimer); watchdogTimer = null; return; }
             if (document.visibilityState !== 'visible') return;
@@ -178,7 +296,7 @@
                 try {
                     currentOnStatus('正在加载 (原生 HLS)…');
                     audioEl.removeAttribute('crossorigin');
-                    audioEl.src = url;
+                    audioEl.src = targetUrl;
                     await audioEl.play();
                     if (!isStillActive(mySession)) return;
                     attachGuardians(audioEl);
@@ -195,7 +313,7 @@
             if (!Hls || typeof Hls.isSupported !== 'function' || !Hls.isSupported()) {
                 if (canPlayNative(audioEl)) {
                     audioEl.removeAttribute('crossorigin');
-                    audioEl.src = url;
+                    audioEl.src = targetUrl;
                     await audioEl.play();
                     if (!isStillActive(mySession)) return;
                     attachGuardians(audioEl);
@@ -209,7 +327,8 @@
             hlsInstance = new Hls({
                 maxBufferLength: 60,
                 maxMaxBufferLength: 120,
-                backBufferLength: 30,
+                // ★ 纯音频场景不设 backBufferLength，避免 ended 丢失/卡 bufferStalledError
+                // backBufferLength: 30,
                 maxBufferSize: 120 * 1000 * 1000,
                 enableWorker: true,
                 lowLatencyMode: false,
@@ -228,7 +347,7 @@
             hlsInstance.on(Hls.Events.ERROR, (e, data) => { if (isStillActive(mySession)) handleHlsError(data, mySession); });
             hlsInstance.on(Hls.Events.FRAG_LOADED, () => { if (isStillActive(mySession)) networkRetryCount = 0; });
             hlsInstance.attachMedia(audioEl);
-            hlsInstance.loadSource(url);
+            hlsInstance.loadSource(targetUrl);
 
             await new Promise(res => {
                 let done = false;
@@ -283,6 +402,7 @@
     function destroy() {
         currentSession++;
         intendedPlaying = false;
+        trackEnded = false;
         cleanupCurrent();
         lastPath = null;
         if (currentAudioEl) {
@@ -292,7 +412,6 @@
         currentAudioEl = null;
     }
 
-    /* 预取 manifest + 首个分片 */
     function prefetch(url) {
         if (!url || prefetched.has(url)) return;
         if (!/\.m3u8(\?|$)/i.test(url)) return;
@@ -313,6 +432,41 @@
         else setTimeout(run, 800);
     }
 
+    /* ============ 诊断工具 ============ */
+    async function diagnose(url) {
+        const videoEnabled = isVideoPlayerEnabled();
+        console.log('===== MP3HlsPlayer Diagnose =====');
+        console.log('videoPlayer enabled:', videoEnabled);
+        console.log('URL:', url);
+        if (!url || !/\.m3u8(\?|$)/i.test(url)) {
+            console.log('❌ 传入的 URL 不是 m3u8，无法解析');
+            return { videoEnabled, isMaster: false, audioOnlyUrl: null };
+        }
+        try {
+            const resp = await fetch(url, { cache: 'no-store', credentials: 'same-origin' });
+            console.log('HTTP status:', resp.status);
+            const text = await resp.text();
+            console.log('m3u8 content (前 2000 字符):\n' + text.slice(0, 2000));
+            const isMaster = /#EXT-X-STREAM-INF/i.test(text) || /#EXT-X-MEDIA/i.test(text);
+            console.log('is master playlist:', isMaster);
+            let audioOnlyUrl = null;
+            if (isMaster) {
+                audioOnlyUrl = await resolveAudioOnlyUrl(url);
+                console.log('resolved audio-only URL:', audioOnlyUrl);
+                if (!audioOnlyUrl) {
+                    console.log('❌ 主清单中没有纯音频变体。前端无法剥离 muxed 分片中的视频数据，需要服务端额外输出 audio-only rendition。');
+                }
+            } else {
+                console.log('❌ 传入的是 media playlist，无法从中分离音频。需要主清单 URL（含 EXT-X-STREAM-INF）。');
+            }
+            return { videoEnabled, isMaster, audioOnlyUrl };
+        } catch (e) {
+            console.error('❌ diagnose 失败:', e);
+            console.log('常见原因：CORS 未放行、URL 需要鉴权 header、网络异常。');
+            return { videoEnabled, isMaster: null, audioOnlyUrl: null, error: e };
+        }
+    }
+
     function clearCache() { prefetched.clear(); hlsScriptPromise = null; }
     function isSupported() {
         if (isIOSDevice()) return true;
@@ -321,8 +475,8 @@
     function markIntent(playing) { intendedPlaying = !!playing; if (!playing) interruptedWhileHidden = false; }
 
     window.MP3HlsPlayer = {
-        version: '1.5.0',
-        play, destroy, prefetch, clearCache, isSupported, markIntent
+        version: '1.7.0-audio',
+        play, destroy, prefetch, clearCache, isSupported, markIntent, diagnose
     };
-    console.log('[MP3HlsPlayer] v1.5.0 ready（后台连续播放优化）');
+    console.log('[MP3HlsPlayer] v1.7.0-audio ready（videoPlayer 关闭时锁定纯音频流）');
 })();
