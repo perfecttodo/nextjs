@@ -13,14 +13,10 @@
   <script>
     tailwind.config = {
       darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', '"Noto Sans SC"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
-          }
-        }
-      }
+      theme: { extend: { fontFamily: {
+        sans: ['Inter', '"Noto Sans SC"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
+      } } }
     }
   </script>
   <style>
@@ -30,11 +26,9 @@
       --sf-track:rgba(148,163,184,.13);
     }
     * { -webkit-tap-highlight-color: transparent; }
-
     html { height:100%; max-width:100vw; overflow:hidden; -webkit-text-size-adjust:100%; }
     body { height:100%; margin:0; overflow:hidden; overscroll-behavior:none; }
 
-    /* ==================== 背景：极光 + 颗粒 ==================== */
     #bgLayer{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
     .aurora{ position:absolute; border-radius:50%; filter:blur(72px); opacity:.42; mix-blend-mode:multiply; }
     .dark .aurora{ mix-blend-mode:screen; opacity:.30; }
@@ -47,7 +41,6 @@
     #grain{ position:absolute; inset:0; opacity:.035; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
     .dark #grain{ opacity:.055; }
 
-    /* ==================== 外壳与滚动 ==================== */
     #rightContainer { height:100vh; height:100dvh; min-height:0; overflow:hidden; position:relative; z-index:10; }
     #appMain { flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior-y:contain; padding-bottom:calc(116px + env(safe-area-inset-bottom)); }
     @media (min-width:768px){ #appMain{ padding-bottom:112px; } }
@@ -63,7 +56,6 @@
     .no-scrollbar::-webkit-scrollbar{ display:none; }
     .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
 
-    /* ==================== 动效 ==================== */
     @keyframes voiceWave{0%,100%{transform:scaleY(.28)}50%{transform:scaleY(1)}}
     .wave-active{ animation:voiceWave .7s ease-in-out infinite; transform-origin:center; }
     @keyframes sheetSlideUp{from{transform:translateY(100%);opacity:.7}to{transform:translateY(0);opacity:1}}
@@ -76,6 +68,8 @@
     .flow-pulse{ animation:flowPulse 2.4s ease-out infinite; }
     @keyframes shimmer{0%{background-position:0% 50%}100%{background-position:200% 50%}}
     .brand-flow{ background-image:linear-gradient(100deg,#4f46e5,#7c3aed,#d946ef,#4f46e5); background-size:200% 100%; animation:shimmer 7s linear infinite; }
+    @keyframes filmSweep{0%{transform:translateX(-120%)}100%{transform:translateX(320%)}}
+    .film-sweep{ animation:filmSweep 2.6s linear infinite; }
 
     .swipe-card-inner{ transition:transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease, border-color .25s ease; will-change:transform; }
     .swipe-card-inner.dragging{ transition:none; }
@@ -108,34 +102,22 @@
   <aside id="sidebar" class="fixed top-0 left-0 z-50 h-full w-72 bg-white/95 dark:bg-[#0F1320]/95 backdrop-blur-xl border-r border-slate-200 dark:border-slate-800 transform -translate-x-full md:translate-x-0 flex flex-col shadow-2xl md:shadow-none">
     <div class="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
       <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-xl brand-flow flex items-center justify-center text-white shadow-sm">
-          <i data-lucide="blocks" class="w-4 h-4"></i>
-        </div>
+        <div class="w-8 h-8 rounded-xl brand-flow flex items-center justify-center text-white shadow-sm"><i data-lucide="blocks" class="w-4 h-4"></i></div>
         <span class="font-bold text-base tracking-tight">插件与设置</span>
       </div>
       <div class="flex items-center gap-1">
-        <button id="collapseSidebarBtn" class="hidden md:flex w-8 h-8 rounded-lg items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="收起侧栏">
-          <i data-lucide="panel-left-close" class="w-4 h-4"></i>
-        </button>
-        <button id="closeSidebarBtn" class="md:hidden w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
+        <button id="collapseSidebarBtn" class="hidden md:flex w-8 h-8 rounded-lg items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="收起侧栏"><i data-lucide="panel-left-close" class="w-4 h-4"></i></button>
+        <button id="closeSidebarBtn" class="md:hidden w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
     </div>
 
     <div class="p-3 space-y-1 shrink-0">
-      <button onclick="switchNav('clues'); closeSidebar()" class="nav-sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" data-nav="clues">
-        <i data-lucide="inbox" class="w-4 h-4"></i> 线索库
-      </button>
-      <button onclick="switchNav('goals'); closeSidebar()" class="nav-sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" data-nav="goals">
-        <i data-lucide="target" class="w-4 h-4"></i> 工作目标
-      </button>
+      <button onclick="switchNav('clues'); closeSidebar()" class="nav-sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" data-nav="clues"><i data-lucide="inbox" class="w-4 h-4"></i> 线索库</button>
+      <button onclick="switchNav('goals'); closeSidebar()" class="nav-sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" data-nav="goals"><i data-lucide="target" class="w-4 h-4"></i> 工作目标</button>
     </div>
 
     <div class="px-4 py-2 border-t border-slate-200 dark:border-slate-800 shrink-0 mt-1 flex items-center justify-between gap-2">
-      <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-        <i data-lucide="blocks" class="w-3.5 h-3.5"></i> 插件管理
-      </span>
+      <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><i data-lucide="blocks" class="w-3.5 h-3.5"></i> 插件管理</span>
       <button id="pluginCenterFallbackBtn" type="button" onclick="openPluginCenterHelp()" class="hidden h-7 px-2.5 rounded-lg bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300 text-[11px] font-bold items-center gap-1">🧩 插件中心</button>
     </div>
 
@@ -143,9 +125,7 @@
 
     <div class="p-3 border-t border-slate-200 dark:border-slate-800 shrink-0 bg-slate-50/80 dark:bg-[#0B0E14]/80">
       <details class="group">
-        <summary class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 cursor-pointer flex items-center gap-1.5 select-none hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
-          <i data-lucide="plus-circle" class="w-4 h-4"></i> 创建自定义动作插件
-        </summary>
+        <summary class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 cursor-pointer flex items-center gap-1.5 select-none hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"><i data-lucide="plus-circle" class="w-4 h-4"></i> 创建自定义动作插件</summary>
         <div class="mt-3 space-y-2.5 animate-pop-in">
           <div class="flex gap-2">
             <input id="customPluginEmoji" type="text" value="🚀" maxlength="2" class="w-12 h-9 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center text-base focus:outline-none focus:border-indigo-500" />
@@ -160,9 +140,7 @@
             </select>
             <input id="customPluginActionText" type="text" placeholder="参数/提示语" class="flex-1 h-9 px-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-indigo-500" />
           </div>
-          <button type="button" id="addCustomPluginBtn" class="w-full h-9 rounded-lg bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-500 text-white text-xs font-bold active:scale-[0.98] transition-all">
-            + 安装到卡片
-          </button>
+          <button type="button" id="addCustomPluginBtn" class="w-full h-9 rounded-lg bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-500 text-white text-xs font-bold active:scale-[0.98] transition-all">+ 安装到卡片</button>
         </div>
       </details>
     </div>
@@ -173,16 +151,10 @@
     <header class="shrink-0 z-20 bg-white/90 dark:bg-[#0F1320]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 shadow-sm">
       <div class="w-full px-4 md:px-8 h-14 flex items-center justify-between gap-2">
         <div class="flex items-center gap-2.5 min-w-0">
-          <button id="openSidebarBtn" class="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all">
-            <i data-lucide="menu" class="w-5 h-5"></i>
-          </button>
-          <button id="expandSidebarBtn" class="hidden w-9 h-9 rounded-xl items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all" title="展开侧栏">
-            <i data-lucide="panel-left-open" class="w-5 h-5"></i>
-          </button>
+          <button id="openSidebarBtn" class="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all"><i data-lucide="menu" class="w-5 h-5"></i></button>
+          <button id="expandSidebarBtn" class="hidden w-9 h-9 rounded-xl items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all" title="展开侧栏"><i data-lucide="panel-left-open" class="w-5 h-5"></i></button>
           <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-8 h-8 rounded-xl brand-flow flow-pulse flex items-center justify-center text-white shadow-sm shrink-0">
-              <i data-lucide="sparkles" class="w-4 h-4"></i>
-            </div>
+            <div class="w-8 h-8 rounded-xl brand-flow flow-pulse flex items-center justify-center text-white shadow-sm shrink-0"><i data-lucide="sparkles" class="w-4 h-4"></i></div>
             <div class="min-w-0">
               <h1 class="font-bold text-base leading-tight tracking-tight truncate">SparkFlow <span class="text-indigo-600 dark:text-indigo-400">灵流</span></h1>
               <p id="headerStatLine" class="text-[10px] text-slate-400 leading-tight truncate hidden sm:block">灵感正在流动</p>
@@ -193,15 +165,10 @@
         <div id="topPluginSlot" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar"></div>
 
         <div class="flex items-center gap-1 shrink-0">
-          <button id="toggleSearchBtn" aria-label="搜索与标签" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all">
-            <i data-lucide="search" class="w-4 h-4"></i>
-          </button>
-          <button id="openDataMenuBtn" aria-label="数据与引导" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all">
-            <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
-          </button>
+          <button id="toggleSearchBtn" aria-label="搜索与标签" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all"><i data-lucide="search" class="w-4 h-4"></i></button>
+          <button id="openDataMenuBtn" aria-label="数据与引导" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all"><i data-lucide="sliders-horizontal" class="w-4 h-4"></i></button>
           <button id="themeToggleBtn" aria-label="切换主题" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all">
-            <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
-            <i data-lucide="sun" class="w-4 h-4 block dark:hidden"></i>
+            <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i><i data-lucide="sun" class="w-4 h-4 block dark:hidden"></i>
           </button>
         </div>
       </div>
@@ -210,9 +177,7 @@
         <div class="relative">
           <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
           <input id="searchInput" type="search" placeholder="搜索灵感、核心价值、行动项...（快捷键 /）" class="w-full h-10 pl-10 pr-9 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-indigo-500" />
-          <button id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 p-1">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
+          <button id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
         <div id="tagFilterBar" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar"></div>
       </div>
@@ -225,14 +190,12 @@
           <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center text-sm shrink-0 shadow-sm">👋</span>
           <div class="min-w-0">
             <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">右滑卡片快速推进 · 拖动手柄排序 · 点底部「+」随手记</p>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">真实语音/视频录制 · 批量管理 · 插件中心按需扩展</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">语音 / 视频捕获已插件化 · 批量管理 · 插件中心按需扩展</p>
           </div>
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
           <button type="button" id="seedDemoBtn" class="h-8 px-2.5 rounded-lg bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 border border-indigo-200/80 dark:border-slate-700 text-[11px] font-bold active:scale-95">+ 演练样本</button>
-          <button type="button" id="dismissOnboardingBtn" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 flex items-center justify-center">
-            <i data-lucide="x" class="w-3.5 h-3.5"></i>
-          </button>
+          <button type="button" id="dismissOnboardingBtn" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 flex items-center justify-center"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
         </div>
       </div>
 
@@ -282,66 +245,29 @@
 
   <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-[#0F1320]/95 backdrop-blur-xl border-t border-slate-200/80 dark:border-slate-800 pb-safe md:left-72 md:right-0 md:bottom-3 md:mx-4 md:rounded-2xl md:border md:shadow-lg md:pb-0">
     <div class="w-full px-6 h-16 flex items-center justify-between relative">
-      <button type="button" data-nav="clues" class="nav-tab-btn flex flex-col items-center justify-center w-20 h-12 rounded-xl text-indigo-600 dark:text-indigo-400 transition-colors">
-        <i data-lucide="inbox" class="w-5 h-5 mb-0.5"></i>
-        <span class="text-[11px] font-semibold">线索库</span>
-      </button>
-
+      <button type="button" data-nav="clues" class="nav-tab-btn flex flex-col items-center justify-center w-20 h-12 rounded-xl text-indigo-600 dark:text-indigo-400 transition-colors"><i data-lucide="inbox" class="w-5 h-5 mb-0.5"></i><span class="text-[11px] font-semibold">线索库</span></button>
       <div class="relative -top-4">
-        <button type="button" id="openQuickCaptureFab" aria-label="极速记录灵感" class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-fuchsia-500 text-white shadow-lg shadow-indigo-500/35 flex items-center justify-center active:scale-90 transition-transform">
-          <i data-lucide="plus" class="w-7 h-7 stroke-[2.5]"></i>
-        </button>
+        <button type="button" id="openQuickCaptureFab" aria-label="极速记录灵感" class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-fuchsia-500 text-white shadow-lg shadow-indigo-500/35 flex items-center justify-center active:scale-90 transition-transform"><i data-lucide="plus" class="w-7 h-7 stroke-[2.5]"></i></button>
       </div>
-
-      <button type="button" data-nav="goals" class="nav-tab-btn flex flex-col items-center justify-center w-20 h-12 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
-        <i data-lucide="target" class="w-5 h-5 mb-0.5"></i>
-        <span class="text-[11px] font-semibold">工作目标</span>
-      </button>
+      <button type="button" data-nav="goals" class="nav-tab-btn flex flex-col items-center justify-center w-20 h-12 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"><i data-lucide="target" class="w-5 h-5 mb-0.5"></i><span class="text-[11px] font-semibold">工作目标</span></button>
     </div>
   </nav>
 
   <div id="bulkBar" class="hidden fixed z-[35] left-3 right-3 bottom-[92px] md:bottom-24 rounded-2xl bg-slate-900/95 dark:bg-[#171d33]/95 backdrop-blur-md border border-indigo-500/30 shadow-2xl px-3 py-2.5 flex items-center gap-2 flex-wrap"></div>
 
-  <!-- 底部抽屉 1：极速多模态捕获面板 -->
+  <!-- 捕获面板：文字为宿主内置，语音 / 视频等模式由插件挂载 -->
   <div id="captureSheetBackdrop" class="fixed inset-0 z-40 hidden bg-slate-950/50 backdrop-blur-xs transition-opacity">
     <div id="captureSheetPanel" onclick="event.stopPropagation()" class="sf-scroll fixed bottom-0 inset-x-0 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-2xl bg-white dark:bg-[#141926] rounded-t-3xl md:rounded-3xl shadow-2xl border-t md:border border-slate-200 dark:border-slate-800 p-5 pb-safe animate-sheet-up max-h-[92vh] overflow-y-auto">
       <div class="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 mx-auto mb-3.5 md:hidden"></div>
-      <div class="grid grid-cols-3 gap-2 p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 mb-4">
-        <button type="button" data-mode="text" class="cap-mode-btn h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 shadow-xs transition-all"><span>📝</span><span>文字</span></button>
-        <button type="button" data-mode="voice" class="cap-mode-btn h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 text-slate-500 dark:text-slate-400 transition-all"><span>🎙️</span><span>语音</span></button>
-        <button type="button" data-mode="video" class="cap-mode-btn h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 text-slate-500 dark:text-slate-400 transition-all"><span>🎬</span><span>视频</span></button>
-      </div>
+      <div id="captureModeTabs" class="grid gap-2 p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 mb-4"></div>
+
       <div id="sheetTextMode" class="space-y-2">
         <textarea id="quickTextInput" rows="3" placeholder="此刻想到了什么？输入 #标签 可自动归类..." class="w-full rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 text-base focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+        <p class="text-[11px] text-slate-400 leading-relaxed">在插件中心安装「语音速记捕获」「视频灵感捕获」后，这里会出现对应的录制模式。</p>
       </div>
-      <div id="sheetVoiceMode" class="hidden space-y-3">
-        <div class="rounded-2xl bg-violet-50/80 dark:bg-violet-950/30 border border-violet-200/70 dark:border-violet-500/20 p-4 flex flex-col items-center text-center gap-2.5">
-          <div class="flex items-center justify-between w-full text-[11px]">
-            <span id="voiceEngineBadge" class="px-2 py-0.5 rounded-md bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 font-semibold">🎙️ 准备就绪</span>
-            <span class="font-mono font-bold text-violet-700 dark:text-violet-300" id="sheetVoiceTimer">00:00</span>
-          </div>
-          <div class="flex items-center gap-1.5 h-9" id="sheetVoiceWaves"></div>
-          <button type="button" id="sheetRecordVoiceBtn" class="w-16 h-16 rounded-full bg-rose-500 active:scale-95 text-white flex items-center justify-center shadow-lg shadow-rose-500/30 transition-all"><i data-lucide="mic" class="w-7 h-7"></i></button>
-          <p id="sheetVoiceHint" class="text-xs text-slate-500 dark:text-slate-400">点击麦克风开始录音，支持实时语音转文字</p>
-          <audio id="sheetVoicePreviewAudio" controls class="hidden w-full h-9 mt-1"></audio>
-        </div>
-        <input id="sheetVoiceNote" type="text" placeholder="语音转写文字（说话时实时识别，也可手动微调）..." class="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-indigo-500" />
-      </div>
-      <div id="sheetVideoMode" class="hidden space-y-3">
-        <div class="rounded-2xl bg-slate-950 text-white flex flex-col items-center justify-center relative overflow-hidden aspect-video max-h-48 w-full border border-slate-800">
-          <video id="sheetVideoPreview" playsinline muted class="hidden w-full h-full object-cover"></video>
-          <div id="sheetVideoPlaceholder" class="flex flex-col items-center justify-center gap-2 p-4 text-center">
-            <div class="w-11 h-11 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center"><i data-lucide="video" class="w-6 h-6"></i></div>
-            <p id="videoEngineHint" class="text-xs text-slate-300">点击下方按钮调用摄像头或模拟取景器</p>
-          </div>
-          <div id="sheetVideoRecBadge" class="hidden absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-rose-600 text-[10px] font-bold flex items-center gap-1.5 shadow"><span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> REC <span id="sheetVideoTimer">00:00</span></div>
-          <button type="button" id="switchCameraBtn" aria-label="切换前后摄像头" class="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-black/50 backdrop-blur-xs text-white flex items-center justify-center active:scale-90"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
-          <div class="absolute bottom-3 inset-x-0 flex justify-center">
-            <button type="button" id="sheetRecordVideoBtn" class="px-5 py-2 rounded-full bg-rose-500 hover:bg-rose-600 active:scale-95 text-xs font-bold text-white shadow-lg transition-all">开始录制视频灵感</button>
-          </div>
-        </div>
-        <input id="sheetVideoNote" type="text" placeholder="一句话补充视频画面核心内容..." class="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-indigo-500" />
-      </div>
+
+      <div id="captureModePanels" class="space-y-3"></div>
+
       <div class="flex items-center justify-between gap-2 mt-4 flex-wrap">
         <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar" id="sheetTagPills">
           <button type="button" data-tag="产品" class="sheet-tag-btn h-9 px-3 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 shrink-0">#产品</button>
@@ -357,7 +283,7 @@
     </div>
   </div>
 
-  <!-- 底部抽屉 2：启发式思考与目标转化工作台 -->
+  <!-- 详情工作台 -->
   <div id="detailSheetBackdrop" class="fixed inset-0 z-40 hidden bg-slate-950/50 backdrop-blur-xs">
     <div id="detailSheetPanel" onclick="event.stopPropagation()" class="fixed bottom-0 inset-x-0 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-2xl bg-white dark:bg-[#141926] rounded-t-3xl md:rounded-3xl shadow-2xl border-t md:border border-slate-200 dark:border-slate-800 max-h-[92vh] md:max-h-[85vh] flex flex-col animate-sheet-up">
       <div class="px-5 pt-3 pb-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
@@ -419,9 +345,7 @@
               <div>
                 <label class="block text-[11px] text-slate-500 mb-1">优先级</label>
                 <select id="detailGoalPriority" class="w-full h-10 px-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold">
-                  <option value="P0">🔥 P0 最高优</option>
-                  <option value="P1">⚡ P1 重要</option>
-                  <option value="P2">📌 P2 常规</option>
+                  <option value="P0">🔥 P0 最高优</option><option value="P1">⚡ P1 重要</option><option value="P2">📌 P2 常规</option>
                 </select>
               </div>
               <div>
@@ -481,27 +405,51 @@
       { id:'daily-review', emoji:'📊', name:'每日灵感复盘海报', desc:'在顶部导航栏挂载今日复盘入口', enabled:true, builtin:true }
     ];
 
-    /* ==================== 应用状态 ==================== */
+    /* ==================== 状态 ==================== */
     let appState = {
       items: [], plugins: [], activeNav:'clues', stageFilter:'all', tagFilter:'', searchQuery:'', sortMode:'smart',
       captureMode:'text', captureTag:'产品',
-      isRecordingVoice:false, voiceSec:0, voiceTimerId:null, mediaRecorder:null, mediaChunks:[], mediaStream:null, audioCtx:null, analyser:null, animFrameId:null, speechRec:null, recordedAudioUrl:'',
-      isRecordingVideo:false, videoSec:0, videoTimerId:null, videoFacingMode:'environment', recordedVideoUrl:'',
       editingItemId:null, editingIsGoal:false, timers:{},
-      sidebarCollapsed:false,
-      selectMode:false, selected:new Set(), views:[], activeViewId:''
+      sidebarCollapsed:false, selectMode:false, selected:new Set(), views:[], activeViewId:''
     };
 
-    /* ==================== 插件 SDK ==================== */
+    /* ==================== 插件扩展点 ==================== */
+    const captureModes = new Map();
+    const mediaRenderers = new Map();
+    const modeScratch = {};
+
     window.SparkFlowSDK = {
-      version: '2.1.0',
+      version: '3.0.0',
       register(plugin) {
         if (!plugin || !plugin.name) return;
         const id = plugin.id || 'custom-' + Date.now();
         if (appState.plugins.some(p => p.id === id)) return;
-        appState.plugins.push({ id, emoji: plugin.emoji || '⚡', name: plugin.name, desc: plugin.desc || plugin.actionText || '自定义快捷动作按钮', actionType: plugin.actionType || 'toast', actionText: plugin.actionText || `已执行「${plugin.name}」`, enabled: true, builtin: false });
+        appState.plugins.push({
+          id, emoji: plugin.emoji || '⚡', name: plugin.name,
+          desc: plugin.desc || plugin.actionText || '自定义快捷动作按钮',
+          actionType: plugin.actionType || 'toast',
+          actionText: plugin.actionText || `已执行「${plugin.name}」`,
+          actionMode: plugin.actionMode || '',
+          cardAction: plugin.cardAction !== false,
+          enabled: true, builtin: false
+        });
         persist(); renderAll();
-      }
+      },
+      registerCaptureMode(mode) {
+        if (!mode || !mode.id) return;
+        if (captureModes.has(mode.id)) teardownModePanel(mode.id);
+        captureModes.set(mode.id, Object.assign({ pluginId:'', emoji:'📄', label:mode.id }, mode));
+        syncCaptureModes(); renderAll();
+      },
+      unregisterCaptureMode(id) {
+        teardownModePanel(id); captureModes.delete(id);
+        if (appState.captureMode === id) appState.captureMode = 'text';
+        syncCaptureModes(); renderAll();
+      },
+      registerMediaRenderer(r) { if (!r || !r.mediaType) return; mediaRenderers.set(r.mediaType, r); renderAll(); },
+      unregisterMediaRenderer(t) { mediaRenderers.delete(t); renderAll(); },
+      captureModes() { return activeCaptureModes().map(m => ({ id:m.id, label:m.label, emoji:m.emoji, pluginId:m.pluginId })); },
+      helpers() { return { esc, hl, fmtDur, uid, relTime, toast, copyText, persist, renderAll, isPluginOn, icons: () => window.lucide && lucide.createIcons() }; }
     };
 
     /* ==================== 工具 ==================== */
@@ -534,7 +482,7 @@
       o.id = o.id || uid('m');
       o.stage = ['clue','thinking','goal'].includes(o.stage) ? o.stage : 'clue';
       o.pinned = !!o.pinned;
-      o.mediaType = ['text','voice','video'].includes(o.mediaType) ? o.mediaType : 'text';
+      o.mediaType = String(o.mediaType || 'text');
       o.mediaMeta = Object.assign({}, o.mediaMeta);
       ['audioUrl','videoUrl'].forEach(k => { if (typeof o.mediaMeta[k] === 'string' && o.mediaMeta[k].startsWith('blob:')) { o.mediaMeta[k] = ''; o.mediaMeta.expired = true; } });
       o.content = String(o.content || '');
@@ -543,7 +491,7 @@
       o.createdAt = o.createdAt || relTime(o.ts);
       o.thinking = Object.assign({ value:'', nextStep:'' }, o.thinking);
       o.goal = Object.assign({ priority:'P1', deadline:new Date(Date.now() + 7 * DAY).toISOString().slice(0,10), tasks:[] }, o.goal);
-      o.goal.tasks = Array.isArray(o.goal.tasks) ? o.goal.tasks.map(t => ({ id: t.id || uid('t'), text: String(t.text || ''), done: !!t.done, src: t.src })) : [];
+      o.goal.tasks = Array.isArray(o.goal.tasks) ? o.goal.tasks.map(t => ({ id:t.id || uid('t'), text:String(t.text || ''), done:!!t.done, src:t.src })) : [];
       o.aiSummary = String(o.aiSummary || '');
       return o;
     }
@@ -564,13 +512,12 @@
         appState.sortMode = sort || 'smart';
         if (theme === 'dark') document.documentElement.classList.add('dark');
         if (dismissed === '1') $('onboardingBanner').classList.add('hidden');
-        if (sidebarState === '1') { appState.sidebarCollapsed = true; }
+        if (sidebarState === '1') appState.sidebarCollapsed = true;
       } catch (e) {
         appState.items = JSON.parse(JSON.stringify(INITIAL_ITEMS)).map(normalizeItem);
         appState.plugins = JSON.parse(JSON.stringify(INITIAL_PLUGINS));
       }
-      applySidebarState();
-      buildVoiceWaveBars(); bindEvents(); renderAll(); startTimerLoop();
+      applySidebarState(); bindEvents(); renderAll(); startTimerLoop();
     }
 
     function persist() {
@@ -607,12 +554,8 @@
       timer = setTimeout(dismiss, opts.duration || (opts.action ? 6000 : 2400));
     }
 
-    function pushUndo(label, restore) {
-      toast(label, { type:'warn', action:{ label:'撤销', onClick: restore }, duration: 6000 });
-    }
-
+    function pushUndo(label, restore) { toast(label, { type:'warn', action:{ label:'撤销', onClick: restore }, duration: 6000 }); }
     function isPluginOn(id) { return appState.plugins.some(p => p.id === id && p.enabled); }
-
     function scrollMainToTop() { const m = $('appMain'); if (m) m.scrollTo({ top:0, behavior:'smooth' }); }
 
     /* ==================== 侧栏 ==================== */
@@ -621,14 +564,12 @@
       const isDesktop = window.matchMedia('(min-width: 768px)').matches;
       if (appState.sidebarCollapsed && isDesktop) {
         sidebar.style.transform = 'translateX(-100%)';
-        rightContainer.style.marginLeft = '0';
-        nav.style.left = '0';
-        if (bulk) bulk.style.left = isDesktop ? '1rem' : '';
+        rightContainer.style.marginLeft = '0'; nav.style.left = '0';
+        if (bulk) bulk.style.left = '1rem';
         expandBtn.classList.remove('hidden'); expandBtn.classList.add('flex');
       } else {
         sidebar.style.transform = isDesktop ? 'translateX(0)' : '';
-        rightContainer.style.marginLeft = isDesktop ? '18rem' : '';
-        nav.style.left = isDesktop ? '18rem' : '';
+        rightContainer.style.marginLeft = isDesktop ? '18rem' : ''; nav.style.left = isDesktop ? '18rem' : '';
         if (bulk) bulk.style.left = isDesktop ? '19rem' : '';
         expandBtn.classList.remove('flex'); expandBtn.classList.add('hidden');
       }
@@ -640,29 +581,20 @@
       try { localStorage.setItem(STORAGE_SIDEBAR, appState.sidebarCollapsed ? '1' : '0'); } catch (e) {}
       applySidebarState();
     }
-
-    function openSidebar() {
-      $('sidebar').style.transform = 'translateX(0)';
-      $('sidebarBackdrop').classList.remove('hidden');
-    }
-
+    function openSidebar() { $('sidebar').style.transform = 'translateX(0)'; $('sidebarBackdrop').classList.remove('hidden'); }
     function closeSidebar() {
       if (window.matchMedia('(min-width: 768px)').matches) return;
-      $('sidebar').style.transform = 'translateX(-100%)';
-      $('sidebarBackdrop').classList.add('hidden');
+      $('sidebar').style.transform = 'translateX(-100%)'; $('sidebarBackdrop').classList.add('hidden');
     }
-
     function switchNav(nav) {
-      appState.activeNav = nav;
-      appState.stageFilter = nav === 'goals' ? 'goal' : 'all';
-      appState.activeViewId = '';
+      appState.activeNav = nav; appState.stageFilter = nav === 'goals' ? 'goal' : 'all'; appState.activeViewId = '';
       renderAll(); scrollMainToTop();
     }
 
-    /* ==================== 渲染总控 ==================== */
+    /* ==================== 渲染 ==================== */
     function renderAll() {
       renderTopPluginSlot(); renderNavTabs(); renderStageCounts(); renderTagFilterBar(); renderViewsBar(); renderToolbar();
-      renderGoalProgressOverview(); renderFeed(); renderSidebarPlugins(); renderBulkBar(); renderHeaderStat();
+      renderGoalProgressOverview(); renderFeed(); renderSidebarPlugins(); renderBulkBar(); renderHeaderStat(); syncCaptureModes();
       if (window.lucide) lucide.createIcons();
     }
 
@@ -680,6 +612,9 @@
         const [itemId, t] = runningEntry;
         html += `<button type="button" onclick="toggleFocusTimer('${itemId}')" class="h-8 px-2.5 rounded-full bg-gradient-to-r from-rose-500 to-orange-500 text-white text-[11px] font-mono font-bold flex items-center gap-1 shadow-xs animate-pulse shrink-0"><span>🍅</span><span data-timer-display="${itemId}">${fmtDur(t.sec)}</span></button>`;
       }
+      activeCaptureModes().forEach(m => {
+        html += `<button type="button" onclick="quickCapture('${esc(m.id)}')" title="快速${esc(m.label)}捕获" class="h-8 px-2.5 rounded-full bg-violet-50 dark:bg-violet-500/20 text-violet-600 dark:text-violet-300 border border-violet-200/70 dark:border-violet-500/30 text-[11px] font-bold flex items-center gap-1 active:scale-95 shrink-0"><span>${m.emoji}</span><span class="hidden sm:inline">${esc(m.label)}</span></button>`;
+      });
       if (isPluginOn('daily-review')) {
         html += `<button type="button" onclick="openDailyReviewModal()" class="h-8 px-2.5 rounded-full bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-500/30 text-[11px] font-bold flex items-center gap-1 active:scale-95 shrink-0"><span>📊</span><span>复盘</span></button>`;
       }
@@ -831,16 +766,55 @@
       renderAll(); toast('已清除全部筛选条件');
     }
 
+    /* ==================== 媒体渲染（可被插件接管） ==================== */
+    function rendererFor(type) { const r = mediaRenderers.get(type); return r && (!r.pluginId || isPluginOn(r.pluginId)) ? r : null; }
+
+    function mediaBadgeFor(item) {
+      const r = rendererFor(item.mediaType);
+      if (r && r.badge) { try { return r.badge(item); } catch (e) {} }
+      if (item.mediaType === 'text') return '📝 文字';
+      const icon = item.mediaType === 'video' ? '🎬' : item.mediaType === 'voice' ? '🎙️' : '📎';
+      const label = item.mediaType === 'video' ? '视频' : item.mediaType === 'voice' ? '语音' : item.mediaType;
+      return `${icon} ${label}${item.mediaMeta?.duration ? ' ' + item.mediaMeta.duration : ''}`;
+    }
+
+    function genericCardMedia(item) {
+      const m = item.mediaMeta || {};
+      if (item.mediaType === 'text') return '';
+      if (m.audioUrl) return `<div onclick="event.stopPropagation()" class="mt-2.5"><audio src="${esc(m.audioUrl)}" controls class="w-full h-9 rounded-xl"></audio></div>`;
+      if (m.videoUrl) return `<div onclick="event.stopPropagation()" class="mt-2.5 rounded-2xl overflow-hidden bg-black aspect-video max-h-44"><video src="${esc(m.videoUrl)}" controls playsinline class="w-full h-full object-cover"></video></div>`;
+      const icon = item.mediaType === 'video' ? '🎬' : '🎙️';
+      return `<div onclick="event.stopPropagation()" class="mt-2.5 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500"><span>${icon} ${m.expired ? '媒体文件仅存于录制会话' : '启用对应捕获插件查看预览'}</span><span class="font-mono">${esc(m.duration || '--:--')}</span></div>`;
+    }
+
+    function cardMediaFor(item) {
+      const r = rendererFor(item.mediaType);
+      if (r && r.card) { try { return r.card(item, { q: appState.searchQuery.trim(), esc, hl, fmtDur, toast }); } catch (e) {} }
+      return genericCardMedia(item);
+    }
+
+    function genericDetailMedia(item) {
+      const m = item.mediaMeta || {};
+      if (item.mediaType === 'text') return '';
+      if (m.audioUrl) return `<audio src="${esc(m.audioUrl)}" controls class="w-full h-9"></audio>`;
+      if (m.videoUrl) return `<video src="${esc(m.videoUrl)}" controls playsinline class="w-full max-h-40 rounded-xl bg-black"></video>`;
+      return `<div class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-500">${m.expired ? '媒体文件仅存于录制时的会话，文字记录已保留' : '启用对应捕获插件可查看媒体预览'}${m.duration ? ' · ' + esc(m.duration) : ''}</div>`;
+    }
+
+    function detailMediaFor(item) {
+      const r = rendererFor(item.mediaType);
+      if (r && r.detail) { try { return r.detail(item, { esc, hl, fmtDur, toast }); } catch (e) {} }
+      return genericDetailMedia(item);
+    }
+
     function renderMobileCard(item, index) {
       const q = appState.searchQuery.trim();
-      const modalityMap = { text:{icon:'📝',label:'文字'}, voice:{icon:'🎙️',label:`语音 ${item.mediaMeta?.duration || '00:20'}`}, video:{icon:'🎬',label:`视频 ${item.mediaMeta?.duration || '00:35'}`} };
-      const mod = modalityMap[item.mediaType] || modalityMap.text;
       const stageBadgeMap = {
         clue:`<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">💡 线索</span>`,
         thinking:`<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">🧠 思考中</span>`,
         goal:`<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">🎯 工作目标</span>`
       };
-      const accent = { clue:'bg-amber-400', thinking:'bg-indigo-500', goal:'bg-emerald-500' }[item.stage];
+      const accent = { clue:'bg-amber-400', thinking:'bg-indigo-500', goal:'bg-emerald-500' }[item.stage] || 'bg-slate-400';
       const selected = appState.selected.has(item.id);
       const delay = Math.min(index || 0, 11) * 45;
 
@@ -850,16 +824,7 @@
         focusTimerHtml = `<div onclick="event.stopPropagation()" class="mb-3 px-3 py-2 rounded-xl bg-rose-50/90 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-500/20 flex items-center justify-between gap-2"><span class="text-xs font-semibold text-rose-700 dark:text-rose-300 shrink-0">🍅 番茄专注</span><div class="flex items-center gap-2"><span data-timer-display="${item.id}" class="font-mono text-sm font-bold text-rose-700 dark:text-rose-200">${fmtDur(t.sec)}</span><button type="button" onclick="setFocusDuration('${item.id}')" title="切换时长" class="h-7 px-2 rounded-lg bg-white/70 dark:bg-slate-900 text-rose-600 dark:text-rose-300 text-[10px] font-bold active:scale-95">${Math.round((t.total || 1500) / 60)}m</button><button type="button" onclick="toggleFocusTimer('${item.id}')" class="h-7 px-3 rounded-lg text-xs font-bold ${t.running ? 'bg-slate-800 text-white' : 'bg-rose-500 text-white'} active:scale-95 transition-transform">${t.running ? '暂停' : '开始'}</button></div></div>`;
       }
 
-      let mediaBarHtml = '';
-      if (item.mediaType === 'voice') {
-        if (item.mediaMeta?.audioUrl) mediaBarHtml = `<div onclick="event.stopPropagation()" class="mt-2.5"><audio src="${esc(item.mediaMeta.audioUrl)}" controls class="w-full h-9 rounded-xl"></audio></div>`;
-        else if (item.mediaMeta?.expired) mediaBarHtml = `<div onclick="event.stopPropagation()" class="mt-2.5 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-400">🎙️ 录音文件仅存于录制时的会话，转写文字已保留</div>`;
-        else mediaBarHtml = `<div onclick="event.stopPropagation(); toast('正在播放语音片段 (${esc(item.mediaMeta?.duration || '00:28')})')" class="mt-2.5 px-3 py-2 rounded-xl bg-violet-50/80 dark:bg-violet-950/30 border border-violet-200/60 dark:border-violet-500/20 flex items-center gap-2.5 active:scale-[0.99]"><span class="w-7 h-7 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs shrink-0">▶</span><div class="flex-1 flex items-center gap-1 h-4 overflow-hidden">${Array.from({length:18}).map((_, i) => `<span class="flex-1 bg-violet-400/70 rounded-full" style="height:${30 + ((i * 23) % 70)}%"></span>`).join('')}</div><span class="text-[11px] font-mono text-violet-700 dark:text-violet-300">${esc(item.mediaMeta?.duration || '00:28')}</span></div>`;
-      } else if (item.mediaType === 'video') {
-        if (item.mediaMeta?.videoUrl) mediaBarHtml = `<div onclick="event.stopPropagation()" class="mt-2.5 rounded-2xl overflow-hidden bg-black aspect-video max-h-44"><video src="${esc(item.mediaMeta.videoUrl)}" controls playsinline class="w-full h-full object-cover"></video></div>`;
-        else if (item.mediaMeta?.expired) mediaBarHtml = `<div onclick="event.stopPropagation()" class="mt-2.5 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-400">🎬 视频文件仅存于录制时的会话，画面描述已保留</div>`;
-        else mediaBarHtml = `<div onclick="event.stopPropagation(); toast('正在回放视频灵感 (${esc(item.mediaMeta?.duration || '00:35')})')" class="mt-2.5 px-3 py-2.5 rounded-xl bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex items-center justify-between active:scale-[0.99]"><div class="flex items-center gap-2 text-xs"><span class="w-7 h-7 rounded-lg bg-indigo-500/30 flex items-center justify-center">🎬</span><span>点击播放录制画面</span></div><span class="text-[11px] font-mono text-slate-300">${esc(item.mediaMeta?.duration || '00:35')}</span></div>`;
-      }
+      const mediaBarHtml = cardMediaFor(item);
 
       let thinkingHtml = '';
       if (item.stage !== 'clue' && (item.thinking?.value || item.thinking?.nextStep)) {
@@ -878,7 +843,7 @@
         else aiSummaryHtml = `<button type="button" onclick="event.stopPropagation(); triggerAiSummary('${item.id}')" class="mt-2.5 h-8 px-3 rounded-xl bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 text-xs font-semibold active:scale-95 transition-transform">✨ AI 提炼与拆解</button>`;
       }
 
-      const customPlugins = appState.plugins.filter(p => !p.builtin && p.enabled);
+      const customPlugins = appState.plugins.filter(p => !p.builtin && p.enabled && p.cardAction !== false);
       const customActionsHtml = customPlugins.map(cp => `<button type="button" onclick="event.stopPropagation(); runCustomPlugin('${cp.id}','${item.id}')" class="h-8 px-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium active:scale-95">${esc(cp.emoji)} ${esc(cp.name)}</button>`).join('');
 
       let primaryActionBtn = '', swipeHintText = '推进';
@@ -896,7 +861,7 @@
           <span class="absolute left-0 top-6 bottom-6 w-[3px] rounded-r-full ${accent} opacity-80"></span>
           ${focusTimerHtml}
           <div class="flex items-center justify-between gap-2 mb-2">
-            <div class="flex items-center gap-1.5 flex-wrap min-w-0">${item.pinned ? `<span class="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 text-[10px] font-bold">📌 置顶</span>` : ''}<span class="text-xs font-medium text-slate-500 dark:text-slate-400">${mod.icon} ${esc(mod.label)}</span>${stageBadgeMap[item.stage]}</div>
+            <div class="flex items-center gap-1.5 flex-wrap min-w-0">${item.pinned ? `<span class="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 text-[10px] font-bold">📌 置顶</span>` : ''}<span class="text-xs font-medium text-slate-500 dark:text-slate-400">${esc(mediaBadgeFor(item))}</span>${stageBadgeMap[item.stage] || ''}</div>
             <div class="flex items-center gap-1 shrink-0"><span class="text-[11px] text-slate-400">${esc(relTime(item.ts) || item.createdAt)}</span>${dragHandle}</div>
           </div>
           <p class="text-[15px] font-medium text-slate-900 dark:text-slate-100 leading-relaxed flex-1">${hl(item.content, q)}</p>
@@ -908,15 +873,11 @@
         </article></div>`;
     }
 
-    function onCardClick(id) {
-      if (appState.selectMode) { toggleSelect(id); return; }
-      openDetailSheet(id);
-    }
+    function onCardClick(id) { if (appState.selectMode) { toggleSelect(id); return; } openDetailSheet(id); }
 
     /* ==================== 侧栏插件列表 ==================== */
     function renderSidebarPlugins() {
-      const container = $('sidebarPluginsList');
-      container.innerHTML = appState.plugins.map(p => `
+      $('sidebarPluginsList').innerHTML = appState.plugins.map(p => `
         <div class="rounded-xl bg-slate-50 dark:bg-[#131824] border border-slate-200/90 dark:border-slate-800 p-3 flex items-center justify-between gap-3">
           <div class="flex items-start gap-2.5 min-w-0">
             <div class="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-base shrink-0 shadow-sm">${esc(p.emoji)}</div>
@@ -937,13 +898,13 @@
         </div>`).join('');
     }
 
-    /* ==================== 手势：右滑推进 + 拖动排序 ==================== */
+    /* ==================== 手势 ==================== */
     function bindSwipeGestures() {
       document.querySelectorAll('.swipe-card-inner').forEach(card => {
         let startX = 0, startY = 0, currentX = 0, isSwiping = false;
         card.addEventListener('touchstart', e => {
           if (appState.selectMode || e.touches.length !== 1) return;
-          if (e.target.closest('button,input,label,a,details,select')) return;
+          if (e.target.closest('button,input,label,a,details,select,audio,video')) return;
           startX = e.touches[0].clientX; startY = e.touches[0].clientY; currentX = 0; isSwiping = false;
         }, { passive:true });
         card.addEventListener('touchmove', e => {
@@ -1016,8 +977,7 @@
     }
 
     function reorderItem(id, targetId, after) {
-      const from = appState.items.findIndex(i => i.id === id);
-      if (from < 0) return;
+      const from = appState.items.findIndex(i => i.id === id); if (from < 0) return;
       const [moved] = appState.items.splice(from, 1);
       let to = appState.items.findIndex(i => i.id === targetId);
       if (to < 0) { appState.items.splice(from, 0, moved); return; }
@@ -1151,7 +1111,8 @@
     function runCustomPlugin(pluginId, itemId) {
       const plugin = appState.plugins.find(p => p.id === pluginId), item = appState.items.find(i => i.id === itemId);
       if (!plugin || !item) return;
-      if (plugin.actionType === 'tag') {
+      if (plugin.actionType === 'capture') { quickCapture(plugin.actionMode || 'text'); }
+      else if (plugin.actionType === 'tag') {
         const tag = (plugin.actionText || '').replace(/^#/, '').trim() || plugin.name;
         if (!item.tags.includes(tag)) item.tags.push(tag);
         persist(); renderAll(); toast(`${plugin.emoji} 已添加标签 #${tag}`, { type:'success' });
@@ -1169,7 +1130,7 @@
       if (!appState.timers[id]) appState.timers[id] = { sec: duration || 1500, total: duration || 1500, running:false };
       const t = appState.timers[id];
       if (duration && !t.running) { t.sec = duration; t.total = duration; }
-      if (t.sec <= 0) { t.sec = t.total || 1500; }
+      if (t.sec <= 0) t.sec = t.total || 1500;
       const nextState = !t.running;
       Object.values(appState.timers).forEach(x => { x.running = false; });
       t.running = nextState;
@@ -1216,159 +1177,95 @@
       else toast('已移除自定义插件');
     }
 
-    /* ==================== 捕获面板 ==================== */
-    function buildVoiceWaveBars() {
-      $('sheetVoiceWaves').innerHTML = Array.from({ length:18 }).map((_, i) => `<span class="w-1.5 rounded-full bg-violet-400/50 transition-all duration-100" style="height:32%; animation-delay:${(i % 5) * 0.1}s"></span>`).join('');
+    /* ==================== 捕获模式编排 ==================== */
+    function modeAvailable(m) { return !!m && (!m.pluginId || isPluginOn(m.pluginId)); }
+    function activeCaptureModes() { return Array.from(captureModes.values()).filter(modeAvailable); }
+
+    function modeCtx(m) {
+      return {
+        id: m.id,
+        panel: $('captureModePanels').querySelector(`[data-mode-panel="${m.id}"]`),
+        state: modeScratch[m.id] || (modeScratch[m.id] = {}),
+        isActive: () => appState.captureMode === m.id,
+        toast, esc, fmtDur, uid, copyText,
+        icons: () => { if (window.lucide) lucide.createIcons(); },
+        close: closeCaptureSheet
+      };
     }
 
-    function flushRecording(type) {
-      if (appState.mediaChunks && appState.mediaChunks.length) {
-        try { return URL.createObjectURL(new Blob(appState.mediaChunks, { type })); } catch (e) {}
-      }
-      return '';
+    function teardownModePanel(id) {
+      const m = captureModes.get(id);
+      const node = $('captureModePanels').querySelector(`[data-mode-panel="${id}"]`);
+      if (m && appState.captureMode === id) { try { m.deactivate && m.deactivate(modeCtx(m)); } catch (e) {} }
+      if (node) node.remove();
     }
 
-    function stopAllMediaStreams() {
-      if (appState.animFrameId) { cancelAnimationFrame(appState.animFrameId); appState.animFrameId = null; }
-      if (appState.speechRec) { try { appState.speechRec.stop(); } catch (e) {} appState.speechRec = null; }
-      if (appState.mediaRecorder && appState.mediaRecorder.state !== 'inactive') { try { appState.mediaRecorder.stop(); } catch (e) {} }
-      if (appState.mediaStream) { appState.mediaStream.getTracks().forEach(t => t.stop()); appState.mediaStream = null; }
-      if (appState.audioCtx) { try { appState.audioCtx.close(); } catch (e) {} appState.audioCtx = null; }
+    function syncCaptureModes() {
+      const tabs = $('captureModeTabs'), panels = $('captureModePanels');
+      if (!tabs || !panels) return;
+      const modes = activeCaptureModes();
+      Array.from(panels.children).forEach(node => { if (!modes.some(m => m.id === node.dataset.modePanel)) teardownModePanel(node.dataset.modePanel); });
+      if (appState.captureMode !== 'text' && !modes.some(m => m.id === appState.captureMode)) appState.captureMode = 'text';
+      const all = [{ id:'text', emoji:'📝', label:'文字' }, ...modes];
+      tabs.style.gridTemplateColumns = `repeat(${all.length}, minmax(0,1fr))`;
+      tabs.innerHTML = all.map(m => `<button type="button" data-cap-mode="${esc(m.id)}" class="cap-mode-btn h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${appState.captureMode === m.id ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}"><span>${m.emoji}</span><span class="truncate">${esc(m.label)}</span></button>`).join('');
+      modes.forEach(m => {
+        let node = panels.querySelector(`[data-mode-panel="${m.id}"]`);
+        if (!node) {
+          node = document.createElement('div');
+          node.dataset.modePanel = m.id;
+          node.className = 'space-y-3';
+          panels.appendChild(node);
+          try { m.mount && m.mount(node, modeCtx(m)); }
+          catch (e) { node.innerHTML = `<div class="rounded-2xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-950/30 p-3 text-[11px] text-rose-600 dark:text-rose-300">「${esc(m.label)}」面板初始化失败，可在插件中心重载该插件。</div>`; }
+        }
+        node.classList.toggle('hidden', appState.captureMode !== m.id);
+      });
+      $('sheetTextMode').classList.toggle('hidden', appState.captureMode !== 'text');
     }
+
+    function setCaptureMode(id) {
+      if (id !== 'text' && !activeCaptureModes().some(m => m.id === id)) { toast('该捕获插件未启用'); return; }
+      const prev = appState.captureMode;
+      if (prev === id) { syncCaptureModes(); return; }
+      if (prev !== 'text') { const p = captureModes.get(prev); try { p && p.deactivate && p.deactivate(modeCtx(p)); } catch (e) {} }
+      appState.captureMode = id;
+      syncCaptureModes();
+      if (id === 'text') setTimeout(() => $('quickTextInput').focus(), 80);
+      else { const m = captureModes.get(id); try { m && m.activate && m.activate(modeCtx(m)); } catch (e) {} }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function quickCapture(mode) { openCaptureSheet(); setCaptureMode(mode || 'text'); }
 
     function openCaptureSheet() {
+      syncCaptureModes();
       $('captureSheetBackdrop').classList.remove('hidden');
       if (appState.captureMode === 'text') setTimeout(() => $('quickTextInput').focus(), 120);
+      else { const m = captureModes.get(appState.captureMode); try { m && m.activate && m.activate(modeCtx(m)); } catch (e) {} }
       if (window.lucide) lucide.createIcons();
     }
 
     function closeCaptureSheet() {
-      if (appState.isRecordingVoice) stopVoiceCapture();
-      if (appState.isRecordingVideo) stopVideoCapture();
-      stopAllMediaStreams();
+      if (appState.captureMode !== 'text') { const m = captureModes.get(appState.captureMode); try { m && m.deactivate && m.deactivate(modeCtx(m)); } catch (e) {} }
       $('captureSheetBackdrop').classList.add('hidden');
     }
 
-    async function toggleSheetVoice() {
-      if (appState.isRecordingVoice) { stopVoiceCapture(); return; }
-      appState.isRecordingVoice = true;
-      appState.voiceSec = 0; appState.recordedAudioUrl = '';
-      $('sheetVoiceTimer').textContent = '00:00';
-      const btn = $('sheetRecordVoiceBtn'), hint = $('sheetVoiceHint'), badge = $('voiceEngineBadge'), bars = document.querySelectorAll('#sheetVoiceWaves span'), previewAudio = $('sheetVoicePreviewAudio');
-      previewAudio.classList.add('hidden'); btn.classList.add('animate-pulse','scale-105');
-      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (SpeechRec) {
-        try {
-          const rec = new SpeechRec(); rec.lang = 'zh-CN'; rec.continuous = true; rec.interimResults = true;
-          rec.onresult = ev => { let t = ''; for (let i = 0; i < ev.results.length; i++) t += ev.results[i][0].transcript; if (t.trim()) $('sheetVoiceNote').value = t.trim(); };
-          rec.onerror = () => {};
-          rec.start(); appState.speechRec = rec;
-        } catch (e) {}
-      }
-      try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('No getUserMedia');
-        const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
-        if (!appState.isRecordingVoice) { stream.getTracks().forEach(t => t.stop()); return; }
-        appState.mediaStream = stream;
-        badge.textContent = '🎙️ 真实麦克风采集'; hint.textContent = '正在录音与识别... 再次点击完成';
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)(), source = audioCtx.createMediaStreamSource(stream), analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 64; source.connect(analyser); appState.audioCtx = audioCtx; appState.analyser = analyser;
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
-        const drawSpectrum = () => {
-          if (!appState.isRecordingVoice) return;
-          analyser.getByteFrequencyData(dataArray);
-          bars.forEach((b, i) => { const val = dataArray[i % dataArray.length] || 20; b.classList.add('bg-rose-500'); b.style.height = `${Math.max(22, Math.min(100, Math.round(val / 255 * 100)))}%`; });
-          appState.animFrameId = requestAnimationFrame(drawSpectrum);
-        };
-        drawSpectrum();
-        appState.mediaChunks = [];
-        const recorder = new MediaRecorder(stream);
-        recorder.ondataavailable = ev => { if (ev.data && ev.data.size > 0) appState.mediaChunks.push(ev.data); };
-        recorder.onstop = () => {
-          if (!appState.recordedAudioUrl) appState.recordedAudioUrl = flushRecording('audio/webm');
-          if (appState.recordedAudioUrl) { previewAudio.src = appState.recordedAudioUrl; previewAudio.classList.remove('hidden'); }
-        };
-        recorder.start(); appState.mediaRecorder = recorder;
-      } catch (err) {
-        badge.textContent = '✨ 智能声波模拟'; hint.textContent = '未获得麦克风权限，正在模拟录制... 再次点击完成';
-        bars.forEach((b, i) => { b.classList.add('wave-active','bg-rose-500'); b.style.height = `${45 + ((i * 19) % 55)}%`; });
-      }
-      appState.voiceTimerId = setInterval(() => { appState.voiceSec++; $('sheetVoiceTimer').textContent = fmtDur(appState.voiceSec); }, 1000);
-    }
-
-    function stopVoiceCapture() {
-      appState.isRecordingVoice = false;
-      clearInterval(appState.voiceTimerId);
-      if (!appState.recordedAudioUrl) appState.recordedAudioUrl = flushRecording('audio/webm');
-      stopAllMediaStreams();
-      const btn = $('sheetRecordVoiceBtn'), hint = $('sheetVoiceHint'), bars = document.querySelectorAll('#sheetVoiceWaves span'), previewAudio = $('sheetVoicePreviewAudio');
-      btn.classList.remove('animate-pulse','scale-105');
-      hint.textContent = appState.recordedAudioUrl ? '录制完成，可直接试听或修改文字' : '录制完成，可修改转写文字后存入';
-      bars.forEach(b => { b.classList.remove('wave-active','bg-rose-500'); b.style.height = '32%'; });
-      if (appState.recordedAudioUrl) { previewAudio.src = appState.recordedAudioUrl; previewAudio.classList.remove('hidden'); }
-      const note = $('sheetVoiceNote');
-      if (!note.value.trim()) note.value = '语音速记：下午和团队同步一下移动端交互方案，优先保证单手操作的流畅度。';
-    }
-
-    async function toggleSheetVideo() {
-      if (appState.isRecordingVideo) { stopVideoCapture(); return; }
-      appState.isRecordingVideo = true;
-      appState.videoSec = 0; appState.recordedVideoUrl = '';
-      $('sheetVideoTimer').textContent = '00:00';
-      const btn = $('sheetRecordVideoBtn'), badge = $('sheetVideoRecBadge'), videoEl = $('sheetVideoPreview'), placeholder = $('sheetVideoPlaceholder'), hint = $('videoEngineHint');
-      videoEl.controls = false; videoEl.muted = true; btn.textContent = '点击停止录制'; badge.classList.remove('hidden');
-      try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('No camera');
-        const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode: appState.videoFacingMode }, audio:true });
-        if (!appState.isRecordingVideo) { stream.getTracks().forEach(t => t.stop()); return; }
-        appState.mediaStream = stream; videoEl.srcObject = stream; videoEl.classList.remove('hidden'); placeholder.classList.add('hidden');
-        try { await videoEl.play(); } catch (e) {}
-        appState.mediaChunks = [];
-        const recorder = new MediaRecorder(stream);
-        recorder.ondataavailable = ev => { if (ev.data && ev.data.size > 0) appState.mediaChunks.push(ev.data); };
-        recorder.onstop = () => {
-          if (!appState.recordedVideoUrl) appState.recordedVideoUrl = flushRecording('video/webm');
-          if (appState.recordedVideoUrl) { videoEl.srcObject = null; videoEl.src = appState.recordedVideoUrl; videoEl.muted = false; videoEl.controls = true; }
-        };
-        recorder.start(); appState.mediaRecorder = recorder;
-      } catch (err) {
-        hint.textContent = '🎥 未获得摄像头权限，正在模拟取景器录制...';
-      }
-      appState.videoTimerId = setInterval(() => { appState.videoSec++; $('sheetVideoTimer').textContent = fmtDur(appState.videoSec); }, 1000);
-    }
-
-    function stopVideoCapture() {
-      appState.isRecordingVideo = false;
-      clearInterval(appState.videoTimerId);
-      if (!appState.recordedVideoUrl) appState.recordedVideoUrl = flushRecording('video/webm');
-      stopAllMediaStreams();
-      const btn = $('sheetRecordVideoBtn'), badge = $('sheetVideoRecBadge'), videoEl = $('sheetVideoPreview'), hint = $('videoEngineHint');
-      btn.textContent = '重新录制画面'; badge.classList.add('hidden');
-      hint.textContent = '✅ 视频灵感片段已就绪';
-      if (appState.recordedVideoUrl) { videoEl.srcObject = null; videoEl.src = appState.recordedVideoUrl; videoEl.muted = false; videoEl.controls = true; videoEl.classList.remove('hidden'); $('sheetVideoPlaceholder').classList.add('hidden'); }
-      const note = $('sheetVideoNote');
-      if (!note.value.trim()) note.value = '随手拍白板草图：新的三步漏斗转化界面构思';
-    }
-
     function saveCapturedSpark(alsoThink) {
-      let content = '', mediaMeta = {};
+      let content = '', mediaMeta = {}, mediaType = 'text', provider = null;
       if (appState.captureMode === 'text') {
         content = $('quickTextInput').value.trim();
         if (!content) { toast('先输入一点内容吧 ✍️', { type:'warn' }); $('quickTextInput').focus(); return; }
         $('quickTextInput').value = '';
-      } else if (appState.captureMode === 'voice') {
-        if (appState.isRecordingVoice) stopVoiceCapture();
-        content = $('sheetVoiceNote').value.trim() || '语音速记灵感片段';
-        mediaMeta = { duration: fmtDur(Math.max(appState.voiceSec, 15)), audioUrl: appState.recordedAudioUrl || '' };
-        appState.voiceSec = 0; appState.recordedAudioUrl = '';
-        $('sheetVoiceTimer').textContent = '00:00'; $('sheetVoiceNote').value = ''; $('sheetVoicePreviewAudio').classList.add('hidden');
       } else {
-        if (appState.isRecordingVideo) stopVideoCapture();
-        content = $('sheetVideoNote').value.trim() || '视频画面灵感片段';
-        mediaMeta = { duration: fmtDur(Math.max(appState.videoSec, 18)), videoUrl: appState.recordedVideoUrl || '' };
-        appState.videoSec = 0; appState.recordedVideoUrl = '';
-        $('sheetVideoTimer').textContent = '00:00'; $('sheetVideoNote').value = '';
-        $('sheetVideoPreview').classList.add('hidden'); $('sheetVideoPlaceholder').classList.remove('hidden');
+        provider = captureModes.get(appState.captureMode);
+        if (!modeAvailable(provider)) { toast('该捕获插件已停用，已切回文字模式', { type:'warn' }); appState.captureMode = 'text'; syncCaptureModes(); return; }
+        let res = null;
+        try { res = provider.collect ? provider.collect(modeCtx(provider)) : null; } catch (e) { res = null; }
+        if (!res || !String(res.content || '').trim()) { toast(provider.emptyHint || '请先完成捕获或补充一句描述', { type:'warn' }); return; }
+        content = String(res.content).trim();
+        mediaMeta = res.mediaMeta || {};
+        mediaType = res.mediaType || provider.id;
       }
       const inlineTags = Array.from(content.matchAll(/#([\u4e00-\u9fa5a-zA-Z0-9_-]+)/g)).map(m => m[1]);
       const tags = Array.from(new Set([appState.captureTag, ...inlineTags]));
@@ -1383,7 +1280,8 @@
         rules.forEach(r => { if (r.kw.some(k => content.includes(k)) && !tags.includes(r.tag)) tags.push(r.tag); });
       }
       const id = uid('m');
-      appState.items.unshift(normalizeItem({ id, stage:'clue', pinned:false, mediaType:appState.captureMode, mediaMeta, content, tags, ts:Date.now(), createdAt:'刚刚', thinking:{value:'',nextStep:''}, goal:{ priority:'P1', deadline:new Date(Date.now() + 7 * DAY).toISOString().slice(0,10), tasks:[] }, aiSummary:'' }, 0));
+      appState.items.unshift(normalizeItem({ id, stage:'clue', pinned:false, mediaType, mediaMeta, content, tags, ts:Date.now(), createdAt:'刚刚', thinking:{value:'',nextStep:''}, goal:{ priority:'P1', deadline:new Date(Date.now() + 7 * DAY).toISOString().slice(0,10), tasks:[] }, aiSummary:'' }, 0));
+      if (provider) { try { provider.reset && provider.reset(modeCtx(provider)); } catch (e) {} }
       appState.activeNav = 'clues'; appState.stageFilter = 'all'; appState.tagFilter = ''; appState.activeViewId = '';
       persist(); closeCaptureSheet(); renderAll(); scrollMainToTop();
       toast('✨ 已存入线索库！', { type:'success' });
@@ -1402,8 +1300,8 @@
     function openDetailSheet(id) {
       const item = appState.items.find(i => i.id === id); if (!item) return;
       appState.editingItemId = id; appState.editingIsGoal = item.stage === 'goal';
-      const mediaLabels = { text:'📝 文字', voice:'🎙️ 语音', video:'🎬 视频' }, stageLabels = { clue:'💡 灵感线索', thinking:'🧠 思考中', goal:'🎯 工作目标' };
-      $('detailMediaBadge').textContent = mediaLabels[item.mediaType] || '📝 文字';
+      const stageLabels = { clue:'💡 灵感线索', thinking:'🧠 思考中', goal:'🎯 工作目标' };
+      $('detailMediaBadge').textContent = mediaBadgeFor(item);
       $('detailStageBadge').textContent = stageLabels[item.stage] || '💡 线索';
       $('detailContentInput').value = item.content;
       $('detailThinkValue').value = item.thinking?.value || '';
@@ -1415,12 +1313,8 @@
       pinBtn.classList.toggle('text-indigo-600', !!item.pinned);
       pinBtn.classList.toggle('bg-indigo-50', !!item.pinned);
       pinBtn.classList.toggle('dark:bg-indigo-500/15', !!item.pinned);
-      const playerSlot = $('detailMediaPlayerSlot');
-      if (item.mediaType === 'voice' && item.mediaMeta?.audioUrl) playerSlot.innerHTML = `<audio src="${esc(item.mediaMeta.audioUrl)}" controls class="w-full h-9"></audio>`;
-      else if (item.mediaType === 'video' && item.mediaMeta?.videoUrl) playerSlot.innerHTML = `<video src="${esc(item.mediaMeta.videoUrl)}" controls playsinline class="w-full max-h-40 rounded-xl bg-black"></video>`;
-      else playerSlot.innerHTML = '';
-      const exportSlot = $('detailExportPluginSlot');
-      exportSlot.innerHTML = isPluginOn('quick-export') ? `<div class="flex items-center gap-1.5"><button type="button" onclick="copyItemMarkdown()" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 text-[11px] font-semibold text-indigo-600 dark:text-indigo-300 active:scale-95">📋 复制 MD</button><button type="button" onclick="downloadItemMarkdown()" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 text-[11px] font-semibold text-indigo-600 dark:text-indigo-300 active:scale-95">⬇️ 下载</button></div>` : '';
+      $('detailMediaPlayerSlot').innerHTML = detailMediaFor(item);
+      $('detailExportPluginSlot').innerHTML = isPluginOn('quick-export') ? `<div class="flex items-center gap-1.5"><button type="button" onclick="copyItemMarkdown()" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 text-[11px] font-semibold text-indigo-600 dark:text-indigo-300 active:scale-95">📋 复制 MD</button><button type="button" onclick="downloadItemMarkdown()" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 text-[11px] font-semibold text-indigo-600 dark:text-indigo-300 active:scale-95">⬇️ 下载</button></div>` : '';
       renderDetailStageSeg(item); renderDetailTags(item);
       syncGoalSwitchUI(); renderDetailKrList(item);
       $('detailSheetBackdrop').classList.remove('hidden');
@@ -1443,8 +1337,7 @@
     }
 
     function renderDetailTags(item) {
-      const box = $('detailTagsBox');
-      box.innerHTML = (item.tags || []).map(t => `<span class="inline-flex items-center gap-1 h-7 pl-2.5 pr-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-medium">#${esc(t)}<button type="button" onclick="removeItemTag('${esc(t)}')" class="w-5 h-5 rounded flex items-center justify-center text-slate-400 hover:text-rose-500">✕</button></span>`).join('') || '<span class="text-[11px] text-slate-400">暂无标签，添加一个便于归类</span>';
+      $('detailTagsBox').innerHTML = (item.tags || []).map(t => `<span class="inline-flex items-center gap-1 h-7 pl-2.5 pr-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-medium">#${esc(t)}<button type="button" onclick="removeItemTag('${esc(t)}')" class="w-5 h-5 rounded flex items-center justify-center text-slate-400 hover:text-rose-500">✕</button></span>`).join('') || '<span class="text-[11px] text-slate-400">暂无标签，添加一个便于归类</span>';
     }
 
     function removeItemTag(tag) {
@@ -1527,10 +1420,7 @@
       if (showToast) toast(item.stage === 'goal' ? '🎯 工作目标已保存' : '已保存思考内容', { type:'success' });
     }
 
-    function saveDetailSheet() {
-      applyDetailEdits(true);
-      closeDetailSheet({ save:false });
-    }
+    function saveDetailSheet() { applyDetailEdits(true); closeDetailSheet({ save:false }); }
 
     function closeDetailSheet(opts) {
       opts = opts || {};
@@ -1549,6 +1439,7 @@
     function openDataMenuModal() {
       const bytes = (JSON.stringify(appState.items).length + JSON.stringify(appState.plugins).length);
       const kb = Math.max(1, Math.round(bytes / 1024));
+      const modes = window.SparkFlowSDK.captureModes();
       const box = $('modalContentBox');
       box.innerHTML = `<div class="flex items-center justify-between mb-4"><h3 class="font-bold text-base">数据管理与新手演练</h3><button type="button" onclick="closeModal()" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">✕</button></div>
       <div class="space-y-2.5">
@@ -1559,9 +1450,10 @@
         <button type="button" onclick="clearAllItems()" class="w-full h-11 px-4 rounded-xl bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 text-xs font-bold flex items-center justify-between"><span>🗑 清空全部灵感记录</span><span>可撤销</span></button>
       </div>
       <div class="mt-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 space-y-1.5">
-        <p class="text-[11px] font-bold text-slate-500">本地存储占用 ≈ ${kb} KB · ${appState.items.length} 条记录 · ${appState.plugins.length} 个插件</p>
+        <p class="text-[11px] font-bold text-slate-500">捕获能力：📝 文字${modes.map(m => ' · ' + m.emoji + ' ' + esc(m.label)).join('')}</p>
+        <p class="text-[11px] text-slate-400 leading-relaxed">本地存储占用 ≈ ${kb} KB · ${appState.items.length} 条记录 · ${appState.plugins.length} 个插件</p>
         <p class="text-[11px] text-slate-400 leading-relaxed">快捷键：<kbd class="px-1 rounded bg-slate-200 dark:bg-slate-800 font-mono">/</kbd> 搜索 · <kbd class="px-1 rounded bg-slate-200 dark:bg-slate-800 font-mono">N</kbd> 新建 · <kbd class="px-1 rounded bg-slate-200 dark:bg-slate-800 font-mono">Esc</kbd> 关闭 · <kbd class="px-1 rounded bg-slate-200 dark:bg-slate-800 font-mono">Ctrl/⌘+S</kbd> 保存详情</p>
-        <p class="text-[11px] text-slate-400 leading-relaxed">录音/录像文件仅保存在当前会话内存中，文字与结构化数据会持久化到本机。</p>
+        <p class="text-[11px] text-slate-400 leading-relaxed">语音与视频捕获由独立插件提供，媒体文件仅存于当前会话；文字与结构化数据持久化到本机。</p>
       </div>`;
       $('modalBackdrop').classList.remove('hidden');
     }
@@ -1580,6 +1472,7 @@
       const hues = ['#f59e0b','#0ea5e9','#10b981','#d946ef','#f43f5e'];
       const maxTag = topTags.length ? topTags[0][1] : 1;
       const stageBars = [['💡 线索', clue, '#f59e0b'], ['🧠 思考', thinking, '#6366f1'], ['🎯 目标', goals, '#10b981']];
+      const mediaCount = t => appState.items.filter(i => i.mediaType === t).length;
       const box = $('modalContentBox');
       box.innerHTML = `<div class="space-y-4">
         <div class="rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 text-white p-5 space-y-3 shadow-lg">
@@ -1599,6 +1492,11 @@
         <div class="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 space-y-2.5">
           <h4 class="text-xs font-bold text-slate-500">热门标签 TOP 5</h4>
           ${topTags.length ? topTags.map(([t, v], i) => `<div class="flex items-center gap-2.5"><span class="text-[11px] w-20 shrink-0 truncate text-slate-500">#${esc(t)}</span><div class="flex-1 h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div class="h-full rounded-full transition-all duration-500" style="width:${Math.round(v / maxTag * 100)}%;background:${hues[i]}"></div></div><span class="text-[11px] font-mono font-bold w-6 text-right" style="color:${hues[i]}">${v}</span></div>`).join('') : '<p class="text-[11px] text-slate-400">还没有标签数据</p>'}
+        </div>
+        <div class="rounded-2xl border border-slate-200 dark:border-slate-800 p-3 flex items-center justify-around text-center">
+          <div><div class="text-base font-extrabold text-slate-700 dark:text-slate-200">${mediaCount('text')}</div><div class="text-[10px] text-slate-400">📝 文字</div></div>
+          <div><div class="text-base font-extrabold text-violet-600 dark:text-violet-300">${mediaCount('voice')}</div><div class="text-[10px] text-slate-400">🎙️ 语音</div></div>
+          <div><div class="text-base font-extrabold text-sky-600 dark:text-sky-300">${mediaCount('video')}</div><div class="text-[10px] text-slate-400">🎬 视频</div></div>
         </div>
         <div class="flex gap-2">
           <button type="button" onclick="copyReviewCard()" class="flex-1 h-11 rounded-xl bg-white dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 text-indigo-600 dark:text-indigo-300 text-xs font-bold active:scale-[0.98]">📋 复制复盘</button>
@@ -1651,7 +1549,7 @@
     }
 
     function restoreDefaultPlugins() {
-      INITIAL_PLUGINS.forEach(p => { if (!appState.plugins.some(x => x.id === p.id)) appState.plugins.push(JSON.parse(JSON.stringify(p))); else { const t = appState.plugins.find(x => x.id === p.id); t.enabled = true; } });
+      INITIAL_PLUGINS.forEach(p => { if (!appState.plugins.some(x => x.id === p.id)) appState.plugins.push(JSON.parse(JSON.stringify(p))); else appState.plugins.find(x => x.id === p.id).enabled = true; });
       persist(); renderAll(); closeModal(); toast('🧩 默认内置插件已恢复', { type:'success' });
     }
 
@@ -1666,11 +1564,13 @@
     function openPluginCenterHelp() {
       const box = $('modalContentBox');
       box.innerHTML = `<div class="space-y-4"><div class="flex items-center justify-between"><h3 class="font-bold text-base">🧩 插件中心未加载</h3><button type="button" onclick="closeModal()" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">✕</button></div>
-      <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">未检测到 <code class="px-1 rounded bg-slate-100 dark:bg-slate-800 font-mono">./plugins/plugins-center.js</code>。请确认项目目录结构如下，然后通过本地服务器打开页面（直接双击 file:// 打开时浏览器可能拦截脚本）。</p>
-      <pre class="rounded-xl bg-slate-900 text-slate-100 p-3 text-[11px] font-mono overflow-x-auto sf-scroll">项目目录/
+      <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">未检测到 <code class="px-1 rounded bg-slate-100 dark:bg-slate-800 font-mono">./plugins/plugins-center.js</code>。请确认目录结构如下，并通过本地服务器打开页面（直接双击 file:// 时浏览器可能拦截脚本）。</p>
+      <pre class="sf-scroll rounded-xl bg-slate-900 text-slate-100 p-3 text-[11px] font-mono overflow-x-auto">项目目录/
 ├── index.html
 └── plugins/
     ├── plugins-center.js
+    ├── voice-capture.js
+    ├── video-capture.js
     ├── ai-video-steps.js
     ├── ai-summary.js
     ├── focus-timer.js
@@ -1679,11 +1579,11 @@
     ├── daily-review.js
     └── demo-hello.js</pre>
       <button type="button" onclick="copyText('&lt;script src=&quot;./plugins/plugins-center.js&quot;&gt;&lt;/script&gt;','📋 引入代码已复制')" class="w-full h-11 rounded-xl bg-indigo-600 text-white text-xs font-bold active:scale-[0.98]">📋 复制引入代码</button>
-      <p class="text-[11px] text-slate-400 leading-relaxed">即使没有插件中心，宿主的全部核心功能（记录、思考、目标、番茄钟、导出、复盘）依然可正常使用。</p></div>`;
+      <p class="text-[11px] text-slate-400 leading-relaxed">缺少插件中心时，宿主的文字捕获、思考、目标、番茄钟、导出与复盘依然完整可用。</p></div>`;
       $('modalBackdrop').classList.remove('hidden');
     }
 
-    /* ==================== 事件绑定 ==================== */
+    /* ==================== 事件 ==================== */
     function bindEvents() {
       $('themeToggleBtn').addEventListener('click', () => {
         const isDark = document.documentElement.classList.toggle('dark');
@@ -1714,20 +1614,8 @@
 
       $('openQuickCaptureFab').addEventListener('click', openCaptureSheet);
       $('captureSheetBackdrop').addEventListener('click', closeCaptureSheet);
-      document.querySelectorAll('.cap-mode-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          if (appState.isRecordingVoice) stopVoiceCapture();
-          if (appState.isRecordingVideo) stopVideoCapture();
-          appState.captureMode = btn.dataset.mode;
-          document.querySelectorAll('.cap-mode-btn').forEach(b => {
-            const active = b.dataset.mode === appState.captureMode;
-            b.className = active ? 'cap-mode-btn h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 shadow-xs transition-all' : 'cap-mode-btn h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 text-slate-500 dark:text-slate-400 transition-all';
-          });
-          $('sheetTextMode').classList.toggle('hidden', appState.captureMode !== 'text');
-          $('sheetVoiceMode').classList.toggle('hidden', appState.captureMode !== 'voice');
-          $('sheetVideoMode').classList.toggle('hidden', appState.captureMode !== 'video');
-        });
-      });
+      $('captureModeTabs').addEventListener('click', e => { const b = e.target.closest('[data-cap-mode]'); if (b) setCaptureMode(b.dataset.capMode); });
+
       document.querySelectorAll('.sheet-tag-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           appState.captureTag = btn.dataset.tag;
@@ -1736,13 +1624,6 @@
             b.className = active ? 'sheet-tag-btn h-9 px-3 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 shrink-0' : 'sheet-tag-btn h-9 px-3 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 shrink-0';
           });
         });
-      });
-      $('sheetRecordVoiceBtn').addEventListener('click', toggleSheetVoice);
-      $('sheetRecordVideoBtn').addEventListener('click', toggleSheetVideo);
-      $('switchCameraBtn').addEventListener('click', () => {
-        appState.videoFacingMode = appState.videoFacingMode === 'environment' ? 'user' : 'environment';
-        toast(appState.videoFacingMode === 'environment' ? '已切换至后置摄像头' : '已切换至前置摄像头');
-        if (appState.isRecordingVideo) { stopVideoCapture(); setTimeout(toggleSheetVideo, 180); }
       });
       $('submitCaptureBtn').addEventListener('click', () => saveCapturedSpark(false));
       $('submitAndThinkBtn').addEventListener('click', () => saveCapturedSpark(true));
@@ -1800,7 +1681,6 @@
     window.addEventListener('DOMContentLoaded', init);
   </script>
 
-  <!-- ==================== 插件中心（按需动态加载 ./plugins 下的独立插件） ==================== -->
   <script src="./plugins/plugins-center.js" onerror="window.__pcLoadFailed=true"></script>
   <script>
     window.addEventListener('load', function () {

@@ -234,7 +234,7 @@
             audioEl.src = src;
             await audioEl.play().catch(e => {
                 onStatus('播放失败：' + e.message, 'error');
-                throw new Error('播放失败：' + e.message);
+                //throw new Error('播放失败：' + e.message);
             });
         },
         destroy: (audioEl) => {
