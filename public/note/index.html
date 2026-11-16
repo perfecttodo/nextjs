@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#4f46e5" />
   <title>SparkFlow 灵流 — 随手记灵感，一步转目标</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -23,117 +24,92 @@
     }
   </script>
   <style>
+    :root{
+      --sf-indigo:#4f46e5; --sf-indigo-l:#6366f1; --sf-violet:#7c3aed; --sf-fuchsia:#d946ef;
+      --sf-amber:#f59e0b; --sf-emerald:#10b981; --sf-rose:#f43f5e; --sf-sky:#0ea5e9;
+      --sf-track:rgba(148,163,184,.13);
+    }
     * { -webkit-tap-highlight-color: transparent; }
 
-    /* ==================== 核心修复：应用外壳固定视口，内部容器各自滚动 ==================== */
-    html {
-      height: 100%;
-      max-width: 100vw;
-      overflow: hidden;              /* 关闭文档级滚动，消除多层 overflow 冲突 */
-      -webkit-text-size-adjust: 100%;
-    }
-    body {
-      height: 100%;
-      margin: 0;
-      overflow: hidden;              /* 与 html 一致，杜绝“滚动容器错位” */
-      overscroll-behavior: none;
-    }
+    html { height:100%; max-width:100vw; overflow:hidden; -webkit-text-size-adjust:100%; }
+    body { height:100%; margin:0; overflow:hidden; overscroll-behavior:none; }
 
-    /* 右侧主区域：撑满视口高度，纵向 flex 布局 */
-    #rightContainer {
-      height: 100vh;
-      height: 100dvh;                /* 移动端地址栏动态变化时更准确 */
-      min-height: 0;
-      overflow: hidden;
-    }
+    /* ==================== 背景：极光 + 颗粒 ==================== */
+    #bgLayer{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+    .aurora{ position:absolute; border-radius:50%; filter:blur(72px); opacity:.42; mix-blend-mode:multiply; }
+    .dark .aurora{ mix-blend-mode:screen; opacity:.30; }
+    .a1{ width:46vw; height:46vw; min-width:320px; min-height:320px; left:-8vw; top:-10vw; background:radial-gradient(circle at 30% 30%, #6366f1, transparent 68%); animation:drift1 26s ease-in-out infinite; }
+    .a2{ width:40vw; height:40vw; min-width:280px; min-height:280px; right:-6vw; top:12vh; background:radial-gradient(circle at 60% 40%, #d946ef, transparent 66%); animation:drift2 32s ease-in-out infinite; }
+    .a3{ width:38vw; height:38vw; min-width:260px; min-height:260px; left:24vw; bottom:-14vw; background:radial-gradient(circle at 50% 50%, #f59e0b, transparent 64%); animation:drift3 38s ease-in-out infinite; }
+    @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(6vw,5vh) scale(1.12)}}
+    @keyframes drift2{0%,100%{transform:translate(0,0) scale(1.05)}50%{transform:translate(-7vw,8vh) scale(.92)}}
+    @keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(5vw,-6vh) scale(1.15)}}
+    #grain{ position:absolute; inset:0; opacity:.035; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    .dark #grain{ opacity:.055; }
 
-    /* 主内容滚动容器（关键） */
-    #appMain {
-      flex: 1 1 auto;
-      min-height: 0;                 /* flex 子项必须归零，否则永远不会滚动 */
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior-y: contain;
-      padding-bottom: calc(104px + env(safe-area-inset-bottom)); /* 为悬浮底栏留出空间 */
-      scrollbar-width: thin;
-      scrollbar-color: rgba(148, 163, 184, .55) transparent;
-    }
-    /* 桌面端显示细滚动条，让用户明确感知“这里有更多内容” */
-    #appMain::-webkit-scrollbar { width: 8px; height: 8px; }
-    #appMain::-webkit-scrollbar-track { background: transparent; }
-    #appMain::-webkit-scrollbar-thumb {
-      background-color: rgba(148, 163, 184, .45);
-      border-radius: 9999px;
-      border: 2px solid transparent;
-      background-clip: content-box;
-    }
-    #appMain::-webkit-scrollbar-thumb:hover {
-      background-color: rgba(100, 116, 139, .65);
-      background-clip: content-box;
-    }
-    @media (min-width: 768px) {
-      #appMain { padding-bottom: 100px; }
-    }
-    /* 触摸设备上隐藏滚动条视觉，但仍可流畅滚动 */
-    @media (hover: none) and (pointer: coarse) {
-      #appMain { scrollbar-width: none; }
-      #appMain::-webkit-scrollbar { display: none; }
-    }
+    /* ==================== 外壳与滚动 ==================== */
+    #rightContainer { height:100vh; height:100dvh; min-height:0; overflow:hidden; position:relative; z-index:10; }
+    #appMain { flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior-y:contain; padding-bottom:calc(116px + env(safe-area-inset-bottom)); }
+    @media (min-width:768px){ #appMain{ padding-bottom:112px; } }
 
-    .pb-safe { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .sf-scroll{ scrollbar-width:thin; scrollbar-color:rgba(99,102,241,.8) var(--sf-track); }
+    .sf-scroll::-webkit-scrollbar{ width:9px; height:9px; }
+    .sf-scroll::-webkit-scrollbar-track{ background:var(--sf-track); border-radius:9999px; }
+    .sf-scroll::-webkit-scrollbar-thumb{ background-image:linear-gradient(180deg,var(--sf-indigo-l),var(--sf-violet)); border-radius:9999px; border:2px solid transparent; background-clip:padding-box; }
+    .sf-scroll::-webkit-scrollbar-thumb:hover{ background-image:linear-gradient(180deg,#818cf8,var(--sf-fuchsia)); }
+    @media (hover:none) and (pointer:coarse){ #appMain{ scrollbar-width:none; } #appMain::-webkit-scrollbar{ display:none; } }
 
-    @keyframes voiceWave {
-      0%, 100% { transform: scaleY(0.28); }
-      50% { transform: scaleY(1); }
-    }
-    .wave-active { animation: voiceWave 0.7s ease-in-out infinite; transform-origin: center; }
+    .pb-safe{ padding-bottom:calc(12px + env(safe-area-inset-bottom)); }
+    .no-scrollbar::-webkit-scrollbar{ display:none; }
+    .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
 
-    @keyframes sheetSlideUp {
-      from { transform: translateY(100%); opacity: 0.7; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    .animate-sheet-up { animation: sheetSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    /* ==================== 动效 ==================== */
+    @keyframes voiceWave{0%,100%{transform:scaleY(.28)}50%{transform:scaleY(1)}}
+    .wave-active{ animation:voiceWave .7s ease-in-out infinite; transform-origin:center; }
+    @keyframes sheetSlideUp{from{transform:translateY(100%);opacity:.7}to{transform:translateY(0);opacity:1}}
+    .animate-sheet-up{ animation:sheetSlideUp .3s cubic-bezier(.16,1,.3,1) forwards; }
+    @keyframes popIn{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+    .animate-pop-in{ animation:popIn .22s cubic-bezier(.16,1,.3,1) forwards; }
+    @keyframes cardIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+    .card-enter{ animation:cardIn .45s cubic-bezier(.16,1,.3,1) both; }
+    @keyframes flowPulse{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,.45)}70%{box-shadow:0 0 0 9px rgba(99,102,241,0)}}
+    .flow-pulse{ animation:flowPulse 2.4s ease-out infinite; }
+    @keyframes shimmer{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+    .brand-flow{ background-image:linear-gradient(100deg,#4f46e5,#7c3aed,#d946ef,#4f46e5); background-size:200% 100%; animation:shimmer 7s linear infinite; }
 
-    @keyframes popIn {
-      from { transform: scale(0.94); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-    .animate-pop-in { animation: popIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .swipe-card-inner{ transition:transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease, border-color .25s ease; will-change:transform; }
+    .swipe-card-inner.dragging{ transition:none; }
+    @media (hover:hover){ .swipe-card-inner:hover{ box-shadow:0 14px 34px -14px rgba(79,70,229,.35); border-color:rgba(129,140,248,.55); } }
+    .drag-source{ opacity:.32; }
+    .drag-ghost{ border-radius:1.5rem; }
+    .drop-before::before,.drop-after::after{ content:''; position:absolute; left:10px; right:10px; height:3px; border-radius:9999px; background:linear-gradient(90deg,var(--sf-indigo-l),var(--sf-fuchsia)); box-shadow:0 0 12px rgba(129,140,248,.8); }
+    .drop-before::before{ top:-8px; } .drop-after::after{ bottom:-8px; }
+    [data-drag-handle]{ touch-action:none; cursor:grab; }
+    [data-drag-handle]:active{ cursor:grabbing; }
+    .sf-mark{ background:linear-gradient(180deg,transparent 52%,rgba(245,158,11,.55) 52%); color:inherit; border-radius:2px; padding:0 1px; }
+    .dark .sf-mark{ background:linear-gradient(180deg,transparent 52%,rgba(245,158,11,.42) 52%); }
 
-    .swipe-card-inner {
-      transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-      will-change: transform;
-    }
-    .swipe-card-inner.dragging { transition: none; }
-
-    /* 侧栏：独立高度与滚动 */
-    #sidebar {
-      height: 100vh;
-      height: 100dvh;
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    #sidebarPluginsList {
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior-y: contain;
-    }
-
-    .right-container, nav.fixed {
-      transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1), left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
+    #sidebar{ height:100vh; height:100dvh; transition:transform .3s cubic-bezier(.16,1,.3,1); }
+    #sidebarPluginsList{ -webkit-overflow-scrolling:touch; overscroll-behavior-y:contain; }
+    .right-container, nav.fixed, #bulkBar{ transition:margin-left .3s cubic-bezier(.16,1,.3,1), left .3s cubic-bezier(.16,1,.3,1); }
+    select{ appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right .5rem center; padding-right:1.5rem; }
+    input[type="checkbox"]{ accent-color:#7c3aed; }
+    @media (prefers-reduced-motion:reduce){ *,*::before,*::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; } }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-900 dark:bg-[#07090F] dark:text-slate-100 antialiased selection:bg-indigo-500/20">
 
+  <div id="bgLayer" aria-hidden="true">
+    <div class="aurora a1"></div><div class="aurora a2"></div><div class="aurora a3"></div><div id="grain"></div>
+  </div>
+
   <div id="sidebarBackdrop" class="fixed inset-0 z-40 hidden bg-slate-950/50 backdrop-blur-xs md:hidden transition-opacity" onclick="closeSidebar()"></div>
 
-  <aside id="sidebar" class="fixed top-0 left-0 z-50 h-full w-72 bg-white dark:bg-[#0F1320] border-r border-slate-200 dark:border-slate-800 transform -translate-x-full md:translate-x-0 flex flex-col shadow-2xl md:shadow-none">
+  <aside id="sidebar" class="fixed top-0 left-0 z-50 h-full w-72 bg-white/95 dark:bg-[#0F1320]/95 backdrop-blur-xl border-r border-slate-200 dark:border-slate-800 transform -translate-x-full md:translate-x-0 flex flex-col shadow-2xl md:shadow-none">
     <div class="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
       <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-sm">
-          <i data-lucide="sparkles" class="w-4 h-4"></i>
+        <div class="w-8 h-8 rounded-xl brand-flow flex items-center justify-center text-white shadow-sm">
+          <i data-lucide="blocks" class="w-4 h-4"></i>
         </div>
         <span class="font-bold text-base tracking-tight">插件与设置</span>
       </div>
@@ -156,13 +132,14 @@
       </button>
     </div>
 
-    <div class="px-4 py-2 border-t border-slate-200 dark:border-slate-800 shrink-0 mt-1">
+    <div class="px-4 py-2 border-t border-slate-200 dark:border-slate-800 shrink-0 mt-1 flex items-center justify-between gap-2">
       <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
         <i data-lucide="blocks" class="w-3.5 h-3.5"></i> 插件管理
       </span>
+      <button id="pluginCenterFallbackBtn" type="button" onclick="openPluginCenterHelp()" class="hidden h-7 px-2.5 rounded-lg bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300 text-[11px] font-bold items-center gap-1">🧩 插件中心</button>
     </div>
 
-    <div class="flex-1 overflow-y-auto p-3 space-y-2.5 no-scrollbar" id="sidebarPluginsList"></div>
+    <div class="flex-1 overflow-y-auto p-3 space-y-2.5 sf-scroll" id="sidebarPluginsList"></div>
 
     <div class="p-3 border-t border-slate-200 dark:border-slate-800 shrink-0 bg-slate-50/80 dark:bg-[#0B0E14]/80">
       <details class="group">
@@ -193,21 +170,22 @@
 
   <div id="rightContainer" class="right-container md:ml-72 flex flex-col overflow-hidden">
 
-    <header class="shrink-0 z-20 bg-white/95 dark:bg-[#0F1320]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 shadow-sm">
+    <header class="shrink-0 z-20 bg-white/90 dark:bg-[#0F1320]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 shadow-sm">
       <div class="w-full px-4 md:px-8 h-14 flex items-center justify-between gap-2">
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-2.5 min-w-0">
           <button id="openSidebarBtn" class="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all">
             <i data-lucide="menu" class="w-5 h-5"></i>
           </button>
           <button id="expandSidebarBtn" class="hidden w-9 h-9 rounded-xl items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 active:scale-95 transition-all" title="展开侧栏">
             <i data-lucide="panel-left-open" class="w-5 h-5"></i>
           </button>
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-sm">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-xl brand-flow flow-pulse flex items-center justify-center text-white shadow-sm shrink-0">
               <i data-lucide="sparkles" class="w-4 h-4"></i>
             </div>
-            <div>
-              <h1 class="font-bold text-base leading-tight tracking-tight">SparkFlow <span class="text-indigo-600 dark:text-indigo-400">灵流</span></h1>
+            <div class="min-w-0">
+              <h1 class="font-bold text-base leading-tight tracking-tight truncate">SparkFlow <span class="text-indigo-600 dark:text-indigo-400">灵流</span></h1>
+              <p id="headerStatLine" class="text-[10px] text-slate-400 leading-tight truncate hidden sm:block">灵感正在流动</p>
             </div>
           </div>
         </div>
@@ -231,7 +209,7 @@
       <div id="mobileSearchBar" class="hidden w-full px-4 md:px-8 pb-3 space-y-2.5">
         <div class="relative">
           <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-          <input id="searchInput" type="search" placeholder="搜索灵感、核心价值、行动项..." class="w-full h-10 pl-10 pr-9 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-indigo-500" />
+          <input id="searchInput" type="search" placeholder="搜索灵感、核心价值、行动项...（快捷键 /）" class="w-full h-10 pl-10 pr-9 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-indigo-500" />
           <button id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 p-1">
             <i data-lucide="x" class="w-4 h-4"></i>
           </button>
@@ -240,15 +218,14 @@
       </div>
     </header>
 
-    <!-- 主滚动容器：唯一的内容滚动区 -->
-    <main id="appMain" class="w-full px-4 md:px-8 pt-4 space-y-4">
+    <main id="appMain" class="sf-scroll w-full px-4 md:px-8 pt-4 space-y-4">
 
-      <div id="onboardingBanner" class="rounded-2xl bg-gradient-to-r from-indigo-50 via-violet-50 to-indigo-50 dark:from-indigo-950/40 dark:via-violet-950/30 dark:to-indigo-950/40 border border-indigo-200/70 dark:border-indigo-500/20 p-3 flex items-center justify-between gap-2.5">
+      <div id="onboardingBanner" class="rounded-2xl bg-gradient-to-r from-indigo-50 via-violet-50 to-amber-50 dark:from-indigo-950/40 dark:via-violet-950/30 dark:to-amber-950/20 border border-indigo-200/70 dark:border-indigo-500/20 p-3 flex items-center justify-between gap-2.5">
         <div class="flex items-center gap-2.5 min-w-0">
-          <span class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm shrink-0">👋</span>
+          <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center text-sm shrink-0 shadow-sm">👋</span>
           <div class="min-w-0">
-            <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">右滑卡片快速推进 · 点底部「+」随手记</p>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">支持真实语音/视频录制及插件扩展</p>
+            <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">右滑卡片快速推进 · 拖动手柄排序 · 点底部「+」随手记</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">真实语音/视频录制 · 批量管理 · 插件中心按需扩展</p>
           </div>
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
@@ -259,7 +236,7 @@
         </div>
       </div>
 
-      <section id="stageFilterSection" class="space-y-4">
+      <section id="stageFilterSection" class="space-y-3.5">
         <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5" id="stageTabsContainer">
           <button data-stage="all" class="stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-slate-900 text-white dark:bg-indigo-600 shadow-xs transition-all">全部 <span class="ml-1 opacity-80" id="countAll">0</span></button>
           <button data-stage="clue" class="stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 transition-all">💡 线索 <span class="ml-1 text-amber-600 dark:text-amber-400" id="countClue">0</span></button>
@@ -267,11 +244,26 @@
           <button data-stage="goal" class="stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 transition-all">🎯 工作目标 <span class="ml-1 text-emerald-600 dark:text-emerald-400" id="countGoal">0</span></button>
         </div>
 
+        <div class="flex items-center gap-2">
+          <div id="viewsBar" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-1 min-w-0"></div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <select id="sortSelect" onchange="setSortMode(this.value)" aria-label="排序方式" class="h-8 pl-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 focus:outline-none focus:border-indigo-500">
+              <option value="smart">✨ 智能排序</option>
+              <option value="newest">🕒 最新优先</option>
+              <option value="oldest">📜 最早优先</option>
+              <option value="priority">🔥 优先级</option>
+              <option value="progress">📈 完成度</option>
+              <option value="manual">✋ 手动排序</option>
+            </select>
+            <button type="button" id="bulkModeBtn" onclick="toggleSelectMode()" class="h-8 px-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300 active:scale-95 transition-all">批量</button>
+          </div>
+        </div>
+
         <div id="goalProgressOverview" class="hidden rounded-3xl bg-white dark:bg-[#131824] border border-slate-200/80 dark:border-slate-800 p-4 flex items-center justify-between gap-4 shadow-xs">
-          <div class="space-y-1">
+          <div class="space-y-1 min-w-0">
             <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold"><span>🎯</span><span>本周目标推进看板</span></div>
-            <h3 class="text-base font-bold text-slate-900 dark:text-slate-100" id="goalOverviewTitle">已完成 0 / 0 项关键行动</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400" id="goalOverviewSub">持续将碎片灵感转化为可执行结果</p>
+            <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 truncate" id="goalOverviewTitle">已完成 0 / 0 项关键行动</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 truncate" id="goalOverviewSub">持续将碎片灵感转化为可执行结果</p>
           </div>
           <div class="relative w-16 h-16 shrink-0 flex items-center justify-center">
             <svg class="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
@@ -282,14 +274,13 @@
           </div>
         </div>
 
-        <div id="cardsFeed" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
-        </div>
+        <div id="cardsFeed" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4"></div>
       </section>
 
     </main>
   </div>
 
-  <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-[#0F1320]/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 pb-safe md:left-72 md:right-0 md:bottom-3 md:mx-4 md:rounded-2xl md:border md:shadow-lg md:pb-0">
+  <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-[#0F1320]/95 backdrop-blur-xl border-t border-slate-200/80 dark:border-slate-800 pb-safe md:left-72 md:right-0 md:bottom-3 md:mx-4 md:rounded-2xl md:border md:shadow-lg md:pb-0">
     <div class="w-full px-6 h-16 flex items-center justify-between relative">
       <button type="button" data-nav="clues" class="nav-tab-btn flex flex-col items-center justify-center w-20 h-12 rounded-xl text-indigo-600 dark:text-indigo-400 transition-colors">
         <i data-lucide="inbox" class="w-5 h-5 mb-0.5"></i>
@@ -297,7 +288,7 @@
       </button>
 
       <div class="relative -top-4">
-        <button type="button" id="openQuickCaptureFab" aria-label="极速记录灵感" class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/35 flex items-center justify-center active:scale-90 transition-transform">
+        <button type="button" id="openQuickCaptureFab" aria-label="极速记录灵感" class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-fuchsia-500 text-white shadow-lg shadow-indigo-500/35 flex items-center justify-center active:scale-90 transition-transform">
           <i data-lucide="plus" class="w-7 h-7 stroke-[2.5]"></i>
         </button>
       </div>
@@ -309,9 +300,11 @@
     </div>
   </nav>
 
+  <div id="bulkBar" class="hidden fixed z-[35] left-3 right-3 bottom-[92px] md:bottom-24 rounded-2xl bg-slate-900/95 dark:bg-[#171d33]/95 backdrop-blur-md border border-indigo-500/30 shadow-2xl px-3 py-2.5 flex items-center gap-2 flex-wrap"></div>
+
   <!-- 底部抽屉 1：极速多模态捕获面板 -->
   <div id="captureSheetBackdrop" class="fixed inset-0 z-40 hidden bg-slate-950/50 backdrop-blur-xs transition-opacity">
-    <div id="captureSheetPanel" onclick="event.stopPropagation()" class="fixed bottom-0 inset-x-0 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-2xl bg-white dark:bg-[#141926] rounded-t-3xl md:rounded-3xl shadow-2xl border-t md:border border-slate-200 dark:border-slate-800 p-5 pb-safe animate-sheet-up max-h-[92vh] overflow-y-auto">
+    <div id="captureSheetPanel" onclick="event.stopPropagation()" class="sf-scroll fixed bottom-0 inset-x-0 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-2xl bg-white dark:bg-[#141926] rounded-t-3xl md:rounded-3xl shadow-2xl border-t md:border border-slate-200 dark:border-slate-800 p-5 pb-safe animate-sheet-up max-h-[92vh] overflow-y-auto">
       <div class="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 mx-auto mb-3.5 md:hidden"></div>
       <div class="grid grid-cols-3 gap-2 p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 mb-4">
         <button type="button" data-mode="text" class="cap-mode-btn h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 shadow-xs transition-all"><span>📝</span><span>文字</span></button>
@@ -349,14 +342,17 @@
         </div>
         <input id="sheetVideoNote" type="text" placeholder="一句话补充视频画面核心内容..." class="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-indigo-500" />
       </div>
-      <div class="flex items-center justify-between gap-2 mt-4">
+      <div class="flex items-center justify-between gap-2 mt-4 flex-wrap">
         <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar" id="sheetTagPills">
           <button type="button" data-tag="产品" class="sheet-tag-btn h-9 px-3 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 shrink-0">#产品</button>
           <button type="button" data-tag="随想" class="sheet-tag-btn h-9 px-3 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 shrink-0">#随想</button>
           <button type="button" data-tag="待办" class="sheet-tag-btn h-9 px-3 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 shrink-0">#待办</button>
           <button type="button" data-tag="设计" class="sheet-tag-btn h-9 px-3 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 shrink-0">#设计</button>
         </div>
-        <button type="button" id="submitCaptureBtn" class="h-12 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-sm font-bold shadow-md shadow-indigo-500/25 shrink-0 transition-all">存入线索</button>
+        <div class="flex items-center gap-2 shrink-0">
+          <button type="button" id="submitAndThinkBtn" class="h-12 px-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 text-indigo-600 dark:text-indigo-300 text-xs font-bold active:scale-95 transition-all">存入并思考</button>
+          <button type="button" id="submitCaptureBtn" class="h-12 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-sm font-bold shadow-md shadow-indigo-500/25 transition-all">存入线索</button>
+        </div>
       </div>
     </div>
   </div>
@@ -365,21 +361,30 @@
   <div id="detailSheetBackdrop" class="fixed inset-0 z-40 hidden bg-slate-950/50 backdrop-blur-xs">
     <div id="detailSheetPanel" onclick="event.stopPropagation()" class="fixed bottom-0 inset-x-0 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-2xl bg-white dark:bg-[#141926] rounded-t-3xl md:rounded-3xl shadow-2xl border-t md:border border-slate-200 dark:border-slate-800 max-h-[92vh] md:max-h-[85vh] flex flex-col animate-sheet-up">
       <div class="px-5 pt-3 pb-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
-        <div class="flex items-center gap-2">
-          <span id="detailMediaBadge" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800">📝 文字</span>
-          <span id="detailStageBadge" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">💡 灵感线索</span>
+        <div class="flex items-center gap-2 min-w-0">
+          <span id="detailMediaBadge" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 shrink-0">📝 文字</span>
+          <span id="detailStageBadge" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 shrink-0">💡 灵感线索</span>
         </div>
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1 shrink-0">
           <button type="button" id="detailPinBtn" title="置顶/取消置顶" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="pin" class="w-4 h-4"></i></button>
           <button type="button" id="detailDeleteBtn" title="删除记录" class="w-9 h-9 rounded-xl flex items-center justify-center text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
           <button type="button" id="closeDetailSheetBtn" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
       </div>
-      <div class="p-5 overflow-y-auto space-y-4 flex-1">
+      <div class="sf-scroll p-5 overflow-y-auto space-y-4 flex-1">
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1.5">灵感原始记录</label>
           <textarea id="detailContentInput" rows="2" class="w-full rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 text-sm font-medium focus:outline-none focus:border-indigo-500"></textarea>
           <div id="detailMediaPlayerSlot" class="mt-2"></div>
+          <div class="mt-2.5 flex items-center gap-2 flex-wrap">
+            <div id="detailStageSeg" class="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-900"></div>
+            <span id="detailMetaLine" class="text-[11px] text-slate-400"></span>
+          </div>
+          <div id="detailTagsBox" class="mt-2.5 flex items-center gap-1.5 flex-wrap"></div>
+          <div class="mt-2 flex gap-2">
+            <input id="detailNewTagInput" type="text" placeholder="新增标签，回车确认..." class="flex-1 h-9 px-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs focus:outline-none focus:border-indigo-500" />
+            <button type="button" onclick="addItemTagFromInput()" class="h-9 px-3.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs font-bold shrink-0 active:scale-95">添加标签</button>
+          </div>
         </div>
         <div class="rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/25 border border-indigo-200/70 dark:border-indigo-500/20 p-4 space-y-3">
           <div class="flex items-center justify-between gap-2">
@@ -439,141 +444,241 @@
   </div>
 
   <div id="modalBackdrop" class="fixed inset-0 z-50 hidden bg-slate-950/55 backdrop-blur-xs flex items-center justify-center p-4">
-    <div id="modalContentBox" onclick="event.stopPropagation()" class="w-full max-w-md rounded-3xl bg-white dark:bg-[#141926] border border-slate-200 dark:border-slate-800 p-5 shadow-2xl animate-pop-in"></div>
+    <div id="modalContentBox" onclick="event.stopPropagation()" class="sf-scroll w-full max-w-md max-h-[86vh] overflow-y-auto rounded-3xl bg-white dark:bg-[#141926] border border-slate-200 dark:border-slate-800 p-5 shadow-2xl animate-pop-in"></div>
   </div>
 
-  <div id="toastBox" class="fixed top-16 inset-x-0 z-[60] flex justify-center pointer-events-none px-4"></div>
+  <div id="toastBox" class="fixed top-16 inset-x-0 z-[60] flex flex-col items-center gap-2 pointer-events-none px-4"></div>
 
   <script>
+    /* ==================== 存储键 ==================== */
     const STORAGE_ITEMS = 'sparkflow_mobile_items_v2';
     const STORAGE_PLUGINS = 'sparkflow_mobile_plugins_v2';
     const STORAGE_THEME = 'sparkflow_mobile_theme_v2';
     const STORAGE_ONBOARDING = 'sparkflow_onboarding_dismissed_v2';
     const STORAGE_SIDEBAR = 'sparkflow_sidebar_collapsed_v2';
+    const STORAGE_VIEWS = 'sparkflow_saved_views_v1';
+    const STORAGE_SORT = 'sparkflow_sort_mode_v1';
 
+    const NOW = Date.now();
+    const MIN = 60000, HOUR = 3600000, DAY = 86400000;
+
+    /* ==================== 预置样本 ==================== */
     const INITIAL_ITEMS = [
-      { id: 'm-1', stage: 'clue', pinned: true, mediaType: 'text', mediaMeta: {}, content: '在地铁上突然想到：做一个专为自由职业者设计的"极简报价单生成器"，30秒生成带收款码的 PDF。', tags: ['产品'], createdAt: '15分钟前', thinking: { value: '', nextStep: '' }, goal: { priority: 'P1', deadline: '2026-11-30', tasks: [] }, aiSummary: '' },
-      { id: 'm-2', stage: 'thinking', pinned: false, mediaType: 'voice', mediaMeta: { duration: '00:28', audioUrl: '' }, content: '语音速记：每周五下午复盘耗时太长，如果能把平时的语音灵感自动按标签汇总成周报草稿，至少省下1小时。', tags: ['随想'], createdAt: '2小时前', thinking: { value: '消除周五写周报的回忆痛苦，实现碎片记录自动复利', nextStep: '先用多维表格跑通自动汇总原型' }, goal: { priority: 'P1', deadline: '2026-12-05', tasks: [] }, aiSummary: '' },
-      { id: 'm-3', stage: 'goal', pinned: false, mediaType: 'text', mediaMeta: {}, content: '上线个人作品集网站 2.0，整合近期做的 3 个效率小工具案例', tags: ['待办', '设计'], createdAt: '昨天', thinking: { value: '建立个人专业品牌，吸引高质量独立咨询合作', nextStep: '本周内完成首页响应式排版与案例截图' }, goal: { priority: 'P0', deadline: '2026-11-25', tasks: [ { id: 't-1', text: '整理 3 个核心项目的痛点与数据成果', done: true }, { id: 't-2', text: '适配手机端单手浏览体验', done: false } ]}, aiSummary: '' },
-      { id: 'm-4', stage: 'clue', pinned: false, mediaType: 'text', mediaMeta: {}, content: '看到一篇关于 AI 辅助写作的文章，想到可以做一个"灵感碎片 → 长文"的自动扩写工具。', tags: ['产品', 'AI'], createdAt: '3小时前', thinking: { value: '', nextStep: '' }, goal: { priority: 'P2', deadline: '2026-12-15', tasks: [] }, aiSummary: '' },
-      { id: 'm-5', stage: 'thinking', pinned: false, mediaType: 'text', mediaMeta: {}, content: '团队周会效率低，考虑引入异步文档 + 短会模式，先在小范围试点。', tags: ['周报', '管理'], createdAt: '昨天', thinking: { value: '减少无效会议时间，提升团队专注度', nextStep: '起草异步协作规范文档' }, goal: { priority: 'P1', deadline: '2026-12-01', tasks: [] }, aiSummary: '' }
+      { id:'m-1', stage:'clue', pinned:true, mediaType:'text', mediaMeta:{}, ts:NOW-15*MIN, content:'在地铁上突然想到：做一个专为自由职业者设计的"极简报价单生成器"，30秒生成带收款码的 PDF。', tags:['产品'], createdAt:'15分钟前', thinking:{value:'',nextStep:''}, goal:{priority:'P1',deadline:'2026-11-30',tasks:[]}, aiSummary:'' },
+      { id:'m-2', stage:'thinking', pinned:false, mediaType:'voice', mediaMeta:{duration:'00:28',audioUrl:''}, ts:NOW-2*HOUR, content:'语音速记：每周五下午复盘耗时太长，如果能把平时的语音灵感自动按标签汇总成周报草稿，至少省下1小时。', tags:['随想','周报'], createdAt:'2小时前', thinking:{value:'消除周五写周报的回忆痛苦，实现碎片记录自动复利',nextStep:'先用多维表格跑通自动汇总原型'}, goal:{priority:'P1',deadline:'2026-12-05',tasks:[]}, aiSummary:'' },
+      { id:'m-3', stage:'goal', pinned:false, mediaType:'text', mediaMeta:{}, ts:NOW-DAY, content:'上线个人作品集网站 2.0，整合近期做的 3 个效率小工具案例', tags:['待办','设计'], createdAt:'昨天', thinking:{value:'建立个人专业品牌，吸引高质量独立咨询合作',nextStep:'本周内完成首页响应式排版与案例截图'}, goal:{priority:'P0',deadline:'2026-11-25',tasks:[{id:'t-1',text:'整理 3 个核心项目的痛点与数据成果',done:true},{id:'t-2',text:'适配手机端单手浏览体验',done:false}]}, aiSummary:'' },
+      { id:'m-4', stage:'clue', pinned:false, mediaType:'text', mediaMeta:{}, ts:NOW-3*HOUR, content:'看到一篇关于 AI 辅助写作的文章，想到可以做一个"灵感碎片 → 长文"的自动扩写工具。', tags:['产品','AI'], createdAt:'3小时前', thinking:{value:'',nextStep:''}, goal:{priority:'P2',deadline:'2026-12-15',tasks:[]}, aiSummary:'' },
+      { id:'m-5', stage:'thinking', pinned:false, mediaType:'text', mediaMeta:{}, ts:NOW-DAY-2*HOUR, content:'团队周会效率低，考虑引入异步文档 + 短会模式，先在小范围试点。', tags:['周报','管理'], createdAt:'昨天', thinking:{value:'减少无效会议时间，提升团队专注度',nextStep:'起草异步协作规范文档'}, goal:{priority:'P1',deadline:'2026-12-01',tasks:[]}, aiSummary:'' },
+      { id:'m-6', stage:'clue', pinned:false, mediaType:'video', mediaMeta:{duration:'00:35',videoUrl:''}, ts:NOW-5*HOUR, content:'随手拍白板草图：把注册流程从 5 步压缩到 3 步的漏斗改造构思，第二步直接跳过邮箱验证。', tags:['设计','产品'], createdAt:'5小时前', thinking:{value:'',nextStep:''}, goal:{priority:'P1',deadline:'2026-12-08',tasks:[]}, aiSummary:'' },
+      { id:'m-7', stage:'goal', pinned:false, mediaType:'text', mediaMeta:{}, ts:NOW-2*DAY, content:'发起「效率工具周报」Newsletter 增长实验，目标 4 周内订阅从 0 到 500。', tags:['增长','产品'], createdAt:'2天前', thinking:{value:'用持续输出建立信任资产，为独立产品积累首批种子用户',nextStep:'写出第 1 期并投放到 3 个社群'}, goal:{priority:'P1',deadline:'2026-12-12',tasks:[{id:'t-71',text:'确定周报栏目结构与视觉模板',done:true},{id:'t-72',text:'完成第 1 期内容并校对',done:true},{id:'t-73',text:'投放 3 个社群并记录转化数据',done:false}]}, aiSummary:'' }
     ];
 
     const INITIAL_PLUGINS = [
-      { id: 'ai-summary', emoji: '✨', name: 'AI 灵感提炼与 KR 拆解', desc: '自动归纳核心要点并生成可执行行动项', enabled: true, builtin: true },
-      { id: 'focus-timer', emoji: '🍅', name: '极简番茄专注钟', desc: '在工作目标卡片挂载 25 分钟倒计时', enabled: true, builtin: true },
-      { id: 'auto-tagger', emoji: '🏷️', name: '智能关键词自动归类', desc: '保存灵感时自动扫描关键词并补充分类标签', enabled: true, builtin: true },
-      { id: 'quick-export', emoji: '📋', name: 'Markdown 笔记导出', desc: '在思考详情页挂载一键复制或下载 .md 文件', enabled: true, builtin: true },
-      { id: 'daily-review', emoji: '📊', name: '每日灵感复盘海报', desc: '在顶部导航栏挂载今日复盘入口', enabled: true, builtin: true }
+      { id:'ai-summary', emoji:'✨', name:'AI 灵感提炼与 KR 拆解', desc:'自动归纳核心要点并生成可执行行动项', enabled:true, builtin:true },
+      { id:'focus-timer', emoji:'🍅', name:'极简番茄专注钟', desc:'在工作目标卡片挂载 25 分钟倒计时', enabled:true, builtin:true },
+      { id:'auto-tagger', emoji:'🏷️', name:'智能关键词自动归类', desc:'保存灵感时自动扫描关键词并补充分类标签', enabled:true, builtin:true },
+      { id:'quick-export', emoji:'📋', name:'Markdown 笔记导出', desc:'在思考详情页挂载一键复制或下载 .md 文件', enabled:true, builtin:true },
+      { id:'daily-review', emoji:'📊', name:'每日灵感复盘海报', desc:'在顶部导航栏挂载今日复盘入口', enabled:true, builtin:true }
     ];
 
+    /* ==================== 应用状态 ==================== */
     let appState = {
-      items: [], plugins: [], activeNav: 'clues', stageFilter: 'all', tagFilter: '', searchQuery: '', captureMode: 'text', captureTag: '产品',
-      isRecordingVoice: false, voiceSec: 0, voiceTimerId: null, mediaRecorder: null, mediaChunks: [], mediaStream: null, audioCtx: null, analyser: null, animFrameId: null, speechRec: null, recordedAudioUrl: '',
-      isRecordingVideo: false, videoSec: 0, videoTimerId: null, videoFacingMode: 'environment', recordedVideoUrl: '', editingItemId: null, editingIsGoal: false, timers: {},
-      sidebarCollapsed: false
+      items: [], plugins: [], activeNav:'clues', stageFilter:'all', tagFilter:'', searchQuery:'', sortMode:'smart',
+      captureMode:'text', captureTag:'产品',
+      isRecordingVoice:false, voiceSec:0, voiceTimerId:null, mediaRecorder:null, mediaChunks:[], mediaStream:null, audioCtx:null, analyser:null, animFrameId:null, speechRec:null, recordedAudioUrl:'',
+      isRecordingVideo:false, videoSec:0, videoTimerId:null, videoFacingMode:'environment', recordedVideoUrl:'',
+      editingItemId:null, editingIsGoal:false, timers:{},
+      sidebarCollapsed:false,
+      selectMode:false, selected:new Set(), views:[], activeViewId:''
     };
 
+    /* ==================== 插件 SDK ==================== */
     window.SparkFlowSDK = {
+      version: '2.1.0',
       register(plugin) {
         if (!plugin || !plugin.name) return;
-        appState.plugins.push({ id: plugin.id || 'custom-' + Date.now(), emoji: plugin.emoji || '⚡', name: plugin.name, desc: plugin.desc || plugin.actionText || '自定义快捷动作按钮', actionType: plugin.actionType || 'toast', actionText: plugin.actionText || `已执行「${plugin.name}」`, enabled: true, builtin: false });
+        const id = plugin.id || 'custom-' + Date.now();
+        if (appState.plugins.some(p => p.id === id)) return;
+        appState.plugins.push({ id, emoji: plugin.emoji || '⚡', name: plugin.name, desc: plugin.desc || plugin.actionText || '自定义快捷动作按钮', actionType: plugin.actionType || 'toast', actionText: plugin.actionText || `已执行「${plugin.name}」`, enabled: true, builtin: false });
         persist(); renderAll();
       }
     };
 
+    /* ==================== 工具 ==================== */
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    const pad2 = n => String(n).padStart(2, '0');
+    const fmtDur = sec => `${pad2(Math.floor(sec / 60))}:${pad2(sec % 60)}`;
+    const uid = p => p + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+
+    function relTime(ts) {
+      if (!ts) return '刚刚';
+      const d = Date.now() - ts;
+      if (d < MIN) return '刚刚';
+      if (d < HOUR) return Math.floor(d / MIN) + '分钟前';
+      if (d < DAY) return Math.floor(d / HOUR) + '小时前';
+      if (d < 2 * DAY) return '昨天';
+      if (d < 30 * DAY) return Math.floor(d / DAY) + '天前';
+      return new Date(ts).toLocaleDateString('zh-CN');
+    }
+
+    function hl(text, q) {
+      const safe = esc(text);
+      if (!q) return safe;
+      const eq = esc(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      try { return safe.replace(new RegExp(eq, 'gi'), m => `<mark class="sf-mark">${m}</mark>`); } catch (e) { return safe; }
+    }
+
+    function normalizeItem(it, idx) {
+      const o = Object.assign({}, it);
+      o.id = o.id || uid('m');
+      o.stage = ['clue','thinking','goal'].includes(o.stage) ? o.stage : 'clue';
+      o.pinned = !!o.pinned;
+      o.mediaType = ['text','voice','video'].includes(o.mediaType) ? o.mediaType : 'text';
+      o.mediaMeta = Object.assign({}, o.mediaMeta);
+      ['audioUrl','videoUrl'].forEach(k => { if (typeof o.mediaMeta[k] === 'string' && o.mediaMeta[k].startsWith('blob:')) { o.mediaMeta[k] = ''; o.mediaMeta.expired = true; } });
+      o.content = String(o.content || '');
+      o.tags = Array.isArray(o.tags) ? o.tags.filter(Boolean).map(String) : [];
+      o.ts = Number(o.ts) || (Date.now() - (idx || 0) * HOUR);
+      o.createdAt = o.createdAt || relTime(o.ts);
+      o.thinking = Object.assign({ value:'', nextStep:'' }, o.thinking);
+      o.goal = Object.assign({ priority:'P1', deadline:new Date(Date.now() + 7 * DAY).toISOString().slice(0,10), tasks:[] }, o.goal);
+      o.goal.tasks = Array.isArray(o.goal.tasks) ? o.goal.tasks.map(t => ({ id: t.id || uid('t'), text: String(t.text || ''), done: !!t.done, src: t.src })) : [];
+      o.aiSummary = String(o.aiSummary || '');
+      return o;
+    }
+
+    function copyText(text, msg) {
+      const ok = () => toast(msg || '📋 已复制', { type:'success' });
+      const legacy = () => { const ta = document.createElement('textarea'); ta.value = text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); ok(); } catch (e) { toast('复制失败，请手动选择文本', { type:'danger' }); } ta.remove(); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok).catch(legacy); else legacy();
+    }
+
+    /* ==================== 初始化 ==================== */
     function init() {
       try {
-        const rawItems = localStorage.getItem(STORAGE_ITEMS), rawPlugins = localStorage.getItem(STORAGE_PLUGINS), theme = localStorage.getItem(STORAGE_THEME), dismissed = localStorage.getItem(STORAGE_ONBOARDING), sidebarState = localStorage.getItem(STORAGE_SIDEBAR);
-        appState.items = rawItems ? JSON.parse(rawItems) : INITIAL_ITEMS;
-        appState.plugins = rawPlugins ? JSON.parse(rawPlugins) : INITIAL_PLUGINS;
+        const rawItems = localStorage.getItem(STORAGE_ITEMS), rawPlugins = localStorage.getItem(STORAGE_PLUGINS), theme = localStorage.getItem(STORAGE_THEME), dismissed = localStorage.getItem(STORAGE_ONBOARDING), sidebarState = localStorage.getItem(STORAGE_SIDEBAR), rawViews = localStorage.getItem(STORAGE_VIEWS), sort = localStorage.getItem(STORAGE_SORT);
+        appState.items = (rawItems ? JSON.parse(rawItems) : JSON.parse(JSON.stringify(INITIAL_ITEMS))).map(normalizeItem);
+        appState.plugins = rawPlugins ? JSON.parse(rawPlugins) : JSON.parse(JSON.stringify(INITIAL_PLUGINS));
+        appState.views = rawViews ? JSON.parse(rawViews) : [];
+        appState.sortMode = sort || 'smart';
         if (theme === 'dark') document.documentElement.classList.add('dark');
-        if (dismissed === '1') document.getElementById('onboardingBanner').classList.add('hidden');
-        if (sidebarState === '1') {
-          appState.sidebarCollapsed = true;
-          applySidebarState();
-        }
-      } catch (e) { appState.items = INITIAL_ITEMS; appState.plugins = INITIAL_PLUGINS; }
+        if (dismissed === '1') $('onboardingBanner').classList.add('hidden');
+        if (sidebarState === '1') { appState.sidebarCollapsed = true; }
+      } catch (e) {
+        appState.items = JSON.parse(JSON.stringify(INITIAL_ITEMS)).map(normalizeItem);
+        appState.plugins = JSON.parse(JSON.stringify(INITIAL_PLUGINS));
+      }
+      applySidebarState();
       buildVoiceWaveBars(); bindEvents(); renderAll(); startTimerLoop();
     }
 
     function persist() {
-      try { localStorage.setItem(STORAGE_ITEMS, JSON.stringify(appState.items)); localStorage.setItem(STORAGE_PLUGINS, JSON.stringify(appState.plugins)); } catch (e) {}
+      try {
+        localStorage.setItem(STORAGE_ITEMS, JSON.stringify(appState.items));
+        localStorage.setItem(STORAGE_PLUGINS, JSON.stringify(appState.plugins));
+        localStorage.setItem(STORAGE_VIEWS, JSON.stringify(appState.views));
+        localStorage.setItem(STORAGE_SORT, appState.sortMode);
+      } catch (e) {}
     }
 
-    function toast(msg) {
-      const box = document.getElementById('toastBox'), el = document.createElement('div');
-      el.className = 'bg-slate-900/95 dark:bg-indigo-600 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg transition-all duration-200 translate-y-2 opacity-0 max-w-[90vw] text-center';
-      el.textContent = msg; box.appendChild(el);
-      requestAnimationFrame(() => el.classList.remove('translate-y-2', 'opacity-0'));
-      setTimeout(() => { el.classList.add('opacity-0', '-translate-y-2'); setTimeout(() => el.remove(), 220); }, 2200);
+    /* ==================== 提示与撤销 ==================== */
+    function toast(msg, opts) {
+      opts = opts || {};
+      const box = $('toastBox');
+      const tones = { success:'from-emerald-500 to-teal-500', warn:'from-amber-500 to-orange-500', danger:'from-rose-500 to-red-500', info:'from-indigo-500 to-violet-500' };
+      const grad = tones[opts.type] || tones.info;
+      const el = document.createElement('div');
+      el.className = 'pointer-events-auto flex items-center gap-2.5 bg-slate-900/95 dark:bg-[#1b2236]/95 backdrop-blur-md text-white text-xs font-semibold pl-3 pr-2 py-2 rounded-full shadow-xl border border-white/10 transition-all duration-200 translate-y-2 opacity-0 max-w-[92vw]';
+      el.innerHTML = `<span class="w-2 h-2 rounded-full bg-gradient-to-br ${grad} shrink-0"></span><span class="truncate py-0.5">${esc(msg)}</span>`;
+      let timer;
+      const dismiss = () => { clearTimeout(timer); el.classList.add('opacity-0','-translate-y-2'); setTimeout(() => el.remove(), 220); };
+      if (opts.action) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'shrink-0 h-7 px-3 rounded-full bg-white/15 hover:bg-white/25 text-[11px] font-bold active:scale-95 transition-all';
+        btn.textContent = opts.action.label;
+        btn.onclick = () => { dismiss(); try { opts.action.onClick(); } catch (e) {} };
+        el.appendChild(btn);
+      }
+      box.appendChild(el);
+      while (box.children.length > 3) box.firstChild.remove();
+      requestAnimationFrame(() => el.classList.remove('translate-y-2','opacity-0'));
+      timer = setTimeout(dismiss, opts.duration || (opts.action ? 6000 : 2400));
+    }
+
+    function pushUndo(label, restore) {
+      toast(label, { type:'warn', action:{ label:'撤销', onClick: restore }, duration: 6000 });
     }
 
     function isPluginOn(id) { return appState.plugins.some(p => p.id === id && p.enabled); }
 
-    function scrollMainToTop() {
-      const main = document.getElementById('appMain');
-      if (main) main.scrollTop = 0;
-    }
+    function scrollMainToTop() { const m = $('appMain'); if (m) m.scrollTo({ top:0, behavior:'smooth' }); }
 
+    /* ==================== 侧栏 ==================== */
     function applySidebarState() {
-      const sidebar = document.getElementById('sidebar');
-      const rightContainer = document.getElementById('rightContainer');
-      const nav = document.getElementById('bottomNav');
-      const expandBtn = document.getElementById('expandSidebarBtn');
+      const sidebar = $('sidebar'), rightContainer = $('rightContainer'), nav = $('bottomNav'), expandBtn = $('expandSidebarBtn'), bulk = $('bulkBar');
       const isDesktop = window.matchMedia('(min-width: 768px)').matches;
-
       if (appState.sidebarCollapsed && isDesktop) {
         sidebar.style.transform = 'translateX(-100%)';
         rightContainer.style.marginLeft = '0';
         nav.style.left = '0';
-        expandBtn.classList.remove('hidden');
-        expandBtn.classList.add('flex');
+        if (bulk) bulk.style.left = isDesktop ? '1rem' : '';
+        expandBtn.classList.remove('hidden'); expandBtn.classList.add('flex');
       } else {
         sidebar.style.transform = isDesktop ? 'translateX(0)' : '';
         rightContainer.style.marginLeft = isDesktop ? '18rem' : '';
         nav.style.left = isDesktop ? '18rem' : '';
-        expandBtn.classList.remove('flex');
-        expandBtn.classList.add('hidden');
+        if (bulk) bulk.style.left = isDesktop ? '19rem' : '';
+        expandBtn.classList.remove('flex'); expandBtn.classList.add('hidden');
       }
+      if (!isDesktop) $('sidebarBackdrop').classList.toggle('hidden', sidebar.style.transform !== 'translateX(0px)' && sidebar.style.transform !== 'translateX(0)');
     }
 
     function toggleSidebar() {
       appState.sidebarCollapsed = !appState.sidebarCollapsed;
-      localStorage.setItem(STORAGE_SIDEBAR, appState.sidebarCollapsed ? '1' : '0');
+      try { localStorage.setItem(STORAGE_SIDEBAR, appState.sidebarCollapsed ? '1' : '0'); } catch (e) {}
       applySidebarState();
     }
 
     function openSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.style.transform = 'translateX(0)';
-      document.getElementById('sidebarBackdrop').classList.remove('hidden');
+      $('sidebar').style.transform = 'translateX(0)';
+      $('sidebarBackdrop').classList.remove('hidden');
     }
 
     function closeSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.style.transform = 'translateX(-100%)';
-      document.getElementById('sidebarBackdrop').classList.add('hidden');
+      if (window.matchMedia('(min-width: 768px)').matches) return;
+      $('sidebar').style.transform = 'translateX(-100%)';
+      $('sidebarBackdrop').classList.add('hidden');
     }
 
     function switchNav(nav) {
       appState.activeNav = nav;
-      if (nav === 'goals') appState.stageFilter = 'goal';
-      else if (nav === 'clues') appState.stageFilter = 'all';
-      renderAll();
-      scrollMainToTop();
+      appState.stageFilter = nav === 'goals' ? 'goal' : 'all';
+      appState.activeViewId = '';
+      renderAll(); scrollMainToTop();
     }
 
+    /* ==================== 渲染总控 ==================== */
     function renderAll() {
-      renderTopPluginSlot(); renderNavTabs(); renderStageCounts(); renderTagFilterBar(); renderGoalProgressOverview(); renderFeed(); renderSidebarPlugins(); lucide.createIcons();
+      renderTopPluginSlot(); renderNavTabs(); renderStageCounts(); renderTagFilterBar(); renderViewsBar(); renderToolbar();
+      renderGoalProgressOverview(); renderFeed(); renderSidebarPlugins(); renderBulkBar(); renderHeaderStat();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function renderHeaderStat() {
+      const goals = appState.items.filter(i => i.stage === 'goal').length;
+      const tasks = appState.items.flatMap(i => i.goal?.tasks || []);
+      const done = tasks.filter(t => t.done).length;
+      $('headerStatLine').textContent = `${appState.items.length} 条灵感 · ${goals} 个目标 · KR ${done}/${tasks.length}`;
     }
 
     function renderTopPluginSlot() {
-      const slot = document.getElementById('topPluginSlot'); let html = '';
+      const slot = $('topPluginSlot'); let html = '';
       const runningEntry = Object.entries(appState.timers).find(([, t]) => t.running);
       if (runningEntry && isPluginOn('focus-timer')) {
         const [itemId, t] = runningEntry;
-        html += `<button type="button" onclick="toggleFocusTimer('${itemId}')" class="h-8 px-2.5 rounded-full bg-rose-500 text-white text-[11px] font-mono font-bold flex items-center gap-1 shadow-xs animate-pulse shrink-0"><span>🍅</span><span>${String(Math.floor(t.sec / 60)).padStart(2, '0')}:${String(t.sec % 60).padStart(2, '0')}</span></button>`;
+        html += `<button type="button" onclick="toggleFocusTimer('${itemId}')" class="h-8 px-2.5 rounded-full bg-gradient-to-r from-rose-500 to-orange-500 text-white text-[11px] font-mono font-bold flex items-center gap-1 shadow-xs animate-pulse shrink-0"><span>🍅</span><span data-timer-display="${itemId}">${fmtDur(t.sec)}</span></button>`;
       }
       if (isPluginOn('daily-review')) {
         html += `<button type="button" onclick="openDailyReviewModal()" class="h-8 px-2.5 rounded-full bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-500/30 text-[11px] font-bold flex items-center gap-1 active:scale-95 shrink-0"><span>📊</span><span>复盘</span></button>`;
@@ -592,136 +697,261 @@
       });
       document.querySelectorAll('.stage-tab').forEach(tab => {
         const active = tab.dataset.stage === appState.stageFilter;
-        tab.className = active ? 'stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-slate-900 text-white dark:bg-indigo-600 shadow-xs transition-all' : 'stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 transition-all';
+        tab.className = active ? 'stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-xs transition-all' : 'stage-tab shrink-0 h-9 px-3.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 transition-all';
       });
     }
 
     function renderStageCounts() {
-      document.getElementById('countAll').textContent = appState.items.length;
-      document.getElementById('countClue').textContent = appState.items.filter(i => i.stage === 'clue').length;
-      document.getElementById('countThinking').textContent = appState.items.filter(i => i.stage === 'thinking').length;
-      document.getElementById('countGoal').textContent = appState.items.filter(i => i.stage === 'goal').length;
+      $('countAll').textContent = appState.items.length;
+      $('countClue').textContent = appState.items.filter(i => i.stage === 'clue').length;
+      $('countThinking').textContent = appState.items.filter(i => i.stage === 'thinking').length;
+      $('countGoal').textContent = appState.items.filter(i => i.stage === 'goal').length;
     }
 
     function renderTagFilterBar() {
-      const bar = document.getElementById('tagFilterBar'), allTags = Array.from(new Set(appState.items.flatMap(i => i.tags || [])));
-      if (!allTags.length) { bar.innerHTML = ''; return; }
-      bar.innerHTML = `<button type="button" onclick="setTagFilter('')" class="shrink-0 h-7 px-2.5 rounded-lg text-[11px] font-semibold ${appState.tagFilter === '' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-500 border border-slate-200 dark:border-slate-800'}">全部标签</button>` +
-        allTags.map(tag => `<button type="button" onclick="setTagFilter('${tag}')" class="shrink-0 h-7 px-2.5 rounded-lg text-[11px] font-semibold ${appState.tagFilter === tag ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800'}">#${tag}</button>`).join('');
+      const bar = $('tagFilterBar'), allTags = Array.from(new Set(appState.items.flatMap(i => i.tags || [])));
+      if (!allTags.length) { bar.innerHTML = '<span class="text-[11px] text-slate-400">暂无标签</span>'; return; }
+      bar.innerHTML = `<button type="button" data-tag="" class="shrink-0 h-7 px-2.5 rounded-lg text-[11px] font-semibold ${appState.tagFilter === '' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-500 border border-slate-200 dark:border-slate-800'}">全部标签</button>` +
+        allTags.map(tag => `<button type="button" data-tag="${esc(tag)}" class="shrink-0 h-7 px-2.5 rounded-lg text-[11px] font-semibold ${appState.tagFilter === tag ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800'}">#${esc(tag)}</button>`).join('');
     }
 
-    function setTagFilter(tag) { appState.tagFilter = appState.tagFilter === tag ? '' : tag; renderAll(); scrollMainToTop(); }
+    function setTagFilter(tag) { appState.tagFilter = appState.tagFilter === tag ? '' : tag; appState.activeViewId = ''; renderAll(); scrollMainToTop(); }
 
+    function renderViewsBar() {
+      const bar = $('viewsBar');
+      const chips = appState.views.map(v => `<span class="shrink-0 inline-flex items-center gap-1 h-8 pl-2.5 pr-1 rounded-lg text-[11px] font-bold border ${appState.activeViewId === v.id ? 'bg-violet-600 text-white border-violet-600' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'}"><button type="button" onclick="applyView('${v.id}')" class="active:scale-95">${esc(v.name)}</button><button type="button" onclick="deleteView('${v.id}')" title="删除视图" class="w-5 h-5 rounded flex items-center justify-center opacity-60 hover:opacity-100">✕</button></span>`).join('');
+      bar.innerHTML = chips + `<button type="button" onclick="saveCurrentView()" class="shrink-0 h-8 px-2.5 rounded-lg border border-dashed border-indigo-300 dark:border-indigo-500/40 text-indigo-600 dark:text-indigo-300 text-[11px] font-bold active:scale-95">+ 保存视图</button>`;
+    }
+
+    function renderToolbar() {
+      const sel = $('sortSelect'); if (sel) sel.value = appState.sortMode;
+      const btn = $('bulkModeBtn');
+      btn.className = appState.selectMode ? 'h-8 px-2.5 rounded-lg bg-violet-600 text-white text-[11px] font-bold active:scale-95 transition-all' : 'h-8 px-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300 active:scale-95 transition-all';
+      btn.textContent = appState.selectMode ? '退出批量' : '批量';
+    }
+
+    function setSortMode(v) { appState.sortMode = v; persist(); renderAll(); toast(`排序：${{smart:'智能',newest:'最新优先',oldest:'最早优先',priority:'优先级',progress:'完成度',manual:'手动'}[v] || v}`); }
+
+    /* ==================== 保存视图 ==================== */
+    function saveCurrentView() {
+      const box = $('modalContentBox');
+      const def = `${{all:'全部',clue:'线索',thinking:'思考',goal:'目标'}[appState.stageFilter]}${appState.tagFilter ? ' · #' + appState.tagFilter : ''}${appState.searchQuery ? ' · 搜索' : ''}`;
+      box.innerHTML = `<div class="space-y-4"><div class="flex items-center justify-between"><h3 class="font-bold text-base">保存当前视图</h3><button type="button" onclick="closeModal()" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">✕</button></div>
+      <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">将当前的阶段、标签、搜索词与排序方式保存为一个可一键切换的视图。</p>
+      <input id="viewNameInput" type="text" value="${esc(def)}" class="w-full h-11 px-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-indigo-500" />
+      <div class="rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 text-[11px] text-slate-500 space-y-1">
+        <div>阶段：${esc(appState.stageFilter)} · 标签：${esc(appState.tagFilter || '全部')}</div>
+        <div>搜索：${esc(appState.searchQuery || '无')} · 排序：${esc(appState.sortMode)}</div>
+      </div>
+      <button type="button" onclick="confirmSaveView()" class="w-full h-11 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold active:scale-[0.98]">保存视图</button></div>`;
+      $('modalBackdrop').classList.remove('hidden');
+      setTimeout(() => $('viewNameInput').focus(), 60);
+    }
+
+    function confirmSaveView() {
+      const name = ($('viewNameInput').value || '').trim() || '未命名视图';
+      const v = { id: uid('v'), name, stageFilter: appState.stageFilter, tagFilter: appState.tagFilter, searchQuery: appState.searchQuery, sortMode: appState.sortMode, nav: appState.activeNav };
+      appState.views.push(v); appState.activeViewId = v.id; persist(); closeModal(); renderAll(); toast(`已保存视图「${name}」`, { type:'success' });
+    }
+
+    function applyView(id) {
+      const v = appState.views.find(x => x.id === id); if (!v) return;
+      appState.stageFilter = v.stageFilter; appState.tagFilter = v.tagFilter; appState.searchQuery = v.searchQuery; appState.sortMode = v.sortMode; appState.activeNav = v.nav || 'clues'; appState.activeViewId = id;
+      $('searchInput').value = v.searchQuery; $('clearSearchBtn').classList.toggle('hidden', !v.searchQuery);
+      if (v.searchQuery || v.tagFilter) $('mobileSearchBar').classList.remove('hidden');
+      persist(); renderAll(); scrollMainToTop(); toast(`已切换到视图「${v.name}」`);
+    }
+
+    function deleteView(id) {
+      const v = appState.views.find(x => x.id === id);
+      appState.views = appState.views.filter(x => x.id !== id);
+      if (appState.activeViewId === id) appState.activeViewId = '';
+      persist(); renderAll();
+      if (v) pushUndo(`已删除视图「${v.name}」`, () => { appState.views.push(v); persist(); renderAll(); });
+    }
+
+    /* ==================== 目标看板 ==================== */
     function renderGoalProgressOverview() {
-      const box = document.getElementById('goalProgressOverview'), show = appState.activeNav === 'goals' || appState.stageFilter === 'goal';
+      const box = $('goalProgressOverview'), show = appState.activeNav === 'goals' || appState.stageFilter === 'goal';
       box.classList.toggle('hidden', !show); if (!show) return;
       const goals = appState.items.filter(i => i.stage === 'goal'), allTasks = goals.flatMap(g => g.goal?.tasks || []);
       const doneCount = allTasks.filter(t => t.done).length, totalCount = allTasks.length, pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
-      document.getElementById('goalOverviewTitle').textContent = `已完成 ${doneCount} / ${totalCount} 项关键行动`;
-      document.getElementById('goalOverviewSub').textContent = goals.length ? `当前共有 ${goals.length} 个进行中的工作目标` : '把思考成熟的灵感定为目标，开始追踪进度';
-      document.getElementById('goalRingPercent').textContent = `${pct}%`;
-      document.getElementById('goalRingCircle').style.strokeDashoffset = 163.36 - (pct / 100) * 163.36;
+      $('goalOverviewTitle').textContent = `已完成 ${doneCount} / ${totalCount} 项关键行动`;
+      $('goalOverviewSub').textContent = goals.length ? `当前共有 ${goals.length} 个进行中的工作目标` : '把思考成熟的灵感定为目标，开始追踪进度';
+      $('goalRingPercent').textContent = `${pct}%`;
+      $('goalRingCircle').style.strokeDashoffset = 163.36 - (pct / 100) * 163.36;
     }
 
-    function renderFeed() {
-      const feed = document.getElementById('cardsFeed'), q = appState.searchQuery.trim().toLowerCase();
-      const filtered = appState.items.filter(item => {
+    /* ==================== 列表 ==================== */
+    function getVisibleItems() {
+      const q = appState.searchQuery.trim().toLowerCase();
+      let list = appState.items.filter(item => {
         if (appState.stageFilter !== 'all' && item.stage !== appState.stageFilter) return false;
         if (appState.tagFilter && !(item.tags || []).includes(appState.tagFilter)) return false;
         if (!q) return true;
-        return item.content.toLowerCase().includes(q) || (item.tags || []).some(t => t.toLowerCase().includes(q)) || (item.thinking?.value || '').toLowerCase().includes(q) || (item.thinking?.nextStep || '').toLowerCase().includes(q);
-      }).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+        return item.content.toLowerCase().includes(q) || (item.tags || []).some(t => t.toLowerCase().includes(q)) || (item.thinking?.value || '').toLowerCase().includes(q) || (item.thinking?.nextStep || '').toLowerCase().includes(q) || (item.aiSummary || '').toLowerCase().includes(q) || (item.goal?.tasks || []).some(t => t.text.toLowerCase().includes(q));
+      });
+      const pct = i => { const t = i.goal?.tasks || []; return t.length ? t.filter(x => x.done).length / t.length : -1; };
+      const pr = i => ({ P0:0, P1:1, P2:2 }[i.goal?.priority] ?? 3);
+      const ts = i => i.ts || 0;
+      const sorters = {
+        smart: (a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || ts(b) - ts(a),
+        newest: (a, b) => ts(b) - ts(a),
+        oldest: (a, b) => ts(a) - ts(b),
+        priority: (a, b) => (a.stage === 'goal' ? 0 : 1) - (b.stage === 'goal' ? 0 : 1) || pr(a) - pr(b) || ts(b) - ts(a),
+        progress: (a, b) => pct(b) - pct(a) || ts(b) - ts(a),
+        manual: null
+      };
+      const fn = sorters[appState.sortMode];
+      if (fn) list = list.slice().sort(fn);
+      return list;
+    }
 
+    function renderFeed() {
+      const feed = $('cardsFeed');
+      const filtered = getVisibleItems();
       if (!filtered.length) {
-        feed.innerHTML = `<div class="col-span-full rounded-3xl bg-white dark:bg-[#131824] border border-dashed border-slate-200 dark:border-slate-800 p-10 text-center space-y-2.5"><div class="text-3xl">✨</div><p class="text-sm font-semibold text-slate-700 dark:text-slate-300">暂无匹配的灵感记录</p><p class="text-xs text-slate-400">点击底部中央「+」号记下新想法，或清除当前筛选条件</p></div>`;
+        feed.innerHTML = `<div class="col-span-full rounded-3xl bg-white/80 dark:bg-[#131824]/80 backdrop-blur-sm border border-dashed border-slate-300 dark:border-slate-700 p-10 text-center space-y-3">
+          <div class="text-4xl">✨</div>
+          <p class="text-sm font-bold text-slate-700 dark:text-slate-200">暂无匹配的灵感记录</p>
+          <p class="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">点击底部中央「+」记下新想法，或清除当前筛选条件让灵感重新流动。</p>
+          <div class="flex items-center justify-center gap-2 pt-1">
+            <button type="button" onclick="clearAllFilters()" class="h-9 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold active:scale-95">清除筛选</button>
+            <button type="button" onclick="openCaptureSheet()" class="h-9 px-4 rounded-xl bg-indigo-600 text-white text-xs font-bold active:scale-95">记一条灵感</button>
+          </div></div>`;
         return;
       }
-      feed.innerHTML = filtered.map(item => renderMobileCard(item)).join('');
+      feed.innerHTML = filtered.map((item, i) => renderMobileCard(item, i)).join('');
       bindSwipeGestures();
     }
 
-    function renderMobileCard(item) {
-      const modalityMap = { text: { icon: '📝', label: '文字' }, voice: { icon: '🎙️', label: `语音 ${item.mediaMeta?.duration || '00:20'}` }, video: { icon: '🎬', label: `视频 ${item.mediaMeta?.duration || '00:35'}` } };
+    function clearAllFilters() {
+      appState.stageFilter = 'all'; appState.tagFilter = ''; appState.searchQuery = ''; appState.activeViewId = '';
+      $('searchInput').value = ''; $('clearSearchBtn').classList.add('hidden');
+      renderAll(); toast('已清除全部筛选条件');
+    }
+
+    function renderMobileCard(item, index) {
+      const q = appState.searchQuery.trim();
+      const modalityMap = { text:{icon:'📝',label:'文字'}, voice:{icon:'🎙️',label:`语音 ${item.mediaMeta?.duration || '00:20'}`}, video:{icon:'🎬',label:`视频 ${item.mediaMeta?.duration || '00:35'}`} };
       const mod = modalityMap[item.mediaType] || modalityMap.text;
-      const stageBadgeMap = { clue: `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">💡 线索</span>`, thinking: `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">🧠 思考中</span>`, goal: `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">🎯 工作目标</span>` };
+      const stageBadgeMap = {
+        clue:`<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">💡 线索</span>`,
+        thinking:`<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">🧠 思考中</span>`,
+        goal:`<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">🎯 工作目标</span>`
+      };
+      const accent = { clue:'bg-amber-400', thinking:'bg-indigo-500', goal:'bg-emerald-500' }[item.stage];
+      const selected = appState.selected.has(item.id);
+      const delay = Math.min(index || 0, 11) * 45;
 
       let focusTimerHtml = '';
       if (item.stage === 'goal' && isPluginOn('focus-timer')) {
-        const t = appState.timers[item.id] || { sec: 1500, running: false };
-        focusTimerHtml = `<div onclick="event.stopPropagation()" class="mb-3 px-3 py-2 rounded-xl bg-rose-50/90 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-500/20 flex items-center justify-between"><span class="text-xs font-semibold text-rose-700 dark:text-rose-300">🍅 番茄专注推进</span><div class="flex items-center gap-2.5"><span class="font-mono text-sm font-bold text-rose-700 dark:text-rose-200">${String(Math.floor(t.sec / 60)).padStart(2, '0')}:${String(t.sec % 60).padStart(2, '0')}</span><button type="button" onclick="toggleFocusTimer('${item.id}')" class="h-7 px-3 rounded-lg text-xs font-bold ${t.running ? 'bg-slate-800 text-white' : 'bg-rose-500 text-white'} active:scale-95 transition-transform">${t.running ? '暂停' : '开始'}</button></div></div>`;
+        const t = appState.timers[item.id] || { sec:1500, running:false };
+        focusTimerHtml = `<div onclick="event.stopPropagation()" class="mb-3 px-3 py-2 rounded-xl bg-rose-50/90 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-500/20 flex items-center justify-between gap-2"><span class="text-xs font-semibold text-rose-700 dark:text-rose-300 shrink-0">🍅 番茄专注</span><div class="flex items-center gap-2"><span data-timer-display="${item.id}" class="font-mono text-sm font-bold text-rose-700 dark:text-rose-200">${fmtDur(t.sec)}</span><button type="button" onclick="setFocusDuration('${item.id}')" title="切换时长" class="h-7 px-2 rounded-lg bg-white/70 dark:bg-slate-900 text-rose-600 dark:text-rose-300 text-[10px] font-bold active:scale-95">${Math.round((t.total || 1500) / 60)}m</button><button type="button" onclick="toggleFocusTimer('${item.id}')" class="h-7 px-3 rounded-lg text-xs font-bold ${t.running ? 'bg-slate-800 text-white' : 'bg-rose-500 text-white'} active:scale-95 transition-transform">${t.running ? '暂停' : '开始'}</button></div></div>`;
       }
 
       let mediaBarHtml = '';
       if (item.mediaType === 'voice') {
-        if (item.mediaMeta?.audioUrl) mediaBarHtml = `<div onclick="event.stopPropagation()" class="mt-2.5"><audio src="${item.mediaMeta.audioUrl}" controls class="w-full h-9 rounded-xl"></audio></div>`;
-        else mediaBarHtml = `<div onclick="event.stopPropagation(); toast('正在播放语音片段 (${item.mediaMeta?.duration || '00:28'})')" class="mt-2.5 px-3 py-2 rounded-xl bg-violet-50/80 dark:bg-violet-950/30 border border-violet-200/60 dark:border-violet-500/20 flex items-center gap-2.5 active:scale-[0.99]"><span class="w-7 h-7 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs shrink-0">▶</span><div class="flex-1 flex items-center gap-1 h-4 overflow-hidden">${Array.from({ length: 18 }).map((_, i) => `<span class="flex-1 bg-violet-400/70 rounded-full" style="height:${30 + ((i * 23) % 70)}%"></span>`).join('')}</div><span class="text-[11px] font-mono text-violet-700 dark:text-violet-300">${item.mediaMeta?.duration || '00:28'}</span></div>`;
+        if (item.mediaMeta?.audioUrl) mediaBarHtml = `<div onclick="event.stopPropagation()" class="mt-2.5"><audio src="${esc(item.mediaMeta.audioUrl)}" controls class="w-full h-9 rounded-xl"></audio></div>`;
+        else if (item.mediaMeta?.expired) mediaBarHtml = `<div onclick="event.stopPropagation()" class="mt-2.5 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-400">🎙️ 录音文件仅存于录制时的会话，转写文字已保留</div>`;
+        else mediaBarHtml = `<div onclick="event.stopPropagation(); toast('正在播放语音片段 (${esc(item.mediaMeta?.duration || '00:28')})')" class="mt-2.5 px-3 py-2 rounded-xl bg-violet-50/80 dark:bg-violet-950/30 border border-violet-200/60 dark:border-violet-500/20 flex items-center gap-2.5 active:scale-[0.99]"><span class="w-7 h-7 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs shrink-0">▶</span><div class="flex-1 flex items-center gap-1 h-4 overflow-hidden">${Array.from({length:18}).map((_, i) => `<span class="flex-1 bg-violet-400/70 rounded-full" style="height:${30 + ((i * 23) % 70)}%"></span>`).join('')}</div><span class="text-[11px] font-mono text-violet-700 dark:text-violet-300">${esc(item.mediaMeta?.duration || '00:28')}</span></div>`;
       } else if (item.mediaType === 'video') {
-        if (item.mediaMeta?.videoUrl) mediaBarHtml = `<div onclick="event.stopPropagation()" class="mt-2.5 rounded-2xl overflow-hidden bg-black aspect-video max-h-44"><video src="${item.mediaMeta.videoUrl}" controls playsinline class="w-full h-full object-cover"></video></div>`;
-        else mediaBarHtml = `<div onclick="event.stopPropagation(); toast('正在回放视频灵感 (${item.mediaMeta?.duration || '00:35'})')" class="mt-2.5 px-3 py-2.5 rounded-xl bg-slate-900 text-white flex items-center justify-between active:scale-[0.99]"><div class="flex items-center gap-2 text-xs"><span class="w-7 h-7 rounded-lg bg-indigo-500/30 flex items-center justify-center">🎬</span><span>点击播放录制画面</span></div><span class="text-[11px] font-mono text-slate-300">${item.mediaMeta?.duration || '00:35'}</span></div>`;
+        if (item.mediaMeta?.videoUrl) mediaBarHtml = `<div onclick="event.stopPropagation()" class="mt-2.5 rounded-2xl overflow-hidden bg-black aspect-video max-h-44"><video src="${esc(item.mediaMeta.videoUrl)}" controls playsinline class="w-full h-full object-cover"></video></div>`;
+        else if (item.mediaMeta?.expired) mediaBarHtml = `<div onclick="event.stopPropagation()" class="mt-2.5 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-400">🎬 视频文件仅存于录制时的会话，画面描述已保留</div>`;
+        else mediaBarHtml = `<div onclick="event.stopPropagation(); toast('正在回放视频灵感 (${esc(item.mediaMeta?.duration || '00:35')})')" class="mt-2.5 px-3 py-2.5 rounded-xl bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex items-center justify-between active:scale-[0.99]"><div class="flex items-center gap-2 text-xs"><span class="w-7 h-7 rounded-lg bg-indigo-500/30 flex items-center justify-center">🎬</span><span>点击播放录制画面</span></div><span class="text-[11px] font-mono text-slate-300">${esc(item.mediaMeta?.duration || '00:35')}</span></div>`;
       }
 
       let thinkingHtml = '';
       if (item.stage !== 'clue' && (item.thinking?.value || item.thinking?.nextStep)) {
-        thinkingHtml = `<div class="mt-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 text-xs space-y-1 text-slate-600 dark:text-slate-300">${item.thinking.value ? `<div><span class="font-semibold text-indigo-600 dark:text-indigo-400">价值：</span>${item.thinking.value}</div>` : ''}${item.thinking.nextStep ? `<div><span class="font-semibold text-indigo-600 dark:text-indigo-400">行动：</span>${item.thinking.nextStep}</div>` : ''}</div>`;
+        thinkingHtml = `<div class="mt-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 text-xs space-y-1 text-slate-600 dark:text-slate-300">${item.thinking.value ? `<div><span class="font-semibold text-indigo-600 dark:text-indigo-400">价值：</span>${hl(item.thinking.value, q)}</div>` : ''}${item.thinking.nextStep ? `<div><span class="font-semibold text-indigo-600 dark:text-indigo-400">行动：</span>${hl(item.thinking.nextStep, q)}</div>` : ''}</div>`;
       }
 
       let goalHtml = '';
       if (item.stage === 'goal') {
         const tasks = item.goal?.tasks || [], done = tasks.filter(t => t.done).length, pct = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
-        goalHtml = `<div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 space-y-2"><div class="flex items-center justify-between text-[11px]"><span class="font-bold text-emerald-600 dark:text-emerald-400">${item.goal?.priority || 'P1'} · 截止 ${item.goal?.deadline || '待定'}</span><span class="font-semibold text-slate-500">${done}/${tasks.length} (${pct}%)</span></div><div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div class="h-full bg-emerald-500 transition-all duration-300" style="width:${pct}%"></div></div><div class="space-y-1.5 pt-0.5">${tasks.map(t => `<label onclick="event.stopPropagation()" class="flex items-center gap-2.5 min-h-[30px] text-xs cursor-pointer"><input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleInlineTask('${item.id}', '${t.id}')" class="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" /><span class="${t.done ? 'line-through text-slate-400' : 'text-slate-700 dark:text-slate-200'}">${t.text}</span></label>`).join('')}</div></div>`;
+        goalHtml = `<div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 space-y-2"><div class="flex items-center justify-between text-[11px]"><span class="font-bold text-emerald-600 dark:text-emerald-400">${esc(item.goal?.priority || 'P1')} · 截止 ${esc(item.goal?.deadline || '待定')}</span><span class="font-semibold text-slate-500">${done}/${tasks.length} (${pct}%)</span></div><div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-300" style="width:${pct}%"></div></div><div class="space-y-1.5 pt-0.5">${tasks.map(t => `<label onclick="event.stopPropagation()" class="flex items-center gap-2.5 min-h-[30px] text-xs cursor-pointer"><input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleInlineTask('${item.id}','${t.id}')" class="w-4 h-4 rounded border-slate-300" /><span class="${t.done ? 'line-through text-slate-400' : 'text-slate-700 dark:text-slate-200'}">${hl(t.text, q)}</span></label>`).join('')}</div></div>`;
       }
 
       let aiSummaryHtml = '';
       if (isPluginOn('ai-summary')) {
-        if (item.aiSummary) aiSummaryHtml = `<div class="mt-2.5 p-2.5 rounded-xl bg-indigo-50/80 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-500/20 text-xs text-indigo-800 dark:text-indigo-200">✨ <strong>AI 提炼：</strong>${item.aiSummary}</div>`;
+        if (item.aiSummary) aiSummaryHtml = `<div class="mt-2.5 p-2.5 rounded-xl bg-indigo-50/80 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-500/20 text-xs text-indigo-800 dark:text-indigo-200">✨ <strong>AI 提炼：</strong>${hl(item.aiSummary, q)}</div>`;
         else aiSummaryHtml = `<button type="button" onclick="event.stopPropagation(); triggerAiSummary('${item.id}')" class="mt-2.5 h-8 px-3 rounded-xl bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 text-xs font-semibold active:scale-95 transition-transform">✨ AI 提炼与拆解</button>`;
       }
 
       const customPlugins = appState.plugins.filter(p => !p.builtin && p.enabled);
-      const customActionsHtml = customPlugins.map(cp => `<button type="button" onclick="event.stopPropagation(); runCustomPlugin('${cp.id}', '${item.id}')" class="h-8 px-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium active:scale-95">${cp.emoji} ${cp.name}</button>`).join('');
+      const customActionsHtml = customPlugins.map(cp => `<button type="button" onclick="event.stopPropagation(); runCustomPlugin('${cp.id}','${item.id}')" class="h-8 px-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium active:scale-95">${esc(cp.emoji)} ${esc(cp.name)}</button>`).join('');
 
       let primaryActionBtn = '', swipeHintText = '推进';
-      if (item.stage === 'clue') { swipeHintText = '🧠 移入思考'; primaryActionBtn = `<button type="button" onclick="event.stopPropagation(); quickAdvance('${item.id}', 'thinking')" class="h-9 px-3.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 text-xs font-bold active:scale-95 transition-all shrink-0">去思考 →</button>`; }
-      else if (item.stage === 'thinking') { swipeHintText = '🎯 定为目标'; primaryActionBtn = `<button type="button" onclick="event.stopPropagation(); quickAdvance('${item.id}', 'goal')" class="h-9 px-3.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 text-xs font-bold active:scale-95 transition-all shrink-0">定为目标 →</button>`; }
+      if (item.stage === 'clue') { swipeHintText = '🧠 移入思考'; primaryActionBtn = `<button type="button" onclick="event.stopPropagation(); quickAdvance('${item.id}','thinking')" class="h-9 px-3.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 text-xs font-bold active:scale-95 transition-all shrink-0">去思考 →</button>`; }
+      else if (item.stage === 'thinking') { swipeHintText = '🎯 定为目标'; primaryActionBtn = `<button type="button" onclick="event.stopPropagation(); quickAdvance('${item.id}','goal')" class="h-9 px-3.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 text-xs font-bold active:scale-95 transition-all shrink-0">定为目标 →</button>`; }
       else { swipeHintText = '📌 切换置顶'; primaryActionBtn = `<span class="h-9 px-3 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold inline-flex items-center shrink-0">✓ 推进中</span>`; }
 
-      return `<div class="relative rounded-3xl overflow-hidden select-none h-full"><div class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-emerald-500 flex items-center justify-start px-5 text-white text-xs font-bold">${swipeHintText}</div><article data-card-id="${item.id}" onclick="openDetailSheet('${item.id}')" class="swipe-card-inner relative rounded-3xl bg-white dark:bg-[#131824] border ${item.pinned ? 'border-indigo-300 dark:border-indigo-500/40' : 'border-slate-200/80 dark:border-slate-800/90'} p-4 shadow-xs cursor-pointer h-full flex flex-col">${focusTimerHtml}<div class="flex items-center justify-between gap-2 mb-2"><div class="flex items-center gap-1.5 flex-wrap">${item.pinned ? `<span class="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 text-[10px] font-bold">📌 置顶</span>` : ''}<span class="text-xs font-medium text-slate-500 dark:text-slate-400">${mod.icon} ${mod.label}</span>${stageBadgeMap[item.stage]}</div><span class="text-[11px] text-slate-400 shrink-0">${item.createdAt}</span></div><p class="text-[15px] font-medium text-slate-900 dark:text-slate-100 leading-relaxed flex-1">${item.content}</p>${mediaBarHtml}${thinkingHtml}${goalHtml}${aiSummaryHtml}<div class="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2 flex-wrap"><div class="flex items-center gap-1.5 flex-wrap flex-1">${(item.tags || []).map(t => `<button type="button" onclick="event.stopPropagation(); setTagFilter('${t}')" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-medium">#${t}</button>`).join('')}${customActionsHtml}</div>${primaryActionBtn}</div></article></div>`;
+      const selectOverlay = appState.selectMode ? `<button type="button" onclick="event.stopPropagation(); toggleSelect('${item.id}')" aria-label="选择卡片" class="absolute -top-1.5 -left-1.5 z-10 w-7 h-7 rounded-full border-2 flex items-center justify-center text-[11px] font-bold shadow-md transition-all ${selected ? 'bg-violet-600 border-violet-600 text-white' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent'}">✓</button>` : '';
+      const dragHandle = appState.selectMode ? '' : `<button type="button" data-drag-handle onclick="event.stopPropagation()" title="拖动排序" aria-label="拖动排序" class="w-6 h-6 rounded-md flex items-center justify-center text-slate-300 hover:text-indigo-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><i data-lucide="grip-vertical" class="w-3.5 h-3.5 pointer-events-none"></i></button>`;
+
+      return `<div class="relative rounded-3xl overflow-hidden select-none h-full card-enter" style="animation-delay:${delay}ms">
+        <div class="absolute inset-0 bg-gradient-to-r from-indigo-600 via-violet-600 to-emerald-500 flex items-center justify-start px-5 text-white text-xs font-bold">${swipeHintText}</div>
+        <article data-card-id="${item.id}" onclick="onCardClick('${item.id}')" class="swipe-card-inner relative rounded-3xl bg-white dark:bg-[#131824] border ${selected ? 'border-violet-500 ring-2 ring-violet-500/30' : item.pinned ? 'border-indigo-300 dark:border-indigo-500/40' : 'border-slate-200/80 dark:border-slate-800/90'} p-4 shadow-xs cursor-pointer h-full flex flex-col">
+          ${selectOverlay}
+          <span class="absolute left-0 top-6 bottom-6 w-[3px] rounded-r-full ${accent} opacity-80"></span>
+          ${focusTimerHtml}
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <div class="flex items-center gap-1.5 flex-wrap min-w-0">${item.pinned ? `<span class="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 text-[10px] font-bold">📌 置顶</span>` : ''}<span class="text-xs font-medium text-slate-500 dark:text-slate-400">${mod.icon} ${esc(mod.label)}</span>${stageBadgeMap[item.stage]}</div>
+            <div class="flex items-center gap-1 shrink-0"><span class="text-[11px] text-slate-400">${esc(relTime(item.ts) || item.createdAt)}</span>${dragHandle}</div>
+          </div>
+          <p class="text-[15px] font-medium text-slate-900 dark:text-slate-100 leading-relaxed flex-1">${hl(item.content, q)}</p>
+          ${mediaBarHtml}${thinkingHtml}${goalHtml}${aiSummaryHtml}
+          <div class="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2 flex-wrap">
+            <div class="flex items-center gap-1.5 flex-wrap flex-1">${(item.tags || []).map(t => `<button type="button" data-tag="${esc(t)}" onclick="event.stopPropagation(); setTagFilter(this.dataset.tag)" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-medium">#${esc(t)}</button>`).join('')}${customActionsHtml}</div>
+            ${primaryActionBtn}
+          </div>
+        </article></div>`;
     }
 
+    function onCardClick(id) {
+      if (appState.selectMode) { toggleSelect(id); return; }
+      openDetailSheet(id);
+    }
+
+    /* ==================== 侧栏插件列表 ==================== */
     function renderSidebarPlugins() {
-      const container = document.getElementById('sidebarPluginsList');
+      const container = $('sidebarPluginsList');
       container.innerHTML = appState.plugins.map(p => `
         <div class="rounded-xl bg-slate-50 dark:bg-[#131824] border border-slate-200/90 dark:border-slate-800 p-3 flex items-center justify-between gap-3">
           <div class="flex items-start gap-2.5 min-w-0">
-            <div class="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-base shrink-0 shadow-sm">${p.emoji}</div>
+            <div class="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-base shrink-0 shadow-sm">${esc(p.emoji)}</div>
             <div class="min-w-0">
               <div class="flex items-center gap-1.5">
-                <h4 class="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">${p.name}</h4>
-                ${!p.builtin ? `<span class="px-1 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-300 text-[9px] font-semibold shrink-0">自定义</span>` : ''}
+                <h4 class="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">${esc(p.name)}</h4>
+                ${!p.builtin ? `<span class="px-1 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-300 text-[9px] font-semibold shrink-0">扩展</span>` : ''}
               </div>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed line-clamp-2">${p.desc}</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed line-clamp-2">${esc(p.desc)}</p>
             </div>
           </div>
           <div class="flex items-center gap-1.5 shrink-0">
             ${!p.builtin ? `<button type="button" onclick="deleteCustomPlugin('${p.id}')" class="text-slate-400 hover:text-rose-500 p-1.5"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
-            <button type="button" onclick="togglePluginState('${p.id}')" aria-label="开关插件" class="w-10 h-6 rounded-full p-0.5 transition-colors ${p.enabled ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'}">
+            <button type="button" onclick="togglePluginState('${p.id}')" aria-label="开关插件" class="w-10 h-6 rounded-full p-0.5 transition-colors ${p.enabled ? 'bg-gradient-to-r from-indigo-600 to-violet-600' : 'bg-slate-300 dark:bg-slate-700'}">
               <span class="block w-5 h-5 rounded-full bg-white shadow transform transition-transform ${p.enabled ? 'translate-x-4' : 'translate-x-0'}"></span>
             </button>
           </div>
-        </div>
-      `).join('');
+        </div>`).join('');
     }
 
+    /* ==================== 手势：右滑推进 + 拖动排序 ==================== */
     function bindSwipeGestures() {
       document.querySelectorAll('.swipe-card-inner').forEach(card => {
         let startX = 0, startY = 0, currentX = 0, isSwiping = false;
-        card.addEventListener('touchstart', (e) => { if (e.touches.length !== 1) return; startX = e.touches[0].clientX; startY = e.touches[0].clientY; currentX = 0; isSwiping = false; }, { passive: true });
-        card.addEventListener('touchmove', (e) => {
-          if (e.touches.length !== 1) return;
+        card.addEventListener('touchstart', e => {
+          if (appState.selectMode || e.touches.length !== 1) return;
+          if (e.target.closest('button,input,label,a,details,select')) return;
+          startX = e.touches[0].clientX; startY = e.touches[0].clientY; currentX = 0; isSwiping = false;
+        }, { passive:true });
+        card.addEventListener('touchmove', e => {
+          if (appState.selectMode || e.touches.length !== 1) return;
           const dx = e.touches[0].clientX - startX, dy = e.touches[0].clientY - startY;
           if (!isSwiping && Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.3) { isSwiping = true; card.classList.add('dragging'); }
           if (isSwiping && dx > 0) { currentX = Math.min(dx, 120); card.style.transform = `translateX(${currentX}px)`; }
-        }, { passive: true });
+        }, { passive:true });
         card.addEventListener('touchend', () => {
           card.classList.remove('dragging'); card.style.transform = '';
           if (isSwiping && currentX > 82) {
@@ -735,13 +965,173 @@
           isSwiping = false;
         });
       });
+      document.querySelectorAll('[data-drag-handle]').forEach(h => h.addEventListener('pointerdown', startCardDrag));
     }
 
+    function startCardDrag(e) {
+      if (appState.selectMode) return;
+      e.preventDefault(); e.stopPropagation();
+      const card = e.currentTarget.closest('[data-card-id]'); if (!card) return;
+      const id = card.dataset.cardId;
+      const rect = card.getBoundingClientRect();
+      const ghost = card.cloneNode(true);
+      ghost.classList.add('drag-ghost');
+      ghost.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;z-index:70;pointer-events:none;transform:rotate(1.5deg) scale(1.02);box-shadow:0 26px 60px -18px rgba(79,70,229,.55);opacity:.96;`;
+      document.body.appendChild(ghost);
+      card.classList.add('drag-source');
+      const offX = e.clientX - rect.left, offY = e.clientY - rect.top;
+      let targetId = null, after = false;
+      const main = $('appMain');
+      const clearMarks = () => document.querySelectorAll('.drop-before,.drop-after').forEach(n => n.classList.remove('drop-before','drop-after'));
+      const move = ev => {
+        ghost.style.left = (ev.clientX - offX) + 'px';
+        ghost.style.top = (ev.clientY - offY) + 'px';
+        clearMarks();
+        const el = document.elementFromPoint(ev.clientX, ev.clientY);
+        const over = el && el.closest ? el.closest('[data-card-id]') : null;
+        if (over && over.dataset.cardId !== id) {
+          const r = over.getBoundingClientRect();
+          after = ev.clientY > r.top + r.height / 2;
+          over.classList.add(after ? 'drop-after' : 'drop-before');
+          targetId = over.dataset.cardId;
+        } else targetId = null;
+        const mr = main.getBoundingClientRect();
+        if (ev.clientY < mr.top + 70) main.scrollTop -= 14;
+        else if (ev.clientY > mr.bottom - 90) main.scrollTop += 14;
+      };
+      const finish = () => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', finish);
+        window.removeEventListener('pointercancel', cancel);
+        document.removeEventListener('keydown', onKey);
+        ghost.remove(); card.classList.remove('drag-source'); clearMarks();
+        if (targetId) reorderItem(id, targetId, after);
+      };
+      const cancel = () => { targetId = null; finish(); };
+      const onKey = ev => { if (ev.key === 'Escape') cancel(); };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', finish);
+      window.addEventListener('pointercancel', cancel);
+      document.addEventListener('keydown', onKey);
+    }
+
+    function reorderItem(id, targetId, after) {
+      const from = appState.items.findIndex(i => i.id === id);
+      if (from < 0) return;
+      const [moved] = appState.items.splice(from, 1);
+      let to = appState.items.findIndex(i => i.id === targetId);
+      if (to < 0) { appState.items.splice(from, 0, moved); return; }
+      if (after) to += 1;
+      appState.items.splice(to, 0, moved);
+      const prevSort = appState.sortMode;
+      appState.sortMode = 'manual';
+      persist(); renderAll();
+      toast(prevSort === 'manual' ? '已调整卡片顺序' : '已调整顺序 · 排序切换为「手动」', { type:'success' });
+    }
+
+    /* ==================== 批量管理 ==================== */
+    function toggleSelectMode() {
+      appState.selectMode = !appState.selectMode;
+      if (!appState.selectMode) appState.selected.clear();
+      renderAll();
+      if (appState.selectMode) toast('批量模式：点击卡片选择，底部执行操作');
+    }
+
+    function toggleSelect(id) {
+      if (appState.selected.has(id)) appState.selected.delete(id); else appState.selected.add(id);
+      renderFeed(); renderBulkBar(); if (window.lucide) lucide.createIcons();
+    }
+
+    function selectAllVisible() {
+      const vis = getVisibleItems();
+      const all = vis.every(i => appState.selected.has(i.id));
+      vis.forEach(i => { if (all) appState.selected.delete(i.id); else appState.selected.add(i.id); });
+      renderFeed(); renderBulkBar(); if (window.lucide) lucide.createIcons();
+    }
+
+    function renderBulkBar() {
+      const bar = $('bulkBar');
+      if (!appState.selectMode) { bar.classList.add('hidden'); bar.innerHTML = ''; return; }
+      const n = appState.selected.size;
+      bar.classList.remove('hidden');
+      bar.innerHTML = `<span class="text-xs font-bold text-white shrink-0">已选 <span class="text-violet-300">${n}</span> 项</span>
+        <div class="flex items-center gap-1.5 flex-wrap flex-1">
+          <button type="button" onclick="selectAllVisible()" class="h-8 px-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold active:scale-95">全选/反选</button>
+          <button type="button" onclick="bulkAdvance()" ${n ? '' : 'disabled'} class="h-8 px-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-400 disabled:opacity-40 text-white text-[11px] font-bold active:scale-95">⚡ 推进</button>
+          <button type="button" onclick="bulkPin()" ${n ? '' : 'disabled'} class="h-8 px-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-white text-[11px] font-bold active:scale-95">📌 置顶</button>
+          <button type="button" onclick="bulkTag()" ${n ? '' : 'disabled'} class="h-8 px-2.5 rounded-lg bg-sky-500 hover:bg-sky-400 disabled:opacity-40 text-white text-[11px] font-bold active:scale-95">🏷️ 标签</button>
+          <button type="button" onclick="bulkDelete()" ${n ? '' : 'disabled'} class="h-8 px-2.5 rounded-lg bg-rose-500 hover:bg-rose-400 disabled:opacity-40 text-white text-[11px] font-bold active:scale-95">🗑 删除</button>
+        </div>
+        <button type="button" onclick="toggleSelectMode()" class="h-8 px-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold shrink-0 active:scale-95">取消</button>`;
+      applySidebarState();
+    }
+
+    function bulkAdvance() {
+      const ids = Array.from(appState.selected); if (!ids.length) return;
+      const before = ids.map(id => ({ id, stage: appState.items.find(i => i.id === id)?.stage }));
+      let n = 0;
+      ids.forEach(id => {
+        const it = appState.items.find(i => i.id === id); if (!it) return;
+        if (it.stage === 'clue') { it.stage = 'thinking'; n++; }
+        else if (it.stage === 'thinking') { it.stage = 'goal'; if (!it.goal.tasks.length) it.goal.tasks.push({ id: uid('t'), text: it.thinking?.nextStep || '完成第一步最小可行性验证', done:false }); n++; }
+      });
+      persist(); renderAll();
+      if (!n) { toast('所选目标已在推进中'); return; }
+      pushUndo(`⚡ 已推进 ${n} 项`, () => { before.forEach(b => { const it = appState.items.find(i => i.id === b.id); if (it && b.stage) it.stage = b.stage; }); persist(); renderAll(); });
+    }
+
+    function bulkPin() {
+      const ids = Array.from(appState.selected); if (!ids.length) return;
+      const before = ids.map(id => ({ id, pinned: appState.items.find(i => i.id === id)?.pinned }));
+      ids.forEach(id => { const it = appState.items.find(i => i.id === id); if (it) it.pinned = true; });
+      persist(); renderAll();
+      pushUndo(`📌 已置顶 ${ids.length} 项`, () => { before.forEach(b => { const it = appState.items.find(i => i.id === b.id); if (it) it.pinned = !!b.pinned; }); persist(); renderAll(); });
+    }
+
+    function bulkTag() {
+      const box = $('modalContentBox');
+      box.innerHTML = `<div class="space-y-4"><div class="flex items-center justify-between"><h3 class="font-bold text-base">批量追加标签</h3><button type="button" onclick="closeModal()" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">✕</button></div>
+      <p class="text-xs text-slate-500">将为已选的 ${appState.selected.size} 条记录追加同一个标签。</p>
+      <input id="bulkTagInput" type="text" placeholder="例如：本周重点" class="w-full h-11 px-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-indigo-500" />
+      <button type="button" onclick="confirmBulkTag()" class="w-full h-11 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold active:scale-[0.98]">追加标签</button></div>`;
+      $('modalBackdrop').classList.remove('hidden');
+      setTimeout(() => $('bulkTagInput').focus(), 60);
+    }
+
+    function confirmBulkTag() {
+      const tag = ($('bulkTagInput').value || '').replace(/^#/, '').trim();
+      if (!tag) { toast('请输入标签内容'); return; }
+      const ids = Array.from(appState.selected);
+      ids.forEach(id => { const it = appState.items.find(i => i.id === id); if (it && !it.tags.includes(tag)) it.tags.push(tag); });
+      persist(); closeModal(); renderAll();
+      pushUndo(`🏷️ 已为 ${ids.length} 项追加 #${tag}`, () => { ids.forEach(id => { const it = appState.items.find(i => i.id === id); if (it) it.tags = it.tags.filter(t => t !== tag); }); persist(); renderAll(); });
+    }
+
+    function bulkDelete() {
+      const ids = Array.from(appState.selected); if (!ids.length) return;
+      removeItems(ids, `🗑 已删除 ${ids.length} 条记录`);
+      appState.selected.clear(); renderBulkBar();
+    }
+
+    function removeItems(ids, label) {
+      const removed = [];
+      ids.forEach(id => { const idx = appState.items.findIndex(i => i.id === id); if (idx > -1) removed.push({ idx, item: appState.items[idx] }); });
+      removed.slice().sort((a, b) => b.idx - a.idx).forEach(r => appState.items.splice(r.idx, 1));
+      persist(); renderAll();
+      pushUndo(label, () => {
+        removed.slice().sort((a, b) => a.idx - b.idx).forEach(r => appState.items.splice(Math.min(r.idx, appState.items.length), 0, r.item));
+        persist(); renderAll(); toast('已恢复删除的记录', { type:'success' });
+      });
+    }
+
+    /* ==================== 卡片动作 ==================== */
     function quickAdvance(id, nextStage) {
       const item = appState.items.find(i => i.id === id); if (!item) return;
+      const prev = item.stage;
       item.stage = nextStage;
-      if (nextStage === 'goal' && (!item.goal.tasks || item.goal.tasks.length === 0)) item.goal.tasks = [{ id: 't-' + Date.now(), text: item.thinking?.nextStep || '完成第一步最小可行性验证', done: false }];
-      persist(); renderAll(); toast(nextStage === 'thinking' ? '🧠 已移入「思考中」' : '🎯 已转化为「工作目标」');
+      if (nextStage === 'goal' && (!item.goal.tasks || item.goal.tasks.length === 0)) item.goal.tasks = [{ id: uid('t'), text: item.thinking?.nextStep || '完成第一步最小可行性验证', done:false }];
+      persist(); renderAll();
+      toast(nextStage === 'thinking' ? '🧠 已移入「思考中」' : '🎯 已转化为「工作目标」', { type:'success', action:{ label:'撤销', onClick: () => { item.stage = prev; persist(); renderAll(); } } });
     }
 
     function toggleInlineTask(itemId, taskId) {
@@ -755,16 +1145,16 @@
       const snippet = item.content.replace(/^语音速记：/, '').slice(0, 20);
       item.aiSummary = `核心诉求为「${snippet}...」，已自动为你补充 1 条下一步验证建议。`;
       if (!item.thinking.nextStep) item.thinking.nextStep = `围绕「${snippet}」制作最小可用草图并收集 3 条反馈`;
-      persist(); renderAll(); toast('✨ AI 已提炼核心要点与行动建议');
+      persist(); renderAll(); toast('✨ AI 已提炼核心要点与行动建议', { type:'success' });
     }
 
     function runCustomPlugin(pluginId, itemId) {
       const plugin = appState.plugins.find(p => p.id === pluginId), item = appState.items.find(i => i.id === itemId);
       if (!plugin || !item) return;
       if (plugin.actionType === 'tag') {
-        const tag = plugin.actionText.replace(/^#/, '').trim() || plugin.name;
+        const tag = (plugin.actionText || '').replace(/^#/, '').trim() || plugin.name;
         if (!item.tags.includes(tag)) item.tags.push(tag);
-        persist(); renderAll(); toast(`${plugin.emoji} 已添加标签 #${tag}`);
+        persist(); renderAll(); toast(`${plugin.emoji} 已添加标签 #${tag}`, { type:'success' });
       } else if (plugin.actionType === 'pin') {
         item.pinned = true; persist(); renderAll(); toast(`${plugin.emoji} 已置顶该灵感`);
       } else if (plugin.actionType === 'advance') {
@@ -774,37 +1164,68 @@
       } else { toast(`${plugin.emoji} ${plugin.actionText}`); }
     }
 
-    function toggleFocusTimer(id) {
-      if (!appState.timers[id]) appState.timers[id] = { sec: 1500, running: false };
-      const nextState = !appState.timers[id].running;
-      Object.values(appState.timers).forEach(t => { t.running = false; });
-      appState.timers[id].running = nextState; renderAll();
-      if (nextState) toast('🍅 专注计时已开始（25分钟）');
+    /* ==================== 番茄钟 ==================== */
+    function toggleFocusTimer(id, duration) {
+      if (!appState.timers[id]) appState.timers[id] = { sec: duration || 1500, total: duration || 1500, running:false };
+      const t = appState.timers[id];
+      if (duration && !t.running) { t.sec = duration; t.total = duration; }
+      if (t.sec <= 0) { t.sec = t.total || 1500; }
+      const nextState = !t.running;
+      Object.values(appState.timers).forEach(x => { x.running = false; });
+      t.running = nextState;
+      renderAll();
+      if (nextState) toast(`🍅 专注计时已开始（${Math.round((t.total || 1500) / 60)} 分钟）`, { type:'success' });
+    }
+
+    function setFocusDuration(id) {
+      const presets = [900, 1500, 3000];
+      const t = appState.timers[id] || { sec:1500, total:1500, running:false };
+      const next = presets[(presets.indexOf(t.total || 1500) + 1) % presets.length];
+      appState.timers[id] = { sec: next, total: next, running:false };
+      renderAll(); toast(`番茄时长切换为 ${Math.round(next / 60)} 分钟`);
+    }
+
+    function updateTimerDisplays(id) {
+      const t = appState.timers[id]; if (!t) return;
+      document.querySelectorAll(`[data-timer-display="${id}"]`).forEach(n => { n.textContent = fmtDur(t.sec); });
     }
 
     function startTimerLoop() {
       setInterval(() => {
-        let updated = false;
         Object.keys(appState.timers).forEach(id => {
           const t = appState.timers[id];
-          if (t.running && t.sec > 0) { t.sec--; updated = true; if (t.sec === 0) { t.running = false; toast('🍅 25分钟专注完成！休息一下吧'); } }
+          if (t.running && t.sec > 0) {
+            t.sec--; updateTimerDisplays(id);
+            if (t.sec === 0) { t.running = false; renderAll(); toast('🍅 专注完成！起身活动一下吧', { type:'success', duration:4000 }); }
+          }
         });
-        if (updated) { renderTopPluginSlot(); renderFeed(); lucide.createIcons(); }
       }, 1000);
     }
 
+    /* ==================== 插件开关 ==================== */
     function togglePluginState(id) {
       const p = appState.plugins.find(x => x.id === id); if (!p) return;
       p.enabled = !p.enabled; persist(); renderAll(); toast(`${p.enabled ? '已开启' : '已关闭'}「${p.name}」`);
     }
 
     function deleteCustomPlugin(id) {
-      appState.plugins = appState.plugins.filter(p => p.id !== id); persist(); renderAll(); toast('已移除自定义插件');
+      const p = appState.plugins.find(x => x.id === id);
+      appState.plugins = appState.plugins.filter(x => x.id !== id);
+      persist(); renderAll();
+      if (p) pushUndo(`已移除插件「${p.name}」`, () => { if (!appState.plugins.some(x => x.id === p.id)) appState.plugins.push(p); persist(); renderAll(); });
+      else toast('已移除自定义插件');
     }
 
+    /* ==================== 捕获面板 ==================== */
     function buildVoiceWaveBars() {
-      const wrap = document.getElementById('sheetVoiceWaves');
-      wrap.innerHTML = Array.from({ length: 18 }).map((_, i) => `<span class="w-1.5 rounded-full bg-violet-400/50 transition-all duration-100" style="height:32%; animation-delay:${(i % 5) * 0.1}s"></span>`).join('');
+      $('sheetVoiceWaves').innerHTML = Array.from({ length:18 }).map((_, i) => `<span class="w-1.5 rounded-full bg-violet-400/50 transition-all duration-100" style="height:32%; animation-delay:${(i % 5) * 0.1}s"></span>`).join('');
+    }
+
+    function flushRecording(type) {
+      if (appState.mediaChunks && appState.mediaChunks.length) {
+        try { return URL.createObjectURL(new Blob(appState.mediaChunks, { type })); } catch (e) {}
+      }
+      return '';
     }
 
     function stopAllMediaStreams() {
@@ -816,119 +1237,162 @@
     }
 
     function openCaptureSheet() {
-      const backdrop = document.getElementById('captureSheetBackdrop'); backdrop.classList.remove('hidden');
-      if (appState.captureMode === 'text') setTimeout(() => document.getElementById('quickTextInput').focus(), 100);
-      lucide.createIcons({ nodes: [backdrop] });
+      $('captureSheetBackdrop').classList.remove('hidden');
+      if (appState.captureMode === 'text') setTimeout(() => $('quickTextInput').focus(), 120);
+      if (window.lucide) lucide.createIcons();
     }
 
     function closeCaptureSheet() {
-      if (appState.isRecordingVoice) toggleSheetVoice();
-      if (appState.isRecordingVideo) toggleSheetVideo();
-      stopAllMediaStreams(); document.getElementById('captureSheetBackdrop').classList.add('hidden');
+      if (appState.isRecordingVoice) stopVoiceCapture();
+      if (appState.isRecordingVideo) stopVideoCapture();
+      stopAllMediaStreams();
+      $('captureSheetBackdrop').classList.add('hidden');
     }
 
     async function toggleSheetVoice() {
-      appState.isRecordingVoice = !appState.isRecordingVoice;
-      const btn = document.getElementById('sheetRecordVoiceBtn'), hint = document.getElementById('sheetVoiceHint'), badge = document.getElementById('voiceEngineBadge'), bars = document.querySelectorAll('#sheetVoiceWaves span'), previewAudio = document.getElementById('sheetVoicePreviewAudio');
-      if (appState.isRecordingVoice) {
-        appState.recordedAudioUrl = ''; previewAudio.classList.add('hidden'); btn.classList.add('animate-pulse', 'scale-105');
-        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRec) {
-          try {
-            const rec = new SpeechRec(); rec.lang = 'zh-CN'; rec.continuous = true; rec.interimResults = true;
-            rec.onresult = (event) => { let transcript = ''; for (let i = 0; i < event.results.length; i++) transcript += event.results[i][0].transcript; if (transcript.trim()) document.getElementById('sheetVoiceNote').value = transcript.trim(); };
-            rec.start(); appState.speechRec = rec;
-          } catch (e) {}
-        }
+      if (appState.isRecordingVoice) { stopVoiceCapture(); return; }
+      appState.isRecordingVoice = true;
+      appState.voiceSec = 0; appState.recordedAudioUrl = '';
+      $('sheetVoiceTimer').textContent = '00:00';
+      const btn = $('sheetRecordVoiceBtn'), hint = $('sheetVoiceHint'), badge = $('voiceEngineBadge'), bars = document.querySelectorAll('#sheetVoiceWaves span'), previewAudio = $('sheetVoicePreviewAudio');
+      previewAudio.classList.add('hidden'); btn.classList.add('animate-pulse','scale-105');
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRec) {
         try {
-          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('No getUserMedia');
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); appState.mediaStream = stream;
-          badge.textContent = '🎙️ 真实麦克风采集'; hint.textContent = '正在录音与识别... 再次点击完成';
-          const audioCtx = new (window.AudioContext || window.webkitAudioContext)(), source = audioCtx.createMediaStreamSource(stream), analyser = audioCtx.createAnalyser();
-          analyser.fftSize = 64; source.connect(analyser); appState.audioCtx = audioCtx; appState.analyser = analyser;
-          const dataArray = new Uint8Array(analyser.frequencyBinCount);
-          const drawSpectrum = () => {
-            if (!appState.isRecordingVoice) return;
-            analyser.getByteFrequencyData(dataArray);
-            bars.forEach((b, i) => { const val = dataArray[i % dataArray.length] || 20; const pct = Math.max(22, Math.min(100, Math.round((val / 255) * 100))); b.classList.add('bg-rose-500'); b.style.height = `${pct}%`; });
-            appState.animFrameId = requestAnimationFrame(drawSpectrum);
-          };
-          drawSpectrum();
-          appState.mediaChunks = []; const recorder = new MediaRecorder(stream);
-          recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) appState.mediaChunks.push(e.data); };
-          recorder.onstop = () => { if (appState.mediaChunks.length) { const blob = new Blob(appState.mediaChunks, { type: 'audio/webm' }); appState.recordedAudioUrl = URL.createObjectURL(blob); previewAudio.src = appState.recordedAudioUrl; previewAudio.classList.remove('hidden'); } };
-          recorder.start(); appState.mediaRecorder = recorder;
-        } catch (err) {
-          badge.textContent = '✨ 智能声波模拟'; hint.textContent = '正在模拟语音录制... 再次点击完成';
-          bars.forEach((b, i) => { b.classList.add('wave-active', 'bg-rose-500'); b.style.height = `${45 + ((i * 19) % 55)}%`; });
-        }
-        appState.voiceTimerId = setInterval(() => {
-          appState.voiceSec++;
-          document.getElementById('sheetVoiceTimer').textContent = `${String(Math.floor(appState.voiceSec / 60)).padStart(2, '0')}:${String(appState.voiceSec % 60).padStart(2, '0')}`;
-        }, 1000);
-      } else {
-        clearInterval(appState.voiceTimerId); stopAllMediaStreams(); btn.classList.remove('animate-pulse', 'scale-105');
-        hint.textContent = '录制完成，可直接试听或修改文字';
-        bars.forEach(b => { b.classList.remove('wave-active', 'bg-rose-500'); b.style.height = '32%'; });
-        const noteInput = document.getElementById('sheetVoiceNote');
-        if (!noteInput.value.trim()) noteInput.value = '语音速记：下午和团队同步一下移动端交互方案，优先保证单手操作的流畅度。';
+          const rec = new SpeechRec(); rec.lang = 'zh-CN'; rec.continuous = true; rec.interimResults = true;
+          rec.onresult = ev => { let t = ''; for (let i = 0; i < ev.results.length; i++) t += ev.results[i][0].transcript; if (t.trim()) $('sheetVoiceNote').value = t.trim(); };
+          rec.onerror = () => {};
+          rec.start(); appState.speechRec = rec;
+        } catch (e) {}
       }
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('No getUserMedia');
+        const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
+        if (!appState.isRecordingVoice) { stream.getTracks().forEach(t => t.stop()); return; }
+        appState.mediaStream = stream;
+        badge.textContent = '🎙️ 真实麦克风采集'; hint.textContent = '正在录音与识别... 再次点击完成';
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)(), source = audioCtx.createMediaStreamSource(stream), analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 64; source.connect(analyser); appState.audioCtx = audioCtx; appState.analyser = analyser;
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        const drawSpectrum = () => {
+          if (!appState.isRecordingVoice) return;
+          analyser.getByteFrequencyData(dataArray);
+          bars.forEach((b, i) => { const val = dataArray[i % dataArray.length] || 20; b.classList.add('bg-rose-500'); b.style.height = `${Math.max(22, Math.min(100, Math.round(val / 255 * 100)))}%`; });
+          appState.animFrameId = requestAnimationFrame(drawSpectrum);
+        };
+        drawSpectrum();
+        appState.mediaChunks = [];
+        const recorder = new MediaRecorder(stream);
+        recorder.ondataavailable = ev => { if (ev.data && ev.data.size > 0) appState.mediaChunks.push(ev.data); };
+        recorder.onstop = () => {
+          if (!appState.recordedAudioUrl) appState.recordedAudioUrl = flushRecording('audio/webm');
+          if (appState.recordedAudioUrl) { previewAudio.src = appState.recordedAudioUrl; previewAudio.classList.remove('hidden'); }
+        };
+        recorder.start(); appState.mediaRecorder = recorder;
+      } catch (err) {
+        badge.textContent = '✨ 智能声波模拟'; hint.textContent = '未获得麦克风权限，正在模拟录制... 再次点击完成';
+        bars.forEach((b, i) => { b.classList.add('wave-active','bg-rose-500'); b.style.height = `${45 + ((i * 19) % 55)}%`; });
+      }
+      appState.voiceTimerId = setInterval(() => { appState.voiceSec++; $('sheetVoiceTimer').textContent = fmtDur(appState.voiceSec); }, 1000);
+    }
+
+    function stopVoiceCapture() {
+      appState.isRecordingVoice = false;
+      clearInterval(appState.voiceTimerId);
+      if (!appState.recordedAudioUrl) appState.recordedAudioUrl = flushRecording('audio/webm');
+      stopAllMediaStreams();
+      const btn = $('sheetRecordVoiceBtn'), hint = $('sheetVoiceHint'), bars = document.querySelectorAll('#sheetVoiceWaves span'), previewAudio = $('sheetVoicePreviewAudio');
+      btn.classList.remove('animate-pulse','scale-105');
+      hint.textContent = appState.recordedAudioUrl ? '录制完成，可直接试听或修改文字' : '录制完成，可修改转写文字后存入';
+      bars.forEach(b => { b.classList.remove('wave-active','bg-rose-500'); b.style.height = '32%'; });
+      if (appState.recordedAudioUrl) { previewAudio.src = appState.recordedAudioUrl; previewAudio.classList.remove('hidden'); }
+      const note = $('sheetVoiceNote');
+      if (!note.value.trim()) note.value = '语音速记：下午和团队同步一下移动端交互方案，优先保证单手操作的流畅度。';
     }
 
     async function toggleSheetVideo() {
-      appState.isRecordingVideo = !appState.isRecordingVideo;
-      const btn = document.getElementById('sheetRecordVideoBtn'), badge = document.getElementById('sheetVideoRecBadge'), videoEl = document.getElementById('sheetVideoPreview'), placeholder = document.getElementById('sheetVideoPlaceholder'), hint = document.getElementById('videoEngineHint');
-      if (appState.isRecordingVideo) {
-        appState.recordedVideoUrl = ''; videoEl.controls = false; videoEl.muted = true; btn.textContent = '点击停止录制'; badge.classList.remove('hidden');
-        try {
-          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('No camera');
-          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: appState.videoFacingMode }, audio: true });
-          appState.mediaStream = stream; videoEl.srcObject = stream; videoEl.classList.remove('hidden'); placeholder.classList.add('hidden'); await videoEl.play();
-          appState.mediaChunks = []; const recorder = new MediaRecorder(stream);
-          recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) appState.mediaChunks.push(e.data); };
-          recorder.onstop = () => { if (appState.mediaChunks.length) { const blob = new Blob(appState.mediaChunks, { type: 'video/webm' }); appState.recordedVideoUrl = URL.createObjectURL(blob); videoEl.srcObject = null; videoEl.src = appState.recordedVideoUrl; videoEl.muted = false; videoEl.controls = true; } };
-          recorder.start(); appState.mediaRecorder = recorder;
-        } catch (err) { hint.textContent = '🎥 模拟取景器正在录制画面片段...'; }
-        appState.videoTimerId = setInterval(() => {
-          appState.videoSec++;
-          document.getElementById('sheetVideoTimer').textContent = `${String(Math.floor(appState.videoSec / 60)).padStart(2, '0')}:${String(appState.videoSec % 60).padStart(2, '0')}`;
-        }, 1000);
-      } else {
-        clearInterval(appState.videoTimerId); stopAllMediaStreams(); btn.textContent = '重新录制画面'; badge.classList.add('hidden'); hint.textContent = '✅ 视频灵感片段已就绪';
-        const noteInput = document.getElementById('sheetVideoNote');
-        if (!noteInput.value.trim()) noteInput.value = '随手拍白板草图：新的三步漏斗转化界面构思';
+      if (appState.isRecordingVideo) { stopVideoCapture(); return; }
+      appState.isRecordingVideo = true;
+      appState.videoSec = 0; appState.recordedVideoUrl = '';
+      $('sheetVideoTimer').textContent = '00:00';
+      const btn = $('sheetRecordVideoBtn'), badge = $('sheetVideoRecBadge'), videoEl = $('sheetVideoPreview'), placeholder = $('sheetVideoPlaceholder'), hint = $('videoEngineHint');
+      videoEl.controls = false; videoEl.muted = true; btn.textContent = '点击停止录制'; badge.classList.remove('hidden');
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('No camera');
+        const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode: appState.videoFacingMode }, audio:true });
+        if (!appState.isRecordingVideo) { stream.getTracks().forEach(t => t.stop()); return; }
+        appState.mediaStream = stream; videoEl.srcObject = stream; videoEl.classList.remove('hidden'); placeholder.classList.add('hidden');
+        try { await videoEl.play(); } catch (e) {}
+        appState.mediaChunks = [];
+        const recorder = new MediaRecorder(stream);
+        recorder.ondataavailable = ev => { if (ev.data && ev.data.size > 0) appState.mediaChunks.push(ev.data); };
+        recorder.onstop = () => {
+          if (!appState.recordedVideoUrl) appState.recordedVideoUrl = flushRecording('video/webm');
+          if (appState.recordedVideoUrl) { videoEl.srcObject = null; videoEl.src = appState.recordedVideoUrl; videoEl.muted = false; videoEl.controls = true; }
+        };
+        recorder.start(); appState.mediaRecorder = recorder;
+      } catch (err) {
+        hint.textContent = '🎥 未获得摄像头权限，正在模拟取景器录制...';
       }
+      appState.videoTimerId = setInterval(() => { appState.videoSec++; $('sheetVideoTimer').textContent = fmtDur(appState.videoSec); }, 1000);
     }
 
-    function saveCapturedSpark() {
+    function stopVideoCapture() {
+      appState.isRecordingVideo = false;
+      clearInterval(appState.videoTimerId);
+      if (!appState.recordedVideoUrl) appState.recordedVideoUrl = flushRecording('video/webm');
+      stopAllMediaStreams();
+      const btn = $('sheetRecordVideoBtn'), badge = $('sheetVideoRecBadge'), videoEl = $('sheetVideoPreview'), hint = $('videoEngineHint');
+      btn.textContent = '重新录制画面'; badge.classList.add('hidden');
+      hint.textContent = '✅ 视频灵感片段已就绪';
+      if (appState.recordedVideoUrl) { videoEl.srcObject = null; videoEl.src = appState.recordedVideoUrl; videoEl.muted = false; videoEl.controls = true; videoEl.classList.remove('hidden'); $('sheetVideoPlaceholder').classList.add('hidden'); }
+      const note = $('sheetVideoNote');
+      if (!note.value.trim()) note.value = '随手拍白板草图：新的三步漏斗转化界面构思';
+    }
+
+    function saveCapturedSpark(alsoThink) {
       let content = '', mediaMeta = {};
       if (appState.captureMode === 'text') {
-        content = document.getElementById('quickTextInput').value.trim(); if (!content) { toast('先输入一点内容吧 ✍️'); return; }
-        document.getElementById('quickTextInput').value = '';
+        content = $('quickTextInput').value.trim();
+        if (!content) { toast('先输入一点内容吧 ✍️', { type:'warn' }); $('quickTextInput').focus(); return; }
+        $('quickTextInput').value = '';
       } else if (appState.captureMode === 'voice') {
-        if (appState.isRecordingVoice) toggleSheetVoice();
-        content = document.getElementById('sheetVoiceNote').value.trim() || '语音速记灵感片段';
-        const sec = Math.max(appState.voiceSec, 15); mediaMeta = { duration: `00:${String(sec).padStart(2, '0')}`, audioUrl: appState.recordedAudioUrl || '' };
-        appState.voiceSec = 0; appState.recordedAudioUrl = ''; document.getElementById('sheetVoiceTimer').textContent = '00:00'; document.getElementById('sheetVoiceNote').value = ''; document.getElementById('sheetVoicePreviewAudio').classList.add('hidden');
+        if (appState.isRecordingVoice) stopVoiceCapture();
+        content = $('sheetVoiceNote').value.trim() || '语音速记灵感片段';
+        mediaMeta = { duration: fmtDur(Math.max(appState.voiceSec, 15)), audioUrl: appState.recordedAudioUrl || '' };
+        appState.voiceSec = 0; appState.recordedAudioUrl = '';
+        $('sheetVoiceTimer').textContent = '00:00'; $('sheetVoiceNote').value = ''; $('sheetVoicePreviewAudio').classList.add('hidden');
       } else {
-        if (appState.isRecordingVideo) toggleSheetVideo();
-        content = document.getElementById('sheetVideoNote').value.trim() || '视频画面灵感片段';
-        const sec = Math.max(appState.videoSec, 18); mediaMeta = { duration: `00:${String(sec).padStart(2, '0')}`, videoUrl: appState.recordedVideoUrl || '' };
-        appState.videoSec = 0; appState.recordedVideoUrl = ''; document.getElementById('sheetVideoTimer').textContent = '00:00'; document.getElementById('sheetVideoNote').value = ''; document.getElementById('sheetVideoPreview').classList.add('hidden'); document.getElementById('sheetVideoPlaceholder').classList.remove('hidden');
+        if (appState.isRecordingVideo) stopVideoCapture();
+        content = $('sheetVideoNote').value.trim() || '视频画面灵感片段';
+        mediaMeta = { duration: fmtDur(Math.max(appState.videoSec, 18)), videoUrl: appState.recordedVideoUrl || '' };
+        appState.videoSec = 0; appState.recordedVideoUrl = '';
+        $('sheetVideoTimer').textContent = '00:00'; $('sheetVideoNote').value = '';
+        $('sheetVideoPreview').classList.add('hidden'); $('sheetVideoPlaceholder').classList.remove('hidden');
       }
       const inlineTags = Array.from(content.matchAll(/#([\u4e00-\u9fa5a-zA-Z0-9_-]+)/g)).map(m => m[1]);
       const tags = Array.from(new Set([appState.captureTag, ...inlineTags]));
       if (isPluginOn('auto-tagger')) {
-        const rules = [{ kw: ['设计', '界面', '交互', '原型', 'UI'], tag: '设计' }, { kw: ['周报', '复盘', '总结', '汇报'], tag: '周报' }, { kw: ['产品', '需求', '用户', 'MVP'], tag: '产品' }];
+        const rules = [
+          { kw:['设计','界面','交互','原型','UI'], tag:'设计' },
+          { kw:['周报','复盘','总结','汇报'], tag:'周报' },
+          { kw:['产品','需求','用户','MVP'], tag:'产品' },
+          { kw:['AI','模型','提示词','智能'], tag:'AI' },
+          { kw:['增长','订阅','转化','投放'], tag:'增长' }
+        ];
         rules.forEach(r => { if (r.kw.some(k => content.includes(k)) && !tags.includes(r.tag)) tags.push(r.tag); });
       }
-      appState.items.unshift({ id: 'm-' + Date.now(), stage: 'clue', pinned: false, mediaType: appState.captureMode, mediaMeta, content, tags, createdAt: '刚刚', thinking: { value: '', nextStep: '' }, goal: { priority: 'P1', deadline: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10), tasks: [] }, aiSummary: '' });
-      appState.activeNav = 'clues'; appState.stageFilter = 'all'; appState.tagFilter = '';
-      persist(); closeCaptureSheet(); renderAll(); toast('✨ 已存入线索库！');
+      const id = uid('m');
+      appState.items.unshift(normalizeItem({ id, stage:'clue', pinned:false, mediaType:appState.captureMode, mediaMeta, content, tags, ts:Date.now(), createdAt:'刚刚', thinking:{value:'',nextStep:''}, goal:{ priority:'P1', deadline:new Date(Date.now() + 7 * DAY).toISOString().slice(0,10), tasks:[] }, aiSummary:'' }, 0));
+      appState.activeNav = 'clues'; appState.stageFilter = 'all'; appState.tagFilter = ''; appState.activeViewId = '';
+      persist(); closeCaptureSheet(); renderAll(); scrollMainToTop();
+      toast('✨ 已存入线索库！', { type:'success' });
+      if (alsoThink) setTimeout(() => openDetailSheet(id), 220);
     }
 
+    /* ==================== 详情工作台 ==================== */
     function applyThinkTemplate(type) {
-      const valBox = document.getElementById('detailThinkValue'), nextBox = document.getElementById('detailThinkNext');
+      const valBox = $('detailThinkValue'), nextBox = $('detailThinkNext');
       if (type === 'mvp') { valBox.value = '【目标用户】\n【核心痛点】\n【最小解法】'; nextBox.value = '用 2 小时做出静态演示草图，找 3 位目标用户访谈验证'; }
       else if (type === '5w1h') { valBox.value = '【Why 为什么做】\n【Who 谁最需要】\n【What 交付物】'; nextBox.value = '明确第一版功能边界，砍掉非核心特性'; }
       else if (type === 'pain') { valBox.value = '【现状做法的缺陷】\n【新方案的 10 倍优势】'; nextBox.value = '列出最关键的 1 个差异化功能并开始原型制作'; }
@@ -938,148 +1402,330 @@
     function openDetailSheet(id) {
       const item = appState.items.find(i => i.id === id); if (!item) return;
       appState.editingItemId = id; appState.editingIsGoal = item.stage === 'goal';
-      const mediaLabels = { text: '📝 文字', voice: '🎙️ 语音', video: '🎬 视频' }, stageLabels = { clue: '💡 灵感线索', thinking: '🧠 思考中', goal: '🎯 工作目标' };
-      document.getElementById('detailMediaBadge').textContent = mediaLabels[item.mediaType] || '📝 文字';
-      document.getElementById('detailStageBadge').textContent = stageLabels[item.stage] || '💡 线索';
-      document.getElementById('detailContentInput').value = item.content;
-      document.getElementById('detailThinkValue').value = item.thinking?.value || '';
-      document.getElementById('detailThinkNext').value = item.thinking?.nextStep || '';
-      document.getElementById('detailGoalPriority').value = item.goal?.priority || 'P1';
-      document.getElementById('detailGoalDeadline').value = item.goal?.deadline || '2026-12-01';
-      const pinBtn = document.getElementById('detailPinBtn'); pinBtn.classList.toggle('text-indigo-600', !!item.pinned); pinBtn.classList.toggle('bg-indigo-50', !!item.pinned);
-      const playerSlot = document.getElementById('detailMediaPlayerSlot');
-      if (item.mediaType === 'voice' && item.mediaMeta?.audioUrl) playerSlot.innerHTML = `<audio src="${item.mediaMeta.audioUrl}" controls class="w-full h-9"></audio>`;
-      else if (item.mediaType === 'video' && item.mediaMeta?.videoUrl) playerSlot.innerHTML = `<video src="${item.mediaMeta.videoUrl}" controls playsinline class="w-full max-h-40 rounded-xl bg-black"></video>`;
+      const mediaLabels = { text:'📝 文字', voice:'🎙️ 语音', video:'🎬 视频' }, stageLabels = { clue:'💡 灵感线索', thinking:'🧠 思考中', goal:'🎯 工作目标' };
+      $('detailMediaBadge').textContent = mediaLabels[item.mediaType] || '📝 文字';
+      $('detailStageBadge').textContent = stageLabels[item.stage] || '💡 线索';
+      $('detailContentInput').value = item.content;
+      $('detailThinkValue').value = item.thinking?.value || '';
+      $('detailThinkNext').value = item.thinking?.nextStep || '';
+      $('detailGoalPriority').value = item.goal?.priority || 'P1';
+      $('detailGoalDeadline').value = item.goal?.deadline || new Date(Date.now() + 7 * DAY).toISOString().slice(0,10);
+      $('detailMetaLine').textContent = `记录于 ${relTime(item.ts)}${item.updatedAt ? ' · 已编辑' : ''}`;
+      const pinBtn = $('detailPinBtn');
+      pinBtn.classList.toggle('text-indigo-600', !!item.pinned);
+      pinBtn.classList.toggle('bg-indigo-50', !!item.pinned);
+      pinBtn.classList.toggle('dark:bg-indigo-500/15', !!item.pinned);
+      const playerSlot = $('detailMediaPlayerSlot');
+      if (item.mediaType === 'voice' && item.mediaMeta?.audioUrl) playerSlot.innerHTML = `<audio src="${esc(item.mediaMeta.audioUrl)}" controls class="w-full h-9"></audio>`;
+      else if (item.mediaType === 'video' && item.mediaMeta?.videoUrl) playerSlot.innerHTML = `<video src="${esc(item.mediaMeta.videoUrl)}" controls playsinline class="w-full max-h-40 rounded-xl bg-black"></video>`;
       else playerSlot.innerHTML = '';
-      const exportSlot = document.getElementById('detailExportPluginSlot');
+      const exportSlot = $('detailExportPluginSlot');
       exportSlot.innerHTML = isPluginOn('quick-export') ? `<div class="flex items-center gap-1.5"><button type="button" onclick="copyItemMarkdown()" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 text-[11px] font-semibold text-indigo-600 dark:text-indigo-300 active:scale-95">📋 复制 MD</button><button type="button" onclick="downloadItemMarkdown()" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 text-[11px] font-semibold text-indigo-600 dark:text-indigo-300 active:scale-95">⬇️ 下载</button></div>` : '';
+      renderDetailStageSeg(item); renderDetailTags(item);
       syncGoalSwitchUI(); renderDetailKrList(item);
-      const backdrop = document.getElementById('detailSheetBackdrop'); backdrop.classList.remove('hidden'); lucide.createIcons({ nodes: [backdrop] });
+      $('detailSheetBackdrop').classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function renderDetailStageSeg(item) {
+      const opts = [['clue','💡 线索'],['thinking','🧠 思考'],['goal','🎯 目标']];
+      $('detailStageSeg').innerHTML = opts.map(([v, l]) => `<button type="button" onclick="setDetailStage('${v}')" class="h-7 px-2.5 rounded-lg text-[11px] font-bold transition-all ${item.stage === v ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 shadow-xs' : 'text-slate-500 dark:text-slate-400'}">${l}</button>`).join('');
+    }
+
+    function setDetailStage(stage) {
+      const item = appState.items.find(i => i.id === appState.editingItemId); if (!item) return;
+      item.stage = stage; appState.editingIsGoal = stage === 'goal';
+      if (stage === 'goal' && !item.goal.tasks.length) item.goal.tasks.push({ id: uid('t'), text: $('detailThinkNext').value.trim() || item.thinking?.nextStep || '完成第一步关键验证', done:false });
+      item.updatedAt = Date.now();
+      $('detailStageBadge').textContent = { clue:'💡 灵感线索', thinking:'🧠 思考中', goal:'🎯 工作目标' }[stage];
+      persist(); renderDetailStageSeg(item); syncGoalSwitchUI(); renderDetailKrList(item); renderAll();
+      toast(`阶段已切换为「${{clue:'线索',thinking:'思考中',goal:'工作目标'}[stage]}」`, { type:'success' });
+    }
+
+    function renderDetailTags(item) {
+      const box = $('detailTagsBox');
+      box.innerHTML = (item.tags || []).map(t => `<span class="inline-flex items-center gap-1 h-7 pl-2.5 pr-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-medium">#${esc(t)}<button type="button" onclick="removeItemTag('${esc(t)}')" class="w-5 h-5 rounded flex items-center justify-center text-slate-400 hover:text-rose-500">✕</button></span>`).join('') || '<span class="text-[11px] text-slate-400">暂无标签，添加一个便于归类</span>';
+    }
+
+    function removeItemTag(tag) {
+      const item = appState.items.find(i => i.id === appState.editingItemId); if (!item) return;
+      item.tags = item.tags.filter(t => t !== tag); item.updatedAt = Date.now();
+      persist(); renderDetailTags(item); renderAll();
+    }
+
+    function addItemTagFromInput() {
+      const input = $('detailNewTagInput'), tag = (input.value || '').replace(/^#/, '').trim();
+      const item = appState.items.find(i => i.id === appState.editingItemId);
+      if (!item || !tag) return;
+      if (!item.tags.includes(tag)) item.tags.push(tag);
+      item.updatedAt = Date.now(); input.value = '';
+      persist(); renderDetailTags(item); renderAll(); toast(`已添加标签 #${tag}`, { type:'success' });
     }
 
     function syncGoalSwitchUI() {
-      const sw = document.getElementById('toggleGoalSwitch'), knob = document.getElementById('toggleGoalKnob'), area = document.getElementById('goalConfigArea');
-      if (appState.editingIsGoal) { sw.classList.replace('bg-slate-300', 'bg-emerald-500'); sw.classList.replace('dark:bg-slate-700', 'bg-emerald-500'); knob.classList.add('translate-x-5'); area.classList.remove('hidden'); }
-      else { sw.classList.remove('bg-emerald-500'); sw.classList.add('bg-slate-300', 'dark:bg-slate-700'); knob.classList.remove('translate-x-5'); area.classList.add('hidden'); }
+      const sw = $('toggleGoalSwitch'), knob = $('toggleGoalKnob'), area = $('goalConfigArea');
+      const on = appState.editingIsGoal;
+      sw.classList.toggle('bg-emerald-500', on);
+      sw.classList.toggle('bg-slate-300', !on);
+      sw.classList.toggle('dark:bg-slate-700', !on);
+      knob.classList.toggle('translate-x-5', on);
+      area.classList.toggle('hidden', !on);
     }
 
     function renderDetailKrList(item) {
-      const list = document.getElementById('detailKrList'), tasks = item.goal?.tasks || [];
+      const list = $('detailKrList'), tasks = item.goal?.tasks || [];
       if (!tasks.length) { list.innerHTML = `<p class="text-[11px] text-slate-400">添加 1~3 个具体可勾选的关键行动项（KR）：</p>`; return; }
-      list.innerHTML = tasks.map(t => `<div class="flex items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200/80 dark:border-slate-800"><label class="flex items-center gap-2.5 text-xs flex-1 cursor-pointer"><input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleDetailTask('${t.id}')" class="w-4 h-4 rounded text-emerald-600" /><span class="${t.done ? 'line-through text-slate-400' : ''}">${t.text}</span></label><button type="button" onclick="removeDetailTask('${t.id}')" class="text-slate-400 hover:text-rose-500 p-1">✕</button></div>`).join('');
+      list.innerHTML = tasks.map(t => `<div class="flex items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200/80 dark:border-slate-800"><label class="flex items-center gap-2.5 text-xs flex-1 cursor-pointer"><input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleDetailTask('${t.id}')" class="w-4 h-4 rounded" /><span class="${t.done ? 'line-through text-slate-400' : ''}">${esc(t.text)}</span></label><button type="button" onclick="removeDetailTask('${t.id}')" class="text-slate-400 hover:text-rose-500 p-1">✕</button></div>`).join('');
     }
 
     function toggleDetailTask(taskId) {
       const item = appState.items.find(i => i.id === appState.editingItemId); if (!item) return;
-      const t = item.goal.tasks.find(x => x.id === taskId); if (t) t.done = !t.done; renderDetailKrList(item);
+      const t = item.goal.tasks.find(x => x.id === taskId); if (t) t.done = !t.done;
+      persist(); renderDetailKrList(item); renderAll();
     }
 
     function removeDetailTask(taskId) {
       const item = appState.items.find(i => i.id === appState.editingItemId); if (!item) return;
-      item.goal.tasks = item.goal.tasks.filter(x => x.id !== taskId); renderDetailKrList(item);
+      const t = item.goal.tasks.find(x => x.id === taskId);
+      item.goal.tasks = item.goal.tasks.filter(x => x.id !== taskId);
+      persist(); renderDetailKrList(item); renderAll();
+      if (t) pushUndo('已移除该 KR', () => { item.goal.tasks.push(t); persist(); renderDetailKrList(item); renderAll(); });
     }
 
     function buildCurrentItemMarkdown() {
-      const content = document.getElementById('detailContentInput').value, val = document.getElementById('detailThinkValue').value, next = document.getElementById('detailThinkNext').value;
+      const content = $('detailContentInput').value, val = $('detailThinkValue').value, next = $('detailThinkNext').value;
       const item = appState.items.find(i => i.id === appState.editingItemId);
       const tasksMd = (item?.goal?.tasks || []).map(t => `- [${t.done ? 'x' : ' '}] ${t.text}`).join('\n');
-      return `# 💡 ${content}\n\n## 🧠 深度思考\n- **核心价值**：${val || '待补充'}\n- **下一步行动**：${next || '待补充'}\n\n${tasksMd ? `## 🎯 关键行动 (KR)\n${tasksMd}` : ''}`;
+      const tags = (item?.tags || []).map(t => '#' + t).join(' ');
+      const stageLabel = { clue:'灵感线索', thinking:'思考中', goal:'工作目标' }[item?.stage] || '灵感线索';
+      return `# 💡 ${content}\n\n> 阶段：${stageLabel}${tags ? ' · ' + tags : ''}${item?.stage === 'goal' ? ` · ${item.goal.priority} · 截止 ${item.goal.deadline}` : ''}\n\n## 🧠 深度思考\n- **核心价值**：${val || '待补充'}\n- **下一步行动**：${next || '待补充'}\n${item?.aiSummary ? `\n## ✨ AI 提炼\n${item.aiSummary}\n` : ''}${tasksMd ? `\n## 🎯 关键行动 (KR)\n${tasksMd}\n` : ''}`;
     }
 
-    function copyItemMarkdown() {
-      const md = buildCurrentItemMarkdown(), ta = document.createElement('textarea'); ta.value = md; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('📋 已复制为 Markdown 格式');
-    }
+    function copyItemMarkdown() { copyText(buildCurrentItemMarkdown(), '📋 已复制为 Markdown 格式'); }
 
     function downloadItemMarkdown() {
-      const md = buildCurrentItemMarkdown(), blob = new Blob([md], { type: 'text/markdown;charset=utf-8' }), url = URL.createObjectURL(blob), a = document.createElement('a');
-      a.href = url; a.download = `sparkflow-note-${Date.now()}.md`; a.click(); URL.revokeObjectURL(url); toast('⬇️ 已下载 .md 笔记文件');
+      const md = buildCurrentItemMarkdown(), blob = new Blob([md], { type:'text/markdown;charset=utf-8' }), url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = `sparkflow-note-${Date.now()}.md`; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast('⬇️ 已下载 .md 笔记文件', { type:'success' });
+    }
+
+    function applyDetailEdits(showToast) {
+      const item = appState.items.find(i => i.id === appState.editingItemId); if (!item) return;
+      item.content = $('detailContentInput').value.trim() || item.content;
+      item.thinking = { value: $('detailThinkValue').value.trim(), nextStep: $('detailThinkNext').value.trim() };
+      item.goal.priority = $('detailGoalPriority').value;
+      item.goal.deadline = $('detailGoalDeadline').value;
+      item.updatedAt = Date.now();
+      if (appState.editingIsGoal) {
+        item.stage = 'goal';
+        if (item.goal.tasks.length === 0) item.goal.tasks.push({ id: uid('t'), text: item.thinking.nextStep || '完成第一步关键验证', done:false });
+      } else if (item.stage !== 'goal' && (item.thinking.value || item.thinking.nextStep)) {
+        item.stage = 'thinking';
+      }
+      persist(); renderAll();
+      if (showToast) toast(item.stage === 'goal' ? '🎯 工作目标已保存' : '已保存思考内容', { type:'success' });
     }
 
     function saveDetailSheet() {
-      const item = appState.items.find(i => i.id === appState.editingItemId); if (!item) return;
-      item.content = document.getElementById('detailContentInput').value.trim() || item.content;
-      item.thinking = { value: document.getElementById('detailThinkValue').value.trim(), nextStep: document.getElementById('detailThinkNext').value.trim() };
-      item.goal.priority = document.getElementById('detailGoalPriority').value; item.goal.deadline = document.getElementById('detailGoalDeadline').value;
-      if (appState.editingIsGoal) {
-        item.stage = 'goal';
-        if (item.goal.tasks.length === 0) item.goal.tasks.push({ id: 't-' + Date.now(), text: item.thinking.nextStep || '完成第一步关键验证', done: false });
-      } else if (item.thinking.value || item.thinking.nextStep) { item.stage = 'thinking'; }
-      persist(); document.getElementById('detailSheetBackdrop').classList.add('hidden'); renderAll(); toast(item.stage === 'goal' ? '🎯 工作目标已保存' : '已保存思考内容');
+      applyDetailEdits(true);
+      closeDetailSheet({ save:false });
     }
 
+    function closeDetailSheet(opts) {
+      opts = opts || {};
+      if (opts.save !== false && appState.editingItemId && !$('detailSheetBackdrop').classList.contains('hidden')) applyDetailEdits(false);
+      $('detailSheetBackdrop').classList.add('hidden');
+      appState.editingItemId = null;
+    }
+
+    function deleteEditingItem() {
+      const id = appState.editingItemId; if (!id) return;
+      closeDetailSheet({ save:false });
+      removeItems([id], '已删除该条记录');
+    }
+
+    /* ==================== 数据与复盘 ==================== */
     function openDataMenuModal() {
-      const box = document.getElementById('modalContentBox');
-      box.innerHTML = `<div class="flex items-center justify-between mb-4"><h3 class="font-bold text-base">数据管理与新手演练</h3><button type="button" onclick="closeModal()" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">✕</button></div><div class="space-y-2.5"><button type="button" onclick="exportAllDataJson()" class="w-full h-11 px-4 rounded-xl bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 text-xs font-bold flex items-center justify-between"><span>📤 导出全部灵感与目标备份 (JSON)</span><span>→</span></button><label class="w-full h-11 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-between cursor-pointer"><span>📥 从 JSON 备份文件恢复数据</span><span>选择文件</span><input type="file" accept=".json" onchange="importDataJson(event)" class="hidden" /></label><button type="button" onclick="resetDemoData()" class="w-full h-11 px-4 rounded-xl bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 text-xs font-bold flex items-center justify-between"><span>🔄 恢复初始预置演练样本</span><span>重置</span></button></div>`;
-      document.getElementById('modalBackdrop').classList.remove('hidden');
+      const bytes = (JSON.stringify(appState.items).length + JSON.stringify(appState.plugins).length);
+      const kb = Math.max(1, Math.round(bytes / 1024));
+      const box = $('modalContentBox');
+      box.innerHTML = `<div class="flex items-center justify-between mb-4"><h3 class="font-bold text-base">数据管理与新手演练</h3><button type="button" onclick="closeModal()" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">✕</button></div>
+      <div class="space-y-2.5">
+        <button type="button" onclick="exportAllDataJson()" class="w-full h-11 px-4 rounded-xl bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 text-xs font-bold flex items-center justify-between"><span>📤 导出全部灵感与目标备份 (JSON)</span><span>→</span></button>
+        <label class="w-full h-11 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-between cursor-pointer"><span>📥 从 JSON 备份文件恢复数据</span><span>选择文件</span><input type="file" accept=".json" onchange="importDataJson(event)" class="hidden" /></label>
+        <button type="button" onclick="resetDemoData()" class="w-full h-11 px-4 rounded-xl bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 text-xs font-bold flex items-center justify-between"><span>🔄 恢复初始预置演练样本</span><span>重置</span></button>
+        <button type="button" onclick="restoreDefaultPlugins()" class="w-full h-11 px-4 rounded-xl bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300 text-xs font-bold flex items-center justify-between"><span>🧩 恢复默认内置插件</span><span>恢复</span></button>
+        <button type="button" onclick="clearAllItems()" class="w-full h-11 px-4 rounded-xl bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 text-xs font-bold flex items-center justify-between"><span>🗑 清空全部灵感记录</span><span>可撤销</span></button>
+      </div>
+      <div class="mt-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 space-y-1.5">
+        <p class="text-[11px] font-bold text-slate-500">本地存储占用 ≈ ${kb} KB · ${appState.items.length} 条记录 · ${appState.plugins.length} 个插件</p>
+        <p class="text-[11px] text-slate-400 leading-relaxed">快捷键：<kbd class="px-1 rounded bg-slate-200 dark:bg-slate-800 font-mono">/</kbd> 搜索 · <kbd class="px-1 rounded bg-slate-200 dark:bg-slate-800 font-mono">N</kbd> 新建 · <kbd class="px-1 rounded bg-slate-200 dark:bg-slate-800 font-mono">Esc</kbd> 关闭 · <kbd class="px-1 rounded bg-slate-200 dark:bg-slate-800 font-mono">Ctrl/⌘+S</kbd> 保存详情</p>
+        <p class="text-[11px] text-slate-400 leading-relaxed">录音/录像文件仅保存在当前会话内存中，文字与结构化数据会持久化到本机。</p>
+      </div>`;
+      $('modalBackdrop').classList.remove('hidden');
     }
 
     function openDailyReviewModal() {
-      const total = appState.items.length, goals = appState.items.filter(i => i.stage === 'goal').length, thinking = appState.items.filter(i => i.stage === 'thinking').length;
+      const total = appState.items.length;
+      const clue = appState.items.filter(i => i.stage === 'clue').length;
+      const thinking = appState.items.filter(i => i.stage === 'thinking').length;
+      const goals = appState.items.filter(i => i.stage === 'goal').length;
+      const tasks = appState.items.flatMap(i => i.goal?.tasks || []);
+      const done = tasks.filter(t => t.done).length;
       const rate = total ? Math.round(((goals + thinking) / total) * 100) : 0;
-      const box = document.getElementById('modalContentBox');
-      box.innerHTML = `<div class="space-y-4"><div class="rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 text-white p-5 space-y-3"><div class="flex items-center justify-between"><span class="text-xs font-semibold text-indigo-200">SPARKFLOW 灵流 · 复盘卡</span><span class="text-xs font-mono opacity-80">${new Date().toLocaleDateString('zh-CN')}</span></div><h3 class="text-xl font-extrabold">灵感转化率 ${rate}%</h3><div class="grid grid-cols-3 gap-2 pt-2"><div class="rounded-xl bg-white/15 p-2.5 text-center"><div class="text-lg font-extrabold">${total}</div><div class="text-[10px] text-indigo-100">累计捕获</div></div><div class="rounded-xl bg-white/15 p-2.5 text-center"><div class="text-lg font-extrabold">${thinking}</div><div class="text-[10px] text-indigo-100">深度思考</div></div><div class="rounded-xl bg-white/15 p-2.5 text-center"><div class="text-lg font-extrabold">${goals}</div><div class="text-[10px] text-indigo-100">工作目标</div></div></div></div><button type="button" onclick="closeModal()" class="w-full h-11 rounded-xl bg-slate-900 dark:bg-indigo-600 text-white text-xs font-bold">继续保持灵感流动</button></div>`;
-      document.getElementById('modalBackdrop').classList.remove('hidden');
+      const tagCount = {};
+      appState.items.forEach(i => (i.tags || []).forEach(t => { tagCount[t] = (tagCount[t] || 0) + 1; }));
+      const topTags = Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      const hues = ['#f59e0b','#0ea5e9','#10b981','#d946ef','#f43f5e'];
+      const maxTag = topTags.length ? topTags[0][1] : 1;
+      const stageBars = [['💡 线索', clue, '#f59e0b'], ['🧠 思考', thinking, '#6366f1'], ['🎯 目标', goals, '#10b981']];
+      const box = $('modalContentBox');
+      box.innerHTML = `<div class="space-y-4">
+        <div class="rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 text-white p-5 space-y-3 shadow-lg">
+          <div class="flex items-center justify-between"><span class="text-xs font-semibold text-indigo-100">SPARKFLOW 灵流 · 复盘卡</span><span class="text-xs font-mono opacity-80">${new Date().toLocaleDateString('zh-CN')}</span></div>
+          <h3 class="text-2xl font-extrabold">灵感转化率 ${rate}%</h3>
+          <div class="grid grid-cols-4 gap-2 pt-1">
+            <div class="rounded-xl bg-white/15 p-2.5 text-center"><div class="text-lg font-extrabold">${total}</div><div class="text-[10px] text-indigo-100">累计捕获</div></div>
+            <div class="rounded-xl bg-white/15 p-2.5 text-center"><div class="text-lg font-extrabold">${thinking}</div><div class="text-[10px] text-indigo-100">深度思考</div></div>
+            <div class="rounded-xl bg-white/15 p-2.5 text-center"><div class="text-lg font-extrabold">${goals}</div><div class="text-[10px] text-indigo-100">工作目标</div></div>
+            <div class="rounded-xl bg-white/15 p-2.5 text-center"><div class="text-lg font-extrabold">${done}/${tasks.length}</div><div class="text-[10px] text-indigo-100">KR 完成</div></div>
+          </div>
+        </div>
+        <div class="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 space-y-2.5">
+          <h4 class="text-xs font-bold text-slate-500">阶段分布</h4>
+          ${stageBars.map(([l, v, c]) => `<div class="flex items-center gap-2.5"><span class="text-[11px] w-16 shrink-0 text-slate-500">${l}</span><div class="flex-1 h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div class="h-full rounded-full transition-all duration-500" style="width:${total ? Math.round(v / total * 100) : 0}%;background:${c}"></div></div><span class="text-[11px] font-mono font-bold w-6 text-right" style="color:${c}">${v}</span></div>`).join('')}
+        </div>
+        <div class="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 space-y-2.5">
+          <h4 class="text-xs font-bold text-slate-500">热门标签 TOP 5</h4>
+          ${topTags.length ? topTags.map(([t, v], i) => `<div class="flex items-center gap-2.5"><span class="text-[11px] w-20 shrink-0 truncate text-slate-500">#${esc(t)}</span><div class="flex-1 h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div class="h-full rounded-full transition-all duration-500" style="width:${Math.round(v / maxTag * 100)}%;background:${hues[i]}"></div></div><span class="text-[11px] font-mono font-bold w-6 text-right" style="color:${hues[i]}">${v}</span></div>`).join('') : '<p class="text-[11px] text-slate-400">还没有标签数据</p>'}
+        </div>
+        <div class="flex gap-2">
+          <button type="button" onclick="copyReviewCard()" class="flex-1 h-11 rounded-xl bg-white dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 text-indigo-600 dark:text-indigo-300 text-xs font-bold active:scale-[0.98]">📋 复制复盘</button>
+          <button type="button" onclick="closeModal()" class="flex-1 h-11 rounded-xl bg-slate-900 dark:bg-indigo-600 text-white text-xs font-bold active:scale-[0.98]">继续保持流动</button>
+        </div></div>`;
+      $('modalBackdrop').classList.remove('hidden');
     }
 
-    function closeModal() { document.getElementById('modalBackdrop').classList.add('hidden'); }
+    function copyReviewCard() {
+      const total = appState.items.length, goals = appState.items.filter(i => i.stage === 'goal').length, thinking = appState.items.filter(i => i.stage === 'thinking').length;
+      const tasks = appState.items.flatMap(i => i.goal?.tasks || []), done = tasks.filter(t => t.done).length;
+      const md = `# 📊 SparkFlow 灵流复盘 · ${new Date().toLocaleDateString('zh-CN')}\n\n- 累计捕获：${total}\n- 深度思考：${thinking}\n- 工作目标：${goals}\n- KR 完成：${done}/${tasks.length}\n- 灵感转化率：${total ? Math.round((goals + thinking) / total * 100) : 0}%\n`;
+      copyText(md, '📋 复盘卡已复制');
+    }
+
+    function closeModal() { $('modalBackdrop').classList.add('hidden'); }
 
     function exportAllDataJson() {
-      const payload = JSON.stringify({ items: appState.items, plugins: appState.plugins }, null, 2), blob = new Blob([payload], { type: 'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a');
-      a.href = url; a.download = `sparkflow-backup-${new Date().toISOString().slice(0, 10)}.json`; a.click(); URL.revokeObjectURL(url); closeModal(); toast('📤 数据备份已导出');
+      const payload = JSON.stringify({ items: appState.items, plugins: appState.plugins, views: appState.views, exportedAt: new Date().toISOString() }, null, 2);
+      const blob = new Blob([payload], { type:'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = `sparkflow-backup-${new Date().toISOString().slice(0,10)}.json`; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      closeModal(); toast('📤 数据备份已导出', { type:'success' });
     }
 
     function importDataJson(e) {
-      const file = e.target.files?.[0]; if (!file) return;
+      const file = e.target.files?.[0]; e.target.value = ''; if (!file) return;
       const reader = new FileReader();
-      reader.onload = (ev) => {
+      reader.onload = ev => {
         try {
           const parsed = JSON.parse(ev.target.result);
           if (Array.isArray(parsed.items)) {
-            appState.items = parsed.items; if (Array.isArray(parsed.plugins)) appState.plugins = parsed.plugins;
-            persist(); renderAll(); closeModal(); toast('📥 备份数据恢复成功！');
-          } else { toast('备份文件格式不正确'); }
-        } catch (err) { toast('解析 JSON 文件失败'); }
+            const prevItems = appState.items, prevPlugins = appState.plugins, prevViews = appState.views;
+            appState.items = parsed.items.map(normalizeItem);
+            if (Array.isArray(parsed.plugins)) appState.plugins = parsed.plugins;
+            if (Array.isArray(parsed.views)) appState.views = parsed.views;
+            persist(); renderAll(); closeModal();
+            pushUndo(`📥 已恢复 ${appState.items.length} 条记录`, () => { appState.items = prevItems; appState.plugins = prevPlugins; appState.views = prevViews; persist(); renderAll(); });
+          } else toast('备份文件格式不正确', { type:'danger' });
+        } catch (err) { toast('解析 JSON 文件失败', { type:'danger' }); }
       };
       reader.readAsText(file);
     }
 
-    function resetDemoData() { appState.items = JSON.parse(JSON.stringify(INITIAL_ITEMS)); persist(); renderAll(); closeModal(); toast('🔄 已恢复初始预置样本'); }
+    function resetDemoData() {
+      const prev = appState.items;
+      appState.items = JSON.parse(JSON.stringify(INITIAL_ITEMS)).map(normalizeItem);
+      persist(); renderAll(); closeModal();
+      pushUndo('🔄 已恢复初始预置样本', () => { appState.items = prev; persist(); renderAll(); });
+    }
 
+    function restoreDefaultPlugins() {
+      INITIAL_PLUGINS.forEach(p => { if (!appState.plugins.some(x => x.id === p.id)) appState.plugins.push(JSON.parse(JSON.stringify(p))); else { const t = appState.plugins.find(x => x.id === p.id); t.enabled = true; } });
+      persist(); renderAll(); closeModal(); toast('🧩 默认内置插件已恢复', { type:'success' });
+    }
+
+    function clearAllItems() {
+      if (!appState.items.length) { toast('当前没有记录'); return; }
+      const prev = appState.items.slice();
+      appState.items = []; appState.selected.clear();
+      persist(); renderAll(); closeModal();
+      pushUndo(`🗑 已清空 ${prev.length} 条记录`, () => { appState.items = prev; persist(); renderAll(); });
+    }
+
+    function openPluginCenterHelp() {
+      const box = $('modalContentBox');
+      box.innerHTML = `<div class="space-y-4"><div class="flex items-center justify-between"><h3 class="font-bold text-base">🧩 插件中心未加载</h3><button type="button" onclick="closeModal()" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">✕</button></div>
+      <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">未检测到 <code class="px-1 rounded bg-slate-100 dark:bg-slate-800 font-mono">./plugins/plugins-center.js</code>。请确认项目目录结构如下，然后通过本地服务器打开页面（直接双击 file:// 打开时浏览器可能拦截脚本）。</p>
+      <pre class="rounded-xl bg-slate-900 text-slate-100 p-3 text-[11px] font-mono overflow-x-auto sf-scroll">项目目录/
+├── index.html
+└── plugins/
+    ├── plugins-center.js
+    ├── ai-video-steps.js
+    ├── ai-summary.js
+    ├── focus-timer.js
+    ├── auto-tagger.js
+    ├── quick-export.js
+    ├── daily-review.js
+    └── demo-hello.js</pre>
+      <button type="button" onclick="copyText('&lt;script src=&quot;./plugins/plugins-center.js&quot;&gt;&lt;/script&gt;','📋 引入代码已复制')" class="w-full h-11 rounded-xl bg-indigo-600 text-white text-xs font-bold active:scale-[0.98]">📋 复制引入代码</button>
+      <p class="text-[11px] text-slate-400 leading-relaxed">即使没有插件中心，宿主的全部核心功能（记录、思考、目标、番茄钟、导出、复盘）依然可正常使用。</p></div>`;
+      $('modalBackdrop').classList.remove('hidden');
+    }
+
+    /* ==================== 事件绑定 ==================== */
     function bindEvents() {
-      document.getElementById('themeToggleBtn').addEventListener('click', () => { const isDark = document.documentElement.classList.toggle('dark'); localStorage.setItem(STORAGE_THEME, isDark ? 'dark' : 'light'); });
-      document.getElementById('openDataMenuBtn').addEventListener('click', openDataMenuModal);
-      document.getElementById('modalBackdrop').addEventListener('click', closeModal);
-      document.getElementById('dismissOnboardingBtn').addEventListener('click', () => { document.getElementById('onboardingBanner').classList.add('hidden'); localStorage.setItem(STORAGE_ONBOARDING, '1'); });
-      document.getElementById('seedDemoBtn').addEventListener('click', () => {
-        appState.items.unshift({ id: 'm-' + Date.now(), stage: 'clue', pinned: false, mediaType: 'text', mediaMeta: {}, content: '演练灵感：为通勤人群设计一款支持语音速记的极简待办工具，下班前自动汇总复盘。', tags: ['产品', '随想'], createdAt: '刚刚', thinking: { value: '', nextStep: '' }, goal: { priority: 'P1', deadline: '2026-12-10', tasks: [] }, aiSummary: '' });
-        persist(); renderAll(); toast('✨ 已生成一条演练灵感，试试右滑它！');
+      $('themeToggleBtn').addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        try { localStorage.setItem(STORAGE_THEME, isDark ? 'dark' : 'light'); } catch (e) {}
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', isDark ? '#07090F' : '#4f46e5');
+      });
+      $('openDataMenuBtn').addEventListener('click', openDataMenuModal);
+      $('modalBackdrop').addEventListener('click', closeModal);
+      $('dismissOnboardingBtn').addEventListener('click', () => { $('onboardingBanner').classList.add('hidden'); try { localStorage.setItem(STORAGE_ONBOARDING, '1'); } catch (e) {} });
+      $('seedDemoBtn').addEventListener('click', () => {
+        appState.items.unshift(normalizeItem({ id: uid('m'), stage:'clue', pinned:false, mediaType:'text', mediaMeta:{}, content:'演练灵感：为通勤人群设计一款支持语音速记的极简待办工具，下班前自动汇总复盘。', tags:['产品','随想'], ts:Date.now(), createdAt:'刚刚', thinking:{value:'',nextStep:''}, goal:{priority:'P1',deadline:'2026-12-10',tasks:[]}, aiSummary:'' }, 0));
+        persist(); renderAll(); scrollMainToTop(); toast('✨ 已生成一条演练灵感，试试右滑它！', { type:'success' });
       });
 
-      document.getElementById('openSidebarBtn').addEventListener('click', openSidebar);
-      document.getElementById('closeSidebarBtn').addEventListener('click', closeSidebar);
-      document.getElementById('collapseSidebarBtn').addEventListener('click', toggleSidebar);
-      document.getElementById('expandSidebarBtn').addEventListener('click', toggleSidebar);
+      $('openSidebarBtn').addEventListener('click', openSidebar);
+      $('closeSidebarBtn').addEventListener('click', closeSidebar);
+      $('collapseSidebarBtn').addEventListener('click', toggleSidebar);
+      $('expandSidebarBtn').addEventListener('click', toggleSidebar);
+      window.addEventListener('resize', applySidebarState);
 
-      window.addEventListener('resize', () => { applySidebarState(); });
+      $('toggleSearchBtn').addEventListener('click', () => { const bar = $('mobileSearchBar'); bar.classList.toggle('hidden'); if (!bar.classList.contains('hidden')) $('searchInput').focus(); });
+      $('searchInput').addEventListener('input', e => { appState.searchQuery = e.target.value; appState.activeViewId = ''; $('clearSearchBtn').classList.toggle('hidden', !appState.searchQuery); renderFeed(); renderViewsBar(); if (window.lucide) lucide.createIcons(); });
+      $('clearSearchBtn').addEventListener('click', () => { appState.searchQuery = ''; $('searchInput').value = ''; $('clearSearchBtn').classList.add('hidden'); renderAll(); });
+      $('tagFilterBar').addEventListener('click', e => { const b = e.target.closest('[data-tag]'); if (b) setTagFilter(b.dataset.tag); });
 
-      document.getElementById('toggleSearchBtn').addEventListener('click', () => { const bar = document.getElementById('mobileSearchBar'); bar.classList.toggle('hidden'); if (!bar.classList.contains('hidden')) document.getElementById('searchInput').focus(); });
-      document.getElementById('searchInput').addEventListener('input', (e) => { appState.searchQuery = e.target.value; document.getElementById('clearSearchBtn').classList.toggle('hidden', !appState.searchQuery); renderFeed(); lucide.createIcons(); });
-      document.getElementById('clearSearchBtn').addEventListener('click', () => { appState.searchQuery = ''; document.getElementById('searchInput').value = ''; document.getElementById('clearSearchBtn').classList.add('hidden'); renderFeed(); lucide.createIcons(); });
-      document.querySelectorAll('.nav-tab-btn').forEach(btn => { btn.addEventListener('click', () => switchNav(btn.dataset.nav)); });
-      document.querySelectorAll('.stage-tab').forEach(tab => { tab.addEventListener('click', () => { appState.stageFilter = tab.dataset.stage; renderAll(); scrollMainToTop(); }); });
-      document.getElementById('openQuickCaptureFab').addEventListener('click', openCaptureSheet);
-      document.getElementById('captureSheetBackdrop').addEventListener('click', closeCaptureSheet);
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.addEventListener('click', () => switchNav(btn.dataset.nav)));
+      document.querySelectorAll('.stage-tab').forEach(tab => tab.addEventListener('click', () => { appState.stageFilter = tab.dataset.stage; appState.activeViewId = ''; renderAll(); scrollMainToTop(); }));
+
+      $('openQuickCaptureFab').addEventListener('click', openCaptureSheet);
+      $('captureSheetBackdrop').addEventListener('click', closeCaptureSheet);
       document.querySelectorAll('.cap-mode-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          if (appState.isRecordingVoice) toggleSheetVoice(); if (appState.isRecordingVideo) toggleSheetVideo();
+          if (appState.isRecordingVoice) stopVoiceCapture();
+          if (appState.isRecordingVideo) stopVideoCapture();
           appState.captureMode = btn.dataset.mode;
           document.querySelectorAll('.cap-mode-btn').forEach(b => {
             const active = b.dataset.mode === appState.captureMode;
             b.className = active ? 'cap-mode-btn h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 shadow-xs transition-all' : 'cap-mode-btn h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 text-slate-500 dark:text-slate-400 transition-all';
           });
-          document.getElementById('sheetTextMode').classList.toggle('hidden', appState.captureMode !== 'text');
-          document.getElementById('sheetVoiceMode').classList.toggle('hidden', appState.captureMode !== 'voice');
-          document.getElementById('sheetVideoMode').classList.toggle('hidden', appState.captureMode !== 'video');
+          $('sheetTextMode').classList.toggle('hidden', appState.captureMode !== 'text');
+          $('sheetVoiceMode').classList.toggle('hidden', appState.captureMode !== 'voice');
+          $('sheetVideoMode').classList.toggle('hidden', appState.captureMode !== 'video');
         });
       });
       document.querySelectorAll('.sheet-tag-btn').forEach(btn => {
@@ -1091,43 +1737,78 @@
           });
         });
       });
-      document.getElementById('sheetRecordVoiceBtn').addEventListener('click', toggleSheetVoice);
-      document.getElementById('sheetRecordVideoBtn').addEventListener('click', toggleSheetVideo);
-      document.getElementById('switchCameraBtn').addEventListener('click', () => {
+      $('sheetRecordVoiceBtn').addEventListener('click', toggleSheetVoice);
+      $('sheetRecordVideoBtn').addEventListener('click', toggleSheetVideo);
+      $('switchCameraBtn').addEventListener('click', () => {
         appState.videoFacingMode = appState.videoFacingMode === 'environment' ? 'user' : 'environment';
         toast(appState.videoFacingMode === 'environment' ? '已切换至后置摄像头' : '已切换至前置摄像头');
-        if (appState.isRecordingVideo) { toggleSheetVideo(); setTimeout(toggleSheetVideo, 150); }
+        if (appState.isRecordingVideo) { stopVideoCapture(); setTimeout(toggleSheetVideo, 180); }
       });
-      document.getElementById('submitCaptureBtn').addEventListener('click', saveCapturedSpark);
-      document.getElementById('detailSheetBackdrop').addEventListener('click', () => { document.getElementById('detailSheetBackdrop').classList.add('hidden'); });
-      document.getElementById('closeDetailSheetBtn').addEventListener('click', () => { document.getElementById('detailSheetBackdrop').classList.add('hidden'); });
-      document.getElementById('detailPinBtn').addEventListener('click', () => {
+      $('submitCaptureBtn').addEventListener('click', () => saveCapturedSpark(false));
+      $('submitAndThinkBtn').addEventListener('click', () => saveCapturedSpark(true));
+
+      $('detailSheetBackdrop').addEventListener('click', () => closeDetailSheet());
+      $('closeDetailSheetBtn').addEventListener('click', () => closeDetailSheet());
+      $('detailPinBtn').addEventListener('click', () => {
         const item = appState.items.find(i => i.id === appState.editingItemId); if (!item) return;
-        item.pinned = !item.pinned; const pinBtn = document.getElementById('detailPinBtn');
-        pinBtn.classList.toggle('text-indigo-600', item.pinned); pinBtn.classList.toggle('bg-indigo-50', item.pinned);
-        toast(item.pinned ? '📌 已设为置顶' : '已取消置顶');
+        item.pinned = !item.pinned; persist();
+        const pinBtn = $('detailPinBtn');
+        pinBtn.classList.toggle('text-indigo-600', item.pinned);
+        pinBtn.classList.toggle('bg-indigo-50', item.pinned);
+        pinBtn.classList.toggle('dark:bg-indigo-500/15', item.pinned);
+        renderAll(); toast(item.pinned ? '📌 已设为置顶' : '已取消置顶');
       });
-      document.getElementById('toggleGoalSwitch').addEventListener('click', () => { appState.editingIsGoal = !appState.editingIsGoal; syncGoalSwitchUI(); });
-      document.getElementById('detailAddKrBtn').addEventListener('click', () => {
-        const input = document.getElementById('detailNewKrInput'), text = input.value.trim(), item = appState.items.find(i => i.id === appState.editingItemId);
-        if (!text || !item) return; item.goal.tasks.push({ id: 't-' + Date.now(), text, done: false }); input.value = ''; renderDetailKrList(item);
+      $('toggleGoalSwitch').addEventListener('click', () => { appState.editingIsGoal = !appState.editingIsGoal; syncGoalSwitchUI(); });
+      $('detailAddKrBtn').addEventListener('click', () => {
+        const input = $('detailNewKrInput'), text = input.value.trim(), item = appState.items.find(i => i.id === appState.editingItemId);
+        if (!text || !item) return;
+        item.goal.tasks.push({ id: uid('t'), text, done:false }); input.value = '';
+        persist(); renderDetailKrList(item); renderAll();
       });
-      document.getElementById('detailDeleteBtn').addEventListener('click', () => {
-        if (!appState.editingItemId) return; appState.items = appState.items.filter(i => i.id !== appState.editingItemId);
-        persist(); document.getElementById('detailSheetBackdrop').classList.add('hidden'); renderAll(); toast('已删除该条记录');
-      });
-      document.getElementById('saveDetailBtn').addEventListener('click', saveDetailSheet);
-      document.getElementById('addCustomPluginBtn').addEventListener('click', () => {
-        const emoji = document.getElementById('customPluginEmoji').value.trim() || '⚡', name = document.getElementById('customPluginName').value.trim();
-        const actionType = document.getElementById('customPluginType').value, actionText = document.getElementById('customPluginActionText').value.trim() || `已触发「${name}」`;
-        if (!name) { toast('请输入插件按钮名称'); return; }
+      $('detailNewKrInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('detailAddKrBtn').click(); } });
+      $('detailNewTagInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addItemTagFromInput(); } });
+      $('detailDeleteBtn').addEventListener('click', deleteEditingItem);
+      $('saveDetailBtn').addEventListener('click', saveDetailSheet);
+
+      $('addCustomPluginBtn').addEventListener('click', () => {
+        const emoji = $('customPluginEmoji').value.trim() || '⚡', name = $('customPluginName').value.trim();
+        const actionType = $('customPluginType').value, actionText = $('customPluginActionText').value.trim() || `已触发「${name}」`;
+        if (!name) { toast('请输入插件按钮名称', { type:'warn' }); return; }
         window.SparkFlowSDK.register({ emoji, name, actionType, actionText });
-        document.getElementById('customPluginName').value = ''; document.getElementById('customPluginActionText').value = '';
-        toast(`已安装「${name}」按钮到所有卡片！`);
+        $('customPluginName').value = ''; $('customPluginActionText').value = '';
+        toast(`已安装「${name}」按钮到所有卡片！`, { type:'success' });
+      });
+
+      document.addEventListener('keydown', e => {
+        const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '');
+        if (e.key === 'Escape') {
+          if (!$('modalBackdrop').classList.contains('hidden')) { closeModal(); return; }
+          if (!$('captureSheetBackdrop').classList.contains('hidden')) { closeCaptureSheet(); return; }
+          if (!$('detailSheetBackdrop').classList.contains('hidden')) { closeDetailSheet(); return; }
+          if (appState.selectMode) { toggleSelectMode(); return; }
+          closeSidebar();
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+          if (!$('detailSheetBackdrop').classList.contains('hidden')) { e.preventDefault(); saveDetailSheet(); }
+        }
+        if (typing) return;
+        if (e.key === '/') { e.preventDefault(); $('mobileSearchBar').classList.remove('hidden'); $('searchInput').focus(); }
+        if (e.key.toLowerCase() === 'n') { e.preventDefault(); openCaptureSheet(); }
       });
     }
 
     window.addEventListener('DOMContentLoaded', init);
+  </script>
+
+  <!-- ==================== 插件中心（按需动态加载 ./plugins 下的独立插件） ==================== -->
+  <script src="./plugins/plugins-center.js" onerror="window.__pcLoadFailed=true"></script>
+  <script>
+    window.addEventListener('load', function () {
+      if (window.__pcLoadFailed || !window.SparkFlowPluginsCenter) {
+        var b = document.getElementById('pluginCenterFallbackBtn');
+        if (b) { b.classList.remove('hidden'); b.classList.add('flex'); }
+      }
+    });
   </script>
 </body>
 </html>
