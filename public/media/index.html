@@ -587,7 +587,8 @@
         }
 
         // ★ 快捷键已迁移至 plugins/keyboard-shortcuts-plugin.js
-        //    原 initKeyboardShortcuts() 函数已删除
+        // ★ MP3AppExtension 已迁移至 app-extension.js
+        //    原 initKeyboardShortcuts() 函数与内联 MP3AppExtension 已删除
 
         function updateUrlParams() {
             const params = new URLSearchParams(window.location.search);
@@ -1675,321 +1676,27 @@
         });
     </script>
 
-    <script>
-        window.MP3AppExtension = (function () {
-            const call = (name, ...args) => {
-                const fn = window[name];
-                if (typeof fn === 'function') return fn.apply(window, args);
-            };
-            return {
-                version: '3.6',
-                get allFiles() { return allFiles; },
-                set allFiles(v) { allFiles = v; },
-                get categories() { return categories; },
-                set categories(v) { categories = v; },
-                get currentPlayingFile() { return currentPlayingFile; },
-                set currentPlayingFile(v) { currentPlayingFile = v; },
-                get currentCategory() { return currentCategory; },
-                set currentCategory(v) { currentCategory = v; },
-                get currentPage() { return currentPage; },
-                set currentPage(v) { currentPage = v; },
-                get pageSize() { return pageSize; },
-                get audioPlayer() { return audioPlayer; },
-                get playbackLoadingKey() { return playbackLoadingKey; },
+    <!-- ================================================================ -->
+    <!--  模块化脚本（按加载顺序）                                          -->
+    <!-- ================================================================ -->
 
-                setPlaybackLoading: (key) => { playbackLoadingKey = key; },
-                getPlaybackLoading: () => playbackLoadingKey,
-
-                on: (event, cb) => {
-                    if (typeof cb !== 'function') return;
-                    if (!_eventListeners[event]) _eventListeners[event] = [];
-                    if (!_eventListeners[event].includes(cb)) _eventListeners[event].push(cb);
-                },
-                off: (event, cb) => {
-                    const list = _eventListeners[event];
-                    if (!list) return;
-                    const idx = list.indexOf(cb);
-                    if (idx >= 0) list.splice(idx, 1);
-                },
-
-                playNext: (...a) => call('playNext', ...a),
-                playPrev: (...a) => call('playPrev', ...a),
-
-                setTimerText: (msg, tone) => {
-                    const el = document.getElementById('autoTimerText');
-                    if (!el) return;
-                    if (!msg) { el.classList.add('hidden'); el.innerText = ''; return; }
-                    el.classList.remove('hidden');
-                    el.innerText = msg;
-                    el.className = 'text-[11px] font-mono whitespace-nowrap ' + (
-                        tone === 'warn' ? 'text-amber-400' :
-                        tone === 'success' ? 'text-emerald-400' :
-                        'text-amber-400'
-                    );
-                },
-
-                renderAll() { call('renderCategories'); call('renderTagCloud'); call('renderTable'); },
-                renderTable: (...a) => call('renderTable', ...a),
-                renderCategories: (...a) => call('renderCategories', ...a),
-                renderTagCloud: (...a) => call('renderTagCloud', ...a),
-                updatePlayButton: (...a) => call('updatePlayButton', ...a),
-                updatePlayerLikeState: (...a) => call('updatePlayerLikeState', ...a),
-                updatePlayerDislikeState: (...a) => call('updatePlayerDislikeState', ...a),
-
-                saveCategories: (...a) => call('saveCategories', ...a),
-                getLikedMap: () => (typeof getLikedMap === 'function' ? getLikedMap() : {}),
-                getDislikedMap: () => (typeof getDislikedMap === 'function' ? getDislikedMap() : {}),
-                getTagsMap: () => (typeof getTagsMap === 'function' ? getTagsMap() : {}),
-                saveLikedMap: (...a) => call('saveLikedMap', ...a),
-                saveDislikedMap: (...a) => call('saveDislikedMap', ...a),
-                saveTagsMap: (...a) => call('saveTagsMap', ...a),
-
-                parseLikedAt, formatLikedAtDate, formatLikedAtFull, getFileKey, getFileRequestParams,
-                getCurrentDir: window.MP3GetCurrentDir,
-                getMp3ApiBase: window.MP3GetMp3ApiBase,
-
-                syncMediaSession: () => syncMediaSessionFromCurrent(),
-                updateMediaSessionMetadata: (title, artist) => updateMediaSessionMetadata(title, artist),
-                updateDocumentTitle: (name) => updateDocumentTitle(name),
-                resetMediaSession: () => resetMediaSession(),
-
-                cleanupFileMetadata: (key) => cleanupFileMetadata(key),
-                showCustomModal: (...a) => call('showCustomModal', ...a),
-
-                playSong: (...a) => call('playSong', ...a),
-                togglePlaySong: (...a) => call('togglePlaySong', ...a),
-                applyPlaybackUI: (key, file, name, opts) => applyPlaybackUI(key, file, name || (file && file.displayName), opts),
-
-                setupSidebarCards: () => call('setupSidebarCards'),
-                toggleSidebarCard: (key) => call('toggleSidebarCard', key)
-            };
-        })();
-        console.log('[MP3AppExtension] ready v' + window.MP3AppExtension.version);
-    </script>
-
+    <!-- ① 播放核心 -->
     <script src="core-player.js"></script>
 
-    <!-- ★ 新增：存储注册表（先于插件加载） -->
+    <!-- ② ★ 应用门面：把内部状态与业务函数暴露给插件（原 index.html 内联） -->
+    <script src="app-extension.js"></script>
+    <script src="source-adapter.js"></script>
+
+    <!-- ③ 数据源适配器（依赖 MP3AppExtension） -->
+   
+
+    <!-- ④ 来源徽章 / 过滤 -->
+   
+
+    <!-- ⑤ 存储注册表（idb / opfs 等内置 provider） -->
     <script src="storage-registry.js"></script>
 
-    <script>
-    (function () {
-        'use strict';
-        const ext = window.MP3AppExtension;
-        if (!ext) { console.warn('[Adapter] MP3AppExtension 未就绪'); return; }
-
-        ext.ensureSourceCategory = function (name) {
-            if (!name) return;
-            const cats = ext.categories;
-            if (!cats.includes(name)) { cats.push(name); ext.saveCategories(cats); }
-        };
-
-        ext.removeSourceData = function ({ sourceKeys = [], categoryNames = [] } = {}) {
-            if (sourceKeys.length) ext.allFiles = ext.allFiles.filter(f => !sourceKeys.includes(f._source));
-            if (categoryNames.length) {
-                const cats = ext.categories.filter(c => !categoryNames.includes(c));
-                ext.categories = cats;
-                ext.saveCategories(cats);
-                if (categoryNames.includes(ext.currentCategory)) ext.currentCategory = '全部';
-            }
-        };
-
-        ext.stopIfPlayingFrom = function (sourceKeys) {
-            const keys = [].concat(sourceKeys);
-            const cur = ext.currentPlayingFile;
-            if (!cur) return false;
-            const file = ext.allFiles.find(f => ext.getFileKey(f) === cur);
-            if (!file || !keys.includes(file._source)) return false;
-            if (typeof ext.destroyPlayer === 'function') {
-                try { ext.destroyPlayer(); } catch (e) { console.warn('[stopIfPlayingFrom] destroyPlayer 失败:', e); }
-            } else {
-                const ap = ext.audioPlayer;
-                ap.pause();
-                ap.removeAttribute('src');
-                try { ap.load(); } catch (e) {}
-            }
-            ext.currentPlayingFile = null;
-            const t = document.getElementById('currentSongTitle');
-            const c = document.getElementById('currentSongCategory');
-            if (t) t.innerText = '尚未選擇播放媒體';
-            if (c) c.innerText = '就緒';
-            if (typeof window.MP3SetPlayerSourceBadge === 'function') window.MP3SetPlayerSourceBadge(null);
-            ext.updatePlayButton();
-            ext.updatePlayerLikeState();
-            ext.updatePlayerDislikeState();
-            ext.resetMediaSession();
-            return true;
-        };
-
-        ext.decorateFiles = function (rawList, opts) {
-            const { getKey, sourceKey = '' } = opts || {};
-            const keyFn = typeof getKey === 'function' ? getKey : (f) => ext.getFileKey(f);
-            const likedMap = ext.getLikedMap();
-            const dislikedMap = ext.getDislikedMap();
-            const tagsMap = ext.getTagsMap();
-            let lk = false, dk = false, tk = false;
-
-            const out = (rawList || []).map(raw => {
-                const key = keyFn(raw);
-                const fallbackKey = raw.relativePath || raw.filename || '';
-                let rawLike = likedMap[key];
-                if (!rawLike && fallbackKey && likedMap[fallbackKey]) { rawLike = likedMap[fallbackKey]; likedMap[key] = rawLike; lk = true; }
-                let rawDislike = dislikedMap[key];
-                if (!rawDislike && fallbackKey && dislikedMap[fallbackKey]) { rawDislike = dislikedMap[fallbackKey]; dislikedMap[key] = rawDislike; dk = true; }
-                let tags = tagsMap[key];
-                if (!tags && fallbackKey && tagsMap[fallbackKey]) { tags = tagsMap[fallbackKey]; tagsMap[key] = tags; tk = true; }
-                return Object.assign({}, raw, {
-                    _key: key, _source: sourceKey || raw._source,
-                    isLiked: !!rawLike, likedAt: ext.parseLikedAt(rawLike),
-                    isDisliked: !!rawDislike, tags: tags || []
-                });
-            });
-
-            if (lk) ext.saveLikedMap(likedMap);
-            if (dk) ext.saveDislikedMap(dislikedMap);
-            if (tk) ext.saveTagsMap(tagsMap);
-            return out;
-        };
-
-        window.MP3RegisterSourceAdapter = function ({
-            id, categoryName, list, resolveMedia, delete: del,
-            onStatusChange, onPlaying, reset, onUnload,
-        }) {
-            if (!id || typeof list !== 'function' || typeof resolveMedia !== 'function') {
-                throw new Error('registerSourceAdapter: id/list/resolveMedia 必填');
-            }
-            window.MP3DataSourceHandlers = window.MP3DataSourceHandlers || {};
-
-            async function refreshList() {
-                const res = await list({ page: 1, pageSize: 999999 });
-                const decorated = ext.decorateFiles(res.files || [], {
-                    getKey: (f) => ext.getFileKey(f),
-                    sourceKey: id
-                });
-                ext.allFiles = ext.allFiles.filter(f => f._source !== id).concat(decorated);
-                ext.ensureSourceCategory(categoryName);
-                ext.renderAll();
-                return { files: decorated, total: decorated.length, totalPages: 1 };
-            }
-
-            window.MP3DataSourceHandlers[id] = {
-                reset() { try { reset?.(); } catch (e) { console.warn(`[${id}] reset 失败:`, e); } },
-                async play(file) {
-                    const key = ext.getFileKey(file);
-                    try {
-                        if (typeof ext.setPlaybackLoading === 'function') ext.setPlaybackLoading(key);
-                        try { ext.applyPlaybackUI(key, file, file.displayName, { scroll: false }); }
-                        catch (e) { console.warn('[adapter.play] applyPlaybackUI 失败:', e); }
-                        try { ext.updatePlayButton(); } catch (e) {}
-
-                        const media = await resolveMedia(file);
-                        if (!media) throw new Error('resolveMedia 返回空');
-
-                        if (typeof media.play === 'function') await media.play(ext.audioPlayer);
-                        else await ext.playMedia(media, { onStatus: (msg, tone) => onStatusChange?.(msg, tone) });
-
-                        if (typeof ext.setPlaybackLoading === 'function') ext.setPlaybackLoading(null);
-                        try { ext.updatePlayButton(); } catch (e) {}
-                        try { ext.renderTable(); } catch (e) {}
-
-                        onPlaying?.(file);
-                    } catch (e) {
-                        if (typeof ext.setPlaybackLoading === 'function') ext.setPlaybackLoading(null);
-                        try { ext.updatePlayButton(); } catch (err) {}
-                        try { ext.renderTable(); } catch (err) {}
-                        onStatusChange?.('播放失败：' + e.message, 'error');
-                        throw e;
-                    }
-                },
-                async delete(file) {
-                    if (!del) throw new Error('此來源不支援刪除');
-                    await del(file);
-                    const key = ext.getFileKey(file);
-                    const wasPlaying = ext.currentPlayingFile === key;
-                    ext.cleanupFileMetadata(key);
-                    ext.allFiles = ext.allFiles.filter(f => ext.getFileKey(f) !== key);
-                    if (wasPlaying) ext.stopIfPlayingFrom(id);
-                    ext.renderAll();
-                }
-            };
-
-            return {
-                async refresh() { return refreshList(); },
-                async unload() {
-                    try { onUnload?.(); } catch (e) { console.warn(`[${id}] onUnload 异常:`, e); }
-                    ext.stopIfPlayingFrom(id);
-                    ext.removeSourceData({ sourceKeys: [id], categoryNames: [categoryName] });
-                    ext.renderAll();
-                    delete window.MP3DataSourceHandlers[id];
-                }
-            };
-        };
-
-        console.log('[Core] DataSource Adapter v1.7 ready（预滚动）');
-    })();
-    </script>
-
-    <script>
-        window.MP3SourceRegistry = window.MP3SourceRegistry || {
-            local: { label: '本地', icon: 'fa-solid fa-hard-drive', badgeClass: 'bg-slate-800/80 text-slate-300 border-slate-600/60', dotClass: 'bg-slate-400' },
-            gdrive: { label: 'Drive', icon: 'fa-brands fa-google-drive', badgeClass: 'bg-emerald-950/50 text-emerald-300 border-emerald-500/30', dotClass: 'bg-emerald-400' },
-            news: { label: 'News', icon: 'fa-solid fa-newspaper', badgeClass: 'bg-amber-950/50 text-amber-300 border-amber-500/30', dotClass: 'bg-amber-400' },
-            filesystem: { label: '本機', icon: 'fa-solid fa-hard-drive', badgeClass: 'bg-cyan-950/50 text-cyan-300 border-cyan-500/30', dotClass: 'bg-cyan-400' },
-            urlmedia: { label: '連結', icon: 'fa-solid fa-link', badgeClass: 'bg-fuchsia-950/50 text-fuchsia-300 border-fuchsia-500/30', dotClass: 'bg-fuchsia-400' }
-        };
-        window.MP3GetSourceMeta = function(file) {
-            const key = (file && file._source) || 'local';
-            const meta = window.MP3SourceRegistry[key];
-            if (meta) return Object.assign({ key }, meta);
-            return { key, label: key, icon: 'fa-solid fa-cloud', badgeClass: 'bg-indigo-950/50 text-indigo-300 border-indigo-500/30', dotClass: 'bg-indigo-400' };
-        };
-        window.MP3RenderSourceBadge = function(file) {
-            const meta = window.MP3GetSourceMeta(file);
-            return `<span class="source-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-medium shrink-0 ${meta.badgeClass}" title="來源：${escapeHtmlAttr(meta.label)}"><i class="${meta.icon} text-[9px]"></i><span>${escapeHtmlAttr(meta.label)}</span></span>`;
-        };
-        window.MP3SetPlayerSourceBadge = function(file) {
-            const el = document.getElementById('currentSongSourceBadge');
-            if (!el) return;
-            if (!file) { el.classList.add('hidden'); return; }
-            const meta = window.MP3GetSourceMeta(file);
-            el.className = `inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border text-[10px] font-medium shrink-0 ${meta.badgeClass}`;
-            el.innerHTML = `<i class="${meta.icon} text-[9px]"></i>${escapeHtmlAttr(meta.label)}`;
-            el.classList.remove('hidden');
-        };
-        window.currentSourceFilter = 'all';
-        window.refreshSourceFilterOptions = function() {
-            const sel = document.getElementById('sourceFilter');
-            if (!sel) return;
-            const files = (window.MP3AppExtension && window.MP3AppExtension.allFiles) || [];
-            const present = new Set();
-            if (files.length === 0) present.add('local');
-            else files.forEach(f => present.add(f._source || 'local'));
-            while (sel.options.length > 1) sel.remove(1);
-            const orderedKeys = Object.keys(window.MP3SourceRegistry || {});
-            const presentArr = [...present].sort((a, b) => {
-                const ia = orderedKeys.indexOf(a);
-                const ib = orderedKeys.indexOf(b);
-                return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-            });
-            presentArr.forEach(key => {
-                const meta = window.MP3GetSourceMeta({ _source: key });
-                const opt = document.createElement('option');
-                opt.value = key; opt.textContent = meta.label;
-                sel.appendChild(opt);
-            });
-            if (window.currentSourceFilter !== 'all' && !present.has(window.currentSourceFilter)) {
-                window.currentSourceFilter = 'all';
-                sel.value = 'all';
-            } else sel.value = window.currentSourceFilter;
-        };
-        window.handleSourceFilterChange = function(value) {
-            window.currentSourceFilter = value;
-            window.MP3AppExtension.currentPage = 1;
-            window.MP3AppExtension.renderTable();
-        };
-    </script>
-
-    <!-- 插件中心：所有插件腳本位於 ./plugins/ -->
+    <!-- ⑥ 插件中心：所有插件腳本位於 ./plugins/ -->
     <script src="plugins/plugin-center.js"></script>
 
 </body>
