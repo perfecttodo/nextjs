@@ -586,18 +586,8 @@
             document.addEventListener('visibilitychange', handleGlobalVisibilityChange);
         }
 
-        function initKeyboardShortcuts() {
-            window.addEventListener('keydown', (e) => {
-                if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
-                const key = e.key.toLowerCase();
-                if (key === 'l') togglePlayerLike();
-                else if (key === 'n') { e.preventDefault(); playNext(); }
-                else if (key === 'p') { e.preventDefault(); playPrev(); }
-                else if (key === 'r') { e.preventDefault(); loadFiles(false); }
-                else if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
-                else if (e.key === 'Escape') toggleMobileDrawer(false);
-            });
-        }
+        // ★ 快捷键已迁移至 plugins/keyboard-shortcuts-plugin.js
+        //    原 initKeyboardShortcuts() 函数已删除
 
         function updateUrlParams() {
             const params = new URLSearchParams(window.location.search);
@@ -1680,7 +1670,7 @@
             audioPlayer.addEventListener('play', () => emitEvent('play'));
             audioPlayer.addEventListener('pause', () => emitEvent('pause'));
             initMediaSession();
-            initKeyboardShortcuts();
+            // ★ initKeyboardShortcuts(); 已移至 plugins/keyboard-shortcuts-plugin.js
             setupSidebarCards();
         });
     </script>
@@ -1778,7 +1768,10 @@
     </script>
 
     <script src="core-player.js"></script>
+
+    <!-- ★ 新增：存储注册表（先于插件加载） -->
     <script src="storage-registry.js"></script>
+
     <script>
     (function () {
         'use strict';

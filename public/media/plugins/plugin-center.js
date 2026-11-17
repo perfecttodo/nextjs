@@ -38,51 +38,84 @@
 
     // ==================== 插件註冊表（全部位於 ./plugins/） ====================
     const REGISTRY = {
-        local: { id: 'local', name: '本地目錄', description: '支援多個 API 端點與多個目錄',
+        local: {
+            id: 'local', name: '本地目錄', description: '支援多個 API 端點與多個目錄',
             icon: 'fa-solid fa-folder-open', iconClass: 'text-slate-300',
-            scriptSrc: PLUGIN_BASE + 'local-plugin.js', globalVar: 'MP3LocalPlugin', autoEnable: true, dataSourceKeys: [] },
-        filesystem: { id: 'filesystem', name: '本地檔案（瀏覽器）', description: '直接讀取本機目錄，無需 API（Chrome / Edge）',
+            scriptSrc: PLUGIN_BASE + 'local-plugin.js', globalVar: 'MP3LocalPlugin', autoEnable: true, dataSourceKeys: []
+        },
+        filesystem: {
+            id: 'filesystem', name: '本地檔案（瀏覽器）', description: '直接讀取本機目錄，無需 API（Chrome / Edge）',
             icon: 'fa-solid fa-folder-tree', iconClass: 'text-cyan-400',
-            scriptSrc: PLUGIN_BASE + 'filesystem-plugin.js', globalVar: 'MP3FileSystemPlugin', dataSourceKeys: ['filesystem'] },
-        gdrive: { id: 'gdrive', name: 'Google Drive 音樂', description: '從 Drive 的 music/fav 加載音樂',
+            scriptSrc: PLUGIN_BASE + 'filesystem-plugin.js', globalVar: 'MP3FileSystemPlugin', dataSourceKeys: ['filesystem']
+        },
+        gdrive: {
+            id: 'gdrive', name: 'Google Drive 音樂', description: '從 Drive 的 music/fav 加載音樂',
             icon: 'fa-brands fa-google-drive', iconClass: 'text-emerald-400',
-            scriptSrc: PLUGIN_BASE + 'google-drive-plugin.js', globalVar: 'MP3GoogleDrivePlugin', dataSourceKeys: ['gdrive'] },
-        news: { id: 'news', name: 'News 播放列表', description: '通過 /api/mp3/news 加載新聞音頻（m3u8）',
+            scriptSrc: PLUGIN_BASE + 'google-drive-plugin.js', globalVar: 'MP3GoogleDrivePlugin', dataSourceKeys: ['gdrive']
+        },
+        news: {
+            id: 'news', name: 'News 播放列表', description: '通過 /api/mp3/news 加載新聞音頻（m3u8）',
             icon: 'fa-solid fa-newspaper', iconClass: 'text-amber-400',
-            scriptSrc: PLUGIN_BASE + 'news-plugin.js', globalVar: 'MP3NewsPlugin', dataSourceKeys: ['news'] },
-        urlMedia: { id: 'urlMedia', name: 'URL 媒體', description: '貼上 URL 加入媒體庫（音訊 / 影片 / 串流）',
+            scriptSrc: PLUGIN_BASE + 'news-plugin.js', globalVar: 'MP3NewsPlugin', dataSourceKeys: ['news']
+        },
+        urlMedia: {
+            id: 'urlMedia', name: 'URL 媒體', description: '貼上 URL 加入媒體庫（音訊 / 影片 / 串流）',
             icon: 'fa-solid fa-link', iconClass: 'text-fuchsia-400',
-            scriptSrc: PLUGIN_BASE + 'url-media-plugin.js', globalVar: 'MP3UrlMediaPlugin', autoEnable: true, dataSourceKeys: ['urlmedia'] },
-        share: { id: 'share', name: '分享與接受分享', description: '多選媒體、問題保護、URL 分享與接收',
+            scriptSrc: PLUGIN_BASE + 'url-media-plugin.js', globalVar: 'MP3UrlMediaPlugin', autoEnable: true, dataSourceKeys: ['urlmedia']
+        },
+        share: {
+            id: 'share', name: '分享與接受分享', description: '多選媒體、問題保護、URL 分享與接收',
             icon: 'fa-solid fa-share-nodes', iconClass: 'text-sky-400',
-            scriptSrc: PLUGIN_BASE + 'share-plugin.js', globalVar: 'MP3SharePlugin', autoEnable: true, dataSourceKeys: [] },
-        copyFav: { id: 'copyFav', name: '複製我的最愛', description: '把「我的最愛」複製到指定本地目錄',
+            scriptSrc: PLUGIN_BASE + 'share-plugin.js', globalVar: 'MP3SharePlugin', autoEnable: true, dataSourceKeys: []
+        },
+        copyFav: {
+            id: 'copyFav', name: '複製我的最愛', description: '把「我的最愛」複製到指定本地目錄',
             icon: 'fa-solid fa-copy', iconClass: 'text-rose-400',
-            scriptSrc: PLUGIN_BASE + 'copy-favorites-plugin.js', globalVar: 'MP3CopyFavoritesPlugin', dataSourceKeys: [] },
-        autoPlay: { id: 'autoPlay', name: '自動播放', description: '定時自動切換下一首',
+            scriptSrc: PLUGIN_BASE + 'copy-favorites-plugin.js', globalVar: 'MP3CopyFavoritesPlugin', dataSourceKeys: []
+        },
+        autoPlay: {
+            id: 'autoPlay', name: '自動播放', description: '定時自動切換下一首',
             icon: 'fa-solid fa-bolt', iconClass: 'text-amber-400',
-            scriptSrc: PLUGIN_BASE + 'autoplay-plugin.js', globalVar: 'MP3AutoPlayPlugin', autoEnable: true, dataSourceKeys: [] },
-        videoPlayer: { id: 'videoPlayer', name: '視頻渲染', description: '檢測到視頻軌時顯示懸浮小窗，支持全屏 / 畫中畫',
+            scriptSrc: PLUGIN_BASE + 'autoplay-plugin.js', globalVar: 'MP3AutoPlayPlugin', autoEnable: true, dataSourceKeys: []
+        },
+        videoPlayer: {
+            id: 'videoPlayer', name: '視頻渲染', description: '檢測到視頻軌時顯示懸浮小窗，支持全屏 / 畫中畫',
             icon: 'fa-solid fa-tv', iconClass: 'text-purple-400',
-            scriptSrc: PLUGIN_BASE + 'video-player-plugin.js', globalVar: 'MP3VideoPlayerPlugin', autoEnable: true, dataSourceKeys: [] },
-        multiUser: { id: 'multiUser', name: '多用戶', description: '每個用戶獨立的 Like 記憶',
+            scriptSrc: PLUGIN_BASE + 'video-player-plugin.js', globalVar: 'MP3VideoPlayerPlugin', autoEnable: true, dataSourceKeys: []
+        },
+        multiUser: {
+            id: 'multiUser', name: '多用戶', description: '每個用戶獨立的 Like 記憶',
             icon: 'fa-solid fa-user-shield', iconClass: 'text-indigo-400',
-            scriptSrc: PLUGIN_BASE + 'multi-user-plugin.js', globalVar: 'MP3MultiUserPlugin', autoEnable: true, dataSourceKeys: [] },
-            youtube: { id: 'youtube', name: 'YouTube 播放清單', description: '匯入多個 YouTube 清單並播放',
-    icon: 'fa-brands fa-youtube', iconClass: 'text-red-500',
-    scriptSrc: 'plugins/youtube-plugin.js', globalVar: 'MP3YouTubePlugin',
-    autoEnable: false, dataSourceKeys: ['youtube'] },
-    webdavStorage: {
-        id: 'webdavStorage',
-        name: 'WebDAV 存储',
-        description: '把媒体存入 WebDAV 服务器',
-        icon: 'fa-solid fa-cloud',
-        iconClass: 'text-sky-400',
-        scriptSrc: PLUGIN_BASE + 'webdav-storage-plugin.js',  // → plugins/webdav-storage-plugin.js
-        globalVar: 'MP3WebDAVStoragePlugin',                  // ★ 必须和插件里 window.xxx 完全一致
-        autoEnable: false,
-        dataSourceKeys: []
-    },
+            scriptSrc: PLUGIN_BASE + 'multi-user-plugin.js', globalVar: 'MP3MultiUserPlugin', autoEnable: true, dataSourceKeys: []
+        },
+        youtube: {
+            id: 'youtube', name: 'YouTube 播放清單', description: '匯入多個 YouTube 清單並播放',
+            icon: 'fa-brands fa-youtube', iconClass: 'text-red-500',
+            scriptSrc: 'plugins/youtube-plugin.js', globalVar: 'MP3YouTubePlugin',
+            autoEnable: false, dataSourceKeys: ['youtube']
+        },
+        webdavStorage: {
+            id: 'webdavStorage',
+            name: 'WebDAV 存储',
+            description: '把媒体存入 WebDAV 服务器',
+            icon: 'fa-solid fa-cloud',
+            iconClass: 'text-sky-400',
+            scriptSrc: PLUGIN_BASE + 'webdav-storage-plugin.js',  // → plugins/webdav-storage-plugin.js
+            globalVar: 'MP3WebDAVStoragePlugin',                  // ★ 必须和插件里 window.xxx 完全一致
+            autoEnable: false,
+            dataSourceKeys: []
+        },
+        keyboardShortcuts: {
+            id: 'keyboardShortcuts',
+            name: '鍵盤快捷鍵',
+            description: 'P/N/L/R/Space/Esc 等快捷鍵，可自訂綁定',
+            icon: 'fa-solid fa-keyboard',
+            iconClass: 'text-indigo-300',
+            scriptSrc: PLUGIN_BASE + 'keyboard-shortcuts-plugin.js',
+            globalVar: 'MP3KeyboardShortcutsPlugin',
+            autoEnable: true,   // 原功能默认启用，保持一致
+            dataSourceKeys: []
+        },
     };
 
     const STORAGE_KEY = 'mp3_enabled_dynamic_plugins';
