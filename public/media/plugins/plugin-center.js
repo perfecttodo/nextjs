@@ -72,6 +72,17 @@
     icon: 'fa-brands fa-youtube', iconClass: 'text-red-500',
     scriptSrc: 'plugins/youtube-plugin.js', globalVar: 'MP3YouTubePlugin',
     autoEnable: false, dataSourceKeys: ['youtube'] },
+    webdavStorage: {
+        id: 'webdavStorage',
+        name: 'WebDAV 存储',
+        description: '把媒体存入 WebDAV 服务器',
+        icon: 'fa-solid fa-cloud',
+        iconClass: 'text-sky-400',
+        scriptSrc: PLUGIN_BASE + 'webdav-storage-plugin.js',  // → plugins/webdav-storage-plugin.js
+        globalVar: 'MP3WebDAVStoragePlugin',                  // ★ 必须和插件里 window.xxx 完全一致
+        autoEnable: false,
+        dataSourceKeys: []
+    },
     };
 
     const STORAGE_KEY = 'mp3_enabled_dynamic_plugins';
