@@ -1,15 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // 1. 强制所有路径末尾带斜杠（访问 /a 会自动跳转到 /a/）
-  trailingSlash: true,
+  trailingSlash: false,
+  // 關鍵設定：禁止 Next.js 自動對結尾斜杠做 308 重導向（保護 /api/webdav）
+  skipTrailingSlashRedirect: true,
 
   async rewrites() {
     return {
       fallback: [
         {
-          // 2. 适配带末尾斜杠的路径，映射到对应的 index.html
-          source: "/:path((?!.*\\.).*)/",
+          source: "/:path((?!api/).*)/",
           destination: "/:path/index.html",
         },
       ],

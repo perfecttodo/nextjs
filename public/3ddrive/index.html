@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3D 現代轎車停車模擬器 (方向盤互動優化版)</title>
+  <title>3D 現代轎車停車模擬器 (可視方向盤版)</title>
   <style>
     * {
       box-sizing: border-box;
@@ -127,6 +127,36 @@
       background: #22c55e;
       transition: width 0.1s, background-color 0.1s;
     }
+    /* 畫面正下方可視化方向盤模型容器 */
+    #steering-hud-container {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+    #steering-wheel-visual {
+      width: 156px;
+      height: 156px;
+      filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.65));
+      will-change: transform;
+    }
+    #steering-angle-badge {
+      margin-top: 6px;
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #f8fafc;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 12px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+    }
     /* 成功提示橫幅 */
     #success-banner {
       position: absolute;
@@ -143,6 +173,7 @@
       opacity: 0;
       pointer-events: none;
       transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 20;
     }
     #success-banner.show {
       opacity: 1;
@@ -173,7 +204,7 @@
     </h1>
     <div class="controls-list">
       <div><span class="key">W</span> / <span class="key">S</span> ：前進 / 倒車</div>
-      <div><span class="key">A</span> / <span class="key">D</span> ：向左 / 向右轉向（方向盤保持角度）</div>
+      <div><span class="key">A</span> / <span class="key">D</span> ：向左 / 向右打方向盤（鬆開保持角度）</div>
       <div><span class="key">Space</span> ：手煞車 (急減速)</div>
       <div><span class="key">C</span> ：切換視角 <span class="key">M</span> ：靜音 <span class="key">R</span> ：重置</div>
     </div>
@@ -184,7 +215,7 @@
     </div>
     <div id="telemetry">
       <span>檔位: <span id="gear-display" class="highlight">P</span></span>
-      <span>方向盤: <span id="steer-display" class="highlight">0°</span></span>
+      <span>前輪: <span id="steer-display" class="highlight">0°</span></span>
       <span>速度: <span id="speed-display" class="highlight">0 km/h</span></span>
     </div>
     <div id="radar-bar-wrap">
@@ -192,6 +223,56 @@
       <div id="radar-bar-bg"><div id="radar-bar-fill"></div></div>
       <span id="radar-dist">--</span>
     </div>
+  </div>
+
+  <!-- 畫面正下方可視化方向盤模型 -->
+  <div id="steering-hud-container">
+    <svg id="steering-wheel-visual" viewBox="0 0 200 200">
+      <defs>
+        <radialGradient id="wheelRimGrad" cx="50%" cy="40%" r="55%">
+          <stop offset="0%" stop-color="#334155" />
+          <stop offset="70%" stop-color="#1e293b" />
+          <stop offset="100%" stop-color="#090d16" />
+        </radialGradient>
+        <linearGradient id="spokeSilver" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#e2e8f0" />
+          <stop offset="50%" stop-color="#94a3b8" />
+          <stop offset="100%" stop-color="#475569" />
+        </linearGradient>
+        <radialGradient id="airbagGrad" cx="50%" cy="35%" r="60%">
+          <stop offset="0%" stop-color="#334155" />
+          <stop offset="100%" stop-color="#0f172a" />
+        </radialGradient>
+      </defs>
+
+      <!-- 方向盤外圈輪框 -->
+      <circle cx="100" cy="100" r="82" fill="none" stroke="url(#wheelRimGrad)" stroke-width="20" />
+      <!-- 外圈內側高光邊線 -->
+      <circle cx="100" cy="100" r="73" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" />
+      <circle cx="100" cy="100" r="91" fill="none" stroke="rgba(0,0,0,0.6)" stroke-width="1.5" />
+
+      <!-- 頂部 12 點鐘方向黃色回正標記（方便觀察轉了幾圈） -->
+      <rect x="95" y="9" width="10" height="19" rx="2" fill="#facc15" stroke="#713f12" stroke-width="1" />
+
+      <!-- 左側幅條 -->
+      <path d="M 24 92 L 72 95 L 72 110 L 24 106 Z" fill="url(#spokeSilver)" />
+      <!-- 右側幅條 -->
+      <path d="M 176 92 L 128 95 L 128 110 L 176 106 Z" fill="url(#spokeSilver)" />
+      <!-- 底部雙柱運動幅條 -->
+      <path d="M 88 125 L 84 176 L 96 176 L 97 125 Z" fill="url(#spokeSilver)" />
+      <path d="M 112 125 L 116 176 L 104 176 L 103 125 Z" fill="url(#spokeSilver)" />
+
+      <!-- 兩側握把防滑紋理區 -->
+      <path d="M 21 76 A 82 82 0 0 0 21 124" fill="none" stroke="#0f172a" stroke-width="21" stroke-linecap="round" opacity="0.55" />
+      <path d="M 179 76 A 82 82 0 0 1 179 124" fill="none" stroke="#0f172a" stroke-width="21" stroke-linecap="round" opacity="0.55" />
+
+      <!-- 中央安全氣囊與喇叭蓋 -->
+      <circle cx="100" cy="104" r="32" fill="url(#airbagGrad)" stroke="#475569" stroke-width="2.5" />
+      <!-- 中央現代車標裝飾 -->
+      <ellipse cx="100" cy="104" rx="16" ry="9" fill="none" stroke="#38bdf8" stroke-width="2" />
+      <path d="M 91 108 L 96 99 L 104 109 L 109 100" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <div id="steering-angle-badge">方向盤：回正 (0°)</div>
   </div>
 
   <!-- 停車成功提示 -->
@@ -202,9 +283,6 @@
   </div>
 
   <script>
-    // ==========================================
-    // 0. Web Audio API 程序生成音效引擎
-    // ==========================================
     class CarSoundEngine {
       constructor() {
         this.ctx = null;
@@ -320,9 +398,6 @@
 
     const soundEngine = new CarSoundEngine();
 
-    // ==========================================
-    // 1. 初始化場景、渲染器與燈光
-    // ==========================================
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87ceeb);
@@ -353,9 +428,6 @@
     dirLight.shadow.camera.bottom = -d;
     scene.add(dirLight);
 
-    // ==========================================
-    // 2. 建立地面、停車位與路障
-    // ==========================================
     const groundGeo = new THREE.PlaneGeometry(200, 200);
     const groundMat = new THREE.MeshStandardMaterial({ color: 0x333842, roughness: 0.85 });
     const ground = new THREE.Mesh(groundGeo, groundMat);
@@ -451,9 +523,6 @@
     addCone(-7.5, 4.0 - 3.6);
     addCone(-7.5, 4.0 + 3.6);
 
-    // ==========================================
-    // 3. 建立 3D 現代轎車模型（含方向盤與後視鏡）
-    // ==========================================
     const carGroup = new THREE.Group();
     scene.add(carGroup);
 
@@ -489,7 +558,6 @@
     carBodyMesh.receiveShadow = true;
     carGroup.add(carBodyMesh);
 
-    // 擋風玻璃與側窗
     const frontWindshield = new THREE.Mesh(new THREE.PlaneGeometry(bodyWidth * 0.88, 0.84), windowGlassMat);
     frontWindshield.position.set(0, 1.17, -0.81);
     frontWindshield.rotation.x = -Math.PI * 0.285;
@@ -519,30 +587,23 @@
     rightSideWin.position.x = bodyWidth / 2 + 0.062;
     carGroup.add(rightSideWin);
 
-    // ==========================================
-    // 新增：車內 3D 方向盤 (Steering Wheel)
-    // ==========================================
+    // 車內 3D 方向盤
     const steeringWheelGroup = new THREE.Group();
-    // 放置於駕駛座前方 (左駕位置: X = -0.38, Y = 1.02, Z = -0.45)
     steeringWheelGroup.position.set(-0.38, 1.02, -0.45);
-    // 讓方向盤朝向駕駛艙傾斜約 35 度
     steeringWheelGroup.rotation.x = THREE.MathUtils.degToRad(35);
 
     const wheelRimMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5 });
     const wheelCenterMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4 });
     const chromeMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9, roughness: 0.1 });
 
-    // 方向盤外環
-    const rimGeo = new THREE.TorusGeometry(0.18, 0.022, 16, 32);
-    const steeringRim = new THREE.Mesh(rimGeo, wheelRimMat);
+    const steeringRimGeo = new THREE.TorusGeometry(0.18, 0.022, 16, 32);
+    const steeringRim = new THREE.Mesh(steeringRimGeo, wheelRimMat);
     steeringWheelGroup.add(steeringRim);
 
-    // 方向盤中心中央飾蓋 (喇叭按鈕)
     const centerPad = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.03, 16), wheelCenterMat);
     centerPad.rotation.x = Math.PI / 2;
     steeringWheelGroup.add(centerPad);
 
-    // 三幅式輻條
     for (let i = 0; i < 3; i++) {
       const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.16, 0.015), chromeMat);
       spoke.position.y = 0.08;
@@ -551,7 +612,6 @@
     }
     carGroup.add(steeringWheelGroup);
 
-    // 燈光與後視鏡
     const grille = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.28, 0.08), darkTrimMat);
     grille.position.set(0, 0.54, -2.31);
     carGroup.add(grille);
@@ -622,13 +682,13 @@
     interiorMirrorGroup.add(intMirrorBody, intMirrorGlass);
     carGroup.add(interiorMirrorGroup);
 
-    // 輪胎與輪圈組
+    // 車輪與輪圈組
     const tireGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.24, 24);
     tireGeo.rotateZ(Math.PI / 2);
     const tireMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.85 });
 
-    const rimGeo = new THREE.CylinderGeometry(0.23, 0.23, 0.25, 16);
-    rimGeo.rotateZ(Math.PI / 2);
+    const wheelRimGeo = new THREE.CylinderGeometry(0.23, 0.23, 0.25, 16);
+    wheelRimGeo.rotateZ(Math.PI / 2);
     const rimMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.85, roughness: 0.2 });
 
     function createWheel(x, z) {
@@ -637,7 +697,7 @@
       const spinGroup = new THREE.Group();
       const tire = new THREE.Mesh(tireGeo, tireMat);
       tire.castShadow = true;
-      const rim = new THREE.Mesh(rimGeo, rimMat);
+      const rim = new THREE.Mesh(wheelRimGeo, rimMat);
       spinGroup.add(tire, rim);
       steerPivot.add(spinGroup);
       carGroup.add(steerPivot);
@@ -658,9 +718,6 @@
     guideGroup.visible = false;
     carGroup.add(guideGroup);
 
-    // ==========================================
-    // 4. 車輛物理狀態與控制 (取消自動回正)
-    // ==========================================
     const state = {
       x: 0,
       z: 8,
@@ -677,7 +734,7 @@
     const BRAKE_DECEL = 16.5;
     const FRICTION = 3.5;
     const MAX_STEER = THREE.MathUtils.degToRad(36);
-    const STEER_SPEED = 2.4; // 轉向靈敏度
+    const STEER_SPEED = 2.4;
 
     const keys = { w: false, a: false, s: false, d: false, space: false };
 
@@ -709,6 +766,8 @@
     const successBanner = document.getElementById('success-banner');
     const successTitle = document.getElementById('success-title');
     const successDesc = document.getElementById('success-desc');
+    const steeringWheelVisual = document.getElementById('steering-wheel-visual');
+    const steeringAngleBadge = document.getElementById('steering-angle-badge');
 
     function toggleCamera() {
       soundEngine.init();
@@ -753,14 +812,13 @@
     }
 
     function updatePhysics(dt) {
-      // 1. 方向盤轉向控制 (放開 A/D 時方向盤保持不動，不會自動回正)
+      // 方向盤轉向（鬆開按鍵保持目前角度不動）
       if (keys.a) {
         state.steerAngle = Math.min(MAX_STEER, state.steerAngle + STEER_SPEED * dt);
       } else if (keys.d) {
         state.steerAngle = Math.max(-MAX_STEER, state.steerAngle - STEER_SPEED * dt);
       }
 
-      // 2. 加減速控制
       if (keys.space) {
         if (Math.abs(state.speed) < BRAKE_DECEL * dt) {
           state.speed = 0;
@@ -787,24 +845,25 @@
         }
       }
 
-      // 3. 阿克曼單車運動學模型
       const angularVelocity = (state.speed / wheelBase) * Math.tan(state.steerAngle);
       state.heading += angularVelocity * dt;
 
       state.x -= Math.sin(state.heading) * state.speed * dt;
       state.z -= Math.cos(state.heading) * state.speed * dt;
 
-      // 4. 同步模型與 3D 方向盤旋轉 (將車輪轉角放大約 1.5 倍對應方向盤轉圈感)
       carGroup.position.set(state.x, 0, state.z);
       carGroup.rotation.y = state.heading;
 
       wheelFL.steerPivot.rotation.y = state.steerAngle;
       wheelFR.steerPivot.rotation.y = state.steerAngle;
 
-      // 更新車內 3D 方向盤旋轉動畫 (Z軸旋轉代表打方向盤)
-      const steeringWheelMaxAngle = THREE.MathUtils.degToRad(540); // 1.5 圈
+      // 同步車內 3D 方向盤與畫面下方可視化方向盤模型（左右各 1.5 圈 = ±540°）
       const steeringRatio = state.steerAngle / MAX_STEER;
-      steeringWheelGroup.rotation.z = -steeringRatio * (steeringWheelMaxAngle / 2);
+      const wheelRotRad = steeringRatio * THREE.MathUtils.degToRad(540);
+      steeringWheelGroup.rotation.z = -wheelRotRad;
+
+      const wheelRotDeg = -steeringRatio * 540; // CSS rotate 正值為順時針（向右），負值為逆時針（向左）
+      steeringWheelVisual.style.transform = `rotate(${wheelRotDeg.toFixed(1)}deg)`;
 
       const wheelAngularRoll = (state.speed * dt) / 0.35;
       allWheels.forEach(w => {
@@ -944,6 +1003,16 @@
       const deg = Math.round(THREE.MathUtils.radToDeg(state.steerAngle));
       steerDisplay.textContent = deg === 0 ? '0°' : (deg > 0 ? `左 ${deg}°` : `右 ${Math.abs(deg)}°`);
       speedDisplay.textContent = `${Math.abs(Math.round(state.speed * 3.6))} km/h`;
+
+      // 更新方向盤下方的圈數與角度提示
+      const wheelTurns = Math.abs((state.steerAngle / MAX_STEER) * 1.5).toFixed(1);
+      if (deg === 0) {
+        steeringAngleBadge.textContent = '方向盤：回正 (0°)';
+      } else if (deg > 0) {
+        steeringAngleBadge.textContent = `向左打 ${wheelTurns} 圈 (前輪 ${deg}°)`;
+      } else {
+        steeringAngleBadge.textContent = `向右打 ${wheelTurns} 圈 (前輪 ${Math.abs(deg)}°)`;
+      }
     }
 
     let lastTime = performance.now();
