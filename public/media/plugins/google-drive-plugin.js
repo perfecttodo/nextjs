@@ -1,9 +1,10 @@
 /**
- * Google Drive 扩展插件 v4.3（Player-agnostic + Token 自动续期）
+ * Google Drive 扩展插件 v4.3.1（Player-agnostic + Token 自动续期 + 网络重试）
  *
  * 职责边界：
  *  - OAuth 授权 / Drive 列表 / 上传 / 迁移 / 备份
  *  - Token 生命周期：过期自动静默续期 + 401 自动重试一次 + 启动恢复可等待
+ *  - 网络加固：GET 自动退避重试 + 连接 30s 超时 + Blob 断流整体重试
  *  - resolveMedia：返回 { blob, mimeType }，由 core-player.native 负责播放
  *  - Blob LRU 缓存（5 首）+ 预加载下一首（缓存命中播放不需要授权）
  *
@@ -119,15 +120,11 @@ window.MP3GoogleDriveConfig = {
         if (getCachedBlob(next._driveFileId)) return;
 
         try {
-            const res = await driveFetch(
-                `https://www.googleapis.com/drive/v3/files/${next._driveFileId}?alt=media`
-            );
-            if (!res.ok) return;
-            const blob = await res.blob();
+            const blob = await downloadDriveBlob(next._driveFileId);
             setCachedBlob(next._driveFileId, blob);
             console.log('[GDrive] 预加载完成:', next.displayName);
         } catch (e) {
-            // 静默失败（driveFetch 内部会自动续期；续期失败会在状态栏提示重新授权）
+            // 静默失败（内部会自动重试；最终失败会在状态栏提示网络问题）
         }
     }
 
@@ -492,13 +489,42 @@ window.MP3GoogleDriveConfig = {
         finally { restorePromise = null; }
     }
 
-    // ★ 401 时自动静默续期并重试一次，而不是直接判定"未授权"
+    // ★ 网络层加固：GET 请求 Failed to fetch / 连接超时自动退避重试；
+    //   401 自动静默续期并重试一次。非 GET 不自动重试（避免重复建目录/上传）
+    const NET_RETRY_DELAYS = [1000, 3000];   // 网络错误重试间隔
+    const CONNECT_TIMEOUT = 30000;           // 连接阶段超时（不含响应体下载）
+
+    function isNetFetchError(e) {
+        return e instanceof TypeError || (e && e.name === 'AbortError');
+    }
+    function netFailError() {
+        return new Error('无法连接 Google Drive（网络/代理问题），自动重试仍失败，请检查 VPN/代理后重试');
+    }
+
     async function driveFetch(url, options = {}, _retried = false) {
         await ensureAuthorized();
-        const send = () => fetch(url, Object.assign({}, options, {
-            headers: Object.assign({}, options.headers, { 'Authorization': 'Bearer ' + accessToken })
-        }));
-        let res = await send();
+        const method = String(options.method || 'GET').toUpperCase();
+        const maxAttempts = method === 'GET' ? NET_RETRY_DELAYS.length + 1 : 1;
+        const send = () => {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), CONNECT_TIMEOUT);
+            return fetch(url, Object.assign({}, options, {
+                headers: Object.assign({}, options.headers, { 'Authorization': 'Bearer ' + accessToken }),
+                signal: ctrl.signal
+            })).finally(() => clearTimeout(timer));
+        };
+        let res = null;
+        for (let attempt = 0; ; attempt++) {
+            try {
+                res = await send();
+                break;
+            } catch (e) {
+                if (!isNetFetchError(e)) throw e;
+                if (attempt >= maxAttempts - 1) throw netFailError();
+                setStatus(`网络波动，${NET_RETRY_DELAYS[attempt] / 1000}s 后自动重试…`, 'warn');
+                await new Promise(r => setTimeout(r, NET_RETRY_DELAYS[attempt]));
+            }
+        }
         if (res.status === 401 && !_retried) {
             accessToken = null;
             clearCachedToken();
@@ -511,6 +537,29 @@ window.MP3GoogleDriveConfig = {
             throw new Error('Token expired');
         }
         return res;
+    }
+
+    // 下载整个音频 Blob：fetch 失败或响应体中途断流（都表现为 Failed to fetch）时整体再重试一次
+    async function downloadDriveBlob(fileId) {
+        const delays = [1500];
+        let lastErr = null;
+        for (let i = 0; i <= delays.length; i++) {
+            try {
+                const res = await driveFetch(
+                    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`
+                );
+                if (!res.ok) throw new Error('下载失败 HTTP ' + res.status);
+                return await res.blob();
+            } catch (e) {
+                lastErr = e;
+                if (/HTTP 4\d\d/.test(e.message || '')) break;   // 4xx 重试无意义
+                if (i < delays.length) {
+                    setStatus('下载中断，1.5s 后整体重试…', 'warn');
+                    await new Promise(r => setTimeout(r, delays[i]));
+                }
+            }
+        }
+        throw lastErr;
     }
 
     /* ==================== Drive API 辅助 ==================== */
@@ -947,7 +996,7 @@ window.MP3GoogleDriveConfig = {
             },
 
             // ★ Player-agnostic：返回 { blob, mimeType }，由 core-player.native 处理播放
-            //   缓存命中时不需要授权；下载前 ensureAuthorized 会自动续期
+            //   缓存命中时不需要授权；下载走 downloadDriveBlob（断流自动整体重试）
             resolveMedia: async (file) => {
                 const fileId = file._driveFileId;
                 let blob = getCachedBlob(fileId);
@@ -956,11 +1005,7 @@ window.MP3GoogleDriveConfig = {
                 } else {
                     await ensureAuthorized();
                     setStatus('正在下载 Drive 音频…');
-                    const res = await driveFetch(
-                        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`
-                    );
-                    if (!res.ok) throw new Error('下载失败 HTTP ' + res.status);
-                    blob = await res.blob();
+                    blob = await downloadDriveBlob(fileId);
                     setCachedBlob(fileId, blob);
                 }
                 schedulePrefetchNext();
@@ -1537,7 +1582,7 @@ window.MP3GoogleDriveConfig = {
     /* ==================== 插件导出 ==================== */
 
     window.MP3GoogleDrivePlugin = {
-        version: '4.3.0',
+        version: '4.3.1',
         async init() {
             registerAdapter();
             injectUI();
@@ -1561,5 +1606,5 @@ window.MP3GoogleDriveConfig = {
         openFolderBrowser: (initialPath) => openFolderBrowser(initialPath || getFavoritesFolderPath())
     };
 
-    console.log('[MP3GoogleDrivePlugin] v4.3.0 ready（Player-agnostic + Token 自动续期 + Blob LRU 缓存）');
+    console.log('[MP3GoogleDrivePlugin] v4.3.1 ready（Player-agnostic + Token 自动续期 + 网络重试 + Blob LRU 缓存）');
 })();
