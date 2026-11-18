@@ -1,10 +1,11 @@
 /**
- * Google Drive 扩展插件 v4.2（Player-agnostic）
+ * Google Drive 扩展插件 v4.3（Player-agnostic + Token 自动续期）
  *
  * 职责边界：
  *  - OAuth 授权 / Drive 列表 / 上传 / 迁移 / 备份
+ *  - Token 生命周期：过期自动静默续期 + 401 自动重试一次 + 启动恢复可等待
  *  - resolveMedia：返回 { blob, mimeType }，由 core-player.native 负责播放
- *  - Blob LRU 缓存（5 首）+ 预加载下一首
+ *  - Blob LRU 缓存（5 首）+ 预加载下一首（缓存命中播放不需要授权）
  *
  * 不负责：
  *  - audioPlayer.src / createObjectURL / 播放  → core-player.native
@@ -126,7 +127,7 @@ window.MP3GoogleDriveConfig = {
             setCachedBlob(next._driveFileId, blob);
             console.log('[GDrive] 预加载完成:', next.displayName);
         } catch (e) {
-            // 静默失败
+            // 静默失败（driveFetch 内部会自动续期；续期失败会在状态栏提示重新授权）
         }
     }
 
@@ -240,7 +241,7 @@ window.MP3GoogleDriveConfig = {
         });
     }
 
-    /* ==================== Client ID / Token ==================== */
+    /* ==================== Client ID ==================== */
 
     function getClientId() {
         try {
@@ -327,18 +328,35 @@ window.MP3GoogleDriveConfig = {
         try { localStorage.setItem(cacheKey, JSON.stringify({ path, id })); } catch (e) {}
     }
 
+    /* ==================== Token 生命周期（自动续期版） ==================== */
+
+    let tokenExpiresAt = 0;        // 内存中的过期时间（含 60s 提前量）
+    let restorePromise = null;     // 启动恢复会话，供 list/play 等待，消除竞态
+    let renewPromise = null;       // 静默续期单飞（并发去重）
+    let tokenWaiters = [];         // requestAccessToken 回调等待队列
+    let silentCooldownUntil = 0;   // 静默失败后的冷却，避免每首歌都重试 15s
+
     function saveToken(token, expiresInSec) {
-        const expiresAt = Date.now() + (expiresInSec || 3600) * 1000 - 60000;
-        try { localStorage.setItem(KEY_TOKEN, JSON.stringify({ token, expiresAt })); } catch (e) {}
+        tokenExpiresAt = Date.now() + (expiresInSec || 3600) * 1000 - 60000;
+        try { localStorage.setItem(KEY_TOKEN, JSON.stringify({ token, expiresAt: tokenExpiresAt })); } catch (e) {}
     }
     function loadCachedToken() {
         try {
             const saved = JSON.parse(localStorage.getItem(KEY_TOKEN) || 'null');
-            if (saved && saved.token && saved.expiresAt > Date.now()) return saved.token;
+            if (saved && saved.token && saved.expiresAt > Date.now()) {
+                tokenExpiresAt = saved.expiresAt;
+                return saved.token;
+            }
         } catch (e) {}
         return null;
     }
-    function clearCachedToken() { localStorage.removeItem(KEY_TOKEN); }
+    function clearCachedToken() {
+        tokenExpiresAt = 0;
+        try { localStorage.removeItem(KEY_TOKEN); } catch (e) {}
+    }
+    function tokenValid() {
+        return !!accessToken && Date.now() < tokenExpiresAt;
+    }
 
     function loadGisScript() {
         return new Promise((resolve, reject) => {
@@ -361,48 +379,133 @@ window.MP3GoogleDriveConfig = {
             client_id: clientId,
             scope: SCOPES,
             callback: (response) => {
+                const waiters = tokenWaiters; tokenWaiters = [];
                 if (response.error) {
-                    setStatus('授权失败：' + response.error, 'error');
-                    resetAuthUI();
-                    clearCachedToken();
+                    waiters.forEach(w => w.reject(new Error(response.error)));
                     return;
                 }
                 accessToken = response.access_token;
                 saveToken(accessToken, response.expires_in);
                 state.authorized = true;
+                silentCooldownUntil = 0;
                 showAuthedUI();
-                setStatus('✅ 已授权 Google Drive', 'success');
-                adapterHandle?.refresh().catch(() => {});
+                waiters.forEach(w => w.resolve(accessToken));
+            },
+            // 弹窗被拦截 / 用户关闭等非 OAuth 错误，原来会被静默吞掉
+            error_callback: (err) => {
+                const waiters = tokenWaiters; tokenWaiters = [];
+                waiters.forEach(w => w.reject(new Error((err && err.type) || 'popup_error')));
             }
         });
     }
 
-    async function tryRestoreSession() {
-        const clientId = getClientId();
-        if (!clientId) { refreshUI(); return false; }
+    // 把回调式的 requestAccessToken 包成 Promise（带超时）
+    function requestToken(prompt, timeoutMs) {
+        return new Promise((resolve, reject) => {
+            const waiter = {
+                resolve: v => { clearTimeout(waiter.timer); resolve(v); },
+                reject: e => { clearTimeout(waiter.timer); reject(e); }
+            };
+            waiter.timer = setTimeout(() => {
+                const i = tokenWaiters.indexOf(waiter);
+                if (i >= 0) tokenWaiters.splice(i, 1);
+                reject(new Error('授权响应超时'));
+            }, timeoutMs || 20000);
+            tokenWaiters.push(waiter);
+            try {
+                tokenClient.requestAccessToken({ prompt: prompt || '' });
+            } catch (e) {
+                const i = tokenWaiters.indexOf(waiter);
+                if (i >= 0) tokenWaiters.splice(i, 1);
+                waiter.reject(e);
+            }
+        });
+    }
+
+    // 静默续期（并发去重 + 失败冷却）
+    function renewTokenSilently() {
+        if (tokenValid()) return Promise.resolve(accessToken);
         const cached = loadCachedToken();
         if (cached) {
             accessToken = cached;
             state.authorized = true;
             showAuthedUI();
-            setStatus('✅ 已恢复之前的授权', 'success');
-            adapterHandle?.refresh().catch(() => {});
-            return true;
+            return Promise.resolve(accessToken);
         }
-        try {
+        if (renewPromise) return renewPromise;
+        renewPromise = (async () => {
+            if (Date.now() < silentCooldownUntil) throw new Error('静默续期冷却中');
             await ensureTokenClient();
-            tokenClient.requestAccessToken({ prompt: '' });
-        } catch (e) { console.warn('[GDrive] 静默刷新失败:', e); }
-        return false;
+            try {
+                const token = await requestToken('', 15000);
+                setStatus('✅ Google Drive 授权已自动续期', 'success');
+                return token;
+            } catch (e) {
+                silentCooldownUntil = Date.now() + 60000;
+                throw e;
+            }
+        })().finally(() => { renewPromise = null; });
+        return renewPromise;
     }
 
-    async function driveFetch(url, options = {}) {
-        if (!accessToken) throw new Error('尚未授权');
-        const headers = Object.assign({}, options.headers, { 'Authorization': 'Bearer ' + accessToken });
-        const res = await fetch(url, Object.assign({}, options, { headers }));
-        if (res.status === 401) {
+    // ★ 所有 Drive 调用前的统一入口：保证拿到有效 token
+    async function ensureAuthorized() {
+        if (restorePromise) { try { await restorePromise; } catch (e) {} }
+        if (tokenValid()) return accessToken;
+        try {
+            return await renewTokenSilently();
+        } catch (e) {
+            state.authorized = false;
+            resetAuthUI();
+            setStatus('授权已过期，请点击「授权 Google Drive」重新授权。', 'warn');
+            throw new Error('Google Drive 授权已过期，请在插件面板重新授权');
+        }
+    }
+
+    async function tryRestoreSession() {
+        const clientId = getClientId();
+        if (!clientId) { refreshUI(); return false; }
+        restorePromise = (async () => {
+            const cached = loadCachedToken();
+            if (cached) {
+                accessToken = cached;
+                state.authorized = true;
+                showAuthedUI();
+                setStatus('✅ 已恢复之前的授权', 'success');
+                adapterHandle?.refresh().catch(() => {});
+                return true;
+            }
+            try {
+                await renewTokenSilently();
+                setStatus('✅ 已自动恢复 Google Drive 授权', 'success');
+                adapterHandle?.refresh().catch(() => {});
+                return true;
+            } catch (e) {
+                console.warn('[GDrive] 静默恢复失败:', e && e.message);
+                state.authorized = false;
+                resetAuthUI();
+                setStatus('请点击「授权 Google Drive」完成授权', 'warn');
+                return false;
+            }
+        })();
+        try { return await restorePromise; }
+        finally { restorePromise = null; }
+    }
+
+    // ★ 401 时自动静默续期并重试一次，而不是直接判定"未授权"
+    async function driveFetch(url, options = {}, _retried = false) {
+        await ensureAuthorized();
+        const send = () => fetch(url, Object.assign({}, options, {
+            headers: Object.assign({}, options.headers, { 'Authorization': 'Bearer ' + accessToken })
+        }));
+        let res = await send();
+        if (res.status === 401 && !_retried) {
             accessToken = null;
             clearCachedToken();
+            return driveFetch(url, options, true);
+        }
+        if (res.status === 401) {
+            state.authorized = false;
             resetAuthUI();
             setStatus('授权已过期，请重新授权。', 'warn');
             throw new Error('Token expired');
@@ -817,7 +920,7 @@ window.MP3GoogleDriveConfig = {
             onStatusChange: setStatus,
 
             list: async () => {
-                if (!state.authorized) throw new Error('请先授权 Google Drive');
+                await ensureAuthorized();   // 过期自动静默续期；启动恢复中会先等待
                 const folderPath = getFavoritesFolderPath();
                 setStatus(`正在加载 ${pathKey(folderPath)} 音乐列表…`);
                 const folderId = await ensureNestedFolder(folderPath, KEY_FAV_FOLDER_ID);
@@ -844,15 +947,14 @@ window.MP3GoogleDriveConfig = {
             },
 
             // ★ Player-agnostic：返回 { blob, mimeType }，由 core-player.native 处理播放
+            //   缓存命中时不需要授权；下载前 ensureAuthorized 会自动续期
             resolveMedia: async (file) => {
-                if (!state.authorized) throw new Error('请先授权 Google Drive');
                 const fileId = file._driveFileId;
-
-                // 命中缓存
                 let blob = getCachedBlob(fileId);
                 if (blob) {
                     setStatus('▶️ 从缓存加载…');
                 } else {
+                    await ensureAuthorized();
                     setStatus('正在下载 Drive 音频…');
                     const res = await driveFetch(
                         `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`
@@ -861,16 +963,13 @@ window.MP3GoogleDriveConfig = {
                     blob = await res.blob();
                     setCachedBlob(fileId, blob);
                 }
-
-                // 播放开始后延迟预加载下一首
                 schedulePrefetchNext();
-
                 return { blob, mimeType: 'audio/mpeg' };
             },
 
             // 只删 Drive 上的文件 + 清缓存；allFiles / 播放器清理交给 adapter
             delete: async (file) => {
-                if (!state.authorized) throw new Error('请先授权 Google Drive');
+                await ensureAuthorized();
                 setStatus('正在从 Drive 删除：' + file.displayName + '…');
                 const res = await driveFetch(
                     `https://www.googleapis.com/drive/v3/files/${file._driveFileId}`,
@@ -907,6 +1006,12 @@ window.MP3GoogleDriveConfig = {
                 state.switching = false;
                 accessToken = null;
                 tokenClient = null;
+                tokenWaiters.forEach(w => w.reject(new Error('插件已卸载')));
+                tokenWaiters = [];
+                renewPromise = null;
+                restorePromise = null;
+                tokenExpiresAt = 0;
+                silentCooldownUntil = 0;
                 if (uiRoot) { uiRoot.remove(); uiRoot = null; }
             }
         });
@@ -1086,8 +1191,15 @@ window.MP3GoogleDriveConfig = {
             setStatus('正在打开 Google 授权窗口…');
             try {
                 await ensureTokenClient();
-                tokenClient.requestAccessToken({ prompt: 'consent' });
-            } catch (e) { setStatus('授权失败：' + e.message, 'error'); }
+                await requestToken('consent', 120000);  // 给用户留足点弹窗的时间
+                setStatus('✅ 已授权 Google Drive', 'success');
+                adapterHandle?.refresh().catch(() => {});
+            } catch (e) {
+                const msg = String((e && e.message) || e);
+                if (/popup/i.test(msg)) setStatus('授权弹窗被拦截或被关闭，请允许弹窗后重试', 'error');
+                else setStatus('授权失败：' + msg, 'error');
+                resetAuthUI();
+            }
         });
 
         uiRoot.querySelector('.gdrive-sync').addEventListener('click', () => {
@@ -1425,7 +1537,7 @@ window.MP3GoogleDriveConfig = {
     /* ==================== 插件导出 ==================== */
 
     window.MP3GoogleDrivePlugin = {
-        version: '4.2.0',
+        version: '4.3.0',
         async init() {
             registerAdapter();
             injectUI();
@@ -1449,5 +1561,5 @@ window.MP3GoogleDriveConfig = {
         openFolderBrowser: (initialPath) => openFolderBrowser(initialPath || getFavoritesFolderPath())
     };
 
-    console.log('[MP3GoogleDrivePlugin] v4.2.0 ready（Player-agnostic + Blob LRU 缓存）');
+    console.log('[MP3GoogleDrivePlugin] v4.3.0 ready（Player-agnostic + Token 自动续期 + Blob LRU 缓存）');
 })();
