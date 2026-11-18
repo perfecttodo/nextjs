@@ -25,9 +25,10 @@ export default function AlbumsListClient({
   const searchParams = useSearchParams();
 
   const pageFromUrl = useMemo(() => {
-    const p = parseInt(searchParams.get('page') || '', 10);
+    const p = parseInt(searchParams?.get('page') ?? '', 10);
     return Number.isFinite(p) && p > 0 ? p : initialPage;
   }, [searchParams, initialPage]);
+
 
   const [page, setPage] = useState<number>(pageFromUrl);
   const [albums, setAlbums] = useState<Album[]>(initialAlbums);

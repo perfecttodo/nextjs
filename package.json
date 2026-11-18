@@ -40,6 +40,7 @@
     "react-spinners": "^0.17.0",
     "video.js": "^8.23.4",
     "wavesurfer.js": "^7.10.1",
+    "webdav-server": "^2.6.3",
     "zustand": "^5.0.7"
   },
   "devDependencies": {

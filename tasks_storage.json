@@ -1,0 +1,1479 @@
+{
+  "a2f858e8-157c-4268-bbf4-d92e576b3776": {
+    "task_id": "a2f858e8-157c-4268-bbf4-d92e576b3776",
+    "group_id": "group_1792059076536",
+    "func_name": "merge_video_group",
+    "kwargs": {
+      "group_name": "永基路 嘉里貨運中心 - 青衣機鐵站",
+      "current_dir": "/opt/WD/www/DriveLog",
+      "items": [
+        {
+          "id": 1792058341242,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014075731_0060_part1_4x.mp4",
+          "text": "永基路 嘉里貨運中心",
+          "position": "center",
+          "startTime": 185.406246,
+          "endFilename": "20261014075731_0060_part1_4x.mp4",
+          "endTime": 188.406246,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792058440288,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014075731_0060_part1_4x.mp4",
+          "text": "永基路",
+          "position": "center",
+          "startTime": 188.872274,
+          "endFilename": "20261014075731_0060_part1_4x.mp4",
+          "endTime": 191.872274,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792058461775,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014075731_0060_part1_4x.mp4",
+          "text": "葵福路",
+          "position": "center",
+          "startTime": 203.513196,
+          "endFilename": "20261014075731_0060_part1_4x.mp4",
+          "endTime": 206.513196,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792058490318,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014075731_0060_part1_4x.mp4",
+          "text": "楊屋道",
+          "position": "center",
+          "startTime": 226.619456,
+          "endFilename": "20261014075731_0060_part1_4x.mp4",
+          "endTime": 229.619456,
+          "tag": "停頓",
+          "isHovered": true
+        },
+        {
+          "id": 1792058511627,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014075731_0060_part1_4x.mp4",
+          "text": "楊屋道",
+          "position": "center",
+          "startTime": 238.880234,
+          "endFilename": "20261014075731_0060_part1_4x.mp4",
+          "endTime": 241.880234,
+          "tag": "停頓",
+          "isHovered": true,
+          "speed": "100"
+        },
+        {
+          "id": 1792058555241,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014075731_0060_part1_4x.mp4",
+          "text": "楊屋道",
+          "position": "center",
+          "startTime": 271.208625,
+          "endFilename": "20261014075731_0060_part1_4x.mp4",
+          "endTime": 274.208625,
+          "tag": "停頓",
+          "isHovered": true,
+          "speed": "1"
+        },
+        {
+          "id": 1792058604201,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014075731_0060_part1_4x.mp4",
+          "text": "馬頭壩道",
+          "position": "center",
+          "startTime": 284.06251,
+          "endFilename": "20261014075731_0060_part1_4x.mp4",
+          "endTime": 287.06251,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792058826994,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014081732_0060_part2_4x.mp4",
+          "text": "德士古道",
+          "position": "center",
+          "startTime": 13.44382,
+          "endFilename": "20261014081732_0060_part2_4x.mp4",
+          "endTime": 16.443820000000002,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792058954732,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014081732_0060_part2_4x.mp4",
+          "text": "青荃路",
+          "position": "center",
+          "startTime": 37.55258,
+          "endFilename": "20261014081732_0060_part2_4x.mp4",
+          "endTime": 40.55258,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792059006940,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014081732_0060_part2_4x.mp4",
+          "text": "青衣機鐵站",
+          "position": "center",
+          "startTime": 56.573327,
+          "endFilename": "20261014081732_0060_part2_4x.mp4",
+          "endTime": 70.723891,
+          "tag": "停頓",
+          "isHovered": false
+        }
+      ],
+      "subtitle_only": false,
+      "skip": false
+    },
+    "status": "completed",
+    "predicted_result": {
+      "merged_file": "永基路 嘉里貨運中心 - 青衣機鐵站.mp4",
+      "srt_filename": "/opt/WD/www/DriveLog/youtube/永基路 嘉里貨運中心 - 青衣機鐵站.mp4.srt",
+      "ass_filename": "永基路 嘉里貨運中心 - 青衣機鐵站.ass",
+      "output_path": "/opt/WD/www/DriveLog/永基路 嘉里貨運中心 - 青衣機鐵站.mp4",
+      "youtube_file": "/opt/WD/www/DriveLog/youtube/永基路 嘉里貨運中心 - 青衣機鐵站.mp4"
+    },
+    "created_at": "2026-10-15 21:34:19",
+    "start_time": "2026-10-15 21:34:19",
+    "actual_result": {
+      "message": "影片合併與字幕生成完成",
+      "merged_file": "永基路 嘉里貨運中心 - 青衣機鐵站.mp4",
+      "subtitle_file": "/opt/WD/www/DriveLog/youtube/永基路 嘉里貨運中心 - 青衣機鐵站.mp4.srt",
+      "current_dir": "/opt/WD/www/DriveLog",
+      "srt_filename": "/opt/WD/www/DriveLog/youtube/永基路 嘉里貨運中心 - 青衣機鐵站.mp4.srt",
+      "youtube_file": "/opt/WD/www/DriveLog/youtube/永基路 嘉里貨運中心 - 青衣機鐵站.mp4",
+      "files": [
+        "永基路 嘉里貨運中心 - 青衣機鐵站.mp4",
+        "/opt/WD/www/DriveLog/youtube/永基路 嘉里貨運中心 - 青衣機鐵站.mp4_temp.srt"
+      ],
+      "updated_items": [
+        {
+          "id": 1792058341242,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014075731_0060_part1_4x.mp4",
+          "text": "永基路 嘉里貨運中心",
+          "position": "center",
+          "startTime": 185.406246,
+          "endFilename": "20261014075731_0060_part1_4x.mp4",
+          "endTime": 188.406246,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792058440288,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014075731_0060_part1_4x.mp4",
+          "text": "永基路",
+          "position": "center",
+          "startTime": 188.872274,
+          "endFilename": "20261014075731_0060_part1_4x.mp4",
+          "endTime": 191.872274,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792058461775,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014075731_0060_part1_4x.mp4",
+          "text": "葵福路",
+          "position": "center",
+          "startTime": 203.513196,
+          "endFilename": "20261014075731_0060_part1_4x.mp4",
+          "endTime": 206.513196,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792058490318,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014075731_0060_part1_4x.mp4",
+          "text": "楊屋道",
+          "position": "center",
+          "startTime": 226.619456,
+          "endFilename": "20261014075731_0060_part1_4x.mp4",
+          "endTime": 229.619456,
+          "tag": "停頓",
+          "isHovered": true
+        },
+        {
+          "id": 1792058511627,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014075731_0060_part1_4x.mp4",
+          "text": "楊屋道",
+          "position": "center",
+          "startTime": 238.880234,
+          "endFilename": "20261014075731_0060_part1_4x.mp4",
+          "endTime": 241.880234,
+          "tag": "停頓",
+          "isHovered": true,
+          "speed": "100"
+        },
+        {
+          "id": 1792058555241,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014075731_0060_part1_4x.mp4",
+          "text": "楊屋道",
+          "position": "center",
+          "startTime": 271.208625,
+          "endFilename": "20261014075731_0060_part1_4x.mp4",
+          "endTime": 274.208625,
+          "tag": "停頓",
+          "isHovered": true,
+          "speed": "1"
+        },
+        {
+          "id": 1792058604201,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014075731_0060_part1_4x.mp4",
+          "text": "馬頭壩道",
+          "position": "center",
+          "startTime": 284.06251,
+          "endFilename": "20261014075731_0060_part1_4x.mp4",
+          "endTime": 287.06251,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792058826994,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014081732_0060_part2_4x.mp4",
+          "text": "德士古道",
+          "position": "center",
+          "startTime": 13.44382,
+          "endFilename": "20261014081732_0060_part2_4x.mp4",
+          "endTime": 16.443820000000002,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792058954732,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014081732_0060_part2_4x.mp4",
+          "text": "青荃路",
+          "position": "center",
+          "startTime": 37.55258,
+          "endFilename": "20261014081732_0060_part2_4x.mp4",
+          "endTime": 40.55258,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792059006940,
+          "groupId": "group_1792059076536",
+          "startFilename": "20261014081732_0060_part2_4x.mp4",
+          "text": "青衣機鐵站",
+          "position": "center",
+          "startTime": 56.573327,
+          "endFilename": "20261014081732_0060_part2_4x.mp4",
+          "endTime": 70.723891,
+          "tag": "停頓",
+          "isHovered": false
+        }
+      ]
+    },
+    "end_time": "2026-10-15 21:54:03"
+  },
+  "d8a3d2f2-1af2-4776-b993-231ed6617e85": {
+    "task_id": "d8a3d2f2-1af2-4776-b993-231ed6617e85",
+    "group_id": "group_1792073174154",
+    "func_name": "merge_video_group",
+    "kwargs": {
+      "group_name": "青衣 青敬路 - 荃灣 華人永遠墳場",
+      "current_dir": "/opt/WD/www/DriveLog",
+      "items": [
+        {
+          "id": 1792072633654,
+          "groupId": "group_1792073174154",
+          "startFilename": "20261014081732_0060_part2_4x.mp4",
+          "text": "青衣 青敬路",
+          "position": "center",
+          "startTime": 286.356102,
+          "endFilename": "20261014081732_0060_part2_4x.mp4",
+          "endTime": 289.356102,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792072699678,
+          "groupId": "group_1792073174154",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "青荃路",
+          "position": "center",
+          "startTime": 10.570025,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 13.570025,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792072737863,
+          "groupId": "group_1792073174154",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "德士古道",
+          "position": "center",
+          "startTime": 40.467287,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 43.467287,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792072864956,
+          "groupId": "group_1792073174154",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "永德街",
+          "position": "center",
+          "startTime": 51.325865,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 54.325865,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792072875729,
+          "groupId": "group_1792073174154",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "永順街",
+          "position": "center",
+          "startTime": 53.994603,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 56.994603,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792072902818,
+          "groupId": "group_1792073174154",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "永順街",
+          "position": "center",
+          "startTime": 63.223944,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 66.223944,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792072916515,
+          "groupId": "group_1792073174154",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "永賢街",
+          "position": "center",
+          "startTime": 67.923278,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 70.923278,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792072938019,
+          "groupId": "group_1792073174154",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "荃灣 華人永遠墳場",
+          "position": "center",
+          "startTime": 80.845732,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 80.94573199999999,
+          "tag": "停頓",
+          "isHovered": false
+        }
+      ],
+      "subtitle_only": false,
+      "skip": false
+    },
+    "status": "completed",
+    "predicted_result": {
+      "merged_file": "青衣 青敬路 - 荃灣 華人永遠墳場.mp4",
+      "srt_filename": "/opt/WD/www/DriveLog/youtube/青衣 青敬路 - 荃灣 華人永遠墳場.mp4.srt",
+      "ass_filename": "青衣 青敬路 - 荃灣 華人永遠墳場.ass",
+      "output_path": "/opt/WD/www/DriveLog/青衣 青敬路 - 荃灣 華人永遠墳場.mp4",
+      "youtube_file": "/opt/WD/www/DriveLog/youtube/青衣 青敬路 - 荃灣 華人永遠墳場.mp4"
+    },
+    "created_at": "2026-10-15 22:06:14",
+    "start_time": "2026-10-15 22:06:14",
+    "actual_result": {
+      "message": "影片合併與字幕生成完成",
+      "merged_file": "青衣 青敬路 - 荃灣 華人永遠墳場.mp4",
+      "subtitle_file": "/opt/WD/www/DriveLog/youtube/青衣 青敬路 - 荃灣 華人永遠墳場.mp4.srt",
+      "current_dir": "/opt/WD/www/DriveLog",
+      "srt_filename": "/opt/WD/www/DriveLog/youtube/青衣 青敬路 - 荃灣 華人永遠墳場.mp4.srt",
+      "youtube_file": "/opt/WD/www/DriveLog/youtube/青衣 青敬路 - 荃灣 華人永遠墳場.mp4",
+      "files": [
+        "青衣 青敬路 - 荃灣 華人永遠墳場.mp4",
+        "/opt/WD/www/DriveLog/youtube/青衣 青敬路 - 荃灣 華人永遠墳場.mp4_temp.srt"
+      ],
+      "updated_items": [
+        {
+          "id": 1792072633654,
+          "groupId": "group_1792073174154",
+          "startFilename": "20261014081732_0060_part2_4x.mp4",
+          "text": "青衣 青敬路",
+          "position": "center",
+          "startTime": 286.356102,
+          "endFilename": "20261014081732_0060_part2_4x.mp4",
+          "endTime": 289.356102,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792072699678,
+          "groupId": "group_1792073174154",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "青荃路",
+          "position": "center",
+          "startTime": 10.570025,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 13.570025,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792072737863,
+          "groupId": "group_1792073174154",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "德士古道",
+          "position": "center",
+          "startTime": 40.467287,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 43.467287,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792072864956,
+          "groupId": "group_1792073174154",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "永德街",
+          "position": "center",
+          "startTime": 51.325865,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 54.325865,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792072875729,
+          "groupId": "group_1792073174154",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "永順街",
+          "position": "center",
+          "startTime": 53.994603,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 56.994603,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792072902818,
+          "groupId": "group_1792073174154",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "永順街",
+          "position": "center",
+          "startTime": 63.223944,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 66.223944,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792072916515,
+          "groupId": "group_1792073174154",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "永賢街",
+          "position": "center",
+          "startTime": 67.923278,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 70.923278,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792072938019,
+          "groupId": "group_1792073174154",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "荃灣 華人永遠墳場",
+          "position": "center",
+          "startTime": 80.845732,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 80.94573199999999,
+          "tag": "停頓",
+          "isHovered": false
+        }
+      ]
+    },
+    "end_time": "2026-10-15 22:16:03"
+  },
+  "4401c961-b319-4782-b959-ec3505bf39d6": {
+    "task_id": "4401c961-b319-4782-b959-ec3505bf39d6",
+    "group_id": "group_1792073174154",
+    "func_name": "process_youtube_upload",
+    "kwargs": {
+      "video_path": "/opt/WD/www/DriveLog/youtube/青衣 青敬路 - 荃灣 華人永遠墳場.mp4",
+      "title": "青衣 青敬路 - 荃灣 華人永遠墳場",
+      "description": "Group: group_1792073174154",
+      "tags": null,
+      "privacy_status": "public",
+      "caption_path": "/opt/WD/www/DriveLog/youtube/青衣 青敬路 - 荃灣 華人永遠墳場.mp4.srt",
+      "thumbnail_seconds": 3.0
+    },
+    "status": "completed",
+    "predicted_result": {
+      "youtubeID": "PENDING_UPLOAD",
+      "youtubeLink": "https://www.youtube.com/watch?v=PENDING_UPLOAD",
+      "title": "青衣 青敬路 - 荃灣 華人永遠墳場",
+      "video_path": "/opt/WD/www/DriveLog/youtube/青衣 青敬路 - 荃灣 華人永遠墳場.mp4"
+    },
+    "created_at": "2026-10-15 22:06:14",
+    "start_time": "2026-10-15 22:16:03",
+    "actual_result": {
+      "youtubeID": "p2_4oAfvByQ",
+      "youtubeLink": "https://www.youtube.com/watch?v=p2_4oAfvByQ"
+    },
+    "end_time": "2026-10-15 22:16:23"
+  },
+  "3aece720-3465-4e6e-b1d1-4dfe3c317e82": {
+    "task_id": "3aece720-3465-4e6e-b1d1-4dfe3c317e82",
+    "group_id": "group_1792059076536",
+    "func_name": "process_youtube_upload",
+    "kwargs": {
+      "video_path": "/opt/WD/www/DriveLog/youtube/永基路 嘉里貨運中心 - 青衣機鐵站.mp4",
+      "title": "永基路 嘉里貨運中心 - 青衣機鐵站",
+      "description": "Group: group_1792059076536",
+      "tags": null,
+      "privacy_status": "public",
+      "caption_path": "/opt/WD/www/DriveLog/youtube/永基路 嘉里貨運中心 - 青衣機鐵站.mp4.srt",
+      "thumbnail_seconds": 3.0
+    },
+    "status": "completed",
+    "predicted_result": {
+      "youtubeID": "PENDING_UPLOAD",
+      "youtubeLink": "https://www.youtube.com/watch?v=PENDING_UPLOAD",
+      "title": "永基路 嘉里貨運中心 - 青衣機鐵站",
+      "video_path": "/opt/WD/www/DriveLog/youtube/永基路 嘉里貨運中心 - 青衣機鐵站.mp4"
+    },
+    "created_at": "2026-10-15 22:07:38",
+    "start_time": "2026-10-15 22:16:23",
+    "actual_result": {
+      "youtubeID": "9Rnlj2hCcow",
+      "youtubeLink": "https://www.youtube.com/watch?v=9Rnlj2hCcow"
+    },
+    "end_time": "2026-10-15 22:16:44"
+  },
+  "c422637c-b012-411d-b55e-6ce497dea33d": {
+    "task_id": "c422637c-b012-411d-b55e-6ce497dea33d",
+    "group_id": "group_1792111510325",
+    "func_name": "merge_video_group",
+    "kwargs": {
+      "group_name": "荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院",
+      "current_dir": "/opt/WD/www/DriveLog",
+      "items": [
+        {
+          "id": 1792109706251,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "荃灣華人永遠墳場",
+          "position": "center",
+          "startTime": 106.353883,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 109.353883,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792109724596,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "永賢街",
+          "position": "center",
+          "startTime": 111.258239,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 114.258239,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792109747505,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "永順路",
+          "position": "center",
+          "startTime": 119.254077,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 122.254077,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792109907577,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "德士古道",
+          "position": "center",
+          "startTime": 179.864761,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 182.864761,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792109952555,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "青荃交匯處",
+          "position": "center",
+          "startTime": 205.23608,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 208.23608,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792109989491,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "荃灣路(5)",
+          "position": "center",
+          "startTime": 209.242663,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 212.242663,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110207837,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "葵涌道(5)",
+          "position": "center",
+          "startTime": 256.585917,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 259.585917,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110295438,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "西九走廊(5)",
+          "position": "center",
+          "startTime": 6.342443,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 9.342443,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110380850,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "西九走廊(5) 旺角",
+          "position": "center",
+          "startTime": 43.254067,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 46.254067,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110426325,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "太子道西",
+          "position": "center",
+          "startTime": 56.409378,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 59.409378,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110709276,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "荔枝角道",
+          "position": "center",
+          "startTime": 89.191326,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 92.191326,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110751496,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "彌敦道",
+          "position": "center",
+          "startTime": 95.83841,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 98.83841,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110767438,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "旺角道",
+          "position": "center",
+          "startTime": 102.374607,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 105.374607,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110790024,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "洗衣街",
+          "position": "center",
+          "startTime": 117.993103,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 120.993103,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110812571,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "亞皆老街",
+          "position": "center",
+          "startTime": 133.569347,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 136.569347,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110916671,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "九龍城 亞皆老街 九龍醫院",
+          "position": "center",
+          "startTime": 169.681366,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 186.39776,
+          "tag": "停頓",
+          "isHovered": false
+        }
+      ],
+      "subtitle_only": false,
+      "skip": false
+    },
+    "status": "completed",
+    "predicted_result": {
+      "merged_file": "荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院.mp4",
+      "srt_filename": "/opt/WD/www/DriveLog/youtube/荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院.mp4.srt",
+      "ass_filename": "荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院.ass",
+      "output_path": "/opt/WD/www/DriveLog/荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院.mp4",
+      "youtube_file": "/opt/WD/www/DriveLog/youtube/荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院.mp4"
+    },
+    "created_at": "2026-10-16 08:45:10",
+    "start_time": "2026-10-16 08:45:10",
+    "actual_result": {
+      "message": "影片合併與字幕生成完成",
+      "merged_file": "荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院.mp4",
+      "subtitle_file": "/opt/WD/www/DriveLog/youtube/荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院.mp4.srt",
+      "current_dir": "/opt/WD/www/DriveLog",
+      "srt_filename": "/opt/WD/www/DriveLog/youtube/荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院.mp4.srt",
+      "youtube_file": "/opt/WD/www/DriveLog/youtube/荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院.mp4",
+      "files": [
+        "荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院.mp4",
+        "/opt/WD/www/DriveLog/youtube/荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院.mp4_temp.srt"
+      ],
+      "updated_items": [
+        {
+          "id": 1792109706251,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "荃灣華人永遠墳場",
+          "position": "center",
+          "startTime": 106.353883,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 109.353883,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792109724596,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "永賢街",
+          "position": "center",
+          "startTime": 111.258239,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 114.258239,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792109747505,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "永順路",
+          "position": "center",
+          "startTime": 119.254077,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 122.254077,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792109907577,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "德士古道",
+          "position": "center",
+          "startTime": 179.864761,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 182.864761,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792109952555,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "青荃交匯處",
+          "position": "center",
+          "startTime": 205.23608,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 208.23608,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792109989491,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "荃灣路(5)",
+          "position": "center",
+          "startTime": 209.242663,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 212.242663,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110207837,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014083732_0060_part3_4x.mp4",
+          "text": "葵涌道(5)",
+          "position": "center",
+          "startTime": 256.585917,
+          "endFilename": "20261014083732_0060_part3_4x.mp4",
+          "endTime": 259.585917,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110295438,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "西九走廊(5)",
+          "position": "center",
+          "startTime": 6.342443,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 9.342443,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110380850,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "西九走廊(5) 旺角",
+          "position": "center",
+          "startTime": 43.254067,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 46.254067,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110426325,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "太子道西",
+          "position": "center",
+          "startTime": 56.409378,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 59.409378,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110709276,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "荔枝角道",
+          "position": "center",
+          "startTime": 89.191326,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 92.191326,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110751496,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "彌敦道",
+          "position": "center",
+          "startTime": 95.83841,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 98.83841,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110767438,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "旺角道",
+          "position": "center",
+          "startTime": 102.374607,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 105.374607,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110790024,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "洗衣街",
+          "position": "center",
+          "startTime": 117.993103,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 120.993103,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110812571,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "亞皆老街",
+          "position": "center",
+          "startTime": 133.569347,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 136.569347,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792110916671,
+          "groupId": "group_1792111510325",
+          "startFilename": "20261014085733_0060_part4_4x.mp4",
+          "text": "九龍城 亞皆老街 九龍醫院",
+          "position": "center",
+          "startTime": 169.681366,
+          "endFilename": "20261014085733_0060_part4_4x.mp4",
+          "endTime": 186.39776,
+          "tag": "停頓",
+          "isHovered": false
+        }
+      ]
+    },
+    "end_time": "2026-10-16 09:17:44"
+  },
+  "17d67e02-e9e6-43ac-b523-33d8f581f289": {
+    "task_id": "17d67e02-e9e6-43ac-b523-33d8f581f289",
+    "group_id": "group_1792111510325",
+    "func_name": "process_youtube_upload",
+    "kwargs": {
+      "video_path": "/opt/WD/www/DriveLog/youtube/荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院.mp4",
+      "title": "荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院",
+      "description": "Group: group_1792111510325",
+      "tags": null,
+      "privacy_status": "public",
+      "caption_path": "/opt/WD/www/DriveLog/youtube/荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院.mp4.srt",
+      "thumbnail_seconds": 3.0
+    },
+    "status": "completed",
+    "predicted_result": {
+      "youtubeID": "PENDING_UPLOAD",
+      "youtubeLink": "https://www.youtube.com/watch?v=PENDING_UPLOAD",
+      "title": "荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院",
+      "video_path": "/opt/WD/www/DriveLog/youtube/荃灣華人永遠墳場 - 九龍城 亞皆老街 九龍醫院.mp4"
+    },
+    "created_at": "2026-10-16 08:45:10",
+    "start_time": "2026-10-16 09:17:44",
+    "actual_result": {
+      "youtubeID": "A8Ab1Wra5PY",
+      "youtubeLink": "https://www.youtube.com/watch?v=A8Ab1Wra5PY"
+    },
+    "end_time": "2026-10-16 09:18:12"
+  },
+  "651c57e3-0592-44ec-9247-9ff5756cf3b7": {
+    "task_id": "651c57e3-0592-44ec-9247-9ff5756cf3b7",
+    "group_id": "group_1792117826262",
+    "func_name": "merge_video_group",
+    "kwargs": {
+      "group_name": "九龍城 聖德肋撒醫院 - 官塘 順景街",
+      "current_dir": "/opt/WD/www/DriveLog",
+      "items": [
+        {
+          "id": 1792115791789,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "九龍城 聖德肋撒醫院",
+          "position": "center",
+          "startTime": 138.577335,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 141.577335,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792115828168,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "品蘭街",
+          "position": "center",
+          "startTime": 141.47044,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 144.47044,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792115864651,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "太子道西",
+          "position": "center",
+          "startTime": 146.211451,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 149.211451,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792115932687,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "窩打老道",
+          "position": "center",
+          "startTime": 165.621037,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 168.621037,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792115987498,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "界限街",
+          "position": "center",
+          "startTime": 186.725208,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 189.725208,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792116159494,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "",
+          "position": "center",
+          "startTime": 192.369462,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 195.369462,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792116308888,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "太子道東",
+          "position": "center",
+          "startTime": 225.16632,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 228.16632,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792116757279,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "龍翔道",
+          "position": "center",
+          "startTime": 259.060092,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 262.060092,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792116878213,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "清水灣道",
+          "position": "center",
+          "startTime": 269.578323,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 272.578323,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792117049470,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "新清水灣道",
+          "position": "center",
+          "startTime": 285.240877,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 288.240877,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792117441767,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014094141_0060_part6_4x.mp4",
+          "text": "順清街",
+          "position": "center",
+          "startTime": 10.907053,
+          "endFilename": "20261014094141_0060_part6_4x.mp4",
+          "endTime": 13.907053,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792117508381,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014094141_0060_part6_4x.mp4",
+          "text": "官塘 順景街",
+          "position": "center",
+          "startTime": 17.351844,
+          "endFilename": "20261014094141_0060_part6_4x.mp4",
+          "endTime": 25.495306,
+          "tag": "停頓",
+          "isHovered": false
+        }
+      ],
+      "subtitle_only": false,
+      "skip": false
+    },
+    "status": "completed",
+    "predicted_result": {
+      "merged_file": "九龍城 聖德肋撒醫院 - 官塘 順景街.mp4",
+      "srt_filename": "/opt/WD/www/DriveLog/youtube/九龍城 聖德肋撒醫院 - 官塘 順景街.mp4.srt",
+      "ass_filename": "九龍城 聖德肋撒醫院 - 官塘 順景街.ass",
+      "output_path": "/opt/WD/www/DriveLog/九龍城 聖德肋撒醫院 - 官塘 順景街.mp4",
+      "youtube_file": "/opt/WD/www/DriveLog/youtube/九龍城 聖德肋撒醫院 - 官塘 順景街.mp4"
+    },
+    "created_at": "2026-10-16 10:30:26",
+    "start_time": "2026-10-16 10:30:26",
+    "actual_result": {
+      "message": "影片合併與字幕生成完成",
+      "merged_file": "九龍城 聖德肋撒醫院 - 官塘 順景街.mp4",
+      "subtitle_file": "/opt/WD/www/DriveLog/youtube/九龍城 聖德肋撒醫院 - 官塘 順景街.mp4.srt",
+      "current_dir": "/opt/WD/www/DriveLog",
+      "srt_filename": "/opt/WD/www/DriveLog/youtube/九龍城 聖德肋撒醫院 - 官塘 順景街.mp4.srt",
+      "youtube_file": "/opt/WD/www/DriveLog/youtube/九龍城 聖德肋撒醫院 - 官塘 順景街.mp4",
+      "files": [
+        "九龍城 聖德肋撒醫院 - 官塘 順景街.mp4",
+        "/opt/WD/www/DriveLog/youtube/九龍城 聖德肋撒醫院 - 官塘 順景街.mp4_temp.srt"
+      ],
+      "updated_items": [
+        {
+          "id": 1792115791789,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "九龍城 聖德肋撒醫院",
+          "position": "center",
+          "startTime": 138.577335,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 141.577335,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792115828168,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "品蘭街",
+          "position": "center",
+          "startTime": 141.47044,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 144.47044,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792115864651,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "太子道西",
+          "position": "center",
+          "startTime": 146.211451,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 149.211451,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792115932687,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "窩打老道",
+          "position": "center",
+          "startTime": 165.621037,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 168.621037,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792115987498,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "界限街",
+          "position": "center",
+          "startTime": 186.725208,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 189.725208,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792116308888,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "太子道東",
+          "position": "center",
+          "startTime": 225.16632,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 228.16632,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792116757279,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "龍翔道",
+          "position": "center",
+          "startTime": 259.060092,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 262.060092,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792116878213,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "清水灣道",
+          "position": "center",
+          "startTime": 269.578323,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 272.578323,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792117049470,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014091732_0060_part5_4x.mp4",
+          "text": "新清水灣道",
+          "position": "center",
+          "startTime": 285.240877,
+          "endFilename": "20261014091732_0060_part5_4x.mp4",
+          "endTime": 288.240877,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792117441767,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014094141_0060_part6_4x.mp4",
+          "text": "順清街",
+          "position": "center",
+          "startTime": 10.907053,
+          "endFilename": "20261014094141_0060_part6_4x.mp4",
+          "endTime": 13.907053,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792117508381,
+          "groupId": "group_1792117826262",
+          "startFilename": "20261014094141_0060_part6_4x.mp4",
+          "text": "官塘 順景街",
+          "position": "center",
+          "startTime": 17.351844,
+          "endFilename": "20261014094141_0060_part6_4x.mp4",
+          "endTime": 25.495306,
+          "tag": "停頓",
+          "isHovered": false
+        }
+      ]
+    },
+    "end_time": "2026-10-16 10:49:21"
+  },
+  "d7ccc891-6213-4895-9eb8-d4904ea63018": {
+    "task_id": "d7ccc891-6213-4895-9eb8-d4904ea63018",
+    "group_id": "group_1792117826262",
+    "func_name": "process_youtube_upload",
+    "kwargs": {
+      "video_path": "/opt/WD/www/DriveLog/youtube/九龍城 聖德肋撒醫院 - 官塘 順景街.mp4",
+      "title": "九龍城 聖德肋撒醫院 - 官塘 順景街",
+      "description": "Group: group_1792117826262",
+      "tags": null,
+      "privacy_status": "public",
+      "caption_path": "/opt/WD/www/DriveLog/youtube/九龍城 聖德肋撒醫院 - 官塘 順景街.mp4.srt",
+      "thumbnail_seconds": 3.0
+    },
+    "status": "completed",
+    "predicted_result": {
+      "youtubeID": "PENDING_UPLOAD",
+      "youtubeLink": "https://www.youtube.com/watch?v=PENDING_UPLOAD",
+      "title": "九龍城 聖德肋撒醫院 - 官塘 順景街",
+      "video_path": "/opt/WD/www/DriveLog/youtube/九龍城 聖德肋撒醫院 - 官塘 順景街.mp4"
+    },
+    "created_at": "2026-10-16 10:30:26",
+    "start_time": "2026-10-16 10:49:21",
+    "actual_result": {
+      "youtubeID": "TbX0UirfiLQ",
+      "youtubeLink": "https://www.youtube.com/watch?v=TbX0UirfiLQ"
+    },
+    "end_time": "2026-10-16 10:49:43"
+  },
+  "d2fedb9d-51e3-4330-b0ed-e899fc4e250a": {
+    "task_id": "d2fedb9d-51e3-4330-b0ed-e899fc4e250a",
+    "group_id": "group_1792119092158",
+    "func_name": "merge_video_group",
+    "kwargs": {
+      "group_name": "觀塘 利安道 - 觀塘 興業街",
+      "current_dir": "/opt/WD/www/DriveLog",
+      "items": [
+        {
+          "id": 1792118111265,
+          "groupId": "group_1792119092158",
+          "startFilename": "20261014094141_0060_part6_4x.mp4",
+          "text": "觀塘 利安道",
+          "position": "center",
+          "startTime": 43.057151,
+          "endFilename": "20261014094141_0060_part6_4x.mp4",
+          "endTime": 46.057151,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792118274340,
+          "groupId": "group_1792119092158",
+          "startFilename": "20261014094141_0060_part6_4x.mp4",
+          "text": "順安道",
+          "position": "center",
+          "startTime": 59.887124,
+          "endFilename": "20261014094141_0060_part6_4x.mp4",
+          "endTime": 62.887124,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792118328136,
+          "groupId": "group_1792119092158",
+          "startFilename": "20261014094141_0060_part6_4x.mp4",
+          "text": "順利邨道",
+          "position": "center",
+          "startTime": 81.715666,
+          "endFilename": "20261014094141_0060_part6_4x.mp4",
+          "endTime": 84.715666,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792118412936,
+          "groupId": "group_1792119092158",
+          "startFilename": "20261014094141_0060_part6_4x.mp4",
+          "text": "協和街",
+          "position": "center",
+          "startTime": 99.335754,
+          "endFilename": "20261014094141_0060_part6_4x.mp4",
+          "endTime": 102.335754,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792118985756,
+          "groupId": "group_1792119092158",
+          "startFilename": "20261014094141_0060_part6_4x.mp4",
+          "text": "開源道",
+          "position": "center",
+          "startTime": 227.582315,
+          "endFilename": "20261014094141_0060_part6_4x.mp4",
+          "endTime": 230.582315,
+          "tag": "停頓",
+          "isHovered": false
+        },
+        {
+          "id": 1792119037899,
+          "groupId": "group_1792119092158",
+          "startFilename": "20261014094141_0060_part6_4x.mp4",
+          "text": "觀塘 興業街",
+          "position": "center",
+          "startTime": 260.388842,
+          "endFilename": "20261014094141_0060_part6_4x.mp4",
+          "endTime": 263.388842,
+          "tag": "停頓",
+          "isHovered": false
+        }
+      ],
+      "subtitle_only": false,
+      "skip": false
+    },
+    "status": "processing",
+    "predicted_result": {
+      "merged_file": "觀塘 利安道 - 觀塘 興業街.mp4",
+      "srt_filename": "/opt/WD/www/DriveLog/youtube/觀塘 利安道 - 觀塘 興業街.mp4.srt",
+      "ass_filename": "觀塘 利安道 - 觀塘 興業街.ass",
+      "output_path": "/opt/WD/www/DriveLog/觀塘 利安道 - 觀塘 興業街.mp4",
+      "youtube_file": "/opt/WD/www/DriveLog/youtube/觀塘 利安道 - 觀塘 興業街.mp4"
+    },
+    "created_at": "2026-10-16 10:51:32",
+    "start_time": "2026-10-16 10:51:32"
+  },
+  "2c3632bb-e1e4-4fda-8c3c-7fdd81fd820b": {
+    "task_id": "2c3632bb-e1e4-4fda-8c3c-7fdd81fd820b",
+    "group_id": "group_1792119092158",
+    "func_name": "process_youtube_upload",
+    "kwargs": {
+      "video_path": "/opt/WD/www/DriveLog/youtube/觀塘 利安道 - 觀塘 興業街.mp4",
+      "title": "觀塘 利安道 - 觀塘 興業街",
+      "description": "Group: group_1792119092158",
+      "tags": null,
+      "privacy_status": "public",
+      "caption_path": "/opt/WD/www/DriveLog/youtube/觀塘 利安道 - 觀塘 興業街.mp4.srt",
+      "thumbnail_seconds": 3.0
+    },
+    "status": "pending",
+    "predicted_result": {
+      "youtubeID": "PENDING_UPLOAD",
+      "youtubeLink": "https://www.youtube.com/watch?v=PENDING_UPLOAD",
+      "title": "觀塘 利安道 - 觀塘 興業街",
+      "video_path": "/opt/WD/www/DriveLog/youtube/觀塘 利安道 - 觀塘 興業街.mp4"
+    },
+    "created_at": "2026-10-16 10:51:32"
+  }
+}

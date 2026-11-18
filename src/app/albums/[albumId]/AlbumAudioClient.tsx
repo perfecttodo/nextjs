@@ -84,10 +84,11 @@ export default function AlbumAudioClient({
   };
 
   const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams?.toString() ?? '');
     params.set('page', newPage.toString());
     router.push(`?${params.toString()}`, { scroll: false });
   };
+
 
   const Pagination = () => {
     if (totalPages <= 1) return null;
