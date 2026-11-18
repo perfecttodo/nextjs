@@ -14,16 +14,8 @@
     }
     function getSourceArtist(file) {
         if (!file) return APP_ARTIST_FALLBACK;
-        switch (file._source) {
-            case 'local': return '本地媒體';
-            case 'gdrive': return 'Google Drive';
-            case 'news': return 'News';
-            case 'filesystem': return '本機檔案';
-            case 'urlmedia': return '連結媒體';
-            case 'pan123': return '123 云盘';
-            case 'onedrive': return 'OneDrive';
-            default: return APP_ARTIST_FALLBACK;
-        }
+        const meta = window.MP3GetSourceMeta(file);
+        return meta.artist || APP_ARTIST_FALLBACK;
     }
     function updateMediaSessionMetadata(title, artist) {
         if (!('mediaSession' in navigator)) return;

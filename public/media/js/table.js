@@ -43,8 +43,11 @@
     function isFileDeletable(file) {
         if (!file) return false;
         const src = file._source || 'local';
-        if (src === 'local') return true;
-        return !!(window.MP3DataSourceHandlers && window.MP3DataSourceHandlers[src]
+        const meta = window.MP3GetSourceMeta(src);
+        if (!meta.deletable) return false;
+        if (meta.isLocal) return true;
+        return !!(window.MP3DataSourceHandlers
+            && window.MP3DataSourceHandlers[src]
             && typeof window.MP3DataSourceHandlers[src].delete === 'function');
     }
 
@@ -96,7 +99,8 @@
                 const encodedKey = U.encodeInlineArg(uniqueKey);
                 const encodedName = U.encodeInlineArg(file.displayName || file.filename || '');
                 const rowId = `row-${encodedKey.replace(/[%._-]/g, '_')}`;
-                const isExternal = (file._source && file._source !== 'local');
+                const meta = window.MP3GetSourceMeta(file);
+                const isExternal = meta.external;
                 const deletable = isFileDeletable(file);
                 const likeTitle = file.isLiked
                     ? (file.likedAt ? `取消最愛（收藏于 ${U.formatLikedAtDate(file.likedAt)}）` : '取消最愛')
