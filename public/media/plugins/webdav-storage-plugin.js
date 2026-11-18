@@ -1,5 +1,5 @@
 /**
- * plugins/webdav-storage-plugin.js  (v2.0.0)
+ * plugins/webdav-storage-plugin.js  (v2.1.0)
  *
  * 设计要点：
  *  - webdav 客户端库由本插件内部按需动态 import，未被 enable 时完全零加载
@@ -7,11 +7,16 @@
  *  - init() 成功后注册到 MP3StorageRegistry；unload() 时注销
  *  - 顶层 try/catch + 占位导出：崩溃也能让 plugin-center 给出可读错误
  *
+ * v2.1.0 变更：
+ *  - put(): Blob / TypedArray / string 统一转 ArrayBuffer（流式除外），显式传 contentLength，
+ *           修复 "Layerr: Cannot calculate data length: Invalid type"
+ *  - capabilities 新增 mkdir；实现 mkdir()（逐段 MKCOL，405/409 视为已存在）
+ *
  * 分区：
  *  §0 占位导出           §1 常量与工具
  *  §2 webdav 库加载器     §3 配置与 client 工厂
  *  §4 Provider 协议       §5 生命周期
- *  §6 插件对象导出        §7 设置 UI
+ *  §6 插件对象导出         §7 设置 UI
  *  §8 兜底升级
  */
 (function () {
@@ -21,7 +26,7 @@
     // §0 占位导出：保证 window.MP3WebDAVStoragePlugin 一定存在
     // ============================================================
     const PLACEHOLDER = {
-        __version: '2.0.0',
+        __version: '2.1.0',
         __loading: true,
         __loadedAt: Date.now(),
         __error: null
@@ -36,7 +41,6 @@
         const CONFIG_KEY = 'mp3_webdav_config';
         const LIB_LOAD_TIMEOUT_MS = 15000;
 
-        // 优先使用用户覆盖的 URL，其次按顺序回退
         const WEBDAV_CDN_CANDIDATES = (() => {
             const list = [];
             if (typeof window !== 'undefined' && window.MP3_WEBDAV_CDN) {
@@ -66,22 +70,43 @@
             ]).finally(() => clearTimeout(timer));
         }
 
+        /**
+         * 把任意输入转成 webdav 库能计算长度的形式。
+         * 返回 { body, contentLength }；流式时 contentLength 为 undefined。
+         */
+        async function toWebdavBody(data) {
+            if (typeof Blob !== 'undefined' && data instanceof Blob) {
+                const buf = await data.arrayBuffer();
+                return { body: buf, contentLength: buf.byteLength };
+            }
+            if (data instanceof ArrayBuffer) {
+                return { body: data, contentLength: data.byteLength };
+            }
+            if (ArrayBuffer.isView(data)) {
+                // 取独立 ArrayBuffer，避免 byteOffset 非 0 时长度算错
+                const buf = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+                return { body: buf, contentLength: buf.byteLength };
+            }
+            if (typeof data === 'string') {
+                const enc = new TextEncoder().encode(data);
+                return { body: enc.buffer, contentLength: enc.byteLength };
+            }
+            if (typeof ReadableStream !== 'undefined' && data instanceof ReadableStream) {
+                return { body: data, contentLength: undefined };
+            }
+            throw new Error('WebDAV put: 不支持的 data 类型：' +
+                (data && data.constructor && data.constructor.name));
+        }
+
         // ============================================================
         // §2 webdav 库加载器（懒加载 + 单例 + CDN 回退）
         // ============================================================
         let webdavLibPromise = null;
 
-        /**
-         * 加载 webdav 客户端库。
-         * - 若 window.WebDAV 已就绪（用户手动提供），直接使用。
-         * - 否则按 WEBDAV_CDN_CANDIDATES 顺序 import()，第一个成功即缓存。
-         * - 并发调用共享同一个 Promise。
-         */
         function loadWebdavLib() {
             if (webdavLibPromise) return webdavLibPromise;
 
             webdavLibPromise = (async () => {
-                // 外部已注入（例如打包器里 import 后挂了 window.WebDAV）
                 if (window.WebDAV && typeof window.WebDAV.createClient === 'function') {
                     console.log('[WebDAV Storage Plugin] 使用已存在的 window.WebDAV');
                     return window.WebDAV;
@@ -103,7 +128,7 @@
                             throw new Error('createClient 未在模块中导出');
                         }
                         const api = { createClient, __src: url };
-                        window.WebDAV = api; // 缓存到全局便于调试
+                        window.WebDAV = api;
                         console.log('[WebDAV Storage Plugin] ✅ webdav 已加载:', url);
                         return api;
                     } catch (e) {
@@ -111,7 +136,7 @@
                         errors.push(`${url} (${e.message || e})`);
                     }
                 }
-                webdavLibPromise = null; // 允许下次重试
+                webdavLibPromise = null;
                 throw new Error('webdav 客户端库加载失败（已尝试所有 CDN）：\n' + errors.join('\n'));
             })();
 
@@ -161,21 +186,26 @@
             description: '通过 WebDAV 协议读写远程媒体文件',
             capabilities: {
                 read: true, write: true, delete: true, list: true,
-                stat: true, range: true, publicUrl: false, streaming: false, quota: false
+                stat: true, range: true, publicUrl: false, streaming: false,
+                quota: false, mkdir: true
             },
 
-            async put(key, data, { meta } = {}) {
+            async put(key, data, { meta, onProgress } = {}) {
                 const c = ensureClient();
                 const k = normalizeKey(key);
-                let body = data;
-                if (typeof ReadableStream !== 'undefined' && data instanceof ReadableStream) {
-                    body = await new Response(data).blob();
-                } else if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
-                    body = new Blob([data]);
+
+                const { body, contentLength } = await toWebdavBody(data);
+
+                await c.putFileContents(k, body, {
+                    overwrite: true,
+                    ...(contentLength != null ? { contentLength } : {}),
+                    onUploadProgress: typeof onProgress === 'function' ? onProgress : undefined
+                });
+
+                let size = contentLength || 0;
+                if (!size) {
+                    try { const st = await c.stat(k); size = st.size || 0; } catch (e) {}
                 }
-                await c.putFileContents(k, body, { overwrite: true });
-                let size = 0;
-                try { const st = await c.stat(k); size = st.size || 0; } catch (e) {}
                 return { key: k, size, meta: meta || {} };
             },
 
@@ -225,8 +255,29 @@
 
             async exists(key) { return !!(await this.stat(key)); },
 
+            async mkdir(prefix) {
+                const c = ensureClient();
+                const segs = normalizeKey(prefix).split('/').filter(Boolean);
+                let path = '';
+                for (const s of segs) {
+                    path += '/' + encodeURIComponent(s);
+                    try {
+                        if (typeof c.createDirectory === 'function') {
+                            await c.createDirectory(path);
+                        } else if (typeof c.customRequest === 'function') {
+                            await c.customRequest(path, { method: 'MKCOL' });
+                        } else {
+                            throw new Error('webdav 库不支持创建目录');
+                        }
+                    } catch (e) {
+                        // 405 = 已存在；409 = 父目录不存在（逐段建理论上不会发生）
+                        if (e.status !== 405 && e.status !== 409) throw e;
+                    }
+                }
+                return true;
+            },
+
             createWriteStream(key, opts = {}) {
-                // 浏览器端 webdav 不支持真流式，回退为内存累积
                 const chunks = [];
                 let closed = false;
                 const self = this;
@@ -276,19 +327,18 @@
         let initPromise = null;
 
         const plugin = {
-            __version: '2.0.0',
+            __version: '2.1.0',
             __loading: false,
             __error: null,
 
-            /** 由 plugin-center 调用；重复调用幂等 */
             async init() {
                 if (initPromise) return initPromise;
                 initPromise = (async () => {
                     console.log('[WebDAV Storage Plugin] init() begin');
-                    await loadWebdavLib();          // ★ 真正加载 webdav 库
+                    await loadWebdavLib();
                     currentConfig = loadConfig();
                     client = buildClient(currentConfig);
-                    registerProvider();              // ★ 注册到 MP3StorageRegistry
+                    registerProvider();
                     renderSettingsUI();
                     console.log('[WebDAV Storage Plugin] ✅ init() done');
                 })().catch((err) => {
@@ -299,14 +349,11 @@
                 return initPromise;
             },
 
-            /** 由 plugin-center 调用；可选完全卸载 */
             async unload() {
                 unregisterProvider();
                 const el = document.getElementById('webdavSettingsCard');
                 if (el) el.remove();
                 initPromise = null;
-                // 不清理 webdavLibPromise / window.WebDAV：
-                // 库本身无敏感状态，缓存对下一次 enable 更友好
             },
 
             getClient: () => ensureClient(),
@@ -318,7 +365,6 @@
                 client = buildClient(currentConfig);
             },
 
-            /** Console: await MP3WebDAVStoragePlugin.__selfTest() */
             async __selfTest() {
                 const out = {
                     version: this.__version,
@@ -405,7 +451,6 @@
         console.log('[WebDAV Storage Plugin] ✅ exposed as window.MP3WebDAVStoragePlugin v' + plugin.__version);
 
     } catch (err) {
-        // 兜底：即使 IIFE 崩溃，plugin-center 也能拿到可读错误
         console.error('[WebDAV Storage Plugin] ❌ IIFE 初始化异常:', err);
         PLACEHOLDER.__loading = false;
         PLACEHOLDER.__error = (err && err.message) || String(err);

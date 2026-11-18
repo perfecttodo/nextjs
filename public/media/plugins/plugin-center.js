@@ -116,6 +116,17 @@
             autoEnable: true,   // 原功能默认启用，保持一致
             dataSourceKeys: []
         },
+        recording: {
+    id: 'recording',
+    name: '录音',
+    description: '浏览器麦克风录音，存入存储并加入播放列表',
+    icon: 'fa-solid fa-microphone',
+    iconClass: 'text-rose-400',
+    scriptSrc: PLUGIN_BASE + 'recording-plugin.js',
+    globalVar: 'MP3RecordingPlugin',
+    autoEnable: false,
+    dataSourceKeys: ['recording']
+},
     };
 
     const STORAGE_KEY = 'mp3_enabled_dynamic_plugins';

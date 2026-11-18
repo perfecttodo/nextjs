@@ -1,40 +1,42 @@
 /**
  * ============================================================
  *  storage-registry.js — 媒体存储提供者注册表与统一读写 API
- *  v1.0.0
+ *  v1.1.0
  *
  *  全局对象：
  *    window.MP3StorageRegistry — 注册表 / 生命周期 / 事件
  *    window.MP3Storage         — 统一读写 API
  *
+ *  变更（v1.1.0）：
+ *    - 新增可选能力 mkdir；storage.mkdir() 封装
+ *    - write() 不再强制 toBlob，数据原样交给 provider，由 provider 自行转换
+ *    - 内置 idb / opfs 各自在内部完成 Blob 转换
+ *
  *  Provider 协议（全部可选，按 capabilities 声明）：
  *   {
  *     id, name, icon?, description?,
- *     capabilities: { read, write, delete, list, stat, range, publicUrl, streaming, quota },
+ *     capabilities: { read, write, delete, list, stat, range, publicUrl, streaming, quota, mkdir },
  *     init?(), unload?(),
  *
  *     put?(key, data, { onProgress, signal, meta })     -> { key, size, meta? }
  *     get?(key, { onProgress })                         -> Blob | ArrayBuffer
  *     getStream?(key)                                   -> ReadableStream
- *     getUrl?(key)                                      -> string（可直接给 <video>/<audio>）
+ *     getUrl?(key)                                      -> string
  *     createWriteStream?(key, opts)                     -> { write(chunk), close(), abort() }
  *     delete?(key)                                      -> boolean
  *     list?(prefix)                                     -> [{ key, size, lastModified, meta }]
  *     stat?(key)                                        -> { key, size, lastModified, meta } | null
  *     exists?(key)                                      -> boolean
  *     getQuota?()                                       -> { usage, quota }
+ *     mkdir?(prefix)                                    -> boolean
  *   }
  *
- *  内置 Provider：
- *    - idb   : IndexedDB（默认），单文件建议 ≤ 500MB
- *    - opfs  : Origin Private File System，支持真流式大文件（Chrome/Edge/Safari 17+）
+ *  内置 Provider：idb（IndexedDB）、opfs（Origin Private File System）
  *
- *  事件：
- *    provider:registered / provider:unregistered / default:changed
- *    write:done / delete:done
+ *  事件：provider:registered / provider:unregistered / default:changed
+ *        write:done / delete:done
  *
- *  存储键（localStorage）：
- *    mp3_storage_default_provider
+ *  存储键：mp3_storage_default_provider
  * ============================================================
  */
 (function () {
@@ -49,7 +51,8 @@
     function normalizeCapabilities(c) {
         return Object.assign({
             read: false, write: false, delete: false, list: false,
-            stat: false, range: false, publicUrl: false, streaming: false, quota: false
+            stat: false, range: false, publicUrl: false, streaming: false,
+            quota: false, mkdir: false
         }, c || {});
     }
 
@@ -57,7 +60,6 @@
         if (typeof key !== 'string' || !key.trim()) {
             throw new Error('key 必须是非空字符串');
         }
-        // 去除前导 /，同时禁止 "../" 路径遍历
         const k = key.replace(/^\/+/, '');
         if (k.split('/').some(seg => seg === '..')) {
             throw new Error('key 不能包含 ".." 路径段：' + key);
@@ -66,7 +68,7 @@
     }
 
     function toBlob(data) {
-        if (data instanceof Blob) return data;
+        if (typeof Blob !== 'undefined' && data instanceof Blob) return data;
         if (data instanceof ArrayBuffer) return new Blob([data]);
         if (ArrayBuffer.isView(data)) return new Blob([data.buffer]);
         if (typeof data === 'string') return new Blob([data]);
@@ -82,10 +84,6 @@
 
     function isReadableStream(v) {
         return typeof ReadableStream !== 'undefined' && v instanceof ReadableStream;
-    }
-
-    function isWritableStream(v) {
-        return typeof WritableStream !== 'undefined' && v instanceof WritableStream;
     }
 
     // ============================================================
@@ -116,7 +114,7 @@
     // ============================================================
     // §3 注册表
     // ============================================================
-    const providers = new Map(); // id -> { id, name, ..., capabilities, provider, registeredAt, source }
+    const providers = new Map(); // id -> record
 
     function validateProvider(p) {
         if (!p || typeof p !== 'object') throw new Error('provider 必须是对象');
@@ -142,6 +140,7 @@
         if (caps.delete && typeof p.delete !== 'function') throw new Error('声明 delete 但未实现 delete');
         if (caps.list && typeof p.list !== 'function') throw new Error('声明 list 但未实现 list');
         if (caps.stat && typeof p.stat !== 'function') throw new Error('声明 stat 但未实现 stat');
+        if (caps.mkdir && typeof p.mkdir !== 'function') throw new Error('声明 mkdir 但未实现 mkdir');
 
         return caps;
     }
@@ -151,7 +150,6 @@
             const stored = localStorage.getItem(DEFAULT_PROVIDER_KEY);
             if (stored && providers.has(stored)) return stored;
         } catch (e) {}
-        // 优先第一个可写 provider
         for (const [id, r] of providers) if (r.capabilities.write) return id;
         const first = providers.keys().next();
         return first.done ? '' : first.value;
@@ -164,7 +162,6 @@
     }
 
     const registry = {
-        /** 注册一个 provider；返回 { ok, id, unregister() } 供插件在 unload 中调用 */
         register(provider) {
             const caps = validateProvider(provider);
             if (providers.has(provider.id)) {
@@ -246,26 +243,13 @@
 
     const storage = {
         // ---------- 写入 ----------
-        /**
-         * 写入媒体数据。
-         * @param {string|null} providerId  null 表示默认 provider
-         * @param {string} key
-         * @param {Blob|File|ArrayBuffer|ArrayBufferView|string|ReadableStream} data
-         * @param {object} opts  { onProgress?, signal?, meta? }
-         */
         async write(providerId, key, data, opts = {}) {
             const { provider, capabilities } = requireProvider(providerId);
             if (!capabilities.write) throw new Error('provider 不支持写入：' + provider.id);
             const k = normalizeKey(key);
 
-            let payload = data;
-            if (!isReadableStream(data)) {
-                const blob = toBlob(data);
-                if (blob) payload = blob;
-                else throw new Error('不支持的数据类型');
-            }
-
-            const result = await provider.put(k, payload, {
+            // 原样透传：Blob / ArrayBuffer / Stream / string 交给 provider 自行转换
+            const result = await provider.put(k, data, {
                 onProgress: typeof opts.onProgress === 'function' ? opts.onProgress : null,
                 signal: opts.signal,
                 meta: opts.meta || {}
@@ -294,10 +278,6 @@
             throw new Error('provider 不支持读取：' + provider.id);
         },
 
-        /**
-         * 返回可直接给 <audio>/<video>/<img> 的 URL。
-         * 若 provider 返回 blob URL，需自行 revokeUrl()。
-         */
         async getUrl(providerId, key, opts = {}) {
             const { provider } = requireProvider(providerId);
             const k = normalizeKey(key);
@@ -308,7 +288,6 @@
             return URL.createObjectURL(blob);
         },
 
-        /** 返回 ReadableStream；用于大文件流式播放 / 转存 */
         async readStream(providerId, key) {
             const { provider } = requireProvider(providerId);
             const k = normalizeKey(key);
@@ -319,10 +298,6 @@
             return blob.stream();
         },
 
-        /**
-         * 打开可写流（MediaRecorder / 分片上傳 / 长时间写入）。
-         * 若 provider 未实现 createWriteStream，自动回退为内存累积后一次性 put。
-         */
         openWriteStream(providerId, key, opts = {}) {
             const { provider } = requireProvider(providerId);
             const k = normalizeKey(key);
@@ -331,7 +306,6 @@
                 return provider.createWriteStream(k, opts);
             }
 
-            // 回退实现
             const chunks = [];
             let closed = false;
             return {
@@ -361,7 +335,6 @@
             const k = normalizeKey(key);
             if (typeof provider.exists === 'function') return provider.exists(k);
             if (typeof provider.stat === 'function') return !!(await provider.stat(k));
-            // 最后兜底：尝试读取
             return !!(await storage.read(provider.id, k).catch(() => null));
         },
 
@@ -384,6 +357,17 @@
             return { usage: 0, quota: 0 };
         },
 
+        // ---------- 目录 ----------
+        async mkdir(providerId, prefix) {
+            const { provider, capabilities } = requireProvider(providerId);
+            if (!capabilities.mkdir || typeof provider.mkdir !== 'function') {
+                return false;
+            }
+            const k = normalizeKey(prefix).replace(/\/+$/, '');
+            if (!k) return false;
+            return provider.mkdir(k);
+        },
+
         // ---------- 删除 ----------
         async delete(providerId, key) {
             const { provider, capabilities } = requireProvider(providerId);
@@ -395,10 +379,6 @@
         },
 
         // ---------- 跨 provider 直传 ----------
-        /**
-         * 两个 provider 之间的转存。
-         * 双方都支持流式时走流式；否则回退为 Blob 中转。
-         */
         async copy(fromProviderId, fromKey, toProviderId, toKey, opts = {}) {
             const from = requireProvider(fromProviderId);
             const to = requireProvider(toProviderId);
@@ -495,11 +475,19 @@
 
             capabilities: {
                 read: true, write: true, delete: true, list: true,
-                stat: true, range: false, publicUrl: false, streaming: false, quota: true
+                stat: true, range: false, publicUrl: false, streaming: false,
+                quota: true, mkdir: false
             },
 
+            async mkdir() { return false; },
+
             async put(key, data, opts = {}) {
-                const blob = toBlob(data) || new Blob([data]);
+                // provider 内部负责 Blob 转换
+                let blob = toBlob(data);
+                if (!blob && isReadableStream(data)) {
+                    blob = await new Response(data).blob();
+                }
+                if (!blob) throw new Error('IDB put: 不支持的数据类型');
                 const record = {
                     key,
                     blob,
@@ -606,7 +594,15 @@
 
             capabilities: {
                 read: true, write: true, delete: true, list: true,
-                stat: true, range: false, publicUrl: false, streaming: true, quota: true
+                stat: true, range: false, publicUrl: false, streaming: true,
+                quota: true, mkdir: true
+            },
+
+            async mkdir(key) {
+                const segs = key.split('/').filter(Boolean);
+                let dir = await getRoot();
+                for (const s of segs) dir = await dir.getDirectoryHandle(s, { create: true });
+                return true;
             },
 
             async put(key, data, opts = {}) {
@@ -614,7 +610,6 @@
                 const w = await fh.createWritable({ keepExistingData: false });
                 try {
                     if (isReadableStream(data)) {
-                        // 用 pipeTo 手动管理 close
                         await data.pipeTo(w, { preventClose: true });
                         await w.close();
                     } else {
