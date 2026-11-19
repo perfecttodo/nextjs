@@ -14,6 +14,7 @@
  *  - 删除：delete() 删存储 → 适配器自动从 allFiles 移除
  *  - 停用：adapter.unload() 自动 stopIfPlayingFrom + removeSourceData
  *  - 时序：MutationObserver 监听面板展开，每次展开重建下拉框
+ *  - 修复：第二次录音 AudioSession category 不兼容 → 延迟释放麦克风流
  */
 (function () {
     'use strict';
@@ -240,6 +241,16 @@
 
     // ---------- 录音 ----------
     async function startRecording() {
+        // ★ 防御性清理：清掉上一次可能残留的 stream / mediaRecorder
+        if (stream) {
+            stream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} });
+            stream = null;
+        }
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            try { mediaRecorder.stop(); } catch (e) {}
+            mediaRecorder = null;
+        }
+
         if (mediaRecorder && mediaRecorder.state !== 'inactive') return;
         const providerId = getSelectedProvider();
         if (!providerId) { setStatus('沒有可寫入的存儲', true); return; }
@@ -285,9 +296,15 @@
 
     function stopRecording() {
         if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
-        try { mediaRecorder.stop(); } catch (e) { setStatus('停止失敗：' + e.message, true); }
+        try {
+            mediaRecorder.stop();
+        } catch (e) {
+            setStatus('停止失敗：' + e.message, true);
+            // 如果 stop 本身失败，也要兜底释放
+            cleanupStream();
+        }
         if (timer) { clearInterval(timer); timer = null; }
-        cleanupStream();
+        // ★ 注意：不要在这里调用 cleanupStream()，改为在 onRecorderStop 末尾释放
     }
 
     function cleanupStream() {
@@ -302,10 +319,20 @@
         const blob = new Blob(chunks, { type: mime });
         chunks = [];
         mediaRecorder = null;
-        if (!blob.size) { setStatus('沒有錄到音頻資料', true); render(); return; }
+        if (!blob.size) {
+            setStatus('沒有錄到音頻資料', true);
+            render();
+            cleanupStream();   // ★ 释放麦克风
+            return;
+        }
 
         const providerId = getSelectedProvider();
-        if (!providerId) { setStatus('沒有可寫入的存儲', true); render(); return; }
+        if (!providerId) {
+            setStatus('沒有可寫入的存儲', true);
+            render();
+            cleanupStream();   // ★ 释放麦克风
+            return;
+        }
 
         const ts = new Date();
         const stamp = ts.getFullYear() + String(ts.getMonth() + 1).padStart(2, '0') + String(ts.getDate()).padStart(2, '0')
@@ -333,6 +360,9 @@
             if (t) t.textContent = '00:00';
         }
         render();
+
+        // ★ 关键修复：录音会话完全结束后，才释放麦克风流
+        cleanupStream();
     }
 
     // ---------- 列表 / 试听 ----------
