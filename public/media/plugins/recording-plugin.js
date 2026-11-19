@@ -241,11 +241,8 @@
 
     // ---------- 录音 ----------
     async function startRecording() {
-        // ★ 防御性清理：清掉上一次可能残留的 stream / mediaRecorder
-        if (stream) {
-            stream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} });
-            stream = null;
-        }
+        // ✅ 移动端修复：先强制释放上一次的麦克风，并等待硬件完成释放
+        await forceReleaseMic();
         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
             try { mediaRecorder.stop(); } catch (e) {}
             mediaRecorder = null;
@@ -259,13 +256,24 @@
             return;
         }
         try {
-            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false
+                }
+            });
             const mime = pickMime();
             mediaRecorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
             chunks = [];
             mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
             mediaRecorder.onstop = onRecorderStop;
-            mediaRecorder.onerror = (e) => setStatus('錄音錯誤：' + (e.error && e.error.name || '未知'), true);
+            mediaRecorder.onerror = (e) => {
+                setStatus('錄音錯誤：' + (e.error && e.error.name || '未知'), true);
+                // ✅ 错误路径也必须释放麦克风，否则会永久占用
+                cleanupStream();
+                mediaRecorder = null;
+            };
             mediaRecorder.start(1000);
             startedAt = Date.now();
             timer = setInterval(() => {
@@ -313,8 +321,23 @@
             stream = null;
         }
     }
+    // ✅ 移动端修复：强制释放麦克风并等待硬件真正结束采集
+    async function forceReleaseMic() {
+        if (stream) {
+            stream.getTracks().forEach(t => {
+                try { t.stop(); } catch (e) {}
+            });
+            stream = null;
+        }
+        // 移动端浏览器（iOS/Android）需要短暂时间完成硬件释放，
+        // 否则紧接着的 getUserMedia 仍可能拿到 NotReadableError。
+        await new Promise(r => setTimeout(r, 150));
+    }
+
 
     async function onRecorderStop() {
+        // ✅ 移动端修复：录制已停止，立即释放麦克风，不要等到存储完成
+        cleanupStream();
         const mime = (mediaRecorder && mediaRecorder.mimeType) || 'audio/webm';
         const blob = new Blob(chunks, { type: mime });
         chunks = [];
