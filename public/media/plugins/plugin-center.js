@@ -1,34 +1,14 @@
 /**
  * ============================================================
- *  plugins/plugin-center.js — 插件中心（雙 Tab 精簡版）
+ *  plugins/plugin-center.js — 插件中心（分组 + 筛选 chips 版）
  *
- *  目錄結構：
- *   index.html
- *   core-player.js
- *   plugins/
- *     plugin-center.js          ← 本文件（插件管理器）
- *     local-plugin.js
- *     multi-user-plugin.js
- *     autoplay-plugin.js
- *     copy-favorites-plugin.js
- *     news-plugin.js
- *     google-drive-plugin.js
- *     filesystem-plugin.js
- *     video-player-plugin.js
- *     url-media-plugin.js
- *     share-plugin.js
- *
- *  index.html 只需保留一行：
- *   <script src="plugins/plugin-center.js"></script>
- *
- *  設計：
- *   - 「已啟用 / 未啟用」兩個 Tab，只顯示當前 Tab 的插件，側欄更省空間
- *   - 無分組、扁平清單、手風琴展開（同時只展開一個插件面板）
- *   - 顏色全程 indigo / slate，與主介面一致；滾動條同色系
- *   - .plugin-body[data-plugin-id] 容器永遠保留在 DOM（只隱藏不銷毀），
- *     所有現有插件无需修改即可照常渲染
- *   - 已啟用清單沿用 mp3_enabled_dynamic_plugins；
- *     Tab 狀態存於 mp3_plugin_center_tab；展開狀態存於 mp3_plugin_center_expanded
+ *  设计：
+ *   - 已启用 / 未启用 两组同屏显示，无需切换 Tab
+ *   - filter chips：全部 / 已启用 / 未启用 / 错误（纯过滤，不切视图）
+ *   - 全局搜索跨两组；分组标题可折叠；状态持久化
+ *   - 启用/停用后插件行自动在两组之间移动
+ *   - .plugin-body[data-plugin-id] 容器永远保留在 DOM
+ *   - 旧 Tab 设置自动迁移到 filter
  * ============================================================
  */
 (function () {
@@ -100,8 +80,8 @@
             description: '把媒体存入 WebDAV 服务器',
             icon: 'fa-solid fa-cloud',
             iconClass: 'text-sky-400',
-            scriptSrc: PLUGIN_BASE + 'webdav-storage-plugin.js',  // → plugins/webdav-storage-plugin.js
-            globalVar: 'MP3WebDAVStoragePlugin',                  // ★ 必须和插件里 window.xxx 完全一致
+            scriptSrc: PLUGIN_BASE + 'webdav-storage-plugin.js',
+            globalVar: 'MP3WebDAVStoragePlugin',
             autoEnable: false,
             dataSourceKeys: []
         },
@@ -113,25 +93,28 @@
             iconClass: 'text-indigo-300',
             scriptSrc: PLUGIN_BASE + 'keyboard-shortcuts-plugin.js',
             globalVar: 'MP3KeyboardShortcutsPlugin',
-            autoEnable: true,   // 原功能默认启用，保持一致
+            autoEnable: true,
             dataSourceKeys: []
         },
         recording: {
-    id: 'recording',
-    name: '录音',
-    description: '浏览器麦克风录音，存入存储并加入播放列表',
-    icon: 'fa-solid fa-microphone',
-    iconClass: 'text-rose-400',
-    scriptSrc: PLUGIN_BASE + 'recording-plugin.js',
-    globalVar: 'MP3RecordingPlugin',
-    autoEnable: false,
-    dataSourceKeys: ['recording']
-},
+            id: 'recording',
+            name: '录音',
+            description: '浏览器麦克风录音，存入存储并加入播放列表',
+            icon: 'fa-solid fa-microphone',
+            iconClass: 'text-rose-400',
+            scriptSrc: PLUGIN_BASE + 'recording-plugin.js',
+            globalVar: 'MP3RecordingPlugin',
+            autoEnable: false,
+            dataSourceKeys: ['recording']
+        },
     };
 
     const STORAGE_KEY = 'mp3_enabled_dynamic_plugins';
-    const TAB_KEY = 'mp3_plugin_center_tab';
     const EXPANDED_KEY = 'mp3_plugin_center_expanded';
+    const FILTER_KEY = 'mp3_plugin_center_filter';
+    const GROUP_KEY = 'mp3_plugin_center_groups';
+    const TAB_KEY_LEGACY = 'mp3_plugin_center_tab';
+
     const enabled = new Set();
     const loadedPlugins = {};
     const loadingPlugins = {};
@@ -144,16 +127,24 @@
     let uiBuilt = false;
     let query = '';
     let expandedId = null;
-    let activeTab = 'on';
+    let filterMode = 'all';
+    const collapsedGroups = { on: false, off: false };
 
     try {
-        const savedTab = localStorage.getItem(TAB_KEY);
-        if (savedTab === 'on' || savedTab === 'off') activeTab = savedTab;
+        const savedFilter = localStorage.getItem(FILTER_KEY);
+        if (savedFilter === 'all' || savedFilter === 'on' || savedFilter === 'off' || savedFilter === 'error') {
+            filterMode = savedFilter;
+        } else {
+            const legacyTab = localStorage.getItem(TAB_KEY_LEGACY);
+            if (legacyTab === 'on' || legacyTab === 'off') filterMode = legacyTab;
+        }
+        const g = JSON.parse(localStorage.getItem(GROUP_KEY) || '{}');
+        if (typeof g.on === 'boolean') collapsedGroups.on = g.on;
+        if (typeof g.off === 'boolean') collapsedGroups.off = g.off;
         const savedExpanded = localStorage.getItem(EXPANDED_KEY);
         if (savedExpanded && REGISTRY[savedExpanded]) expandedId = savedExpanded;
     } catch (e) {}
 
-    // 讀取已啟用清單（沿用原有 key，舊設定無縫保留）
     const storedRaw = localStorage.getItem(STORAGE_KEY);
     if (storedRaw === null) {
         Object.values(REGISTRY).forEach(meta => { if (meta.autoEnable) enabled.add(meta.id); });
@@ -172,7 +163,8 @@
             : String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
     function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...enabled])); } catch (e) {} }
-    function persistTab() { try { localStorage.setItem(TAB_KEY, activeTab); } catch (e) {} }
+    function persistFilter() { try { localStorage.setItem(FILTER_KEY, filterMode); } catch (e) {} }
+    function persistGroups() { try { localStorage.setItem(GROUP_KEY, JSON.stringify(collapsedGroups)); } catch (e) {} }
     function persistExpanded() {
         try {
             if (expandedId) localStorage.setItem(EXPANDED_KEY, expandedId);
@@ -275,7 +267,7 @@
         if (meta) cleanupDataSources(meta);
     }
 
-    // ==================== 樣式（indigo / slate，與主介面一致） ====================
+    // ==================== 樣式 ====================
     function injectStyles() {
         if (document.getElementById('pluginCenterTabStyles')) return;
         const style = document.createElement('style');
@@ -286,11 +278,6 @@
             #pluginManagerCard .pc-scroll::-webkit-scrollbar-track{background:rgba(15,23,42,.6);border-radius:999px}
             #pluginManagerCard .pc-scroll::-webkit-scrollbar-thumb{background:rgba(99,102,241,.5);border-radius:999px}
             #pluginManagerCard .pc-scroll::-webkit-scrollbar-thumb:hover{background:rgba(129,140,248,.75)}
-            #pluginManagerCard .pc-tab{border-color:rgba(51,65,85,.8);background:rgba(30,41,59,.5);color:#94a3b8;transition:all .18s ease}
-            #pluginManagerCard .pc-tab:hover{border-color:rgba(99,102,241,.35);color:#c7d2fe}
-            #pluginManagerCard .pc-tab.is-active{border-color:rgba(99,102,241,.5);background:rgba(99,102,241,.18);color:#a5b4fc;box-shadow:inset 0 -2px 0 rgba(99,102,241,.7)}
-            #pluginManagerCard .pc-tab-count{border-color:rgba(71,85,105,.7);background:rgba(15,23,42,.5);color:#94a3b8}
-            #pluginManagerCard .pc-tab.is-active .pc-tab-count{border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.22);color:#c7d2fe}
             #pluginManagerCard .pc-item{border-color:rgba(51,65,85,.7);background:rgba(15,23,42,.35);transition:border-color .18s ease,background .18s ease,box-shadow .18s ease}
             #pluginManagerCard .pc-item:hover{border-color:rgba(99,102,241,.3);background:rgba(30,41,59,.45)}
             #pluginManagerCard .pc-item.is-enabled{border-color:rgba(99,102,241,.35);background:rgba(99,102,241,.08);box-shadow:inset 2px 0 0 rgba(99,102,241,.9)}
@@ -307,8 +294,26 @@
             #pluginManagerCard .pc-panel>div{overflow:hidden;min-height:0}
             #pluginManagerCard .pc-chevron{transition:transform .22s ease}
             #pluginManagerCard .pc-item.is-open .pc-chevron{transform:rotate(180deg)}
-            #pluginManagerCard .pc-expand:focus-visible,#pluginManagerCard .pc-tab:focus-visible{outline:2px solid rgba(99,102,241,.6);outline-offset:2px;border-radius:10px}
+            #pluginManagerCard .pc-expand:focus-visible,#pluginManagerCard .pc-chip:focus-visible,#pluginManagerCard .pc-group-header:focus-visible{outline:2px solid rgba(99,102,241,.6);outline-offset:2px;border-radius:10px}
             @keyframes pcPulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+            /* filter chips */
+            #pluginManagerCard .pc-chip{border-color:rgba(51,65,85,.8);background:rgba(30,41,59,.5);color:#94a3b8;transition:all .15s ease}
+            #pluginManagerCard .pc-chip:hover{border-color:rgba(99,102,241,.35);color:#c7d2fe}
+            #pluginManagerCard .pc-chip.is-active{border-color:rgba(99,102,241,.5);background:rgba(99,102,241,.18);color:#a5b4fc}
+            #pluginManagerCard .pc-chip-count{background:rgba(15,23,42,.5);color:inherit;opacity:.85}
+            #pluginManagerCard .pc-chip.is-active .pc-chip-count{background:rgba(99,102,241,.25)}
+            #pluginManagerCard .pc-chip-error{border-color:rgba(244,63,94,.45);color:#fda4af;background:rgba(244,63,94,.08)}
+            #pluginManagerCard .pc-chip-error.is-active{border-color:rgba(244,63,94,.6);background:rgba(244,63,94,.18);color:#fecdd3}
+
+            /* group */
+            #pluginManagerCard .pc-group-header{color:#64748b;transition:color .15s ease}
+            #pluginManagerCard .pc-group-header:hover{color:#cbd5e1}
+            #pluginManagerCard .pc-group-chevron{transition:transform .2s ease}
+            #pluginManagerCard .pc-group.is-collapsed .pc-group-chevron{transform:rotate(-90deg)}
+            #pluginManagerCard .pc-group.is-collapsed .pc-group-body{display:none}
+            #pluginManagerCard .pc-group-count{background:rgba(15,23,42,.6);border:1px solid rgba(71,85,105,.6);border-radius:999px;padding:0 6px}
+            #pluginManagerCard .pc-group[data-group="on"] .pc-group-count{color:#a5b4fc;border-color:rgba(99,102,241,.4)}
         `;
         document.head.appendChild(style);
     }
@@ -388,55 +393,78 @@
             </button>
             <div class="sidebar-card-body">
                 <div class="inner px-4">
-                    <div class="flex items-center gap-1.5 mb-2" role="tablist" aria-label="插件狀態">
-                        <button type="button" class="pc-tab is-active flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-xl border text-[11px] font-medium" data-tab="on" role="tab" aria-selected="true">
-                            <i class="fa-solid fa-toggle-on text-[10px]"></i>
-                            <span>已啟用</span>
-                            <span class="pc-tab-count text-[9px] font-mono px-1.5 py-0.5 rounded-full border" data-count="on">0</span>
-                        </button>
-                        <button type="button" class="pc-tab flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-xl border text-[11px] font-medium" data-tab="off" role="tab" aria-selected="false">
-                            <i class="fa-solid fa-toggle-off text-[10px]"></i>
-                            <span>未啟用</span>
-                            <span class="pc-tab-count text-[9px] font-mono px-1.5 py-0.5 rounded-full border" data-count="off">0</span>
-                        </button>
-                    </div>
-                    <div class="relative mb-2.5">
+                    <div class="relative mb-2">
                         <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-500"></i>
-                        <input type="text" class="pc-search w-full bg-slate-800/70 border border-slate-700 rounded-xl pl-7 pr-7 py-1.5 text-[11px] text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500" placeholder="搜尋已啟用的插件…">
+                        <input type="text" class="pc-search w-full bg-slate-800/70 border border-slate-700 rounded-xl pl-7 pr-7 py-1.5 text-[11px] text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500" placeholder="搜尋所有插件…">
                         <button type="button" class="pc-search-clear absolute right-1.5 top-1/2 -translate-y-1/2 hidden p-1 text-slate-500 hover:text-white" title="清除搜尋"><i class="fa-solid fa-xmark text-[10px]"></i></button>
                     </div>
-                    <div class="pc-scroll max-h-[46vh] overflow-y-auto space-y-1.5 pr-0.5" role="tabpanel">
-                        ${rowsHtml}
+                    <div class="flex items-center gap-1 mb-2 flex-wrap" role="group" aria-label="篩選插件">
+                        <button type="button" class="pc-chip is-active inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-medium" data-filter="all">全部 <span class="pc-chip-count text-[9px] font-mono px-1.5 py-0.5 rounded-full" data-count="all">${total}</span></button>
+                        <button type="button" class="pc-chip inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-medium" data-filter="on">已啟用 <span class="pc-chip-count text-[9px] font-mono px-1.5 py-0.5 rounded-full" data-count="on">0</span></button>
+                        <button type="button" class="pc-chip inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-medium" data-filter="off">未啟用 <span class="pc-chip-count text-[9px] font-mono px-1.5 py-0.5 rounded-full" data-count="off">0</span></button>
+                        <button type="button" class="pc-chip pc-chip-error hidden inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-medium" data-filter="error">
+                            <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
+                            <span>錯誤</span>
+                            <span class="pc-chip-count text-[9px] font-mono px-1.5 py-0.5 rounded-full" data-count="error">0</span>
+                        </button>
+                    </div>
+                    <div class="pc-scroll max-h-[46vh] overflow-y-auto pr-0.5">
+                        <div class="pc-group" data-group="on">
+                            <button type="button" class="pc-group-header w-full flex items-center gap-1.5 px-1 py-1.5 text-[10px] font-semibold uppercase tracking-wider">
+                                <i class="pc-group-chevron fa-solid fa-chevron-down text-[8px]"></i>
+                                <span>已啟用</span>
+                                <span class="pc-group-count text-[9px] font-mono">0</span>
+                            </button>
+                            <div class="pc-group-body space-y-1.5 pb-2"></div>
+                        </div>
+                        <div class="pc-group" data-group="off">
+                            <button type="button" class="pc-group-header w-full flex items-center gap-1.5 px-1 py-1.5 text-[10px] font-semibold uppercase tracking-wider">
+                                <i class="pc-group-chevron fa-solid fa-chevron-down text-[8px]"></i>
+                                <span>未啟用</span>
+                                <span class="pc-group-count text-[9px] font-mono">0</span>
+                            </button>
+                            <div class="pc-group-body space-y-1.5 pb-2"></div>
+                        </div>
                         <div class="pc-empty hidden text-center py-6"></div>
                     </div>
                 </div>
             </div>`;
         slot.appendChild(uiRoot);
 
-        refs.search = uiRoot.querySelector('.pc-search');
-        refs.clear = uiRoot.querySelector('.pc-search-clear');
-        refs.empty = uiRoot.querySelector('.pc-empty');
-        refs.count = uiRoot.querySelector('.pc-count');
-        refs.tabs = Array.from(uiRoot.querySelectorAll('.pc-tab'));
-        refs.tabOnCount = uiRoot.querySelector('[data-count="on"]');
-        refs.tabOffCount = uiRoot.querySelector('[data-count="off"]');
+        refs.search      = uiRoot.querySelector('.pc-search');
+        refs.clear       = uiRoot.querySelector('.pc-search-clear');
+        refs.empty       = uiRoot.querySelector('.pc-empty');
+        refs.count       = uiRoot.querySelector('.pc-count');
+        refs.chips       = Array.from(uiRoot.querySelectorAll('.pc-chip'));
+        refs.chipError   = uiRoot.querySelector('.pc-chip-error');
+        refs.groupOn     = uiRoot.querySelector('.pc-group[data-group="on"]');
+        refs.groupOff    = uiRoot.querySelector('.pc-group[data-group="off"]');
+        refs.groupOnBody = refs.groupOn.querySelector('.pc-group-body');
+        refs.groupOffBody= refs.groupOff.querySelector('.pc-group-body');
+        refs.groupHeaders= Array.from(uiRoot.querySelectorAll('.pc-group-header'));
+        refs.groupCounts = {
+            on:  refs.groupOn.querySelector('.pc-group-count'),
+            off: refs.groupOff.querySelector('.pc-group-count')
+        };
+
+        refs.groupOffBody.insertAdjacentHTML('beforeend', rowsHtml);
 
         Object.values(REGISTRY).forEach(meta => {
             const row = uiRoot.querySelector('.pc-item[data-plugin-id="' + meta.id + '"]');
             if (!row) return;
             rowRefs[meta.id] = {
-                row: row,
+                row,
                 expand: row.querySelector('.pc-expand'),
                 toggle: row.querySelector('.pc-toggle'),
-                spin: row.querySelector('.pc-spin'),
-                desc: row.querySelector('.pc-desc'),
+                spin:   row.querySelector('.pc-spin'),
+                desc:   row.querySelector('.pc-desc'),
                 errBox: row.querySelector('.pc-err'),
-                errText: row.querySelector('.pc-err-text'),
-                retry: row.querySelector('.pc-retry'),
-                hint: row.querySelector('.pc-hint'),
+                errText:row.querySelector('.pc-err-text'),
+                retry:  row.querySelector('.pc-retry'),
+                hint:   row.querySelector('.pc-hint'),
                 enable: row.querySelector('.pc-enable'),
-                noui: row.querySelector('.pc-noui'),
-                body: row.querySelector('.plugin-body')
+                noui:   row.querySelector('.pc-noui'),
+                body:   row.querySelector('.plugin-body')
             };
             const r = rowRefs[meta.id];
             r.expand.addEventListener('click', () => {
@@ -449,37 +477,36 @@
             });
             r.toggle.addEventListener('change', () => handleToggle(meta.id, r.toggle.checked));
             r.enable.addEventListener('click', () => handleToggle(meta.id, true));
-            r.retry.addEventListener('click', () => handleToggle(meta.id, true));
+            r.retry.addEventListener('click',  () => handleToggle(meta.id, true));
         });
 
-        refs.tabs.forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
-        refs.search.addEventListener('input', () => {
-            query = refs.search.value || '';
-            updateUI();
-        });
+        refs.chips.forEach(chip => chip.addEventListener('click', () => setFilter(chip.dataset.filter)));
+
+        refs.groupHeaders.forEach(h => h.addEventListener('click', () => {
+            const g = h.closest('.pc-group').dataset.group;
+            collapsedGroups[g] = !collapsedGroups[g];
+            persistGroups();
+            updateGroups();
+        }));
+
+        refs.search.addEventListener('input', () => { query = refs.search.value || ''; updateUI(); });
         refs.clear.addEventListener('click', () => {
-            query = '';
-            refs.search.value = '';
-            updateUI();
-            refs.search.focus();
+            query = ''; refs.search.value = ''; updateUI(); refs.search.focus();
         });
         refs.empty.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-empty-act]');
             if (!btn) return;
-            const act = btn.dataset.emptyAct;
-            if (act === 'clear') {
-                query = '';
-                refs.search.value = '';
-                updateUI();
-                refs.search.focus();
-            } else if (act === 'go-off') {
-                switchTab('off');
+            if (btn.dataset.emptyAct === 'clear') {
+                query = ''; refs.search.value = ''; updateUI(); refs.search.focus();
+            } else if (btn.dataset.emptyAct === 'show-all') {
+                setFilter('all');
             }
         });
 
         if (typeof window.MP3SetupSidebarCards === 'function') {
             try { window.MP3SetupSidebarCards(); } catch (e) {}
         }
+        updateGroups();
         updateUI();
     }
 
@@ -489,33 +516,64 @@
         return (meta.name + ' ' + meta.description + ' ' + meta.id + ' ' + (meta.globalVar || '')).toLowerCase().indexOf(q) !== -1;
     }
 
-    function switchTab(tab) {
-        if (tab !== 'on' && tab !== 'off') return;
-        if (activeTab === tab) return;
-        activeTab = tab;
-        persistTab();
-        expandedId = null;
-        persistExpanded();
-        query = '';
-        if (refs.search) refs.search.value = '';
+    function setFilter(f) {
+        if (f !== 'all' && f !== 'on' && f !== 'off' && f !== 'error') return;
+        if (filterMode === f) return;
+        filterMode = f;
+        persistFilter();
+        if (expandedId) {
+            const isEn = enabled.has(expandedId);
+            if ((f === 'on' && !isEn) || (f === 'off' && isEn) || (f === 'error' && !errorMap[expandedId])) {
+                expandedId = null;
+                persistExpanded();
+            }
+        }
         updateUI();
+    }
+
+    function updateGroups() {
+        if (!refs.groupOn || !refs.groupOff) return;
+        ['on', 'off'].forEach(g => {
+            const el = g === 'on' ? refs.groupOn : refs.groupOff;
+            el.classList.toggle('is-collapsed', collapsedGroups[g]);
+        });
+        if (refs.groupCounts) {
+            refs.groupCounts.on.textContent  = String(enabled.size);
+            refs.groupCounts.off.textContent = String(Object.keys(REGISTRY).length - enabled.size);
+        }
+    }
+
+    function switchTab(tab) {
+        setFilter(tab === 'on' ? 'on' : tab === 'off' ? 'off' : 'all');
     }
 
     function updateRow(id) {
         const r = rowRefs[id];
         const meta = REGISTRY[id];
         if (!r || !meta) return false;
-        const isEn = enabled.has(id);
-        const isBusy = !!busyMap[id];
-        const err = errorMap[id] || '';
-        const inTab = activeTab === 'on' ? isEn : !isEn;
-        const visible = inTab && matches(meta);
 
-        r.row.classList.toggle('hidden', !visible);
+        const isEn   = enabled.has(id);
+        const isBusy = !!busyMap[id];
+        const err    = errorMap[id] || '';
+
+        let inFilter;
+        switch (filterMode) {
+            case 'on':    inFilter = isEn;   break;
+            case 'off':   inFilter = !isEn;  break;
+            case 'error': inFilter = !!err;  break;
+            default:      inFilter = true;
+        }
+        const visible = inFilter && matches(meta);
+
         r.row.classList.toggle('is-enabled', isEn);
         r.row.classList.toggle('is-busy', isBusy);
         r.row.classList.toggle('has-error', !!err);
         r.row.classList.toggle('is-open', expandedId === id);
+        r.row.classList.toggle('hidden', !visible);
+
+        const targetBody = isEn ? refs.groupOnBody : refs.groupOffBody;
+        if (targetBody && r.row.parentElement !== targetBody) targetBody.appendChild(r.row);
+
         r.expand.setAttribute('aria-expanded', String(expandedId === id));
         r.toggle.checked = isEn;
         r.toggle.disabled = isBusy;
@@ -529,6 +587,7 @@
         r.hint.classList.toggle('hidden', isEn || isBusy);
         const hasUi = r.body.children.length > 0 || r.body.textContent.trim().length > 0;
         r.noui.classList.toggle('hidden', !isEn || hasUi || isBusy);
+
         return visible;
     }
 
@@ -540,17 +599,23 @@
             return;
         }
         refs.empty.classList.remove('hidden');
+
         if (query.trim()) {
             refs.empty.innerHTML = `
                 <i class="fa-solid fa-magnifying-glass text-slate-700 text-lg mb-2 block"></i>
                 <div class="text-[11px] text-slate-500">沒有符合的插件</div>
                 <button type="button" data-empty-act="clear" class="mt-2 text-[10px] text-indigo-400 hover:text-indigo-300 underline">清除搜尋</button>`;
-        } else if (activeTab === 'on') {
+        } else if (filterMode === 'error') {
+            refs.empty.innerHTML = `
+                <i class="fa-solid fa-circle-check text-emerald-600/70 text-lg mb-2 block"></i>
+                <div class="text-[11px] text-slate-500">目前沒有錯誤</div>
+                <button type="button" data-empty-act="show-all" class="mt-2 text-[10px] text-indigo-400 hover:text-indigo-300 underline">顯示全部插件</button>`;
+        } else if (filterMode === 'on') {
             refs.empty.innerHTML = `
                 <i class="fa-solid fa-plug-circle-xmark text-slate-700 text-lg mb-2 block"></i>
                 <div class="text-[11px] text-slate-500">尚未啟用任何插件</div>
-                <button type="button" data-empty-act="go-off" class="mt-2 text-[10px] text-indigo-400 hover:text-indigo-300 underline">查看未啟用插件</button>`;
-        } else {
+                <button type="button" data-empty-act="show-all" class="mt-2 text-[10px] text-indigo-400 hover:text-indigo-300 underline">顯示全部插件</button>`;
+        } else if (filterMode === 'off') {
             refs.empty.innerHTML = `
                 <i class="fa-solid fa-circle-check text-slate-700 text-lg mb-2 block"></i>
                 <div class="text-[11px] text-slate-500">所有插件皆已啟用</div>`;
@@ -559,35 +624,58 @@
 
     function updateUI() {
         if (!uiBuilt) return;
-        const total = Object.keys(REGISTRY).length;
-        const onCount = enabled.size;
+        const total    = Object.keys(REGISTRY).length;
+        const onCount  = enabled.size;
         const offCount = total - onCount;
+        const errCount = Object.keys(errorMap).length;
+
         refs.count.textContent = onCount + ' / ' + total;
-        if (refs.tabOnCount) refs.tabOnCount.textContent = String(onCount);
-        if (refs.tabOffCount) refs.tabOffCount.textContent = String(offCount);
-        refs.tabs.forEach(tab => {
-            const act = tab.dataset.tab === activeTab;
-            tab.classList.toggle('is-active', act);
-            tab.setAttribute('aria-selected', String(act));
+
+        const setCount = (k, v) => {
+            const el = uiRoot.querySelector('.pc-chip [data-count="' + k + '"]');
+            if (el) el.textContent = String(v);
+        };
+        setCount('all', total); setCount('on', onCount); setCount('off', offCount); setCount('error', errCount);
+        if (refs.chipError) refs.chipError.classList.toggle('hidden', errCount === 0);
+        refs.chips.forEach(c => c.classList.toggle('is-active', c.dataset.filter === filterMode));
+
+        let visOn = 0, visOff = 0;
+        Object.keys(REGISTRY).forEach(id => {
+            if (updateRow(id)) { enabled.has(id) ? visOn++ : visOff++; }
         });
-        if (refs.search) {
-            refs.search.placeholder = activeTab === 'on' ? '搜尋已啟用的插件…' : '搜尋未啟用的插件…';
-        }
-        let visibleCount = 0;
-        Object.keys(REGISTRY).forEach(id => { if (updateRow(id)) visibleCount++; });
-        if (refs.clear) refs.clear.classList.toggle('hidden', !query);
-        renderEmpty(visibleCount);
+        refs.groupOn.classList.toggle('hidden',  visOn  === 0);
+        refs.groupOff.classList.toggle('hidden', visOff === 0);
+
+        refs.clear.classList.toggle('hidden', !query);
+        renderEmpty(visOn + visOff);
+        updateGroups();
     }
 
     function expandPlugin(id) {
         if (!REGISTRY[id]) return;
-        activeTab = enabled.has(id) ? 'on' : 'off';
-        persistTab();
-        query = '';
-        if (refs.search) refs.search.value = '';
+        const isEn = enabled.has(id);
+
+        if ((filterMode === 'on'  && !isEn) ||
+            (filterMode === 'off' &&  isEn) ||
+            (filterMode === 'error' && !errorMap[id])) {
+            filterMode = 'all';
+            persistFilter();
+        }
+        if (query && !matches(REGISTRY[id])) {
+            query = '';
+            if (refs.search) refs.search.value = '';
+        }
+        const g = isEn ? 'on' : 'off';
+        if (collapsedGroups[g]) {
+            collapsedGroups[g] = false;
+            persistGroups();
+            updateGroups();
+        }
+
         expandedId = id;
         persistExpanded();
         updateUI();
+
         setTimeout(() => {
             const r = rowRefs[id];
             if (r && r.row.isConnected) r.row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -639,7 +727,7 @@
         updateUI();
     }
 
-    // ==================== 對外 API（與原版相容） ====================
+    // ==================== 對外 API ====================
     window.MP3PluginManager = {
         REGISTRY,
         enable: enablePlugin,
@@ -648,7 +736,9 @@
         isLoaded: (id) => !!loadedPlugins[id],
         getBodyContainer,
         refreshUI: updateUI,
-        expandPlugin
+        expandPlugin,
+        setFilter,
+        getFilter: () => filterMode
     };
 
     window.addEventListener('DOMContentLoaded', () => {
