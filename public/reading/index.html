@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>快樂小讀者</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main id="view-list" class="view active">
+    <header class="top-bar"><h1>📚 選一本故事書</h1></header>
+    <div id="story-grid" class="story-grid"></div>
+  </main>
+
+  <main id="view-reader" class="view">
+    <header class="reader-header">
+      <button id="btn-back" class="btn-back">⬅️ 返回</button>
+      <h2 id="reader-title">載入中...</h2>
+      <div class="header-right">
+        <button id="btn-speed" class="btn-speed">🐇 1.0x</button>
+        <span id="wake-badge" class="badge" style="display:none;">☀️ 常亮</span>
+      </div>
+    </header>
+    <article id="story-content" class="story-content"></article>
+    <section id="record-panel" class="record-panel hidden">
+      <audio id="recorded-audio" controls playsinline></audio>
+      <div class="record-actions">
+        <button id="btn-loop" class="btn-pill">🔁 循環播放錄音</button>
+        <a id="btn-download" class="btn-pill btn-save" download="我的朗讀.webm">💾 保存錄音</a>
+      </div>
+    </section>
+    <footer class="control-dock">
+      <button id="btn-play-tts" class="btn-big btn-tts"><span class="icon">🎧</span><span class="label">聽故事</span></button>
+      <button id="btn-read-along" class="btn-big btn-mic"><span class="icon">🎤</span><span class="label">自己讀</span></button>
+    </footer>
+  </main>
+  <script src="./app.js"></script>
+</body>
+</html>

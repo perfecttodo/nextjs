@@ -1,0 +1,183 @@
+{
+  "id": "story_001",
+  "title": "The_Little_Star",
+  "lang": "en-US",
+  "text": "Twinkle, twinkle, little star.\n\nHow I wonder what you are!\n\nUp above the world so high, like a diamond in the sky.",
+  "audioUrl": "./assets/audio/story_001.mp3",
+  "tokens": [
+    {
+      "text": "Twinkle",
+      "start": 0.1,
+      "end": 0.777,
+      "isPunct": false
+    },
+    {
+      "text": ",",
+      "start": 0.812,
+      "end": 1.062,
+      "isPunct": true
+    },
+    {
+      "text": "twinkle",
+      "start": 1.062,
+      "end": 1.739,
+      "isPunct": false
+    },
+    {
+      "text": ",",
+      "start": 1.774,
+      "end": 2.024,
+      "isPunct": true
+    },
+    {
+      "text": "little",
+      "start": 2.024,
+      "end": 2.521,
+      "isPunct": false
+    },
+    {
+      "text": "star",
+      "start": 2.556,
+      "end": 3.153,
+      "isPunct": false
+    },
+    {
+      "text": ".",
+      "start": 3.188,
+      "end": 3.438,
+      "isPunct": true
+    },
+    {
+      "isBreak": true
+    },
+    {
+      "text": "How",
+      "start": 3.988,
+      "end": 4.37,
+      "isPunct": false
+    },
+    {
+      "text": "I",
+      "start": 4.405,
+      "end": 4.747,
+      "isPunct": false
+    },
+    {
+      "text": "wonder",
+      "start": 4.782,
+      "end": 5.324,
+      "isPunct": false
+    },
+    {
+      "text": "what",
+      "start": 5.359,
+      "end": 5.676,
+      "isPunct": false
+    },
+    {
+      "text": "you",
+      "start": 5.711,
+      "end": 6.073,
+      "isPunct": false
+    },
+    {
+      "text": "are",
+      "start": 6.108,
+      "end": 6.475,
+      "isPunct": false
+    },
+    {
+      "text": "!",
+      "start": 6.51,
+      "end": 6.93,
+      "isPunct": true
+    },
+    {
+      "isBreak": true
+    },
+    {
+      "text": "Up",
+      "start": 7.48,
+      "end": 7.647,
+      "isPunct": false
+    },
+    {
+      "text": "above",
+      "start": 7.682,
+      "end": 8.134,
+      "isPunct": false
+    },
+    {
+      "text": "the",
+      "start": 8.169,
+      "end": 8.471,
+      "isPunct": false
+    },
+    {
+      "text": "world",
+      "start": 8.506,
+      "end": 8.993,
+      "isPunct": false
+    },
+    {
+      "text": "so",
+      "start": 9.028,
+      "end": 9.445,
+      "isPunct": false
+    },
+    {
+      "text": "high",
+      "start": 9.48,
+      "end": 9.852,
+      "isPunct": false
+    },
+    {
+      "text": ",",
+      "start": 9.887,
+      "end": 10.137,
+      "isPunct": true
+    },
+    {
+      "text": "like",
+      "start": 10.137,
+      "end": 10.404,
+      "isPunct": false
+    },
+    {
+      "text": "a",
+      "start": 10.439,
+      "end": 10.746,
+      "isPunct": false
+    },
+    {
+      "text": "diamond",
+      "start": 10.781,
+      "end": 11.398,
+      "isPunct": false
+    },
+    {
+      "text": "in",
+      "start": 11.433,
+      "end": 11.71,
+      "isPunct": false
+    },
+    {
+      "text": "the",
+      "start": 11.745,
+      "end": 12.047,
+      "isPunct": false
+    },
+    {
+      "text": "sky",
+      "start": 12.082,
+      "end": 12.594,
+      "isPunct": false
+    },
+    {
+      "text": ".",
+      "start": 12.629,
+      "end": 12.879,
+      "isPunct": true
+    }
+  ]
+}

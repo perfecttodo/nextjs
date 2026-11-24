@@ -1,0 +1,321 @@
+{
+  "id": "story_006",
+  "title": "龜兔賽跑",
+  "lang": "zh-HK",
+  "text": "有一日，驕傲嘅白兔哥同烏龜先生比賽跑。\n\n白兔哥跑得好快，佢見烏龜行得咁慢，就喺大樹下面瞓覺。\n\n烏龜一步一步咁向前行，最後竟然贏咗比賽！",
+  "audioUrl": "./assets/audio/story_006.mp3",
+  "tokens": [
+    {
+      "text": "有",
+      "start": 0.1,
+      "end": 0.482,
+      "isPunct": false
+    },
+    {
+      "text": "一日",
+      "start": 0.517,
+      "end": 0.909,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 0.944,
+      "end": 1.194,
+      "isPunct": true
+    },
+    {
+      "text": "驕",
+      "start": 1.194,
+      "end": 1.576,
+      "isPunct": false
+    },
+    {
+      "text": "傲",
+      "start": 1.611,
+      "end": 2.003,
+      "isPunct": false
+    },
+    {
+      "text": "嘅",
+      "start": 2.038,
+      "end": 2.415,
+      "isPunct": false
+    },
+    {
+      "text": "白兔",
+      "start": 2.45,
+      "end": 3.137,
+      "isPunct": false
+    },
+    {
+      "text": "哥同",
+      "start": 3.172,
+      "end": 3.814,
+      "isPunct": false
+    },
+    {
+      "text": "烏龜",
+      "start": 3.849,
+      "end": 4.546,
+      "isPunct": false
+    },
+    {
+      "text": "先生",
+      "start": 4.581,
+      "end": 5.393,
+      "isPunct": false
+    },
+    {
+      "text": "比賽",
+      "start": 5.428,
+      "end": 6.125,
+      "isPunct": false
+    },
+    {
+      "text": "跑",
+      "start": 6.16,
+      "end": 6.617,
+      "isPunct": false
+    },
+    {
+      "text": "。",
+      "start": 6.652,
+      "end": 7.072,
+      "isPunct": true
+    },
+    {
+      "isBreak": true
+    },
+    {
+      "text": "白兔",
+      "start": 7.622,
+      "end": 8.309,
+      "isPunct": false
+    },
+    {
+      "text": "哥",
+      "start": 8.344,
+      "end": 8.696,
+      "isPunct": false
+    },
+    {
+      "text": "跑",
+      "start": 8.731,
+      "end": 9.188,
+      "isPunct": false
+    },
+    {
+      "text": "得",
+      "start": 9.223,
+      "end": 9.405,
+      "isPunct": false
+    },
+    {
+      "text": "好",
+      "start": 9.44,
+      "end": 9.812,
+      "isPunct": false
+    },
+    {
+      "text": "快",
+      "start": 9.847,
+      "end": 10.299,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 10.334,
+      "end": 10.584,
+      "isPunct": true
+    },
+    {
+      "text": "佢",
+      "start": 10.584,
+      "end": 11.006,
+      "isPunct": false
+    },
+    {
+      "text": "見",
+      "start": 11.041,
+      "end": 11.453,
+      "isPunct": false
+    },
+    {
+      "text": "烏",
+      "start": 11.488,
+      "end": 11.855,
+      "isPunct": false
+    },
+    {
+      "text": "龜",
+      "start": 11.89,
+      "end": 12.277,
+      "isPunct": false
+    },
+    {
+      "text": "行",
+      "start": 12.312,
+      "end": 12.724,
+      "isPunct": false
+    },
+    {
+      "text": "得",
+      "start": 12.759,
+      "end": 12.941,
+      "isPunct": false
+    },
+    {
+      "text": "咁",
+      "start": 12.976,
+      "end": 13.388,
+      "isPunct": false
+    },
+    {
+      "text": "慢",
+      "start": 13.423,
+      "end": 13.86,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 13.895,
+      "end": 14.145,
+      "isPunct": true
+    },
+    {
+      "text": "就",
+      "start": 14.145,
+      "end": 14.552,
+      "isPunct": false
+    },
+    {
+      "text": "喺",
+      "start": 14.587,
+      "end": 15.014,
+      "isPunct": false
+    },
+    {
+      "text": "大",
+      "start": 15.049,
+      "end": 15.476,
+      "isPunct": false
+    },
+    {
+      "text": "樹",
+      "start": 15.511,
+      "end": 15.998,
+      "isPunct": false
+    },
+    {
+      "text": "下面",
+      "start": 16.033,
+      "end": 16.785,
+      "isPunct": false
+    },
+    {
+      "text": "瞓",
+      "start": 16.82,
+      "end": 17.262,
+      "isPunct": false
+    },
+    {
+      "text": "覺",
+      "start": 17.297,
+      "end": 17.549,
+      "isPunct": false
+    },
+    {
+      "text": "。",
+      "start": 17.584,
+      "end": 18.004,
+      "isPunct": true
+    },
+    {
+      "isBreak": true
+    },
+    {
+      "text": "烏龜",
+      "start": 18.554,
+      "end": 19.251,
+      "isPunct": false
+    },
+    {
+      "text": "一步",
+      "start": 19.286,
+      "end": 19.893,
+      "isPunct": false
+    },
+    {
+      "text": "一步",
+      "start": 19.928,
+      "end": 20.535,
+      "isPunct": false
+    },
+    {
+      "text": "咁",
+      "start": 20.57,
+      "end": 20.982,
+      "isPunct": false
+    },
+    {
+      "text": "向前",
+      "start": 21.017,
+      "end": 21.799,
+      "isPunct": false
+    },
+    {
+      "text": "行",
+      "start": 21.834,
+      "end": 22.246,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 22.281,
+      "end": 22.531,
+      "isPunct": true
+    },
+    {
+      "text": "最",
+      "start": 22.531,
+      "end": 22.963,
+      "isPunct": false
+    },
+    {
+      "text": "後",
+      "start": 22.998,
+      "end": 23.43,
+      "isPunct": false
+    },
+    {
+      "text": "竟然",
+      "start": 23.465,
+      "end": 24.077,
+      "isPunct": false
+    },
+    {
+      "text": "贏",
+      "start": 24.112,
+      "end": 24.539,
+      "isPunct": false
+    },
+    {
+      "text": "咗",
+      "start": 24.574,
+      "end": 24.981,
+      "isPunct": false
+    },
+    {
+      "text": "比賽",
+      "start": 25.016,
+      "end": 25.713,
+      "isPunct": false
+    },
+    {
+      "text": "！",
+      "start": 25.748,
+      "end": 26.168,
+      "isPunct": true
+    }
+  ]
+}

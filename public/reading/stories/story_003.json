@@ -1,0 +1,285 @@
+{
+  "id": "story_003",
+  "title": "小兔子找朋友",
+  "lang": "zh-HK",
+  "text": "從前，有一隻好可愛嘅小兔子，佢有一對長長嘅耳朵。\n\n每日朝早，佢都會去森林入面搵唔同嘅小動物一齊玩。\n\n大家都好鍾意同小兔子做朋友，成個森林都充滿笑聲。",
+  "audioUrl": "./assets/audio/story_003.mp3",
+  "tokens": [
+    {
+      "text": "從前",
+      "start": 0.1,
+      "end": 0.832,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 0.867,
+      "end": 1.117,
+      "isPunct": true
+    },
+    {
+      "text": "有",
+      "start": 1.117,
+      "end": 1.499,
+      "isPunct": false
+    },
+    {
+      "text": "一隻",
+      "start": 1.534,
+      "end": 2.016,
+      "isPunct": false
+    },
+    {
+      "text": "好可愛",
+      "start": 2.051,
+      "end": 3.036,
+      "isPunct": false
+    },
+    {
+      "text": "嘅",
+      "start": 3.071,
+      "end": 3.448,
+      "isPunct": false
+    },
+    {
+      "text": "小兔子",
+      "start": 3.483,
+      "end": 4.598,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 4.633,
+      "end": 4.883,
+      "isPunct": true
+    },
+    {
+      "text": "佢",
+      "start": 4.883,
+      "end": 5.305,
+      "isPunct": false
+    },
+    {
+      "text": "有",
+      "start": 5.34,
+      "end": 5.722,
+      "isPunct": false
+    },
+    {
+      "text": "一對",
+      "start": 5.757,
+      "end": 6.389,
+      "isPunct": false
+    },
+    {
+      "text": "長長",
+      "start": 6.424,
+      "end": 7.241,
+      "isPunct": false
+    },
+    {
+      "text": "嘅",
+      "start": 7.276,
+      "end": 7.653,
+      "isPunct": false
+    },
+    {
+      "text": "耳朵",
+      "start": 7.688,
+      "end": 8.345,
+      "isPunct": false
+    },
+    {
+      "text": "。",
+      "start": 8.38,
+      "end": 8.8,
+      "isPunct": true
+    },
+    {
+      "isBreak": true
+    },
+    {
+      "text": "每日",
+      "start": 9.35,
+      "end": 9.877,
+      "isPunct": false
+    },
+    {
+      "text": "朝早",
+      "start": 9.912,
+      "end": 10.659,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 10.694,
+      "end": 10.944,
+      "isPunct": true
+    },
+    {
+      "text": "佢",
+      "start": 10.944,
+      "end": 11.366,
+      "isPunct": false
+    },
+    {
+      "text": "都",
+      "start": 11.401,
+      "end": 11.748,
+      "isPunct": false
+    },
+    {
+      "text": "會",
+      "start": 11.783,
+      "end": 12.19,
+      "isPunct": false
+    },
+    {
+      "text": "去",
+      "start": 12.225,
+      "end": 12.652,
+      "isPunct": false
+    },
+    {
+      "text": "森林",
+      "start": 12.687,
+      "end": 13.374,
+      "isPunct": false
+    },
+    {
+      "text": "入面",
+      "start": 13.409,
+      "end": 14.076,
+      "isPunct": false
+    },
+    {
+      "text": "搵",
+      "start": 14.111,
+      "end": 14.538,
+      "isPunct": false
+    },
+    {
+      "text": "唔",
+      "start": 14.573,
+      "end": 14.92,
+      "isPunct": false
+    },
+    {
+      "text": "同",
+      "start": 14.955,
+      "end": 15.357,
+      "isPunct": false
+    },
+    {
+      "text": "嘅",
+      "start": 15.392,
+      "end": 15.769,
+      "isPunct": false
+    },
+    {
+      "text": "小動物",
+      "start": 15.804,
+      "end": 16.645,
+      "isPunct": false
+    },
+    {
+      "text": "一齊玩",
+      "start": 16.68,
+      "end": 17.651,
+      "isPunct": false
+    },
+    {
+      "text": "。",
+      "start": 17.686,
+      "end": 18.106,
+      "isPunct": true
+    },
+    {
+      "isBreak": true
+    },
+    {
+      "text": "大家",
+      "start": 18.656,
+      "end": 19.303,
+      "isPunct": false
+    },
+    {
+      "text": "都",
+      "start": 19.338,
+      "end": 19.685,
+      "isPunct": false
+    },
+    {
+      "text": "好鍾意",
+      "start": 19.72,
+      "end": 20.709,
+      "isPunct": false
+    },
+    {
+      "text": "同",
+      "start": 20.744,
+      "end": 21.146,
+      "isPunct": false
+    },
+    {
+      "text": "小兔子",
+      "start": 21.181,
+      "end": 22.296,
+      "isPunct": false
+    },
+    {
+      "text": "做",
+      "start": 22.331,
+      "end": 22.728,
+      "isPunct": false
+    },
+    {
+      "text": "朋友",
+      "start": 22.763,
+      "end": 23.47,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 23.505,
+      "end": 23.755,
+      "isPunct": true
+    },
+    {
+      "text": "成個",
+      "start": 23.755,
+      "end": 24.502,
+      "isPunct": false
+    },
+    {
+      "text": "森林",
+      "start": 24.537,
+      "end": 25.224,
+      "isPunct": false
+    },
+    {
+      "text": "都",
+      "start": 25.259,
+      "end": 25.606,
+      "isPunct": false
+    },
+    {
+      "text": "充滿",
+      "start": 25.641,
+      "end": 26.338,
+      "isPunct": false
+    },
+    {
+      "text": "笑聲",
+      "start": 26.373,
+      "end": 27.14,
+      "isPunct": false
+    },
+    {
+      "text": "。",
+      "start": 27.175,
+      "end": 27.595,
+      "isPunct": true
+    }
+  ]
+}

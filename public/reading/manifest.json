@@ -1,0 +1,9 @@
+{
+  "name": "快樂小讀者",
+  "short_name": "小讀者",
+  "start_url": "/reading/index.html",
+  "scope": "/reading/",
+  "display": "standalone",
+  "background_color": "#FFFDF7",
+  "theme_color": "#FFB703"
+}

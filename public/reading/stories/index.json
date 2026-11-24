@@ -1,0 +1,44 @@
+[
+  {
+    "id": "story_001",
+    "title": "The_Little_Star",
+    "lang": "en-US",
+    "langLabel": "English",
+    "cover": "/reading/assets/covers/story_001.png?v=1"
+  },
+  {
+    "id": "story_002",
+    "title": "三隻小豬",
+    "lang": "zh-TW",
+    "langLabel": "國語",
+    "cover": "/reading/assets/covers/story_002.png?v=1"
+  },
+  {
+    "id": "story_003",
+    "title": "小兔子找朋友",
+    "lang": "zh-HK",
+    "langLabel": "粵語",
+    "cover": "/reading/assets/covers/story_003.png?v=1"
+  },
+  {
+    "id": "story_004",
+    "title": "小熊種果樹",
+    "lang": "zh-CN",
+    "langLabel": "普通話",
+    "cover": "/reading/assets/covers/story_004.png?v=1"
+  },
+  {
+    "id": "story_005",
+    "title": "愛唱歌的小鳥",
+    "lang": "zh-HK",
+    "langLabel": "粵語",
+    "cover": "/reading/assets/covers/story_005.png?v=1"
+  },
+  {
+    "id": "story_006",
+    "title": "龜兔賽跑",
+    "lang": "zh-HK",
+    "langLabel": "粵語",
+    "cover": "/reading/assets/covers/story_006.png?v=1"
+  }
+]

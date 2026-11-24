@@ -1,0 +1,309 @@
+{
+  "id": "story_004",
+  "title": "小熊種果樹",
+  "lang": "zh-CN",
+  "text": "春天到了，小熊在院子里种下了一颗小小的苹果树苗。\n\n他每天给小树浇水、晒太阳，小树苗慢慢长高了。\n\n到了秋天，树上结满了又大又红的甜苹果，小熊请大家一起分享。",
+  "audioUrl": "./assets/audio/story_004.mp3",
+  "tokens": [
+    {
+      "text": "春天",
+      "start": 0.1,
+      "end": 0.747,
+      "isPunct": false
+    },
+    {
+      "text": "到",
+      "start": 0.782,
+      "end": 1.109,
+      "isPunct": false
+    },
+    {
+      "text": "了",
+      "start": 1.144,
+      "end": 1.476,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 1.511,
+      "end": 1.761,
+      "isPunct": true
+    },
+    {
+      "text": "小熊",
+      "start": 1.761,
+      "end": 2.408,
+      "isPunct": false
+    },
+    {
+      "text": "在",
+      "start": 2.443,
+      "end": 2.78,
+      "isPunct": false
+    },
+    {
+      "text": "院子",
+      "start": 2.815,
+      "end": 3.367,
+      "isPunct": false
+    },
+    {
+      "text": "里种",
+      "start": 3.402,
+      "end": 3.979,
+      "isPunct": false
+    },
+    {
+      "text": "下",
+      "start": 4.014,
+      "end": 4.421,
+      "isPunct": false
+    },
+    {
+      "text": "了",
+      "start": 4.456,
+      "end": 4.788,
+      "isPunct": false
+    },
+    {
+      "text": "一颗",
+      "start": 4.823,
+      "end": 5.4,
+      "isPunct": false
+    },
+    {
+      "text": "小小的",
+      "start": 5.435,
+      "end": 6.202,
+      "isPunct": false
+    },
+    {
+      "text": "苹果",
+      "start": 6.237,
+      "end": 6.884,
+      "isPunct": false
+    },
+    {
+      "text": "树苗",
+      "start": 6.919,
+      "end": 7.566,
+      "isPunct": false
+    },
+    {
+      "text": "。",
+      "start": 7.601,
+      "end": 8.021,
+      "isPunct": true
+    },
+    {
+      "isBreak": true
+    },
+    {
+      "text": "他",
+      "start": 8.571,
+      "end": 8.903,
+      "isPunct": false
+    },
+    {
+      "text": "每天",
+      "start": 8.938,
+      "end": 9.555,
+      "isPunct": false
+    },
+    {
+      "text": "给",
+      "start": 9.59,
+      "end": 9.942,
+      "isPunct": false
+    },
+    {
+      "text": "小树",
+      "start": 9.977,
+      "end": 10.624,
+      "isPunct": false
+    },
+    {
+      "text": "浇水",
+      "start": 10.659,
+      "end": 11.311,
+      "isPunct": false
+    },
+    {
+      "text": "、",
+      "start": 11.346,
+      "end": 11.596,
+      "isPunct": true
+    },
+    {
+      "text": "晒太阳",
+      "start": 11.596,
+      "end": 12.468,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 12.503,
+      "end": 12.753,
+      "isPunct": true
+    },
+    {
+      "text": "小树苗",
+      "start": 12.753,
+      "end": 13.585,
+      "isPunct": false
+    },
+    {
+      "text": "慢慢",
+      "start": 13.62,
+      "end": 14.162,
+      "isPunct": false
+    },
+    {
+      "text": "长高",
+      "start": 14.197,
+      "end": 14.769,
+      "isPunct": false
+    },
+    {
+      "text": "了",
+      "start": 14.804,
+      "end": 15.136,
+      "isPunct": false
+    },
+    {
+      "text": "。",
+      "start": 15.171,
+      "end": 15.591,
+      "isPunct": true
+    },
+    {
+      "isBreak": true
+    },
+    {
+      "text": "到",
+      "start": 16.141,
+      "end": 16.468,
+      "isPunct": false
+    },
+    {
+      "text": "了",
+      "start": 16.503,
+      "end": 16.835,
+      "isPunct": false
+    },
+    {
+      "text": "秋天",
+      "start": 16.87,
+      "end": 17.502,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 17.537,
+      "end": 17.787,
+      "isPunct": true
+    },
+    {
+      "text": "树上",
+      "start": 17.787,
+      "end": 18.409,
+      "isPunct": false
+    },
+    {
+      "text": "结满",
+      "start": 18.444,
+      "end": 19.036,
+      "isPunct": false
+    },
+    {
+      "text": "了",
+      "start": 19.071,
+      "end": 19.403,
+      "isPunct": false
+    },
+    {
+      "text": "又",
+      "start": 19.438,
+      "end": 19.8,
+      "isPunct": false
+    },
+    {
+      "text": "大",
+      "start": 19.835,
+      "end": 20.172,
+      "isPunct": false
+    },
+    {
+      "text": "又",
+      "start": 20.207,
+      "end": 20.569,
+      "isPunct": false
+    },
+    {
+      "text": "红",
+      "start": 20.604,
+      "end": 20.941,
+      "isPunct": false
+    },
+    {
+      "text": "的",
+      "start": 20.976,
+      "end": 21.323,
+      "isPunct": false
+    },
+    {
+      "text": "甜",
+      "start": 21.358,
+      "end": 21.76,
+      "isPunct": false
+    },
+    {
+      "text": "苹果",
+      "start": 21.795,
+      "end": 22.442,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 22.477,
+      "end": 22.727,
+      "isPunct": true
+    },
+    {
+      "text": "小熊",
+      "start": 22.727,
+      "end": 23.374,
+      "isPunct": false
+    },
+    {
+      "text": "请",
+      "start": 23.409,
+      "end": 23.816,
+      "isPunct": false
+    },
+    {
+      "text": "大家",
+      "start": 23.851,
+      "end": 24.393,
+      "isPunct": false
+    },
+    {
+      "text": "一起",
+      "start": 24.428,
+      "end": 25.09,
+      "isPunct": false
+    },
+    {
+      "text": "分享",
+      "start": 25.125,
+      "end": 25.692,
+      "isPunct": false
+    },
+    {
+      "text": "。",
+      "start": 25.727,
+      "end": 26.147,
+      "isPunct": true
+    }
+  ]
+}

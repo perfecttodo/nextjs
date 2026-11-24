@@ -1,0 +1,375 @@
+{
+  "id": "story_002",
+  "title": "三隻小豬",
+  "lang": "zh-TW",
+  "text": "森林裡住著三隻小豬，牠們決定各自蓋一間堅固的新房子。\n\n豬大哥用稻草蓋房子，豬二哥用木頭蓋房子，只有豬小弟用磚頭慢慢蓋。\n\n大野狼來了，吹倒了稻草屋和木頭屋，最後三隻小豬都躲進了安全的磚頭屋。",
+  "audioUrl": "./assets/audio/story_002.mp3",
+  "tokens": [
+    {
+      "text": "森林",
+      "start": 0.1,
+      "end": 0.667,
+      "isPunct": false
+    },
+    {
+      "text": "裡住",
+      "start": 0.702,
+      "end": 1.239,
+      "isPunct": false
+    },
+    {
+      "text": "著",
+      "start": 1.274,
+      "end": 1.581,
+      "isPunct": false
+    },
+    {
+      "text": "三隻",
+      "start": 1.616,
+      "end": 2.168,
+      "isPunct": false
+    },
+    {
+      "text": "小豬",
+      "start": 2.203,
+      "end": 2.81,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 2.845,
+      "end": 3.095,
+      "isPunct": true
+    },
+    {
+      "text": "牠",
+      "start": 3.095,
+      "end": 3.357,
+      "isPunct": false
+    },
+    {
+      "text": "們",
+      "start": 3.392,
+      "end": 3.674,
+      "isPunct": false
+    },
+    {
+      "text": "決定",
+      "start": 3.709,
+      "end": 4.251,
+      "isPunct": false
+    },
+    {
+      "text": "各自",
+      "start": 4.286,
+      "end": 4.798,
+      "isPunct": false
+    },
+    {
+      "text": "蓋",
+      "start": 4.833,
+      "end": 5.085,
+      "isPunct": false
+    },
+    {
+      "text": "一間",
+      "start": 5.12,
+      "end": 5.637,
+      "isPunct": false
+    },
+    {
+      "text": "堅固",
+      "start": 5.672,
+      "end": 6.229,
+      "isPunct": false
+    },
+    {
+      "text": "的",
+      "start": 6.264,
+      "end": 6.501,
+      "isPunct": false
+    },
+    {
+      "text": "新房子",
+      "start": 6.536,
+      "end": 7.354,
+      "isPunct": false
+    },
+    {
+      "text": "。",
+      "start": 7.389,
+      "end": 7.809,
+      "isPunct": true
+    },
+    {
+      "isBreak": true
+    },
+    {
+      "text": "豬",
+      "start": 8.359,
+      "end": 8.661,
+      "isPunct": false
+    },
+    {
+      "text": "大哥",
+      "start": 8.696,
+      "end": 9.193,
+      "isPunct": false
+    },
+    {
+      "text": "用",
+      "start": 9.228,
+      "end": 9.52,
+      "isPunct": false
+    },
+    {
+      "text": "稻草",
+      "start": 9.555,
+      "end": 10.082,
+      "isPunct": false
+    },
+    {
+      "text": "蓋",
+      "start": 10.117,
+      "end": 10.369,
+      "isPunct": false
+    },
+    {
+      "text": "房子",
+      "start": 10.404,
+      "end": 10.946,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 10.981,
+      "end": 11.231,
+      "isPunct": true
+    },
+    {
+      "text": "豬",
+      "start": 11.231,
+      "end": 11.533,
+      "isPunct": false
+    },
+    {
+      "text": "二哥",
+      "start": 11.568,
+      "end": 12.05,
+      "isPunct": false
+    },
+    {
+      "text": "用木頭",
+      "start": 12.085,
+      "end": 12.817,
+      "isPunct": false
+    },
+    {
+      "text": "蓋",
+      "start": 12.852,
+      "end": 13.104,
+      "isPunct": false
+    },
+    {
+      "text": "房子",
+      "start": 13.139,
+      "end": 13.681,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 13.716,
+      "end": 13.966,
+      "isPunct": true
+    },
+    {
+      "text": "只有",
+      "start": 13.966,
+      "end": 14.463,
+      "isPunct": false
+    },
+    {
+      "text": "豬",
+      "start": 14.498,
+      "end": 14.8,
+      "isPunct": false
+    },
+    {
+      "text": "小弟",
+      "start": 14.835,
+      "end": 15.392,
+      "isPunct": false
+    },
+    {
+      "text": "用",
+      "start": 15.427,
+      "end": 15.719,
+      "isPunct": false
+    },
+    {
+      "text": "磚頭",
+      "start": 15.754,
+      "end": 16.336,
+      "isPunct": false
+    },
+    {
+      "text": "慢慢",
+      "start": 16.371,
+      "end": 16.923,
+      "isPunct": false
+    },
+    {
+      "text": "蓋",
+      "start": 16.958,
+      "end": 17.21,
+      "isPunct": false
+    },
+    {
+      "text": "。",
+      "start": 17.245,
+      "end": 17.665,
+      "isPunct": true
+    },
+    {
+      "isBreak": true
+    },
+    {
+      "text": "大",
+      "start": 18.215,
+      "end": 18.487,
+      "isPunct": false
+    },
+    {
+      "text": "野狼",
+      "start": 18.522,
+      "end": 19.034,
+      "isPunct": false
+    },
+    {
+      "text": "來",
+      "start": 19.069,
+      "end": 19.406,
+      "isPunct": false
+    },
+    {
+      "text": "了",
+      "start": 19.441,
+      "end": 19.703,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 19.738,
+      "end": 19.988,
+      "isPunct": true
+    },
+    {
+      "text": "吹倒",
+      "start": 19.988,
+      "end": 20.54,
+      "isPunct": false
+    },
+    {
+      "text": "了",
+      "start": 20.575,
+      "end": 20.837,
+      "isPunct": false
+    },
+    {
+      "text": "稻草",
+      "start": 20.872,
+      "end": 21.399,
+      "isPunct": false
+    },
+    {
+      "text": "屋和木頭",
+      "start": 21.434,
+      "end": 22.42,
+      "isPunct": false
+    },
+    {
+      "text": "屋",
+      "start": 22.455,
+      "end": 22.682,
+      "isPunct": false
+    },
+    {
+      "text": "，",
+      "start": 22.717,
+      "end": 22.967,
+      "isPunct": true
+    },
+    {
+      "text": "最後三",
+      "start": 22.967,
+      "end": 23.783,
+      "isPunct": false
+    },
+    {
+      "text": "隻",
+      "start": 23.818,
+      "end": 24.12,
+      "isPunct": false
+    },
+    {
+      "text": "小豬",
+      "start": 24.155,
+      "end": 24.762,
+      "isPunct": false
+    },
+    {
+      "text": "都",
+      "start": 24.797,
+      "end": 25.019,
+      "isPunct": false
+    },
+    {
+      "text": "躲",
+      "start": 25.054,
+      "end": 25.311,
+      "isPunct": false
+    },
+    {
+      "text": "進",
+      "start": 25.346,
+      "end": 25.658,
+      "isPunct": false
+    },
+    {
+      "text": "了",
+      "start": 25.693,
+      "end": 25.955,
+      "isPunct": false
+    },
+    {
+      "text": "安全",
+      "start": 25.99,
+      "end": 26.587,
+      "isPunct": false
+    },
+    {
+      "text": "的",
+      "start": 26.622,
+      "end": 26.859,
+      "isPunct": false
+    },
+    {
+      "text": "磚頭",
+      "start": 26.894,
+      "end": 27.476,
+      "isPunct": false
+    },
+    {
+      "text": "屋",
+      "start": 27.511,
+      "end": 27.738,
+      "isPunct": false
+    },
+    {
+      "text": "。",
+      "start": 27.773,
+      "end": 28.193,
+      "isPunct": true
+    }
+  ]
+}
