@@ -366,7 +366,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease, border-color 0.3s ease, opacity 0.3s ease;
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
             opacity: 1;
         }
 
@@ -378,6 +378,52 @@
         .project-card:hover {
             transform: translateY(-5px);
             border-color: var(--primary-color);
+            box-shadow: 0 18px 40px -20px rgba(56, 189, 248, 0.45);
+        }
+
+        /* --- 作品縮略圖 --- */
+        .project-thumb {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            background-color: #0a1424;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .project-thumb svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .project-card:hover .project-thumb svg {
+            transform: scale(1.06);
+        }
+
+        .project-thumb::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0) 55%, rgba(15, 23, 42, 0.62) 100%);
+            pointer-events: none;
+        }
+
+        .thumb-badge {
+            position: absolute;
+            top: 0.85rem;
+            left: 0.85rem;
+            z-index: 2;
+            padding: 0.22rem 0.65rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            color: var(--primary-color);
+            background-color: rgba(15, 23, 42, 0.72);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            border-radius: 999px;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
         }
 
         .project-info {
@@ -501,8 +547,369 @@
             }
         }
     </style>
+
+    <!-- 科技感增強樣式 -->
+    <style>
+        /* 背景網格與光暈 */
+        body { position: relative; background-color: #0b1220; }
+        .tech-bg {
+            position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            background:
+                radial-gradient(ellipse 80% 55% at 50% -15%, rgba(56,189,248,.16), transparent 70%),
+                radial-gradient(ellipse 55% 45% at 100% 105%, rgba(167,139,250,.12), transparent 70%),
+                linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
+        }
+        .tech-bg::before {
+            content: ''; position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(56,189,248,.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(56,189,248,.06) 1px, transparent 1px);
+            background-size: 48px 48px;
+            -webkit-mask-image: radial-gradient(ellipse 75% 75% at 50% 35%, #000 25%, transparent 78%);
+            mask-image: radial-gradient(ellipse 75% 75% at 50% 35%, #000 25%, transparent 78%);
+        }
+
+        /* 標題與導覽發光 */
+        h2 { text-shadow: 0 0 22px rgba(56,189,248,.30); }
+        .hero-content h1 span { text-shadow: 0 0 32px rgba(56,189,248,.45), 0 0 8px rgba(56,189,248,.35); }
+        .nav-links a.active { text-shadow: 0 0 12px rgba(56,189,248,.75); }
+
+        /* Logo 狀態燈 */
+        .logo { display: inline-flex; align-items: center; gap: .5rem; }
+        .logo::before {
+            content: ''; width: 8px; height: 8px; border-radius: 50%;
+            background: #22c55e; box-shadow: 0 0 10px #22c55e;
+            animation: statusPulse 1.8s ease-in-out infinite;
+        }
+        @keyframes statusPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.35;transform:scale(.8)} }
+
+        /* 卡片滑鼠跟隨光暈 */
+        .skill-card, .project-card { position: relative; }
+        .skill-card::before, .project-card::before {
+            content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+            background: radial-gradient(340px circle at var(--mx, 50%) var(--my, 50%), rgba(56,189,248,.14), transparent 62%);
+            opacity: 0; transition: opacity .35s ease; z-index: 1;
+        }
+        .skill-card:hover::before, .project-card:hover::before { opacity: 1; }
+
+        /* 卡片頂部漸變掃描線 */
+        .project-card::after {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; z-index: 2;
+            background: linear-gradient(90deg, transparent, #38bdf8, #a78bfa, transparent);
+            opacity: 0; transition: opacity .35s ease;
+        }
+        .project-card:hover::after { opacity: 1; }
+
+        /* 主按鈕掃光 */
+        .btn.primary { position: relative; overflow: hidden; }
+        .btn.primary::after {
+            content: ''; position: absolute; top: 0; left: -130%; width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
+            transform: skewX(-20deg); transition: left .65s ease;
+        }
+        .btn.primary:hover::after { left: 150%; }
+
+        /* 等寬字體與滾動條 */
+        .timeline-date { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .02em; }
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #0a1424; }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #38bdf8, #6366f1);
+            border-radius: 999px; border: 2px solid #0a1424;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #0ea5e9, #818cf8); }
+
+        /* 尊重減少動效設定 */
+        @media (prefers-reduced-motion: reduce) {
+            .logo::before { animation: none; }
+            .btn.primary::after { transition: none; }
+        }
+    </style>
+
+
+    <!-- CHAR-ANIM-START -->
+    <style>
+        /* 字符逐字入場 */
+        .char {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(0.4em) scale(0.96);
+            will-change: transform, opacity;
+        }
+        .char.in {
+            animation: charIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation-delay: var(--d, 0s);
+        }
+        @keyframes charIn {
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Hero 高亮區呼吸發光 */
+        .hero-content h1 span { animation: glowPulse 3.6s ease-in-out infinite; }
+        @keyframes glowPulse {
+            0%, 100% { text-shadow: 0 0 18px rgba(56,189,248,.35); }
+            50% { text-shadow: 0 0 34px rgba(56,189,248,.65); }
+        }
+
+        /* 副標題固定高度，避免打字過程跳動 */
+        .hero-content h3 { min-height: 1.6em; }
+
+        /* 打字機光標 */
+        .tw-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.05em;
+            margin-left: 3px;
+            vertical-align: -0.12em;
+            background: var(--primary-color);
+            box-shadow: 0 0 8px var(--primary-color);
+            animation: blink 1s steps(2, start) infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        @media (prefers-reduced-motion: reduce) {
+            .char { opacity: 1 !important; transform: none !important; animation: none !important; }
+            .hero-content h1 span { animation: none; }
+            .tw-cursor { animation: none; }
+        }
+    </style>
+    <!-- CHAR-ANIM-END -->
+    
+
+    <!-- P0-FIX-START -->
+    <style>
+        /* 鍵盤焦點可見 */
+        a:focus-visible, button:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 3px;
+            border-radius: 4px;
+        }
+        /* 選單打開鎖滾動 */
+        body.menu-open { overflow: hidden; }
+
+        /* 篩選平滑過渡（取代 display:none 硬切） */
+        .project-card {
+            transition: transform .35s ease, border-color .3s ease,
+                        opacity .35s ease, box-shadow .3s ease;
+        }
+        .project-card.hide {
+            display: none;
+        }
+        .project-card.enter {
+            animation: cardEnter .45s cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @keyframes cardEnter {
+            from { opacity: 0; transform: translateY(12px) scale(.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .project-card.enter { animation: none; }
+        }
+    </style>
+    <!-- P0-FIX-END -->
+    
+    <!-- TYPO-START -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --text-soft: #cbd5e1;
+            --accent: #fbbf24;
+            --border-color: rgba(51, 65, 85, 0.7);
+        }
+
+        body {
+            font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.75;
+        }
+
+        h1 { font-weight: 800; letter-spacing: -0.02em; }
+        h2 { font-weight: 700; letter-spacing: -0.01em; }
+        h3 { font-weight: 600; }
+
+        /* 正文提升到中間灰 */
+        .hero-content p,
+        .about-text,
+        .timeline-desc,
+        .skill-card ul li,
+        .project-info p,
+        .contact-content p {
+            color: var(--text-soft);
+        }
+
+        /* 年份強調色 + 等寬數字 */
+        .timeline-date {
+            color: var(--accent);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* 區塊編號 */
+        body { counter-reset: section; }
+        section:not(#hero) { counter-increment: section; }
+        section h2::before {
+            content: "0" counter(section);
+            display: block;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.25em;
+            color: var(--primary-color);
+            opacity: 0.65;
+            margin-bottom: 0.6rem;
+        }
+    </style>
+    <!-- TYPO-END -->
+
+    <!-- FX3-START -->
+    <style>
+        /* 光線跟隨 */
+        .cursor-glow {
+            position: fixed; top: 0; left: 0;
+            width: 700px; height: 700px; border-radius: 50%;
+            pointer-events: none; z-index: -1;
+            background: radial-gradient(circle, rgba(56,189,248,.14), rgba(56,189,248,.04) 40%, transparent 68%);
+            transform: translate(-50%, -50%);
+            opacity: 0; transition: opacity .5s ease; will-change: transform;
+        }
+        .cursor-glow.active { opacity: 1; }
+
+        /* 緩慢掃描光帶 */
+        .light-beam {
+            position: fixed; top: -25%; left: 0;
+            width: 100%; height: 45%;
+            pointer-events: none; z-index: -1;
+            background: linear-gradient(180deg,
+                transparent 0%,
+                rgba(56,189,248,.03) 35%,
+                rgba(56,189,248,.07) 50%,
+                rgba(56,189,248,.03) 65%,
+                transparent 100%);
+            animation: beamSweep 16s ease-in-out infinite;
+            will-change: transform;
+        }
+        @keyframes beamSweep {
+            0%   { transform: translateY(-40%); opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 1; }
+            100% { transform: translateY(220%); opacity: 0; }
+        }
+
+        /* ASCII 終端 */
+        #hero .container {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 2rem;
+            align-items: center;
+        }
+        #hero .hero-content { min-width: 0; }
+        .hero-ascii { display: flex; justify-content: center; align-items: center; }
+        .ascii-terminal {
+            width: 100%; max-width: 340px;
+            background: rgba(10, 20, 36, .85);
+            border: 1px solid rgba(56, 189, 248, .25);
+            border-radius: 12px;
+            box-shadow: 0 0 40px -10px rgba(56,189,248,.35), inset 0 0 30px -20px rgba(56,189,248,.4);
+            overflow: hidden;
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        }
+        .ascii-bar {
+            display: flex; align-items: center; gap: 6px;
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(56, 189, 248, .15);
+            background: rgba(15, 23, 42, .6);
+        }
+        .ascii-dot { width: 9px; height: 9px; border-radius: 50%; }
+        .ascii-dot.r { background: #f87171; }
+        .ascii-dot.y { background: #fbbf24; }
+        .ascii-dot.g { background: #34d399; }
+        .ascii-title {
+            margin-left: auto;
+            font-size: .68rem; color: var(--text-muted);
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            letter-spacing: .04em;
+        }
+        .ascii-body {
+            padding: 20px 18px 16px;
+            display: flex; flex-direction: column; align-items: center; gap: 12px;
+        }
+        .ascii-face {
+            margin: 0;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: .82rem; line-height: 1.45;
+            color: var(--primary-color); text-align: center;
+            white-space: pre;
+            text-shadow: 0 0 10px rgba(56,189,248,.45);
+        }
+        .ascii-status {
+            width: 100%;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: .72rem; color: var(--text-muted);
+            display: flex; align-items: center; gap: 6px;
+            min-height: 1.2em;
+        }
+        .ascii-status .prompt { color: var(--primary-color); }
+        .ascii-caret {
+            display: inline-block; width: 7px; height: 1em;
+            background: var(--primary-color);
+            box-shadow: 0 0 8px var(--primary-color);
+            animation: caretBlink 1s steps(2, start) infinite;
+            vertical-align: -0.15em;
+        }
+        @keyframes caretBlink { 50% { opacity: 0; } }
+
+        @media (max-width: 1023px) {
+            #hero .container { display: block; }
+            .hero-ascii { display: none; }
+        }
+
+        /* 音樂按鈕 */
+        .music-toggle {
+            position: fixed;
+            right: 1.5rem;
+            bottom: calc(5.2rem + env(safe-area-inset-bottom, 0px));
+            width: 44px; height: 44px; border-radius: 50%;
+            background: rgba(30, 41, 59, .85);
+            border: 1px solid var(--border-color);
+            color: var(--primary-color);
+            cursor: pointer;
+            display: grid; place-items: center;
+            z-index: 999;
+            transition: all .3s ease;
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        }
+        .music-toggle:hover { border-color: var(--primary-color); box-shadow: 0 0 18px rgba(56,189,248,.4); }
+        .music-toggle.on { background: rgba(56,189,248,.18); border-color: var(--primary-color); }
+        .music-toggle .bar { display: inline-flex; gap: 2px; align-items: flex-end; height: 14px; }
+        .music-toggle .bar span {
+            width: 2.5px; background: currentColor; border-radius: 1px;
+            height: 4px; transition: height .2s ease;
+        }
+        .music-toggle.on .bar span { animation: eqBar .9s ease-in-out infinite; }
+        .music-toggle.on .bar span:nth-child(2) { animation-delay: .15s; }
+        .music-toggle.on .bar span:nth-child(3) { animation-delay: .3s; }
+        .music-toggle.on .bar span:nth-child(4) { animation-delay: .45s; }
+        @keyframes eqBar { 0%, 100% { height: 4px; } 50% { height: 13px; } }
+
+        @media (prefers-reduced-motion: reduce) {
+            .light-beam { animation: none; opacity: .5; transform: translateY(60%); }
+            .cursor-glow { display: none; }
+            .ascii-caret { animation: none; }
+            .music-toggle.on .bar span { animation: none; height: 8px; }
+        }
+    </style>
+    <!-- FX3-END -->
+    
+    <!-- ASCII-LETTER-PATCH -->
+    <style>
+        .ascii-face { font-size: .72rem; line-height: 1.3; }
+    </style>
 </head>
 <body>
+    <div class="light-beam" aria-hidden="true"></div>
+    <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+    <div class="tech-bg" aria-hidden="true"></div>
 
     <!-- 導覽列 -->
     <header>
@@ -538,7 +945,30 @@
                     <a href="mailto:alexwang1980s@gmail.com?subject=【招聘】索取完整個人履歷&body=你好，我們對您的背景與作品感興趣，希望能索取您的完整 PDF 履歷，謝謝！" class="btn secondary">✉️ 索取完整履歷</a>
                 </div>
             </div>
-        </div>
+        
+            <div class="hero-ascii" aria-hidden="true">
+                <div class="ascii-terminal">
+                    <div class="ascii-bar">
+                        <span class="ascii-dot r"></span>
+                        <span class="ascii-dot y"></span>
+                        <span class="ascii-dot g"></span>
+                        <span class="ascii-title">agent ~ interactive</span>
+                    </div>
+                    <div class="ascii-body">
+                        <pre class="ascii-face" id="asciiFace">  .---------.
+  |  o   o  |
+  |    ^    |
+  |   ---   |
+  '---------'</pre>
+                        <div class="ascii-status">
+                            <span class="prompt">$</span>
+                            <span id="asciiStatusText">ready</span>
+                            <span class="ascii-caret"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+</div>
     </section>
 
     <!-- 關於我 -->
@@ -647,7 +1077,7 @@
     <!-- 精選個人作品集 -->
     <section id="projects">
         <div class="container">
-            <h2>個人實踐與作品集</h2>
+            <h2>個人實踐 Demo 作品集</h2>
             <div class="filter-btns">
                 <button class="filter-btn active" data-filter="all">全部作品</button>
                 <button class="filter-btn" data-filter="fullstack">全棧 / Web開發</button>
@@ -655,24 +1085,162 @@
             </div>
 
             <div class="projects-grid">
+                <!-- AI 生成輔助 Agent -->
                 <div class="project-card" data-category="fullstack">
-            <div class="project-info">
-                <h3>Android 本地/網路視頻播放器APK</h3>
-                <p>基於 ExoPlayer 深度客製化的多媒體播放應用，整合本地媒體庫掃描與網路流媒體（HLS/DASH）播放，多媒體開發與 UI/UX 互動能力。</p>
-                <div class="project-tags">
-                    <span>ExoPlayer</span>
-                    <span>Web點播</span>
-                    <span>流媒體播放</span>
-                    <span>性能優化</span>
-                </div>
-                <div class="project-links">
-                    <a href="https://github.com/SMLOG/playerdemo/blob/b4/app-debug.apk" target="_blank" rel="noopener noreferrer">下載 APK 試用 →</a>
-                </div>
-            </div>
+                    <div class="project-thumb">
+                        <span class="thumb-badge">AI · Agent</span>
+                        <svg viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+                            <defs>
+                                <linearGradient id="thumb6bg" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#0a1424"/>
+                                    <stop offset="100%" stop-color="#1a2340"/>
+                                </linearGradient>
+                                <linearGradient id="thumb6accent" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#38bdf8"/>
+                                    <stop offset="100%" stop-color="#a78bfa"/>
+                                </linearGradient>
+                            </defs>
+                            <rect width="400" height="225" fill="url(#thumb6bg)"/>
+                            <circle cx="320" cy="50" r="90" fill="#a78bfa" opacity="0.10"/>
+                            <circle cx="60" cy="200" r="80" fill="#38bdf8" opacity="0.08"/>
+
+                            <!-- 對話氣泡 -->
+                            <path d="M70 60 h150 a14 14 0 0 1 14 14 v56 a14 14 0 0 1 -14 14 h-110 l-24 22 v-22 h-16 a14 14 0 0 1 -14 -14 v-56 a14 14 0 0 1 14 -14 z" fill="#13263d" stroke="#2a4a6d"/>
+                            <rect x="84" y="82" width="94" height="7" rx="3.5" fill="#38bdf8" opacity="0.9"/>
+                            <rect x="84" y="100" width="126" height="6" rx="3" fill="#33567d"/>
+                            <rect x="84" y="114" width="80" height="6" rx="3" fill="#33567d"/>
+
+                            <!-- AI 節點網絡 -->
+                            <g stroke="#a78bfa" stroke-width="2" opacity="0.55">
+                                <line x1="270" y1="80" x2="320" y2="120"/>
+                                <line x1="320" y1="120" x2="290" y2="165"/>
+                                <line x1="290" y1="165" x2="240" y2="140"/>
+                                <line x1="240" y1="140" x2="270" y2="80"/>
+                            </g>
+                            <circle cx="270" cy="80" r="9" fill="#a78bfa"/>
+                            <circle cx="320" cy="120" r="9" fill="#38bdf8"/>
+                            <circle cx="290" cy="165" r="9" fill="#a78bfa"/>
+                            <circle cx="240" cy="140" r="9" fill="#38bdf8"/>
+
+                            <!-- 星火 -->
+                            <g fill="#38bdf8" opacity="0.85">
+                                <path d="M350 60 l3 8 l8 3 l-8 3 l-3 8 l-3 -8 l-8 -3 l8 -3 z"/>
+                                <path d="M190 180 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2 z" opacity="0.7"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <div class="project-info">
+                        <h3>AI 生成輔助 Agent</h3>
+                        <p>利用大型語言模型 (LLM) 透過自然語言輔助生成、更新與維護項目及程式碼；並以可插拔插件機制擴展 Agent 的能力。</p>
+                                                <div class="project-tags">
+                            <span>LLM 應用</span>
+                            <span>自然語言互動</span>
+                            <span>代碼生成與維護</span>
+                            <span>可插拔插件</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" aria-disabled="true" onclick="return false;" style="cursor: not-allowed; opacity: 0.65;">Demo 準備中 →</a>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- 精準優化：英文新聞音訊自動抓取與聽力 App -->
-                <div class="project-card" data-category="app">
+                <!-- 影音雲端管理 -->
+                <div class="project-card" data-category="fullstack">
+                    <div class="project-thumb">
+                        <span class="thumb-badge">全棧 · 小程序</span>
+                        <svg viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+                            <defs>
+                                <linearGradient id="thumb1bg" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#0a1424"/>
+                                    <stop offset="100%" stop-color="#14314e"/>
+                                </linearGradient>
+                                <linearGradient id="thumb1accent" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#38bdf8"/>
+                                    <stop offset="100%" stop-color="#6366f1"/>
+                                </linearGradient>
+                            </defs>
+                            <rect width="400" height="225" fill="url(#thumb1bg)"/>
+                            <circle cx="345" cy="35" r="100" fill="#38bdf8" opacity="0.10"/>
+                            <circle cx="35" cy="215" r="95" fill="#6366f1" opacity="0.08"/>
+
+                            <!-- 媒體庫卡片 3 x 2 -->
+                            <g stroke="#284a6d" fill="#13263d">
+                                <rect x="56" y="46" width="88" height="60" rx="8"/>
+                                <rect x="156" y="46" width="88" height="60" rx="8"/>
+                                <rect x="256" y="46" width="88" height="60" rx="8"/>
+                                <rect x="56" y="120" width="88" height="60" rx="8"/>
+                                <rect x="156" y="120" width="88" height="60" rx="8"/>
+                                <rect x="256" y="120" width="88" height="60" rx="8"/>
+                            </g>
+                            <g>
+                                <path d="M92 66 l16 10 l-16 10 z" fill="url(#thumb1accent)"/>
+                                <circle cx="200" cy="76" r="12" fill="none" stroke="#38bdf8" stroke-width="2.5"/>
+                                <path d="M197 70 l8 6 l-8 6 z" fill="#38bdf8"/>
+                                <path d="M292 66 l16 10 l-16 10 z" fill="#38bdf8" opacity="0.55"/>
+
+                                <rect x="76" y="140" width="34" height="5" rx="2.5" fill="#38bdf8" opacity="0.85"/>
+                                <rect x="76" y="153" width="52" height="5" rx="2.5" fill="#33567d"/>
+                                <rect x="76" y="166" width="28" height="5" rx="2.5" fill="#33567d"/>
+
+                                <g stroke="#38bdf8" stroke-width="3" stroke-linecap="round" opacity="0.75">
+                                    <line x1="188" y1="146" x2="188" y2="156"/>
+                                    <line x1="200" y1="140" x2="200" y2="162"/>
+                                    <line x1="212" y1="148" x2="212" y2="154"/>
+                                </g>
+
+                                <circle cx="300" cy="150" r="14" fill="none" stroke="#6366f1" stroke-width="2.5" opacity="0.85"/>
+                                <path d="M294 150 l4 4 l8 -9" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <div class="project-info">
+                        <h3>影音雲端小程序</h3>
+                        <p>輕量的影音雲端小工具，支援常見格式影音上傳與線上播放；可依分類整理影音、加上標籤方便檢索，並能產生分享連結，方便個人與親友間共享。</p>
+                        <div class="project-tags">
+                            <span>線上播放</span>
+                            <span>分類與標籤</span>
+                            <span>分享連結</span>
+                            <span>Web 應用</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="/media" target="_blank" rel="noopener noreferrer">打開小程序 →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 英文新聞音訊自動抓取與聽力 App -->
+                <div class="project-card" data-category="fullstack">
+                    <div class="project-thumb">
+                        <span class="thumb-badge">全棧 · 爬蟲</span>
+                        <svg viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+                            <defs>
+                                <linearGradient id="thumb3bg" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#0a1424"/>
+                                    <stop offset="100%" stop-color="#152a44"/>
+                                </linearGradient>
+                            </defs>
+                            <rect width="400" height="225" fill="url(#thumb3bg)"/>
+                            <circle cx="330" cy="180" r="90" fill="#38bdf8" opacity="0.08"/>
+
+                            <!-- 文章卡片 -->
+                            <rect x="58" y="52" width="150" height="122" rx="10" fill="#13263d" stroke="#284a6d"/>
+                            <rect x="76" y="72" width="80" height="8" rx="4" fill="#38bdf8"/>
+                            <rect x="76" y="92" width="114" height="6" rx="3" fill="#33567d"/>
+                            <rect x="76" y="106" width="96" height="6" rx="3" fill="#33567d"/>
+                            <rect x="76" y="120" width="110" height="6" rx="3" fill="#33567d"/>
+                            <rect x="76" y="134" width="64" height="6" rx="3" fill="#33567d"/>
+
+                            <!-- 音量聲波 -->
+                            <g stroke="#38bdf8" stroke-width="3.5" stroke-linecap="round" opacity="0.85">
+                                <line x1="248" y1="86" x2="248" y2="112"/>
+                                <line x1="266" y1="70" x2="266" y2="128"/>
+                                <line x1="284" y1="82" x2="284" y2="116"/>
+                                <line x1="302" y1="58" x2="302" y2="140"/>
+                                <line x1="320" y1="80" x2="320" y2="118"/>
+                                <line x1="338" y1="92" x2="338" y2="106"/>
+                            </g>
+                        </svg>
+                    </div>
                     <div class="project-info">
                         <h3>英文新聞音訊自動抓取與聽力 App</h3>
                         <p>自動爬取與解析各大英文新聞媒體的最新新聞連結，精準提取新聞音訊檔與文章文字。結合後端排程自動更新，讓使用者能第一時間收聽最新的英文新聞音訊並進行聽力練習。</p>
@@ -688,7 +1256,46 @@
                     </div>
                 </div>
 
+                <!-- 互動式線上考試與模擬刷題 App -->
                 <div class="project-card" data-category="app">
+                    <div class="project-thumb">
+                        <span class="thumb-badge">應用開發</span>
+                        <svg viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+                            <defs>
+                                <linearGradient id="thumb4bg" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#0a1424"/>
+                                    <stop offset="100%" stop-color="#12304d"/>
+                                </linearGradient>
+                            </defs>
+                            <rect width="400" height="225" fill="url(#thumb4bg)"/>
+                            <circle cx="60" cy="40" r="90" fill="#6366f1" opacity="0.09"/>
+
+                            <!-- 進度圓環 -->
+                            <circle cx="112" cy="112" r="44" fill="none" stroke="#1e3a57" stroke-width="9"/>
+                            <circle cx="112" cy="112" r="44" fill="none" stroke="#38bdf8" stroke-width="9"
+                                    stroke-linecap="round" stroke-dasharray="190 276"
+                                    transform="rotate(-90 112 112)"/>
+                            <path d="M96 112 l12 12 l22 -25" fill="none" stroke="#38bdf8" stroke-width="6"
+                                  stroke-linecap="round" stroke-linejoin="round"/>
+
+                            <!-- 選項列表 -->
+                            <g>
+                                <rect x="186" y="66" width="160" height="30" rx="7" fill="#13263d" stroke="#284a6d"/>
+                                <circle cx="204" cy="81" r="7" fill="none" stroke="#33567d" stroke-width="2"/>
+                                <rect x="220" y="77" width="100" height="7" rx="3.5" fill="#33567d"/>
+
+                                <rect x="186" y="106" width="160" height="30" rx="7" fill="#0f2a44" stroke="#38bdf8"/>
+                                <circle cx="204" cy="121" r="7" fill="#38bdf8"/>
+                                <path d="M200.5 121 l2.5 2.5 l5 -5" fill="none" stroke="#0a1424" stroke-width="2"
+                                      stroke-linecap="round" stroke-linejoin="round"/>
+                                <rect x="220" y="117" width="100" height="7" rx="3.5" fill="#38bdf8" opacity="0.85"/>
+
+                                <rect x="186" y="146" width="160" height="30" rx="7" fill="#13263d" stroke="#284a6d"/>
+                                <circle cx="204" cy="161" r="7" fill="none" stroke="#33567d" stroke-width="2"/>
+                                <rect x="220" y="157" width="100" height="7" rx="3.5" fill="#33567d"/>
+                            </g>
+                        </svg>
+                    </div>
                     <div class="project-info">
                         <h3>互動式線上考試與模擬刷題 App</h3>
                         <p>專為考證與執照考試設計的響應式刷題平台。支援隨機抽題、模擬測驗倒數、錯題自動記錄與弱點分析圖表，提供流暢無縫的練習體驗。</p>
@@ -703,6 +1310,105 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- 香港的士助手 -->
+                <div class="project-card" data-category="app">
+                    <div class="project-thumb">
+                        <span class="thumb-badge">小程序</span>
+                        <svg viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+                            <defs>
+                                <linearGradient id="thumb5bg" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#0a1424"/>
+                                    <stop offset="100%" stop-color="#14314e"/>
+                                </linearGradient>
+                            </defs>
+                            <rect width="400" height="225" fill="url(#thumb5bg)"/>
+
+                            <!-- 街道網格 -->
+                            <g stroke="#1d3b5c" stroke-width="2">
+                                <path d="M0 62 H400"/>
+                                <path d="M0 158 H400"/>
+                                <path d="M108 0 V225"/>
+                                <path d="M272 0 V225"/>
+                                <path d="M0 225 L400 0"/>
+                            </g>
+
+                            <!-- 路線 -->
+                            <path d="M108 62 L108 158 L272 158" fill="none" stroke="#38bdf8"
+                                  stroke-width="3" stroke-dasharray="9 7" opacity="0.85"/>
+
+                            <!-- 目的地 -->
+                            <circle cx="272" cy="158" r="9" fill="none" stroke="#38bdf8" stroke-width="3"/>
+
+                            <!-- 上車點圖釘 -->
+                            <path d="M108 62 a26 26 0 0 1 26 26 c0 20 -26 48 -26 48 s-26 -28 -26 -48 a26 26 0 0 1 26 -26 z"
+                                  fill="#38bdf8"/>
+                            <circle cx="108" cy="88" r="9" fill="#0a1424"/>
+                        </svg>
+                    </div>
+                    <div class="project-info">
+                        <h3>香港的士助手</h3>
+                        <p>為香港的士司機設計的記帳與營運輔助小程序：記錄每更收入與支出，支援現金／八達通／其他付款方式、街客與 Uber／HKTaxi 等平台分類、找零計算與備註標籤；提供最近 7／14／30 天統計、按日走勢與時段分佈，並計算每公里收入、淨利、油費與時薪。另附地點收藏（區域與類型篩選、附近地點）、機場航班查詢、Google Drive 備份與現金盤點。</p>
+                                                <div class="project-tags">
+                            <span>記帳與統計</span>
+                            <span>付款方式分類</span>
+                            <span>地點收藏</span>
+                            <span>機場航班</span>
+                            <span>雲端備份</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="/hktaxi/calculator.html" target="_blank" rel="noopener noreferrer">打開的士助手小程序 →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Android 本地/網路視頻播放器 APK -->
+                <div class="project-card" data-category="app">
+                    <div class="project-thumb">
+                        <span class="thumb-badge">應用開發</span>
+                        <svg viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+                            <defs>
+                                <linearGradient id="thumb2bg" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#0a1424"/>
+                                    <stop offset="100%" stop-color="#123049"/>
+                                </linearGradient>
+                                <radialGradient id="thumb2glow">
+                                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.32"/>
+                                    <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+                                </radialGradient>
+                            </defs>
+                            <rect width="400" height="225" fill="url(#thumb2bg)"/>
+                            <ellipse cx="200" cy="112" rx="130" ry="100" fill="url(#thumb2glow)"/>
+
+                            <!-- 手機外框 -->
+                            <rect x="140" y="36" width="120" height="152" rx="14" fill="#0e1f33" stroke="#2a4a6d"/>
+                            <!-- 螢幕 -->
+                            <rect x="150" y="54" width="100" height="88" rx="6" fill="#12273d"/>
+                            <circle cx="200" cy="98" r="24" fill="none" stroke="#38bdf8" stroke-width="2" opacity="0.8"/>
+                            <circle cx="200" cy="98" r="16" fill="#38bdf8" opacity="0.15"/>
+                            <path d="M193 88 l18 10 l-18 10 z" fill="#38bdf8"/>
+                            <!-- 進度條 -->
+                            <rect x="158" y="156" width="84" height="4" rx="2" fill="#1e3a57"/>
+                            <rect x="158" y="156" width="46" height="4" rx="2" fill="#38bdf8"/>
+                            <!-- 按鍵 -->
+                            <circle cx="200" cy="174" r="5" fill="#2a4a6d"/>
+                        </svg>
+                    </div>
+                    <div class="project-info">
+                        <h3>Android 本地/網路視頻播放器 APK</h3>
+                        <p>基於 ExoPlayer 深度客製化的多媒體播放應用，整合本地媒體庫掃描與網路流媒體（HLS/DASH）播放，展現多媒體開發與 UI/UX 互動能力。</p>
+                        <div class="project-tags">
+                            <span>ExoPlayer</span>
+                            <span>Web點播</span>
+                            <span>流媒體播放</span>
+                            <span>性能優化</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/SMLOG/playerdemo/blob/b4/app-debug.apk" target="_blank" rel="noopener noreferrer">下載 APK 試用 →</a>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </section>
@@ -793,5 +1499,398 @@
             });
         });
     </script>
+
+    <!-- 卡片光暈跟隨 -->
+    <script>
+        document.querySelectorAll('.skill-card, .project-card').forEach(card => {
+            card.addEventListener('pointermove', e => {
+                const r = card.getBoundingClientRect();
+                card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+                card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+            });
+        });
+    </script>
+
+    <!-- CHAR-ANIM-SCRIPT-START -->
+    <script>
+    (function () {
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduce) return;
+
+        // 1. 將元素內文字逐字包成 span.char
+        function splitChars(el, autoPlay) {
+            const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+            const textNodes = [];
+            while (walker.nextNode()) {
+                if (walker.currentNode.nodeValue.trim()) textNodes.push(walker.currentNode);
+            }
+            textNodes.forEach(function (node) {
+                const text = node.nodeValue;
+                const frag = document.createDocumentFragment();
+                for (const ch of text) {
+                    if (ch === ' ' || ch === '\n') {
+                        frag.appendChild(document.createTextNode(' '));
+                        continue;
+                    }
+                    const s = document.createElement('span');
+                    s.className = 'char';
+                    s.textContent = ch;
+                    frag.appendChild(s);
+                }
+                node.replaceWith(frag);
+            });
+            const chars = el.querySelectorAll('.char');
+            chars.forEach(function (c, i) {
+                c.style.setProperty('--d', (i * 0.035).toFixed(3) + 's');
+            });
+            if (autoPlay) {
+                requestAnimationFrame(function () {
+                    chars.forEach(function (c) { c.classList.add('in'); });
+                });
+            }
+            return chars;
+        }
+
+        // 2. Hero h1 直接播放
+        const heroTitle = document.querySelector('.hero-content h1');
+        if (heroTitle) splitChars(heroTitle, true);
+
+        // 3. h2 滾動進入才播放
+        const io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) return;
+                entry.target.querySelectorAll('.char').forEach(function (c) {
+                    c.classList.add('in');
+                });
+                io.unobserve(entry.target);
+            });
+        }, { threshold: 0.35 });
+
+        document.querySelectorAll('h2').forEach(function (h) {
+            splitChars(h, false);
+            io.observe(h);
+        });
+
+        // 4. Hero 副標題打字機
+        const heroSub = document.querySelector('.hero-content h3');
+        if (heroSub) {
+            const fullText = heroSub.textContent.trim();
+            heroSub.textContent = '';
+            const txt = document.createTextNode('');
+            const cursor = document.createElement('span');
+            cursor.className = 'tw-cursor';
+            heroSub.append(txt, cursor);
+
+            let i = 0, dir = 1;
+            function tick() {
+                i += dir;
+                txt.nodeValue = fullText.slice(0, i);
+                let delay = dir > 0 ? 65 : 28;
+                if (i >= fullText.length) { dir = -1; delay = 2600; }
+                else if (i <= 0) { dir = 1; delay = 600; }
+                setTimeout(tick, delay);
+            }
+            setTimeout(tick, 700);
+        }
+    })();
+    </script>
+    <!-- CHAR-ANIM-SCRIPT-END -->
+    
+
+    <!-- P0-SCRIPT-START -->
+    <script>
+    (function () {
+        // 1. 移動端選單：鎖滾動 + 點外部關閉 + aria
+        const menuBtn = document.getElementById('mobile-menu');
+        const navList = document.getElementById('nav-links');
+        if (menuBtn && navList) {
+            const setOpen = (open) => {
+                menuBtn.classList.toggle('active', open);
+                navList.classList.toggle('active', open);
+                menuBtn.setAttribute('aria-expanded', String(open));
+                document.body.classList.toggle('menu-open', open);
+            };
+            menuBtn.setAttribute('aria-expanded', 'false');
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                setOpen(!navList.classList.contains('active'));
+            });
+            document.addEventListener('click', (e) => {
+                if (!navList.classList.contains('active')) return;
+                if (navList.contains(e.target) || menuBtn.contains(e.target)) return;
+                setOpen(false);
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') setOpen(false);
+            });
+            navList.querySelectorAll('a').forEach(a =>
+                a.addEventListener('click', () => setOpen(false))
+            );
+        }
+
+        // 2. 篩選：平滑入場 + aria-pressed
+        const btns = document.querySelectorAll('.filter-btn');
+        const cards = document.querySelectorAll('.project-card');
+        btns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                btns.forEach(b => {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-pressed', 'false');
+                });
+                btn.classList.add('active');
+                btn.setAttribute('aria-pressed', 'true');
+
+                const f = btn.dataset.filter;
+                cards.forEach(card => {
+                    const show = (f === 'all' || card.dataset.category === f);
+                    card.classList.toggle('hide', !show);
+                    card.classList.remove('enter');
+                    if (show) {
+                        void card.offsetWidth; // reflow 重啟動畫
+                        card.classList.add('enter');
+                    }
+                });
+            });
+            // 初始化 aria-pressed
+            btn.setAttribute('aria-pressed', btn.classList.contains('active') ? 'true' : 'false');
+        });
+
+        // 3. ScrollSpy 節流 + 用 scrollY 取代已廢棄的 pageYOffset
+        const sections = document.querySelectorAll('section');
+        const navItems = document.querySelectorAll('.nav-links a');
+        let ticking = false;
+        function updateSpy() {
+            let current = '';
+            sections.forEach(s => {
+                if (window.scrollY >= s.offsetTop - 150) current = s.id;
+            });
+            navItems.forEach(a => {
+                a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+            });
+            ticking = false;
+        }
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(updateSpy);
+                ticking = true;
+            }
+        }, { passive: true });
+    })();
+    </script>
+    <!-- P0-SCRIPT-END -->
+    
+
+    <!-- FX3-BTN-START -->
+    <button class="music-toggle" id="musicToggle" aria-label="開關背景音樂" aria-pressed="false" title="背景音樂（可關閉）">
+        <span class="bar" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+        </span>
+    </button>
+    <!-- FX3-BTN-END -->
+
+    <!-- FX3-SCRIPT-START -->
+    <script>
+    (function () {
+        var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // 1. 光線跟隨
+        var glow = document.getElementById('cursorGlow');
+        if (glow && !reduce) {
+            var gx = window.innerWidth / 2, gy = window.innerHeight / 2;
+            var tx = gx, ty = gy, raf = null;
+            function loop() {
+                gx += (tx - gx) * 0.12;
+                gy += (ty - gy) * 0.12;
+                glow.style.transform = 'translate(' + gx + 'px,' + gy + 'px) translate(-50%,-50%)';
+                if (Math.abs(tx - gx) > 0.5 || Math.abs(ty - gy) > 0.5) {
+                    raf = requestAnimationFrame(loop);
+                } else { raf = null; }
+            }
+            document.addEventListener('pointermove', function (e) {
+                tx = e.clientX; ty = e.clientY;
+                glow.classList.add('active');
+                if (!raf) loop();
+            }, { passive: true });
+            document.addEventListener('pointerleave', function () {
+                glow.classList.remove('active');
+            });
+        }
+
+        // 2. ASCII 人物動畫
+        var face = document.getElementById('asciiFace');
+        var statusText = document.getElementById('asciiStatusText');
+        if (face) {
+            var frames = {
+                normal: [
+                    "   OOOOO  ",
+                    "  O     O ",
+                    "  O o o O ",
+                    "  O  v  O ",
+                    "   OOOOO  ",
+                    "    III   ",
+                    "   I I I  ",
+                    "  I  I  I ",
+                    "     I    ",
+                    "    L J   "
+                ].join("
+"),
+                blink: [
+                    "   OOOOO  ",
+                    "  O     O ",
+                    "  O - - O ",
+                    "  O  v  O ",
+                    "   OOOOO  ",
+                    "    III   ",
+                    "   I I I  ",
+                    "  I  I  I ",
+                    "     I    ",
+                    "    L J   "
+                ].join("
+"),
+                talk: [
+                    "   OOOOO  ",
+                    "  O     O ",
+                    "  O o o O ",
+                    "  O  O  O ",
+                    "   OOOOO  ",
+                    "    III   ",
+                    "   I I I  ",
+                    "  I  I  I ",
+                    "     I    ",
+                    "    L J   "
+                ].join("
+"),
+                wave: [
+                    "   OOOOO  ",
+                    "  O     O ",
+                    "  O o o O ",
+                    "  O  v  O ",
+                    "   OOOOO  ",
+                    "   I III  ",
+                    "  I   I   ",
+                    " I    I   ",
+                    "     I    ",
+                    "    L J   "
+                ].join("
+"),
+                think: [
+                    "   OOOOO  ",
+                    "  O     O ",
+                    "  O @ @ O ",
+                    "  O  ~  O ",
+                    "   OOOOO  ",
+                    "    III   ",
+                    "   I I I  ",
+                    "  I  I  I ",
+                    "     I    ",
+                    "    L J   "
+                ].join("
+")
+            };
+            var seq = [
+                { f: 'normal', t: 2400, s: 'ready' },
+                { f: 'blink',  t: 140,  s: 'ready' },
+                { f: 'normal', t: 1200, s: 'ready' },
+                { f: 'wave',   t: 900,  s: 'hi there' },
+                { f: 'normal', t: 1000, s: 'ready' },
+                { f: 'talk',   t: 900,  s: 'generating...' },
+                { f: 'normal', t: 1200, s: 'ready' },
+                { f: 'think',  t: 1200, s: 'thinking...' },
+                { f: 'normal', t: 1800, s: 'ready' },
+                { f: 'blink',  t: 140,  s: 'ready' }
+            ];
+            var i = 0;
+            function step() {
+                var cur = seq[i % seq.length];
+                face.textContent = frames[cur.f];
+                if (statusText) statusText.textContent = cur.s;
+                i++;
+                setTimeout(step, cur.t);
+            }
+            if (reduce) { face.textContent = frames.normal; }
+            else { step(); }
+        }
+
+        // 3. 程序生成背景音樂（默認關閉，需點擊啟動）
+        var btn = document.getElementById('musicToggle');
+        var audioCtx = null, master = null, nodes = [], playing = false;
+
+        function initAudio() {
+            if (audioCtx) return;
+            var Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) return;
+            audioCtx = new Ctx();
+            master = audioCtx.createGain();
+            master.gain.value = 0;
+            master.connect(audioCtx.destination);
+        }
+
+        function startMusic() {
+            initAudio();
+            if (!audioCtx || playing) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            var filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 900;
+            filter.Q.value = 0.6;
+            filter.connect(master);
+
+            var freqs = [110.00, 164.81, 220.00, 261.63, 329.63];
+            nodes = freqs.map(function (f, idx) {
+                var osc = audioCtx.createOscillator();
+                osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+                osc.frequency.value = f;
+                var g = audioCtx.createGain();
+                g.gain.value = 0.5 / freqs.length;
+
+                var lfo = audioCtx.createOscillator();
+                lfo.frequency.value = 0.04 + idx * 0.015;
+                var lfoGain = audioCtx.createGain();
+                lfoGain.gain.value = 0.18 / freqs.length;
+                lfo.connect(lfoGain);
+                lfoGain.connect(g.gain);
+                lfo.start();
+
+                osc.connect(g);
+                g.connect(filter);
+                osc.start();
+                return { osc: osc, lfo: lfo };
+            });
+
+            master.gain.cancelScheduledValues(audioCtx.currentTime);
+            master.gain.setValueAtTime(0, audioCtx.currentTime);
+            master.gain.linearRampToValueAtTime(0.07, audioCtx.currentTime + 2.5);
+            playing = true;
+            btn.classList.add('on');
+            btn.setAttribute('aria-pressed', 'true');
+        }
+
+        function stopMusic() {
+            if (!audioCtx || !playing) return;
+            playing = false;
+            var oldNodes = nodes;
+            nodes = [];
+            master.gain.cancelScheduledValues(audioCtx.currentTime);
+            master.gain.setValueAtTime(master.gain.value, audioCtx.currentTime);
+            master.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.8);
+            setTimeout(function () {
+                oldNodes.forEach(function (n) {
+                    try { n.osc.stop(); n.lfo.stop(); } catch (e) {}
+                });
+            }, 900);
+            btn.classList.remove('on');
+            btn.setAttribute('aria-pressed', 'false');
+        }
+
+        if (btn) {
+            btn.addEventListener('click', function () {
+                if (playing) stopMusic();
+                else startMusic();
+            });
+        }
+    })();
+    </script>
+    <!-- FX3-SCRIPT-END -->
 </body>
 </html>
