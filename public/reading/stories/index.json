@@ -1,42 +1,134 @@
 [
   {
     "id": "story_001",
+    "level": 1,
     "titles": {
       "hk": "小兔子找朋友",
       "tw": "小兔子找朋友",
       "cn": "小兔子找朋友",
       "en": "The Little Rabbit Makes Friends"
     },
-    "cover": "/reading/assets/covers/story_001.png?v=1"
+    "cover": "/reading/assets/covers/story_001.png?v=2"
   },
   {
     "id": "story_002",
+    "level": 1,
+    "titles": {
+      "hk": "小鴨子學游泳",
+      "tw": "小鴨子學游泳",
+      "cn": "小鸭子学游泳",
+      "en": "Little Duck Learns to Swim"
+    },
+    "cover": "/reading/assets/covers/story_002.png?v=2"
+  },
+  {
+    "id": "story_003",
+    "level": 1,
+    "titles": {
+      "hk": "彩虹顏色歌",
+      "tw": "彩虹顏色歌",
+      "cn": "彩虹颜色歌",
+      "en": "Colors of the Rainbow"
+    },
+    "cover": "/reading/assets/covers/story_003.png?v=2"
+  },
+  {
+    "id": "story_004",
+    "level": 1,
+    "titles": {
+      "hk": "刷牙小英雄",
+      "tw": "刷牙小英雄",
+      "cn": "刷牙小英雄",
+      "en": "Little Brushing Hero"
+    },
+    "cover": "/reading/assets/covers/story_004.png?v=2"
+  },
+  {
+    "id": "story_005",
+    "level": 2,
     "titles": {
       "hk": "龜兔賽跑",
       "tw": "龜兔賽跑",
       "cn": "龟兔赛跑",
       "en": "The Tortoise and the Hare"
     },
-    "cover": "/reading/assets/covers/story_002.png?v=1"
+    "cover": "/reading/assets/covers/story_005.png?v=2"
   },
   {
-    "id": "story_003",
+    "id": "story_006",
+    "level": 2,
     "titles": {
       "hk": "三隻小豬",
       "tw": "三隻小豬",
       "cn": "三只小猪",
       "en": "The Three Little Pigs"
     },
-    "cover": "/reading/assets/covers/story_003.png?v=1"
+    "cover": "/reading/assets/covers/story_006.png?v=2"
   },
   {
-    "id": "story_004",
+    "id": "story_007",
+    "level": 2,
     "titles": {
       "hk": "小熊種果樹",
       "tw": "小熊種果樹",
       "cn": "小熊种果树",
       "en": "Little Bear Plants an Apple Tree"
     },
-    "cover": "/reading/assets/covers/story_004.png?v=1"
+    "cover": "/reading/assets/covers/story_007.png?v=2"
+  },
+  {
+    "id": "story_008",
+    "level": 2,
+    "titles": {
+      "hk": "愛分享的小松鼠",
+      "tw": "愛分享的小松鼠",
+      "cn": "爱分享的小松鼠",
+      "en": "The Sharing Little Squirrel"
+    },
+    "cover": "/reading/assets/covers/story_008.png?v=2"
+  },
+  {
+    "id": "story_009",
+    "level": 3,
+    "titles": {
+      "hk": "司馬光砸缸",
+      "tw": "司馬光砸缸",
+      "cn": "司马光砸缸",
+      "en": "Sima Guang Breaks the Vat"
+    },
+    "cover": "/reading/assets/covers/story_009.png?v=2"
+  },
+  {
+    "id": "story_010",
+    "level": 3,
+    "titles": {
+      "hk": "孔融讓梨",
+      "tw": "孔融讓梨",
+      "cn": "孔融让梨",
+      "en": "Kong Rong Shares Pears"
+    },
+    "cover": "/reading/assets/covers/story_010.png?v=2"
+  },
+  {
+    "id": "story_011",
+    "level": 3,
+    "titles": {
+      "hk": "小水滴的旅行",
+      "tw": "小水滴的旅行",
+      "cn": "小水滴的旅行",
+      "en": "Journey of a Little Water Drop"
+    },
+    "cover": "/reading/assets/covers/story_011.png?v=2"
+  },
+  {
+    "id": "story_012",
+    "level": 3,
+    "titles": {
+      "hk": "月亮為什麼會變形",
+      "tw": "月亮為什麼會變形",
+      "cn": "月亮为什么会变形",
+      "en": "Why Does the Moon Change Shape"
+    },
+    "cover": "/reading/assets/covers/story_012.png?v=2"
   }
 ]

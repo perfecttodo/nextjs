@@ -303,11 +303,20 @@ document.getElementById('btn-reader-voice').addEventListener('click', cycleVoice
 document.getElementById('btn-pref-script').addEventListener('click', cycleScript);
 document.getElementById('btn-reader-script').addEventListener('click', cycleScript);
 
+
+function applyCurrentPlaybackRate() {
+  const rate = SPEEDS.at(speedIdx).rate;
+  ttsAudioEl.defaultPlaybackRate = rate;
+  ttsAudioEl.playbackRate = rate;
+}
+ttsAudioEl.addEventListener('loadedmetadata', applyCurrentPlaybackRate);
+ttsAudioEl.addEventListener('playing', applyCurrentPlaybackRate);
+
 btnSpeed.addEventListener('click', () => {
   speedIdx = (speedIdx + 1) % SPEEDS.length;
   localStorage.setItem('reading_speedIdx', speedIdx);
   syncPrefButtons();
-  ttsAudioEl.playbackRate = SPEEDS[speedIdx].rate;
+  applyCurrentPlaybackRate();
 });
 
 btnMode.addEventListener('click', () => {
@@ -338,14 +347,54 @@ function getDisplayTitle(storyObj) {
   return vId === 'en' ? storyObj.titles.en : (storyObj.titles[sId] || storyObj.titles.hk);
 }
 
+
+let selectedLevel = Number(localStorage.getItem('reading_selectedLevel')) || 0;
+
+function getLevelTagText(lvl) {
+  const vId = VOICE_PREFS.at(voiceIdx).id;
+  const sId = SCRIPT_PREFS.at(scriptIdx).id;
+  if (vId === 'en') return lvl === 1 ? 'Lv.1 Starter' : (lvl === 2 ? 'Lv.2 Growing' : 'Lv.3 Explorer');
+  if (sId === 'cn') return lvl === 1 ? '🌱 启蒙 Lv.1' : (lvl === 2 ? '🌿 进阶 Lv.2' : '🌳 挑战 Lv.3');
+  return lvl === 1 ? '🌱 啟蒙 Lv.1' : (lvl === 2 ? '🌿 進階 Lv.2' : '🌳 挑戰 Lv.3');
+}
+
+function updateLevelTabsUI() {
+  const vId = VOICE_PREFS.at(voiceIdx).id;
+  const sId = SCRIPT_PREFS.at(scriptIdx).id;
+  const labels = vId === 'en'
+    ? ['📚 All', '🌱 Lv.1 Starter', '🌿 Lv.2 Growing', '🌳 Lv.3 Explorer']
+    : (sId === 'cn' ? ['📚 全部', '🌱 启蒙 Lv.1', '🌿 进阶 Lv.2', '🌳 挑战 Lv.3'] : ['📚 全部', '🌱 啟蒙 Lv.1', '🌿 進階 Lv.2', '🌳 挑戰 Lv.3']);
+  document.querySelectorAll('#level-tabs .level-tab').forEach((btn, idx) => {
+    btn.textContent = labels.at(idx);
+    btn.classList.toggle('active', Number(btn.dataset.lvl) === selectedLevel);
+  });
+}
+
+document.querySelectorAll('#level-tabs .level-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    selectedLevel = Number(btn.dataset.lvl);
+    localStorage.setItem('reading_selectedLevel', selectedLevel);
+    updateLevelTabsUI();
+    renderStoryList(allStories);
+  });
+});
+
 function renderStoryList(stories) {
+  updateLevelTabsUI();
+  const filtered = selectedLevel === 0 ? stories : stories.filter(s => (s.level || 1) === selectedLevel);
   const svg = 'data:image/svg+xml,<svg xmlns=%22http://w3.org viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23FFE066%22/><text x=%2250%22 y=%2262%22 font-size=%2245%22 text-anchor=%22middle%22>📖</text></svg>';
-  storyGrid.innerHTML = stories.map(s => `
+  storyGrid.innerHTML = filtered.map(s => {
+    const lvl = s.level || 1;
+    return `
     <div class="story-card" onclick="openStory('${s.id}')">
       <img src="${s.cover || svg}" alt="${getDisplayTitle(s)}">
       <h3>${getDisplayTitle(s)}</h3>
-      <span class="lang-tag">${VOICE_PREFS[voiceIdx].label.replace('🗣️ ', '')} ${VOICE_PREFS[voiceIdx].id !== 'en' ? '· ' + SCRIPT_PREFS[scriptIdx].label.replace('🔤 ', '') : ''}</span>
-    </div>`).join('');
+      <div>
+        <span class="lvl-badge lvl-${lvl}">${getLevelTagText(lvl)}</span>
+        <span class="lang-tag">${VOICE_PREFS.at(voiceIdx).label.replace('🗣️ ', '')}</span>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 async function openStory(id, autoPlay = false) {
@@ -414,7 +463,7 @@ async function applyTrackToReader(autoPlay) {
     const rawAudio = (playMode === 'exact' && track.exactAudioUrl) ? track.exactAudioUrl : track.audioUrl;
     ttsAudioEl.src = `${rawAudio}?t=${Date.now()}`;
   }
-  ttsAudioEl.playbackRate = SPEEDS[speedIdx].rate;
+  applyCurrentPlaybackRate();
   ttsAudioEl.load();
 
   updateMediaSession();
@@ -529,7 +578,7 @@ function playSingleToken(idx, el) {
     stopReadAlong();
     requestWakeLock();
     const targetSec = getTokenStartTime(idx);
-    ttsAudioEl.playbackRate = SPEEDS[speedIdx].rate;
+    applyCurrentPlaybackRate();
     btnPlayTts.querySelector('.label').textContent = tUI('pause');
     highlightToken(idx);
 
@@ -566,7 +615,7 @@ function playSingleToken(idx, el) {
 
 btnPlayTts.addEventListener('click', () => {
   if (!ttsAudioEl.paused) stopTtsPlayback();
-  else { stopReadAlong(); requestWakeLock(); ttsAudioEl.playbackRate = SPEEDS[speedIdx].rate; ttsAudioEl.play(); btnPlayTts.querySelector('.label').textContent = tUI('pause'); syncHighlightLoop(); }
+  else { stopReadAlong(); requestWakeLock(); applyCurrentPlaybackRate(); ttsAudioEl.play(); btnPlayTts.querySelector('.label').textContent = tUI('pause'); syncHighlightLoop(); }
 });
 
 function stopTtsPlayback() { ttsAudioEl.pause(); cancelAnimationFrame(rafId); btnPlayTts.querySelector('.label').textContent = tUI('listen'); }

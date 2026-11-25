@@ -203,3 +203,40 @@ button:disabled, .btn-locked {
   min-width: 125px;
   text-align: center;
 }
+
+/* 首頁等級篩選列與等級徽章 */
+.level-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px 0 16px;
+  max-width: 960px;
+  margin: 0 auto;
+  overflow-x: auto;
+}
+.level-tab {
+  padding: 8px 16px;
+  border-radius: 16px;
+  border: 2px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #475569;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.level-tab.active {
+  background: #F59E0B;
+  border-color: #D97706;
+  color: #FFFFFF;
+}
+.lvl-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 8px;
+  margin-right: 4px;
+}
+.lvl-1 { background: #DCFCE7; color: #15803D; }
+.lvl-2 { background: #FEF3C7; color: #B45309; }
+.lvl-3 { background: #E0E7FF; color: #4338CA; }

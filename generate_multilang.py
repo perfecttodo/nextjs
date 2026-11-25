@@ -168,8 +168,9 @@ async def main():
         json.dump(detail, open(f"public/reading/stories/{sid}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
         index.append({
             "id": sid,
+            "level": item.get("level", 1),
             "titles": detail["titles"],
-            "cover": f"/reading/assets/covers/{sid}.png?v=1"
+            "cover": f"/reading/assets/covers/{sid}.png?v=2"
         })
     json.dump(index, open("public/reading/stories/index.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
     print("🎉 所有故事的四語種（粵/國/普/英）與三字形（港澳繁/台灣繁/簡體）已全部生成！")
@@ -270,8 +271,9 @@ async def main():
         json.dump(detail, open(f"public/reading/stories/{sid}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
         index.append({
             "id": sid,
+            "level": item.get("level", 1),
             "titles": detail["titles"],
-            "cover": f"/reading/assets/covers/{sid}.png?v=1"
+            "cover": f"/reading/assets/covers/{sid}.png?v=2"
         })
     json.dump(index, open("public/reading/stories/index.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
     print("🎉 所有故事的四語種（粵/國/普/英）與三字形（港澳繁/台灣繁/簡體）已全部生成！")
@@ -372,8 +374,9 @@ async def main():
         json.dump(detail, open(f"public/reading/stories/{sid}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
         index.append({
             "id": sid,
+            "level": item.get("level", 1),
             "titles": detail["titles"],
-            "cover": f"/reading/assets/covers/{sid}.png?v=1"
+            "cover": f"/reading/assets/covers/{sid}.png?v=2"
         })
     json.dump(index, open("public/reading/stories/index.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
     print("🎉 所有故事的四語種（粵/國/普/英）與三字形（港澳繁/台灣繁/簡體）已全部生成！")
@@ -474,8 +477,9 @@ async def main():
         json.dump(detail, open(f"public/reading/stories/{sid}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
         index.append({
             "id": sid,
+            "level": item.get("level", 1),
             "titles": detail["titles"],
-            "cover": f"/reading/assets/covers/{sid}.png?v=1"
+            "cover": f"/reading/assets/covers/{sid}.png?v=2"
         })
     json.dump(index, open("public/reading/stories/index.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
     print("🎉 所有故事的四語種（粵/國/普/英）與三字形（港澳繁/台灣繁/簡體）已全部生成！")
