@@ -136,6 +136,37 @@ function getCurrentTrack() {
   return currentStory.tracks[vId] || currentStory.tracks.hk;
 }
 
+
+function updateMediaSession() {
+  if (!('mediaSession' in navigator) || !currentStory) return;
+  const meta = allStories.find(s => s.id === currentStory.id);
+  const coverUrl = meta && meta.cover ? new URL(meta.cover, window.location.href).href : '';
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: getDisplayTitle(currentStory),
+    artist: '快樂小讀者 · ' + VOICE_PREFS[voiceIdx].label.replace('🗣️ ', ''),
+    album: '兒童有聲故事書',
+    artwork: coverUrl ? [{ src: coverUrl, sizes: '512x512', type: 'image/png' }] : []
+  });
+  navigator.mediaSession.setActionHandler('play', () => {
+    ttsAudioEl.play();
+    btnPlayTts.querySelector('.label').textContent = '暫停';
+    syncHighlightLoop();
+  });
+  navigator.mediaSession.setActionHandler('pause', () => stopTtsPlayback());
+  navigator.mediaSession.setActionHandler('nexttrack', () => {
+    if (allStories.length > 0) {
+      const curIdx = allStories.findIndex(s => s.id === currentStory.id);
+      openStory(allStories[(curIdx + 1) % allStories.length].id, true);
+    }
+  });
+  navigator.mediaSession.setActionHandler('previoustrack', () => {
+    if (allStories.length > 0) {
+      const curIdx = allStories.findIndex(s => s.id === currentStory.id);
+      openStory(allStories[(curIdx - 1 + allStories.length) % allStories.length].id, true);
+    }
+  });
+}
+
 function applyTrackToReader(autoPlay) {
   stopTtsPlayback(); clearHighlight();
   const track = getCurrentTrack();
@@ -147,6 +178,7 @@ function applyTrackToReader(autoPlay) {
   ttsAudioEl.playbackRate = SPEEDS[speedIdx].rate;
   ttsAudioEl.load();
 
+  updateMediaSession();
   if (autoPlay) {
     requestWakeLock();
     ttsAudioEl.play();
@@ -261,8 +293,8 @@ function syncHighlightLoop() {
   }
 
   if (!ttsAudioEl.paused && !ttsAudioEl.ended) rafId = requestAnimationFrame(syncHighlightLoop);
-  else if (ttsAudioEl.ended) handleStoryEnded();
 }
+ttsAudioEl.addEventListener('ended', handleStoryEnded);
 
 function highlightSentenceRange(startIdx, endIdx, focusIdx) {
   storyContent.querySelectorAll('.token.active, .token.sentence-active').forEach(el => el.classList.remove('active', 'sentence-active'));
@@ -355,7 +387,12 @@ function highlightToken(idx) {
 function clearHighlight() { storyContent.querySelectorAll('.token').forEach(el => el.classList.remove('active', 'sentence-active')); }
 async function requestWakeLock() { try { if ('wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); document.getElementById('wake-badge').style.display = 'inline-block'; } } catch (e) {} }
 function releaseWakeLock() { if (wakeLock) { wakeLock.release(); wakeLock = null; } document.getElementById('wake-badge').style.display = 'none'; }
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && (!ttsAudioEl.paused || isReadingAlong)) requestWakeLock(); });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    if (!ttsAudioEl.paused) { requestWakeLock(); syncHighlightLoop(); }
+    else if (isReadingAlong) { requestWakeLock(); }
+  }
+});
 document.getElementById('btn-back').addEventListener('click', () => { stopTtsPlayback(); stopReadAlong(); recordedAudioEl.pause(); viewReader.classList.remove('active'); viewList.classList.add('active'); });
 
 init();
