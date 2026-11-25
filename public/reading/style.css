@@ -113,3 +113,48 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "PingFang TC",
 .rec-item-meta { font-size: 13px; color: #64748B; }
 .rec-item-btns { display: flex; gap: 8px; }
 .btn-mini { padding: 6px 12px; border-radius: 10px; border: none; font-size: 14px; font-weight: bold; cursor: pointer; }
+
+/* 錄音鎖定狀態下的按鈕禁用樣式 */
+button:disabled, .btn-locked {
+  opacity: 0.4 !important;
+  pointer-events: none !important;
+  filter: grayscale(60%);
+}
+
+/* 選中作為起點的字詞標記 */
+.token.start-anchor {
+  border-bottom: 4px solid #0284C7;
+  background-color: #E0F2FE;
+  border-radius: 10px;
+}
+
+/* 底部起點提示懸浮條 */
+.anchor-bar {
+  position: fixed;
+  bottom: 108px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0284C7;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
+  z-index: 80;
+  white-space: nowrap;
+}
+.anchor-bar.hidden { display: none; }
+.anchor-bar button {
+  background: #fff;
+  color: #0284C7;
+  border: none;
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}

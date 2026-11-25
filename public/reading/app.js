@@ -86,9 +86,28 @@ btnParentPlay.addEventListener('click', async () => {
   applyTrackToReader(false);
 });
 
+
+function setRecordingLock(mode) {
+  // mode: 'parent' (父母錄音中) | 'kid' (小朋友跟讀中) | 'none' (解除鎖定)
+  const lockIdsForParent = ['btn-back', 'btn-parent-play', 'btn-reader-voice', 'btn-reader-script', 'btn-repeat', 'btn-tap-jump', 'btn-mode', 'btn-speed', 'btn-play-tts', 'btn-read-along'];
+  const lockIdsForKid = ['btn-parent-rec', 'btn-parent-play', 'btn-reader-voice', 'btn-reader-script', 'btn-repeat', 'btn-tap-jump', 'btn-mode', 'btn-speed', 'btn-play-tts'];
+
+  const allIds = Array.from(new Set([...lockIdsForParent, ...lockIdsForKid]));
+  allIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = false;
+  });
+
+  if (mode === 'parent') {
+    lockIdsForParent.forEach(id => { const el = document.getElementById(id); if (el) el.disabled = true; });
+  } else if (mode === 'kid') {
+    lockIdsForKid.forEach(id => { const el = document.getElementById(id); if (el) el.disabled = true; });
+  }
+}
+
 btnParentRec.addEventListener('click', () => {
   if (ParentVoice.isRecording()) { ParentVoice.stopGuidedRecording(); return; }
-  stopTtsPlayback(); stopReadAlong(); clearHighlight(); requestWakeLock();
+  stopTtsPlayback(); stopReadAlong(); clearHighlight(); requestWakeLock(); setRecordingLock('parent');
   const vPref = VOICE_PREFS[voiceIdx];
   ParentVoice.startGuidedRecording({
     storyId: currentStory.id,
@@ -99,12 +118,12 @@ btnParentRec.addEventListener('click', () => {
     speedRate: SPEEDS[speedIdx].rate,
     onHighlight: (idx) => highlightToken(idx),
     onPreviewReady: (previewUrl) => {
-      releaseWakeLock(); clearHighlight();
+      setRecordingLock('none'); releaseWakeLock(); clearHighlight();
       previewAudio.src = previewUrl;
       previewLabelInput.value = '媽媽的聲音';
       modalPreview.classList.remove('hidden');
     },
-    onCancel: () => { releaseWakeLock(); clearHighlight(); }
+    onCancel: () => { setRecordingLock('none'); releaseWakeLock(); clearHighlight(); }
   });
 });
 
@@ -376,9 +395,70 @@ function renderTokens(tokens, lang) {
   storyContent.querySelectorAll('.token:not(.punct)').forEach(el => el.addEventListener('click', () => playSingleToken(Number(el.dataset.idx), el)));
 }
 
+
+
+let tapToJump = localStorage.getItem('reading_tapToJump') === 'true';
+const btnTapJump = document.getElementById('btn-tap-jump');
+
+function syncTapJumpUI() {
+  if (tapToJump) {
+    btnTapJump.textContent = '👆 點哪讀哪(開)';
+    btnTapJump.style.background = '#0284C7';
+    btnTapJump.style.color = '#FFF';
+  } else {
+    btnTapJump.textContent = '👆 點哪讀哪';
+    btnTapJump.style.background = '#F0F9FF';
+    btnTapJump.style.color = '#0369A1';
+  }
+}
+syncTapJumpUI();
+
+btnTapJump.addEventListener('click', () => {
+  tapToJump = !tapToJump;
+  localStorage.setItem('reading_tapToJump', tapToJump);
+  syncTapJumpUI();
+});
+
+function getTokenStartTime(idx) {
+  const track = getCurrentTrack();
+  const tok = track.tokens[idx];
+  if (!tok) return 0;
+  const pData = ParentVoice.getActiveData();
+  if (useParentVoice && pData && pData.timings && pData.timings[idx]) {
+    return Number(pData.timings[idx][0]) || 0;
+  }
+  if (playMode === 'exact' && tok.exactStart !== undefined) {
+    return Number(tok.exactStart) || 0;
+  }
+  return Number(tok.start) || 0;
+}
+
 let wordPlayer = new Audio();
 function playSingleToken(idx, el) {
   if (!currentStory) return;
+  // 若「👆 點哪讀哪」開啟且正在聽故事（或父母錄音中未鎖定），直接跳轉到該字詞繼續連播
+  if (tapToJump && !isReadingAlong && !ParentVoice.isRecording()) {
+    wordPlayer.pause();
+    stopReadAlong();
+    requestWakeLock();
+    const targetSec = getTokenStartTime(idx);
+    ttsAudioEl.playbackRate = SPEEDS[speedIdx].rate;
+    btnPlayTts.querySelector('.label').textContent = '暫停';
+    highlightToken(idx);
+
+    const startFromTarget = () => {
+      try { ttsAudioEl.currentTime = targetSec; } catch (e) {}
+      ttsAudioEl.play().then(() => syncHighlightLoop()).catch(() => {});
+    };
+
+    if (ttsAudioEl.readyState >= 1) {
+      startFromTarget();
+    } else {
+      ttsAudioEl.addEventListener('loadedmetadata', startFromTarget, { once: true });
+      ttsAudioEl.load();
+    }
+    return;
+  }
   stopTtsPlayback();
   wordPlayer.pause();
   const token = getCurrentTrack().tokens[idx], rate = SPEEDS[speedIdx].rate;
@@ -474,7 +554,7 @@ async function startReadAlong() {
   ParentVoice.unlockAudioContext();
   stopTtsPlayback(); clearHighlight(); recordPanel.classList.add('hidden');
   readCursor = 0; isReadingAlong = true; requestWakeLock();
-  btnReadAlong.classList.add('recording'); btnReadAlong.querySelector('.label').textContent = '完成朗讀';
+  btnReadAlong.classList.add('recording'); btnReadAlong.querySelector('.label').textContent = '完成朗讀'; setRecordingLock('kid');
   advanceToNextReadableToken(0);
   try {
     const stream = await ParentVoice.getCleanMicStream();
@@ -537,7 +617,7 @@ function advanceToNextReadableToken(startIdx) {
 function stopReadAlong() {
   if (!isReadingAlong) return;
   isReadingAlong = false; releaseWakeLock();
-  btnReadAlong.classList.remove('recording'); btnReadAlong.querySelector('.label').textContent = '自己讀';
+  btnReadAlong.classList.remove('recording'); btnReadAlong.querySelector('.label').textContent = '自己讀'; setRecordingLock('none');
   if (recognition) { recognition.onend = null; recognition.stop(); }
   if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
 }
