@@ -471,12 +471,13 @@ function highlightSentenceRange(startIdx, endIdx, focusIdx) {
 btnReadAlong.addEventListener('click', () => { isReadingAlong ? stopReadAlong() : startReadAlong(); });
 
 async function startReadAlong() {
+  ParentVoice.unlockAudioContext();
   stopTtsPlayback(); clearHighlight(); recordPanel.classList.add('hidden');
   readCursor = 0; isReadingAlong = true; requestWakeLock();
   btnReadAlong.classList.add('recording'); btnReadAlong.querySelector('.label').textContent = '完成朗讀';
   advanceToNextReadableToken(0);
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    const stream = await ParentVoice.getCleanMicStream();
     document.getElementById('parent-rec-banner').style.display = 'block';
     document.getElementById('rec-status-text').textContent = '🎤 正在跟讀錄音... 看下方紅條跳動確認話筒正常';
     ParentVoice.startWaveformMeter(stream);
@@ -493,7 +494,7 @@ async function startReadAlong() {
       dl.href = url; dl.download = `${getDisplayTitle(currentStory)}_我的朗讀.${actualMime.includes('mp4') ? 'm4a' : 'webm'}`;
       recordPanel.classList.remove('hidden');
       stream.getTracks().forEach(track => track.stop());
-      if (peak < 15) alert('⚠️ 偵測不到麥克風聲音！請檢查設備的麥克風輸入設定。');
+      if (peak < 3) alert('⚠️ 偵測不到麥克風聲音！請檢查設備的麥克風輸入設定。');
     };
     mediaRecorder.start(250);
   } catch (err) { alert('請允許使用麥克風權限！'); stopReadAlong(); return; }

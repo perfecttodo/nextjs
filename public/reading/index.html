@@ -40,7 +40,12 @@
     <!-- 錄音提示與即時聲波條（父母錄音與自己讀共用） -->
     <div id="parent-rec-banner" style="display:none;background:#FFF1F2;color:#9F1239;padding:10px 16px;text-align:center;font-size:18px;font-weight:bold;border-bottom:2px solid #FECDD3;position:sticky;top:64px;z-index:90;">
       <div id="rec-status-text">準備開始錄音...</div>
-      <canvas id="mic-waveform" width="320" height="44" style="margin-top:6px;background:#fff;border-radius:12px;border:1px solid #FECDD3;max-width:100%;"></canvas>
+      <div style="display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;">
+        <select id="mic-device-select" style="padding:6px 10px;border-radius:10px;border:1px solid #FDA4AF;font-size:14px;background:#fff;color:#881337;max-width:240px;">
+          <option value="">🎙️ 預設麥克風</option>
+        </select>
+        <canvas id="mic-waveform" width="280" height="44" style="background:#fff;border-radius:12px;border:1px solid #FECDD3;"></canvas>
+      </div>
     </div>
 
     <article id="story-content" class="story-content"></article>

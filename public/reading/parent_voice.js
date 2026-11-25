@@ -6,31 +6,89 @@ const ParentVoice = (() => {
   let waveRaf = null, meterCtx = null, peakLevel = 0;
 
   // 共用即時聲波繪製器（同時給「父母錄音」與「自己讀」使用）
+  let selectedMicId = localStorage.getItem('reading_micDeviceId') || '';
+
+  async function refreshMicDevices() {
+    const sel = document.getElementById('mic-device-select');
+    if (!sel || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const mics = devices.filter(d => d.kind === 'audioinput');
+      sel.innerHTML = mics.map((m, idx) => {
+        const label = m.label || `麥克風 ${idx + 1}`;
+        return `<option value="${m.deviceId}" ${m.deviceId === selectedMicId ? 'selected' : ''}>🎙️ ${label}</option>`;
+      }).join('');
+      if (!selectedMicId && mics.length > 0) {
+        selectedMicId = mics.deviceId;
+      }
+    } catch (e) {}
+  }
+
+  async function getCleanMicStream() {
+    const constraints = selectedMicId
+      ? { audio: { deviceId: { exact: selectedMicId } } }
+      : { audio: true };
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+    } catch (e) {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    }
+    await refreshMicDevices();
+    return stream;
+  }
+
+  document.addEventListener('change', (e) => {
+    if (e.target && e.target.id === 'mic-device-select') {
+      selectedMicId = e.target.value;
+      localStorage.setItem('reading_micDeviceId', selectedMicId);
+      alert('✅ 已切換麥克風！請重新點擊錄音按鈕即可使用新麥克風。');
+    }
+  });
+
+  function unlockAudioContext() {
+    if (!meterCtx) meterCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (meterCtx.state === 'suspended') meterCtx.resume().catch(() => {});
+  }
+
   function startWaveformMeter(stream) {
     peakLevel = 0;
     const canvas = document.getElementById('mic-waveform');
     if (!canvas) return;
     const ctx2d = canvas.getContext('2d');
-    meterCtx = new (window.AudioContext || window.webkitAudioContext)();
+    unlockAudioContext();
+    if (meterCtx.state === 'suspended') meterCtx.resume();
+
+    if (currentSourceNode) { try { currentSourceNode.disconnect(); } catch (e) {} }
     const src = meterCtx.createMediaStreamSource(stream);
+    currentSourceNode = src;
     const analyser = meterCtx.createAnalyser();
-    analyser.fftSize = 128;
+    analyser.fftSize = 256;
     src.connect(analyser);
-    const dataArr = new Uint8Array(analyser.frequencyBinCount);
+    const timeData = new Uint8Array(analyser.fftSize);
 
     function draw() {
       if (!meterCtx) return;
-      analyser.getByteFrequencyData(dataArr);
-      let maxVal = 0;
-      for (let i = 0; i < dataArr.length; i++) if (dataArr[i] > maxVal) maxVal = dataArr[i];
-      if (maxVal > peakLevel) peakLevel = maxVal;
+      if (meterCtx.state === 'suspended') meterCtx.resume();
+      analyser.getByteTimeDomainData(timeData);
+
+      // 計算相對於中心線 128 的真實聲波振幅 (0 ~ 128)
+      let maxAmp = 0;
+      for (let i = 0; i < timeData.length; i++) {
+        const amp = Math.abs(timeData[i] - 128);
+        if (amp > maxAmp) maxAmp = amp;
+      }
+      if (maxAmp > peakLevel) peakLevel = maxAmp;
 
       ctx2d.clearRect(0, 0, canvas.width, canvas.height);
-      const barW = 6, gap = 4, bars = Math.floor(canvas.width / (barW + gap));
+      const barW = 5, gap = 3, bars = Math.floor(canvas.width / (barW + gap));
+      const step = Math.floor(timeData.length / bars);
       for (let i = 0; i < bars; i++) {
-        const val = dataArr[i % dataArr.length] || 0;
-        const h = Math.max(4, (val / 255) * (canvas.height - 8));
-        ctx2d.fillStyle = val > 25 ? '#F43F5E' : '#CBD5E1';
+        const amp = Math.abs(timeData[i * step] - 128);
+        // 放大 3 倍視覺靈敏度，輕聲說話也能看到明顯波形
+        const norm = Math.min(1, (amp * 3.0) / 128);
+        const h = Math.max(4, norm * (canvas.height - 6));
+        ctx2d.fillStyle = amp > 3 ? '#F43F5E' : '#94A3B8';
         ctx2d.fillRect(i * (barW + gap) + 4, (canvas.height - h) / 2, barW, h);
       }
       waveRaf = requestAnimationFrame(draw);
@@ -38,9 +96,10 @@ const ParentVoice = (() => {
     draw();
   }
 
+  let currentSourceNode = null;
   function stopWaveformMeter() {
     cancelAnimationFrame(waveRaf);
-    if (meterCtx) { meterCtx.close().catch(() => {}); meterCtx = null; }
+    if (currentSourceNode) { try { currentSourceNode.disconnect(); } catch (e) {} currentSourceNode = null; }
     return peakLevel;
   }
 
@@ -150,13 +209,14 @@ const ParentVoice = (() => {
 
   async function startGuidedRecording({ storyId, storyTitle, langId, langLabel, tokens, speedRate, onHighlight, onPreviewReady, onCancel }) {
     if (isRecording) return;
+    unlockAudioContext();
     const banner = document.getElementById('parent-rec-banner');
     const statusText = document.getElementById('rec-status-text');
     const btnRec = document.getElementById('btn-parent-rec');
 
     let stream;
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      stream = await getCleanMicStream();
     } catch (e) {
       alert('無法存取麥克風！請檢查瀏覽器麥克風權限。');
       if (onCancel) onCancel();
@@ -193,7 +253,7 @@ const ParentVoice = (() => {
       btnRec.style.background = '#FFF1F2';
       btnRec.style.color = '#BE123C';
 
-      if (peak < 15) {
+      if (peak < 3) {
         alert('⚠️ 警告：麥克風幾乎沒有收到聲音（聲波無跳動）！\n請檢查電腦/iPad 的「系統設定 -> 聲音 -> 輸入」是否選對麥克風或被靜音。');
       }
 
@@ -244,7 +304,7 @@ const ParentVoice = (() => {
 
   return {
     isRecording: () => isRecording,
-    startWaveformMeter, stopWaveformMeter,
+    unlockAudioContext, getCleanMicStream, startWaveformMeter, stopWaveformMeter,
     confirmSavePending, discardPending, getAllRecordings, getRecordingsForStory,
     deleteRecording, renameRecording, activateRecord,
     getActiveData: () => activeParentData,
