@@ -15,6 +15,21 @@ const storyContent = document.getElementById('story-content');
 const btnPlayTts = document.getElementById('btn-play-tts');
 const btnReadAlong = document.getElementById('btn-read-along');
 const btnSpeed = document.getElementById('btn-speed');
+let playMode = 'exact';
+const btnMode = document.getElementById('btn-mode');
+btnMode.addEventListener('click', () => {
+  stopTtsPlayback();
+  clearHighlight();
+  playMode = playMode === 'exact' ? 'fluent' : 'exact';
+  btnMode.textContent = playMode === 'exact' ? '🎯 精讀' : '📖 故事';
+  if (currentStory) {
+    const rawUrl = (playMode === 'exact' && currentStory.exactAudioUrl) ? currentStory.exactAudioUrl : currentStory.audioUrl;
+    ttsAudioEl.src = `${rawUrl}?t=${Date.now()}`;
+    ttsAudioEl.playbackRate = SPEEDS[speedIdx].rate;
+    ttsAudioEl.load();
+  }
+});
+
 const recordPanel = document.getElementById('record-panel');
 const recordedAudioEl = document.getElementById('recorded-audio');
 
@@ -49,7 +64,8 @@ async function openStory(id) {
   document.getElementById('reader-title').textContent = currentStory.title;
   renderTokens(currentStory.tokens, currentStory.lang);
 
-  const freshUrl = `${currentStory.audioUrl}?t=${Date.now()}`;
+  const rawAudio = (playMode === 'exact' && currentStory.exactAudioUrl) ? currentStory.exactAudioUrl : currentStory.audioUrl;
+  const freshUrl = `${rawAudio}?t=${Date.now()}`;
   ttsAudioEl.src = freshUrl; ttsAudioEl.playbackRate = SPEEDS[speedIdx].rate; ttsAudioEl.load();
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   const audioRes = await fetch(freshUrl);
@@ -70,27 +86,36 @@ function renderTokens(tokens, lang) {
   storyContent.querySelectorAll('.token:not(.punct)').forEach(el => el.addEventListener('click', () => playSingleToken(Number(el.dataset.idx), el)));
 }
 
+let wordPlayer = new Audio();
 function playSingleToken(idx, el) {
-  if (!storyAudioBuffer || !currentStory) return;
-  if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (!currentStory) return;
   stopTtsPlayback();
-  if (activeSingleSource) { try { activeSingleSource.stop(); } catch (e) {} }
+  wordPlayer.pause();
 
-  const token = currentStory.tokens[idx], rate = SPEEDS[speedIdx].rate;
-  const rawDur = Math.max(0.08, token.end - token.start), actualDur = rawDur / rate;
-  const source = audioCtx.createBufferSource(), gainNode = audioCtx.createGain();
-  source.buffer = storyAudioBuffer; source.playbackRate.value = rate; activeSingleSource = source;
-
-  const now = audioCtx.currentTime;
-  gainNode.gain.setValueAtTime(1, now);
-  gainNode.gain.setValueAtTime(1, now + Math.max(0, actualDur - 0.02));
-  gainNode.gain.linearRampToValueAtTime(0.001, now + actualDur);
-  source.connect(gainNode); gainNode.connect(audioCtx.destination);
-  source.start(0, token.start, rawDur);
+  const token = currentStory.tokens[idx];
+  const rate = SPEEDS[speedIdx].rate;
 
   storyContent.querySelectorAll('.token.tapped').forEach(x => x.classList.remove('tapped'));
   el.classList.add('tapped');
-  setTimeout(() => el.classList.remove('tapped'), actualDur * 1000 + 100);
+
+  if (token.wordAudio) {
+    wordPlayer.src = token.wordAudio;
+    wordPlayer.playbackRate = rate;
+    wordPlayer.onended = () => el.classList.remove('tapped');
+    wordPlayer.onerror = () => el.classList.remove('tapped');
+    wordPlayer.play().catch(() => el.classList.remove('tapped'));
+  } else if (storyAudioBuffer) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    if (activeSingleSource) { try { activeSingleSource.stop(); } catch (e) {} }
+    const st = token.exactStart !== undefined ? token.exactStart : token.start;
+    const ed = token.exactEnd !== undefined ? token.exactEnd : token.end;
+    const rawDur = Math.max(0.08, ed - st), actualDur = rawDur / rate;
+    const source = audioCtx.createBufferSource();
+    source.buffer = storyAudioBuffer; source.playbackRate.value = rate; activeSingleSource = source;
+    source.connect(audioCtx.destination);
+    source.start(0, st, rawDur);
+    setTimeout(() => el.classList.remove('tapped'), actualDur * 1000 + 100);
+  }
 }
 
 btnPlayTts.addEventListener('click', () => {
@@ -102,10 +127,40 @@ function stopTtsPlayback() { ttsAudioEl.pause(); cancelAnimationFrame(rafId); bt
 
 function syncHighlightLoop() {
   const t = ttsAudioEl.currentTime;
-  const activeIdx = currentStory.tokens.findIndex(item => !item.isBreak && t >= (item.start - 0.03) && t <= (item.end + 0.03));
-  if (activeIdx !== -1) highlightToken(activeIdx);
+  const tokens = currentStory.tokens;
+
+  if (playMode === 'exact') {
+    const activeIdx = tokens.findIndex(item => !item.isBreak && t >= (item.exactStart - 0.02) && t <= (item.exactEnd + 0.02));
+    if (activeIdx !== -1) highlightToken(activeIdx);
+  } else {
+    let activeIdx = tokens.findIndex(item => !item.isBreak && !item.isPunct && t >= item.start && t <= item.end);
+    if (activeIdx === -1) {
+      for (let i = tokens.length - 1; i >= 0; i--) {
+        if (!tokens[i].isBreak && !tokens[i].isPunct && t >= tokens[i].start) { activeIdx = i; break; }
+      }
+    }
+    if (activeIdx !== -1) {
+      let sStart = activeIdx, sEnd = activeIdx;
+      while (sStart > 0 && !tokens[sStart - 1].isBreak && !tokens[sStart - 1].isPunct) sStart--;
+      while (sEnd < tokens.length - 1 && !tokens[sEnd + 1].isBreak && !tokens[sEnd + 1].isPunct) sEnd++;
+      highlightSentenceRange(sStart, sEnd, activeIdx);
+    }
+  }
+
   if (!ttsAudioEl.paused && !ttsAudioEl.ended) rafId = requestAnimationFrame(syncHighlightLoop);
   else if (ttsAudioEl.ended) { clearHighlight(); releaseWakeLock(); btnPlayTts.querySelector('.label').textContent = '聽故事'; }
+}
+
+function highlightSentenceRange(startIdx, endIdx, focusIdx) {
+  storyContent.querySelectorAll('.token.active, .token.sentence-active').forEach(el => {
+    el.classList.remove('active', 'sentence-active');
+  });
+  for (let i = startIdx; i <= endIdx; i++) {
+    const el = storyContent.querySelector(`.token[data-idx="${i}"]`);
+    if (el) el.classList.add('sentence-active');
+  }
+  const focusEl = storyContent.querySelector(`.token[data-idx="${focusIdx}"]`);
+  if (focusEl) focusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 btnReadAlong.addEventListener('click', () => { isReadingAlong ? stopReadAlong() : startReadAlong(); });
@@ -181,7 +236,7 @@ function highlightToken(idx) {
   const target = storyContent.querySelector(`.token[data-idx="${idx}"]`);
   if (target) { target.classList.add('active'); target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
 }
-function clearHighlight() { storyContent.querySelectorAll('.token').forEach(el => el.classList.remove('active')); }
+function clearHighlight() { storyContent.querySelectorAll('.token').forEach(el => el.classList.remove('active', 'sentence-active')); }
 async function requestWakeLock() { try { if ('wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); document.getElementById('wake-badge').style.display = 'inline-block'; } } catch (e) {} }
 function releaseWakeLock() { if (wakeLock) { wakeLock.release(); wakeLock = null; } document.getElementById('wake-badge').style.display = 'none'; }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && (!ttsAudioEl.paused || isReadingAlong)) requestWakeLock(); });

@@ -4,318 +4,465 @@
   "lang": "zh-HK",
   "text": "有一日，驕傲嘅白兔哥同烏龜先生比賽跑。\n\n白兔哥跑得好快，佢見烏龜行得咁慢，就喺大樹下面瞓覺。\n\n烏龜一步一步咁向前行，最後竟然贏咗比賽！",
   "audioUrl": "./assets/audio/story_006.mp3",
+  "exactAudioUrl": "./assets/audio/story_006_exact.mp3",
   "tokens": [
     {
       "text": "有",
-      "start": 0.1,
-      "end": 0.482,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/078638fc581b.mp3",
+      "start": 0.05,
+      "end": 0.431,
+      "exactStart": 0.1,
+      "exactEnd": 0.482
     },
     {
       "text": "一日",
-      "start": 0.517,
-      "end": 0.909,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/eda31c704faf.mp3",
+      "start": 0.431,
+      "end": 1.193,
+      "exactStart": 0.517,
+      "exactEnd": 0.909
     },
     {
       "text": "，",
-      "start": 0.944,
-      "end": 1.194,
-      "isPunct": true
+      "isPunct": true,
+      "start": 1.193,
+      "end": 1.243,
+      "exactStart": 0.944,
+      "exactEnd": 1.194
     },
     {
       "text": "驕",
-      "start": 1.194,
-      "end": 1.576,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/283c541a6ff0.mp3",
+      "start": 1.193,
+      "end": 1.574,
+      "exactStart": 1.194,
+      "exactEnd": 1.576
     },
     {
       "text": "傲",
-      "start": 1.611,
-      "end": 2.003,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/767a7975dc2e.mp3",
+      "start": 1.574,
+      "end": 1.955,
+      "exactStart": 1.611,
+      "exactEnd": 2.003
     },
     {
       "text": "嘅",
-      "start": 2.038,
-      "end": 2.415,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/0b6e3e147103.mp3",
+      "start": 1.955,
+      "end": 2.336,
+      "exactStart": 2.038,
+      "exactEnd": 2.415
     },
     {
       "text": "白兔",
-      "start": 2.45,
-      "end": 3.137,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/b7858be695dd.mp3",
+      "start": 2.336,
+      "end": 3.098,
+      "exactStart": 2.45,
+      "exactEnd": 3.137
     },
     {
       "text": "哥同",
-      "start": 3.172,
-      "end": 3.814,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/53aa7f3fa029.mp3",
+      "start": 3.098,
+      "end": 3.86,
+      "exactStart": 3.172,
+      "exactEnd": 3.814
     },
     {
       "text": "烏龜",
-      "start": 3.849,
-      "end": 4.546,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/0418febae162.mp3",
+      "start": 3.86,
+      "end": 4.622,
+      "exactStart": 3.849,
+      "exactEnd": 4.546
     },
     {
       "text": "先生",
-      "start": 4.581,
-      "end": 5.393,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/0d879f359bfe.mp3",
+      "start": 4.622,
+      "end": 5.384,
+      "exactStart": 4.581,
+      "exactEnd": 5.393
     },
     {
       "text": "比賽",
-      "start": 5.428,
-      "end": 6.125,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/b4b6e72e9b47.mp3",
+      "start": 5.384,
+      "end": 6.147,
+      "exactStart": 5.428,
+      "exactEnd": 6.125
     },
     {
       "text": "跑",
-      "start": 6.16,
-      "end": 6.617,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/218504455477.mp3",
+      "start": 6.147,
+      "end": 6.528,
+      "exactStart": 6.16,
+      "exactEnd": 6.617
     },
     {
       "text": "。",
-      "start": 6.652,
-      "end": 7.072,
-      "isPunct": true
+      "isPunct": true,
+      "start": 6.528,
+      "end": 6.578,
+      "exactStart": 6.652,
+      "exactEnd": 7.072
     },
     {
       "isBreak": true
     },
     {
       "text": "白兔",
-      "start": 7.622,
-      "end": 8.309,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/b7858be695dd.mp3",
+      "start": 6.528,
+      "end": 7.29,
+      "exactStart": 7.622,
+      "exactEnd": 8.309
     },
     {
       "text": "哥",
-      "start": 8.344,
-      "end": 8.696,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/e69ab81f933d.mp3",
+      "start": 7.29,
+      "end": 7.671,
+      "exactStart": 8.344,
+      "exactEnd": 8.696
     },
     {
       "text": "跑",
-      "start": 8.731,
-      "end": 9.188,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/218504455477.mp3",
+      "start": 7.671,
+      "end": 8.052,
+      "exactStart": 8.731,
+      "exactEnd": 9.188
     },
     {
       "text": "得",
-      "start": 9.223,
-      "end": 9.405,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/bf3ec97d2d8c.mp3",
+      "start": 8.052,
+      "end": 8.433,
+      "exactStart": 9.223,
+      "exactEnd": 9.405
     },
     {
       "text": "好",
-      "start": 9.44,
-      "end": 9.812,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/bc372eb52806.mp3",
+      "start": 8.433,
+      "end": 8.814,
+      "exactStart": 9.44,
+      "exactEnd": 9.812
     },
     {
       "text": "快",
-      "start": 9.847,
-      "end": 10.299,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/60e693cabba2.mp3",
+      "start": 8.814,
+      "end": 9.195,
+      "exactStart": 9.847,
+      "exactEnd": 10.299
     },
     {
       "text": "，",
-      "start": 10.334,
-      "end": 10.584,
-      "isPunct": true
+      "isPunct": true,
+      "start": 9.195,
+      "end": 9.245,
+      "exactStart": 10.334,
+      "exactEnd": 10.584
     },
     {
       "text": "佢",
-      "start": 10.584,
-      "end": 11.006,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/819db802805e.mp3",
+      "start": 9.195,
+      "end": 9.576,
+      "exactStart": 10.584,
+      "exactEnd": 11.006
     },
     {
       "text": "見",
-      "start": 11.041,
-      "end": 11.453,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/86978b836595.mp3",
+      "start": 9.576,
+      "end": 9.957,
+      "exactStart": 11.041,
+      "exactEnd": 11.453
     },
     {
       "text": "烏",
-      "start": 11.488,
-      "end": 11.855,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/f184a9b8a8fc.mp3",
+      "start": 9.957,
+      "end": 10.338,
+      "exactStart": 11.488,
+      "exactEnd": 11.855
     },
     {
       "text": "龜",
-      "start": 11.89,
-      "end": 12.277,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/61a4a6080199.mp3",
+      "start": 10.338,
+      "end": 10.719,
+      "exactStart": 11.89,
+      "exactEnd": 12.277
     },
     {
       "text": "行",
-      "start": 12.312,
-      "end": 12.724,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/be1888779e5c.mp3",
+      "start": 10.719,
+      "end": 11.1,
+      "exactStart": 12.312,
+      "exactEnd": 12.724
     },
     {
       "text": "得",
-      "start": 12.759,
-      "end": 12.941,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/bf3ec97d2d8c.mp3",
+      "start": 11.1,
+      "end": 11.481,
+      "exactStart": 12.759,
+      "exactEnd": 12.941
     },
     {
       "text": "咁",
-      "start": 12.976,
-      "end": 13.388,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/330c2502c8f7.mp3",
+      "start": 11.481,
+      "end": 11.862,
+      "exactStart": 12.976,
+      "exactEnd": 13.388
     },
     {
       "text": "慢",
-      "start": 13.423,
-      "end": 13.86,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/340415c838eb.mp3",
+      "start": 11.862,
+      "end": 12.243,
+      "exactStart": 13.423,
+      "exactEnd": 13.86
     },
     {
       "text": "，",
-      "start": 13.895,
-      "end": 14.145,
-      "isPunct": true
+      "isPunct": true,
+      "start": 12.243,
+      "end": 12.293,
+      "exactStart": 13.895,
+      "exactEnd": 14.145
     },
     {
       "text": "就",
-      "start": 14.145,
-      "end": 14.552,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/78d7a0b797be.mp3",
+      "start": 12.243,
+      "end": 12.624,
+      "exactStart": 14.145,
+      "exactEnd": 14.552
     },
     {
       "text": "喺",
-      "start": 14.587,
-      "end": 15.014,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/2976d40eefce.mp3",
+      "start": 12.624,
+      "end": 13.005,
+      "exactStart": 14.587,
+      "exactEnd": 15.014
     },
     {
       "text": "大",
-      "start": 15.049,
-      "end": 15.476,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/c704e96601ea.mp3",
+      "start": 13.005,
+      "end": 13.386,
+      "exactStart": 15.049,
+      "exactEnd": 15.476
     },
     {
       "text": "樹",
-      "start": 15.511,
-      "end": 15.998,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/6e39bd093d32.mp3",
+      "start": 13.386,
+      "end": 13.767,
+      "exactStart": 15.511,
+      "exactEnd": 15.998
     },
     {
       "text": "下面",
-      "start": 16.033,
-      "end": 16.785,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/a8ed2255b2f8.mp3",
+      "start": 13.767,
+      "end": 14.529,
+      "exactStart": 16.033,
+      "exactEnd": 16.785
     },
     {
       "text": "瞓",
-      "start": 16.82,
-      "end": 17.262,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/5d0f82271216.mp3",
+      "start": 14.529,
+      "end": 14.91,
+      "exactStart": 16.82,
+      "exactEnd": 17.262
     },
     {
       "text": "覺",
-      "start": 17.297,
-      "end": 17.549,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/b9a93d39acf9.mp3",
+      "start": 14.91,
+      "end": 15.291,
+      "exactStart": 17.297,
+      "exactEnd": 17.549
     },
     {
       "text": "。",
-      "start": 17.584,
-      "end": 18.004,
-      "isPunct": true
+      "isPunct": true,
+      "start": 15.291,
+      "end": 15.341,
+      "exactStart": 17.584,
+      "exactEnd": 18.004
     },
     {
       "isBreak": true
     },
     {
       "text": "烏龜",
-      "start": 18.554,
-      "end": 19.251,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/0418febae162.mp3",
+      "start": 15.291,
+      "end": 16.053,
+      "exactStart": 18.554,
+      "exactEnd": 19.251
     },
     {
       "text": "一步",
-      "start": 19.286,
-      "end": 19.893,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/1066af47f115.mp3",
+      "start": 16.053,
+      "end": 16.816,
+      "exactStart": 19.286,
+      "exactEnd": 19.893
     },
     {
       "text": "一步",
-      "start": 19.928,
-      "end": 20.535,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/1066af47f115.mp3",
+      "start": 16.816,
+      "end": 17.578,
+      "exactStart": 19.928,
+      "exactEnd": 20.535
     },
     {
       "text": "咁",
-      "start": 20.57,
-      "end": 20.982,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/330c2502c8f7.mp3",
+      "start": 17.578,
+      "end": 17.959,
+      "exactStart": 20.57,
+      "exactEnd": 20.982
     },
     {
       "text": "向前",
-      "start": 21.017,
-      "end": 21.799,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/bd6e1e6a47d5.mp3",
+      "start": 17.959,
+      "end": 18.721,
+      "exactStart": 21.017,
+      "exactEnd": 21.799
     },
     {
       "text": "行",
-      "start": 21.834,
-      "end": 22.246,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/be1888779e5c.mp3",
+      "start": 18.721,
+      "end": 19.102,
+      "exactStart": 21.834,
+      "exactEnd": 22.246
     },
     {
       "text": "，",
-      "start": 22.281,
-      "end": 22.531,
-      "isPunct": true
+      "isPunct": true,
+      "start": 19.102,
+      "end": 19.152,
+      "exactStart": 22.281,
+      "exactEnd": 22.531
     },
     {
       "text": "最",
-      "start": 22.531,
-      "end": 22.963,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/2584e0123f48.mp3",
+      "start": 19.102,
+      "end": 19.483,
+      "exactStart": 22.531,
+      "exactEnd": 22.963
     },
     {
       "text": "後",
-      "start": 22.998,
-      "end": 23.43,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/27d64f33b47a.mp3",
+      "start": 19.483,
+      "end": 19.864,
+      "exactStart": 22.998,
+      "exactEnd": 23.43
     },
     {
       "text": "竟然",
-      "start": 23.465,
-      "end": 24.077,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/53efdc6eec59.mp3",
+      "start": 19.864,
+      "end": 20.626,
+      "exactStart": 23.465,
+      "exactEnd": 24.077
     },
     {
       "text": "贏",
-      "start": 24.112,
-      "end": 24.539,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/15d4a30635fe.mp3",
+      "start": 20.626,
+      "end": 21.007,
+      "exactStart": 24.112,
+      "exactEnd": 24.539
     },
     {
       "text": "咗",
-      "start": 24.574,
-      "end": 24.981,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/af5f6aed96be.mp3",
+      "start": 21.007,
+      "end": 21.388,
+      "exactStart": 24.574,
+      "exactEnd": 24.981
     },
     {
       "text": "比賽",
-      "start": 25.016,
-      "end": 25.713,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/b4b6e72e9b47.mp3",
+      "start": 21.388,
+      "end": 22.15,
+      "exactStart": 25.016,
+      "exactEnd": 25.713
     },
     {
       "text": "！",
-      "start": 25.748,
-      "end": 26.168,
-      "isPunct": true
+      "isPunct": true,
+      "start": 22.15,
+      "end": 22.2,
+      "exactStart": 25.748,
+      "exactEnd": 26.168
     }
   ]
 }

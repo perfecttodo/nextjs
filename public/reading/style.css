@@ -77,3 +77,8 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "PingFang TC",
 .btn-speed:active {
   transform: scale(0.95);
 }
+
+.token.sentence-active {
+  background: #FEF08A;
+  border-radius: 6px;
+}

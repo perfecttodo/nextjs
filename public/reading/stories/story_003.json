@@ -4,282 +4,411 @@
   "lang": "zh-HK",
   "text": "從前，有一隻好可愛嘅小兔子，佢有一對長長嘅耳朵。\n\n每日朝早，佢都會去森林入面搵唔同嘅小動物一齊玩。\n\n大家都好鍾意同小兔子做朋友，成個森林都充滿笑聲。",
   "audioUrl": "./assets/audio/story_003.mp3",
+  "exactAudioUrl": "./assets/audio/story_003_exact.mp3",
   "tokens": [
     {
       "text": "從前",
-      "start": 0.1,
-      "end": 0.832,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/c0e0f7154367.mp3",
+      "start": 0.05,
+      "end": 0.802,
+      "exactStart": 0.1,
+      "exactEnd": 0.832
     },
     {
       "text": "，",
-      "start": 0.867,
-      "end": 1.117,
-      "isPunct": true
+      "isPunct": true,
+      "start": 0.802,
+      "end": 0.852,
+      "exactStart": 0.867,
+      "exactEnd": 1.117
     },
     {
       "text": "有",
-      "start": 1.117,
-      "end": 1.499,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/078638fc581b.mp3",
+      "start": 0.802,
+      "end": 1.177,
+      "exactStart": 1.117,
+      "exactEnd": 1.499
     },
     {
       "text": "一隻",
-      "start": 1.534,
-      "end": 2.016,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/f179c48367c8.mp3",
+      "start": 1.177,
+      "end": 1.929,
+      "exactStart": 1.534,
+      "exactEnd": 2.016
     },
     {
       "text": "好可愛",
-      "start": 2.051,
-      "end": 3.036,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/66463b6fe56c.mp3",
+      "start": 1.929,
+      "end": 3.057,
+      "exactStart": 2.051,
+      "exactEnd": 3.036
     },
     {
       "text": "嘅",
-      "start": 3.071,
-      "end": 3.448,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/0b6e3e147103.mp3",
+      "start": 3.057,
+      "end": 3.432,
+      "exactStart": 3.071,
+      "exactEnd": 3.448
     },
     {
       "text": "小兔子",
-      "start": 3.483,
-      "end": 4.598,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/bf9263cdd200.mp3",
+      "start": 3.432,
+      "end": 4.56,
+      "exactStart": 3.483,
+      "exactEnd": 4.598
     },
     {
       "text": "，",
-      "start": 4.633,
-      "end": 4.883,
-      "isPunct": true
+      "isPunct": true,
+      "start": 4.56,
+      "end": 4.61,
+      "exactStart": 4.633,
+      "exactEnd": 4.883
     },
     {
       "text": "佢",
-      "start": 4.883,
-      "end": 5.305,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/819db802805e.mp3",
+      "start": 4.56,
+      "end": 4.936,
+      "exactStart": 4.883,
+      "exactEnd": 5.305
     },
     {
       "text": "有",
-      "start": 5.34,
-      "end": 5.722,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/078638fc581b.mp3",
+      "start": 4.936,
+      "end": 5.311,
+      "exactStart": 5.34,
+      "exactEnd": 5.722
     },
     {
       "text": "一對",
-      "start": 5.757,
-      "end": 6.389,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/be6bef1d8a89.mp3",
+      "start": 5.311,
+      "end": 6.063,
+      "exactStart": 5.757,
+      "exactEnd": 6.389
     },
     {
       "text": "長長",
-      "start": 6.424,
-      "end": 7.241,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/fe77010b1135.mp3",
+      "start": 6.063,
+      "end": 6.815,
+      "exactStart": 6.424,
+      "exactEnd": 7.241
     },
     {
       "text": "嘅",
-      "start": 7.276,
-      "end": 7.653,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/0b6e3e147103.mp3",
+      "start": 6.815,
+      "end": 7.19,
+      "exactStart": 7.276,
+      "exactEnd": 7.653
     },
     {
       "text": "耳朵",
-      "start": 7.688,
-      "end": 8.345,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/e7cc3cb2817e.mp3",
+      "start": 7.19,
+      "end": 7.942,
+      "exactStart": 7.688,
+      "exactEnd": 8.345
     },
     {
       "text": "。",
-      "start": 8.38,
-      "end": 8.8,
-      "isPunct": true
+      "isPunct": true,
+      "start": 7.942,
+      "end": 7.992,
+      "exactStart": 8.38,
+      "exactEnd": 8.8
     },
     {
       "isBreak": true
     },
     {
       "text": "每日",
-      "start": 9.35,
-      "end": 9.877,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/ef1e425b531b.mp3",
+      "start": 7.942,
+      "end": 8.694,
+      "exactStart": 9.35,
+      "exactEnd": 9.877
     },
     {
       "text": "朝早",
-      "start": 9.912,
-      "end": 10.659,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/c967a80e0dde.mp3",
+      "start": 8.694,
+      "end": 9.445,
+      "exactStart": 9.912,
+      "exactEnd": 10.659
     },
     {
       "text": "，",
-      "start": 10.694,
-      "end": 10.944,
-      "isPunct": true
+      "isPunct": true,
+      "start": 9.445,
+      "end": 9.495,
+      "exactStart": 10.694,
+      "exactEnd": 10.944
     },
     {
       "text": "佢",
-      "start": 10.944,
-      "end": 11.366,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/819db802805e.mp3",
+      "start": 9.445,
+      "end": 9.821,
+      "exactStart": 10.944,
+      "exactEnd": 11.366
     },
     {
       "text": "都",
-      "start": 11.401,
-      "end": 11.748,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/4d46f7a5ba38.mp3",
+      "start": 9.821,
+      "end": 10.197,
+      "exactStart": 11.401,
+      "exactEnd": 11.748
     },
     {
       "text": "會",
-      "start": 11.783,
-      "end": 12.19,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/68b82024bcff.mp3",
+      "start": 10.197,
+      "end": 10.573,
+      "exactStart": 11.783,
+      "exactEnd": 12.19
     },
     {
       "text": "去",
-      "start": 12.225,
-      "end": 12.652,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/58a118ccbd55.mp3",
+      "start": 10.573,
+      "end": 10.949,
+      "exactStart": 12.225,
+      "exactEnd": 12.652
     },
     {
       "text": "森林",
-      "start": 12.687,
-      "end": 13.374,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/4689d2473416.mp3",
+      "start": 10.949,
+      "end": 11.7,
+      "exactStart": 12.687,
+      "exactEnd": 13.374
     },
     {
       "text": "入面",
-      "start": 13.409,
-      "end": 14.076,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/4165a6c6c65b.mp3",
+      "start": 11.7,
+      "end": 12.452,
+      "exactStart": 13.409,
+      "exactEnd": 14.076
     },
     {
       "text": "搵",
-      "start": 14.111,
-      "end": 14.538,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/d02cf89fbfa4.mp3",
+      "start": 12.452,
+      "end": 12.828,
+      "exactStart": 14.111,
+      "exactEnd": 14.538
     },
     {
       "text": "唔",
-      "start": 14.573,
-      "end": 14.92,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/c805fe3110c2.mp3",
+      "start": 12.828,
+      "end": 13.204,
+      "exactStart": 14.573,
+      "exactEnd": 14.92
     },
     {
       "text": "同",
-      "start": 14.955,
-      "end": 15.357,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/058f657750bd.mp3",
+      "start": 13.204,
+      "end": 13.579,
+      "exactStart": 14.955,
+      "exactEnd": 15.357
     },
     {
       "text": "嘅",
-      "start": 15.392,
-      "end": 15.769,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/0b6e3e147103.mp3",
+      "start": 13.579,
+      "end": 13.955,
+      "exactStart": 15.392,
+      "exactEnd": 15.769
     },
     {
       "text": "小動物",
-      "start": 15.804,
-      "end": 16.645,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/28bb64f4d86d.mp3",
+      "start": 13.955,
+      "end": 15.083,
+      "exactStart": 15.804,
+      "exactEnd": 16.645
     },
     {
       "text": "一齊玩",
-      "start": 16.68,
-      "end": 17.651,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/eccbe855220b.mp3",
+      "start": 15.083,
+      "end": 16.21,
+      "exactStart": 16.68,
+      "exactEnd": 17.651
     },
     {
       "text": "。",
-      "start": 17.686,
-      "end": 18.106,
-      "isPunct": true
+      "isPunct": true,
+      "start": 16.21,
+      "end": 16.26,
+      "exactStart": 17.686,
+      "exactEnd": 18.106
     },
     {
       "isBreak": true
     },
     {
       "text": "大家",
-      "start": 18.656,
-      "end": 19.303,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/a57c5ab084b1.mp3",
+      "start": 16.21,
+      "end": 16.962,
+      "exactStart": 18.656,
+      "exactEnd": 19.303
     },
     {
       "text": "都",
-      "start": 19.338,
-      "end": 19.685,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/4d46f7a5ba38.mp3",
+      "start": 16.962,
+      "end": 17.338,
+      "exactStart": 19.338,
+      "exactEnd": 19.685
     },
     {
       "text": "好鍾意",
-      "start": 19.72,
-      "end": 20.709,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/1a49f4012718.mp3",
+      "start": 17.338,
+      "end": 18.465,
+      "exactStart": 19.72,
+      "exactEnd": 20.709
     },
     {
       "text": "同",
-      "start": 20.744,
-      "end": 21.146,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/058f657750bd.mp3",
+      "start": 18.465,
+      "end": 18.841,
+      "exactStart": 20.744,
+      "exactEnd": 21.146
     },
     {
       "text": "小兔子",
-      "start": 21.181,
-      "end": 22.296,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/bf9263cdd200.mp3",
+      "start": 18.841,
+      "end": 19.968,
+      "exactStart": 21.181,
+      "exactEnd": 22.296
     },
     {
       "text": "做",
-      "start": 22.331,
-      "end": 22.728,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/e3d924f1110b.mp3",
+      "start": 19.968,
+      "end": 20.344,
+      "exactStart": 22.331,
+      "exactEnd": 22.728
     },
     {
       "text": "朋友",
-      "start": 22.763,
-      "end": 23.47,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/5b501b636130.mp3",
+      "start": 20.344,
+      "end": 21.096,
+      "exactStart": 22.763,
+      "exactEnd": 23.47
     },
     {
       "text": "，",
-      "start": 23.505,
-      "end": 23.755,
-      "isPunct": true
+      "isPunct": true,
+      "start": 21.096,
+      "end": 21.146,
+      "exactStart": 23.505,
+      "exactEnd": 23.755
     },
     {
       "text": "成個",
-      "start": 23.755,
-      "end": 24.502,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/7179eeebeeb0.mp3",
+      "start": 21.096,
+      "end": 21.847,
+      "exactStart": 23.755,
+      "exactEnd": 24.502
     },
     {
       "text": "森林",
-      "start": 24.537,
-      "end": 25.224,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/4689d2473416.mp3",
+      "start": 21.847,
+      "end": 22.599,
+      "exactStart": 24.537,
+      "exactEnd": 25.224
     },
     {
       "text": "都",
-      "start": 25.259,
-      "end": 25.606,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/4d46f7a5ba38.mp3",
+      "start": 22.599,
+      "end": 22.975,
+      "exactStart": 25.259,
+      "exactEnd": 25.606
     },
     {
       "text": "充滿",
-      "start": 25.641,
-      "end": 26.338,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/a14336a9c575.mp3",
+      "start": 22.975,
+      "end": 23.726,
+      "exactStart": 25.641,
+      "exactEnd": 26.338
     },
     {
       "text": "笑聲",
-      "start": 26.373,
-      "end": 27.14,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/7f87949ab64c.mp3",
+      "start": 23.726,
+      "end": 24.478,
+      "exactStart": 26.373,
+      "exactEnd": 27.14
     },
     {
       "text": "。",
-      "start": 27.175,
-      "end": 27.595,
-      "isPunct": true
+      "isPunct": true,
+      "start": 24.478,
+      "end": 24.528,
+      "exactStart": 27.175,
+      "exactEnd": 27.595
     }
   ]
 }

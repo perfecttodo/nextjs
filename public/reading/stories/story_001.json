@@ -4,180 +4,259 @@
   "lang": "en-US",
   "text": "Twinkle, twinkle, little star.\n\nHow I wonder what you are!\n\nUp above the world so high, like a diamond in the sky.",
   "audioUrl": "./assets/audio/story_001.mp3",
+  "exactAudioUrl": "./assets/audio/story_001_exact.mp3",
   "tokens": [
     {
       "text": "Twinkle",
-      "start": 0.1,
-      "end": 0.777,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/c14624b509ab.mp3",
+      "start": 0.05,
+      "end": 0.597,
+      "exactStart": 0.1,
+      "exactEnd": 0.777
     },
     {
       "text": ",",
-      "start": 0.812,
-      "end": 1.062,
-      "isPunct": true
+      "isPunct": true,
+      "start": 0.597,
+      "end": 0.647,
+      "exactStart": 0.812,
+      "exactEnd": 1.062
     },
     {
       "text": "twinkle",
-      "start": 1.062,
-      "end": 1.739,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/aa4056e69dcb.mp3",
+      "start": 0.597,
+      "end": 1.145,
+      "exactStart": 1.062,
+      "exactEnd": 1.739
     },
     {
       "text": ",",
-      "start": 1.774,
-      "end": 2.024,
-      "isPunct": true
+      "isPunct": true,
+      "start": 1.145,
+      "end": 1.195,
+      "exactStart": 1.774,
+      "exactEnd": 2.024
     },
     {
       "text": "little",
-      "start": 2.024,
-      "end": 2.521,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/be450372b897.mp3",
+      "start": 1.145,
+      "end": 1.692,
+      "exactStart": 2.024,
+      "exactEnd": 2.521
     },
     {
       "text": "star",
-      "start": 2.556,
-      "end": 3.153,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/f117f15de888.mp3",
+      "start": 1.692,
+      "end": 2.24,
+      "exactStart": 2.556,
+      "exactEnd": 3.153
     },
     {
       "text": ".",
-      "start": 3.188,
-      "end": 3.438,
-      "isPunct": true
+      "isPunct": true,
+      "start": 2.24,
+      "end": 2.29,
+      "exactStart": 3.188,
+      "exactEnd": 3.438
     },
     {
       "isBreak": true
     },
     {
       "text": "How",
-      "start": 3.988,
-      "end": 4.37,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/815f904223a7.mp3",
+      "start": 2.24,
+      "end": 2.787,
+      "exactStart": 3.988,
+      "exactEnd": 4.37
     },
     {
       "text": "I",
-      "start": 4.405,
-      "end": 4.747,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/ea0c67303197.mp3",
+      "start": 2.787,
+      "end": 3.335,
+      "exactStart": 4.405,
+      "exactEnd": 4.747
     },
     {
       "text": "wonder",
-      "start": 4.782,
-      "end": 5.324,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/4d4d8a5f5156.mp3",
+      "start": 3.335,
+      "end": 3.882,
+      "exactStart": 4.782,
+      "exactEnd": 5.324
     },
     {
       "text": "what",
-      "start": 5.359,
-      "end": 5.676,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/3e84b475f0fe.mp3",
+      "start": 3.882,
+      "end": 4.43,
+      "exactStart": 5.359,
+      "exactEnd": 5.676
     },
     {
       "text": "you",
-      "start": 5.711,
-      "end": 6.073,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/000a5df92fdf.mp3",
+      "start": 4.43,
+      "end": 4.977,
+      "exactStart": 5.711,
+      "exactEnd": 6.073
     },
     {
       "text": "are",
-      "start": 6.108,
-      "end": 6.475,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/8f54fe2a2d2e.mp3",
+      "start": 4.977,
+      "end": 5.525,
+      "exactStart": 6.108,
+      "exactEnd": 6.475
     },
     {
       "text": "!",
-      "start": 6.51,
-      "end": 6.93,
-      "isPunct": true
+      "isPunct": true,
+      "start": 5.525,
+      "end": 5.575,
+      "exactStart": 6.51,
+      "exactEnd": 6.93
     },
     {
       "isBreak": true
     },
     {
       "text": "Up",
-      "start": 7.48,
-      "end": 7.647,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/beb2775e8894.mp3",
+      "start": 5.525,
+      "end": 6.072,
+      "exactStart": 7.48,
+      "exactEnd": 7.647
     },
     {
       "text": "above",
-      "start": 7.682,
-      "end": 8.134,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/07bc1fff7637.mp3",
+      "start": 6.072,
+      "end": 6.619,
+      "exactStart": 7.682,
+      "exactEnd": 8.134
     },
     {
       "text": "the",
-      "start": 8.169,
-      "end": 8.471,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/040a4c8398a8.mp3",
+      "start": 6.619,
+      "end": 7.167,
+      "exactStart": 8.169,
+      "exactEnd": 8.471
     },
     {
       "text": "world",
-      "start": 8.506,
-      "end": 8.993,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/ad4a399edb2c.mp3",
+      "start": 7.167,
+      "end": 7.714,
+      "exactStart": 8.506,
+      "exactEnd": 8.993
     },
     {
       "text": "so",
-      "start": 9.028,
-      "end": 9.445,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/d25574ff42a5.mp3",
+      "start": 7.714,
+      "end": 8.262,
+      "exactStart": 9.028,
+      "exactEnd": 9.445
     },
     {
       "text": "high",
-      "start": 9.48,
-      "end": 9.852,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/e7d76804c873.mp3",
+      "start": 8.262,
+      "end": 8.809,
+      "exactStart": 9.48,
+      "exactEnd": 9.852
     },
     {
       "text": ",",
-      "start": 9.887,
-      "end": 10.137,
-      "isPunct": true
+      "isPunct": true,
+      "start": 8.809,
+      "end": 8.859,
+      "exactStart": 9.887,
+      "exactEnd": 10.137
     },
     {
       "text": "like",
-      "start": 10.137,
-      "end": 10.404,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/ab39895f1b76.mp3",
+      "start": 8.809,
+      "end": 9.357,
+      "exactStart": 10.137,
+      "exactEnd": 10.404
     },
     {
       "text": "a",
-      "start": 10.439,
-      "end": 10.746,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/14e86de3b966.mp3",
+      "start": 9.357,
+      "end": 9.904,
+      "exactStart": 10.439,
+      "exactEnd": 10.746
     },
     {
       "text": "diamond",
-      "start": 10.781,
-      "end": 11.398,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/9f574b82bae5.mp3",
+      "start": 9.904,
+      "end": 10.452,
+      "exactStart": 10.781,
+      "exactEnd": 11.398
     },
     {
       "text": "in",
-      "start": 11.433,
-      "end": 11.71,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/a5943e6e1db9.mp3",
+      "start": 10.452,
+      "end": 10.999,
+      "exactStart": 11.433,
+      "exactEnd": 11.71
     },
     {
       "text": "the",
-      "start": 11.745,
-      "end": 12.047,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/040a4c8398a8.mp3",
+      "start": 10.999,
+      "end": 11.547,
+      "exactStart": 11.745,
+      "exactEnd": 12.047
     },
     {
       "text": "sky",
-      "start": 12.082,
-      "end": 12.594,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/6794f53a5d3d.mp3",
+      "start": 11.547,
+      "end": 12.094,
+      "exactStart": 12.082,
+      "exactEnd": 12.594
     },
     {
       "text": ".",
-      "start": 12.629,
-      "end": 12.879,
-      "isPunct": true
+      "isPunct": true,
+      "start": 12.094,
+      "end": 12.144,
+      "exactStart": 12.629,
+      "exactEnd": 12.879
     }
   ]
 }

@@ -4,306 +4,446 @@
   "lang": "zh-CN",
   "text": "春天到了，小熊在院子里种下了一颗小小的苹果树苗。\n\n他每天给小树浇水、晒太阳，小树苗慢慢长高了。\n\n到了秋天，树上结满了又大又红的甜苹果，小熊请大家一起分享。",
   "audioUrl": "./assets/audio/story_004.mp3",
+  "exactAudioUrl": "./assets/audio/story_004_exact.mp3",
   "tokens": [
     {
       "text": "春天",
-      "start": 0.1,
-      "end": 0.747,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/6268f1d0b93e.mp3",
+      "start": 0.05,
+      "end": 0.613,
+      "exactStart": 0.1,
+      "exactEnd": 0.747
     },
     {
       "text": "到",
-      "start": 0.782,
-      "end": 1.109,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/0cb987456046.mp3",
+      "start": 0.613,
+      "end": 0.894,
+      "exactStart": 0.782,
+      "exactEnd": 1.109
     },
     {
       "text": "了",
-      "start": 1.144,
-      "end": 1.476,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/710e54162778.mp3",
+      "start": 0.894,
+      "end": 1.176,
+      "exactStart": 1.144,
+      "exactEnd": 1.476
     },
     {
       "text": "，",
-      "start": 1.511,
-      "end": 1.761,
-      "isPunct": true
+      "isPunct": true,
+      "start": 1.176,
+      "end": 1.226,
+      "exactStart": 1.511,
+      "exactEnd": 1.761
     },
     {
       "text": "小熊",
-      "start": 1.761,
-      "end": 2.408,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/2f66a35864cb.mp3",
+      "start": 1.176,
+      "end": 1.739,
+      "exactStart": 1.761,
+      "exactEnd": 2.408
     },
     {
       "text": "在",
-      "start": 2.443,
-      "end": 2.78,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/1fd3e34fcec2.mp3",
+      "start": 1.739,
+      "end": 2.02,
+      "exactStart": 2.443,
+      "exactEnd": 2.78
     },
     {
       "text": "院子",
-      "start": 2.815,
-      "end": 3.367,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/f48c86f08f24.mp3",
+      "start": 2.02,
+      "end": 2.583,
+      "exactStart": 2.815,
+      "exactEnd": 3.367
     },
     {
       "text": "里种",
-      "start": 3.402,
-      "end": 3.979,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/d904332ded91.mp3",
+      "start": 2.583,
+      "end": 3.146,
+      "exactStart": 3.402,
+      "exactEnd": 3.979
     },
     {
       "text": "下",
-      "start": 4.014,
-      "end": 4.421,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/a4d30eaaa88c.mp3",
+      "start": 3.146,
+      "end": 3.428,
+      "exactStart": 4.014,
+      "exactEnd": 4.421
     },
     {
       "text": "了",
-      "start": 4.456,
-      "end": 4.788,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/710e54162778.mp3",
+      "start": 3.428,
+      "end": 3.709,
+      "exactStart": 4.456,
+      "exactEnd": 4.788
     },
     {
       "text": "一颗",
-      "start": 4.823,
-      "end": 5.4,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/65cd4f3d9116.mp3",
+      "start": 3.709,
+      "end": 4.272,
+      "exactStart": 4.823,
+      "exactEnd": 5.4
     },
     {
       "text": "小小的",
-      "start": 5.435,
-      "end": 6.202,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/9becf5d452b0.mp3",
+      "start": 4.272,
+      "end": 5.117,
+      "exactStart": 5.435,
+      "exactEnd": 6.202
     },
     {
       "text": "苹果",
-      "start": 6.237,
-      "end": 6.884,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/6509c70e8d8f.mp3",
+      "start": 5.117,
+      "end": 5.68,
+      "exactStart": 6.237,
+      "exactEnd": 6.884
     },
     {
       "text": "树苗",
-      "start": 6.919,
-      "end": 7.566,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/5f6c5ac1465e.mp3",
+      "start": 5.68,
+      "end": 6.243,
+      "exactStart": 6.919,
+      "exactEnd": 7.566
     },
     {
       "text": "。",
-      "start": 7.601,
-      "end": 8.021,
-      "isPunct": true
+      "isPunct": true,
+      "start": 6.243,
+      "end": 6.293,
+      "exactStart": 7.601,
+      "exactEnd": 8.021
     },
     {
       "isBreak": true
     },
     {
       "text": "他",
-      "start": 8.571,
-      "end": 8.903,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/cd7317ebb27b.mp3",
+      "start": 6.243,
+      "end": 6.524,
+      "exactStart": 8.571,
+      "exactEnd": 8.903
     },
     {
       "text": "每天",
-      "start": 8.938,
-      "end": 9.555,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/d7e6b9ec0777.mp3",
+      "start": 6.524,
+      "end": 7.087,
+      "exactStart": 8.938,
+      "exactEnd": 9.555
     },
     {
       "text": "给",
-      "start": 9.59,
-      "end": 9.942,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/83936f499ca2.mp3",
+      "start": 7.087,
+      "end": 7.369,
+      "exactStart": 9.59,
+      "exactEnd": 9.942
     },
     {
       "text": "小树",
-      "start": 9.977,
-      "end": 10.624,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/441ae9182e35.mp3",
+      "start": 7.369,
+      "end": 7.932,
+      "exactStart": 9.977,
+      "exactEnd": 10.624
     },
     {
       "text": "浇水",
-      "start": 10.659,
-      "end": 11.311,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/cb6f43ff1f99.mp3",
+      "start": 7.932,
+      "end": 8.495,
+      "exactStart": 10.659,
+      "exactEnd": 11.311
     },
     {
       "text": "、",
-      "start": 11.346,
-      "end": 11.596,
-      "isPunct": true
+      "isPunct": true,
+      "start": 8.495,
+      "end": 8.545,
+      "exactStart": 11.346,
+      "exactEnd": 11.596
     },
     {
       "text": "晒太阳",
-      "start": 11.596,
-      "end": 12.468,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/103fa26dd92b.mp3",
+      "start": 8.495,
+      "end": 9.339,
+      "exactStart": 11.596,
+      "exactEnd": 12.468
     },
     {
       "text": "，",
-      "start": 12.503,
-      "end": 12.753,
-      "isPunct": true
+      "isPunct": true,
+      "start": 9.339,
+      "end": 9.389,
+      "exactStart": 12.503,
+      "exactEnd": 12.753
     },
     {
       "text": "小树苗",
-      "start": 12.753,
-      "end": 13.585,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/0699704e267b.mp3",
+      "start": 9.339,
+      "end": 10.184,
+      "exactStart": 12.753,
+      "exactEnd": 13.585
     },
     {
       "text": "慢慢",
-      "start": 13.62,
-      "end": 14.162,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/307288d393ff.mp3",
+      "start": 10.184,
+      "end": 10.747,
+      "exactStart": 13.62,
+      "exactEnd": 14.162
     },
     {
       "text": "长高",
-      "start": 14.197,
-      "end": 14.769,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/abc9920cee62.mp3",
+      "start": 10.747,
+      "end": 11.31,
+      "exactStart": 14.197,
+      "exactEnd": 14.769
     },
     {
       "text": "了",
-      "start": 14.804,
-      "end": 15.136,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/710e54162778.mp3",
+      "start": 11.31,
+      "end": 11.591,
+      "exactStart": 14.804,
+      "exactEnd": 15.136
     },
     {
       "text": "。",
-      "start": 15.171,
-      "end": 15.591,
-      "isPunct": true
+      "isPunct": true,
+      "start": 11.591,
+      "end": 11.641,
+      "exactStart": 15.171,
+      "exactEnd": 15.591
     },
     {
       "isBreak": true
     },
     {
       "text": "到",
-      "start": 16.141,
-      "end": 16.468,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/0cb987456046.mp3",
+      "start": 11.591,
+      "end": 11.873,
+      "exactStart": 16.141,
+      "exactEnd": 16.468
     },
     {
       "text": "了",
-      "start": 16.503,
-      "end": 16.835,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/710e54162778.mp3",
+      "start": 11.873,
+      "end": 12.154,
+      "exactStart": 16.503,
+      "exactEnd": 16.835
     },
     {
       "text": "秋天",
-      "start": 16.87,
-      "end": 17.502,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/5334c4100c7c.mp3",
+      "start": 12.154,
+      "end": 12.717,
+      "exactStart": 16.87,
+      "exactEnd": 17.502
     },
     {
       "text": "，",
-      "start": 17.537,
-      "end": 17.787,
-      "isPunct": true
+      "isPunct": true,
+      "start": 12.717,
+      "end": 12.767,
+      "exactStart": 17.537,
+      "exactEnd": 17.787
     },
     {
       "text": "树上",
-      "start": 17.787,
-      "end": 18.409,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/c57f234139b3.mp3",
+      "start": 12.717,
+      "end": 13.28,
+      "exactStart": 17.787,
+      "exactEnd": 18.409
     },
     {
       "text": "结满",
-      "start": 18.444,
-      "end": 19.036,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/4f76c9a9774c.mp3",
+      "start": 13.28,
+      "end": 13.843,
+      "exactStart": 18.444,
+      "exactEnd": 19.036
     },
     {
       "text": "了",
-      "start": 19.071,
-      "end": 19.403,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/710e54162778.mp3",
+      "start": 13.843,
+      "end": 14.125,
+      "exactStart": 19.071,
+      "exactEnd": 19.403
     },
     {
       "text": "又",
-      "start": 19.438,
-      "end": 19.8,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/d0c9cecc93fe.mp3",
+      "start": 14.125,
+      "end": 14.406,
+      "exactStart": 19.438,
+      "exactEnd": 19.8
     },
     {
       "text": "大",
-      "start": 19.835,
-      "end": 20.172,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/a7dbb5bbc8d2.mp3",
+      "start": 14.406,
+      "end": 14.688,
+      "exactStart": 19.835,
+      "exactEnd": 20.172
     },
     {
       "text": "又",
-      "start": 20.207,
-      "end": 20.569,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/d0c9cecc93fe.mp3",
+      "start": 14.688,
+      "end": 14.969,
+      "exactStart": 20.207,
+      "exactEnd": 20.569
     },
     {
       "text": "红",
-      "start": 20.604,
-      "end": 20.941,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/8e419a79804a.mp3",
+      "start": 14.969,
+      "end": 15.251,
+      "exactStart": 20.604,
+      "exactEnd": 20.941
     },
     {
       "text": "的",
-      "start": 20.976,
-      "end": 21.323,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/d25f1b378933.mp3",
+      "start": 15.251,
+      "end": 15.532,
+      "exactStart": 20.976,
+      "exactEnd": 21.323
     },
     {
       "text": "甜",
-      "start": 21.358,
-      "end": 21.76,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/1086ce7d52f8.mp3",
+      "start": 15.532,
+      "end": 15.814,
+      "exactStart": 21.358,
+      "exactEnd": 21.76
     },
     {
       "text": "苹果",
-      "start": 21.795,
-      "end": 22.442,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/6509c70e8d8f.mp3",
+      "start": 15.814,
+      "end": 16.377,
+      "exactStart": 21.795,
+      "exactEnd": 22.442
     },
     {
       "text": "，",
-      "start": 22.477,
-      "end": 22.727,
-      "isPunct": true
+      "isPunct": true,
+      "start": 16.377,
+      "end": 16.427,
+      "exactStart": 22.477,
+      "exactEnd": 22.727
     },
     {
       "text": "小熊",
-      "start": 22.727,
-      "end": 23.374,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/2f66a35864cb.mp3",
+      "start": 16.377,
+      "end": 16.94,
+      "exactStart": 22.727,
+      "exactEnd": 23.374
     },
     {
       "text": "请",
-      "start": 23.409,
-      "end": 23.816,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/679329b29228.mp3",
+      "start": 16.94,
+      "end": 17.221,
+      "exactStart": 23.409,
+      "exactEnd": 23.816
     },
     {
       "text": "大家",
-      "start": 23.851,
-      "end": 24.393,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/fbeb34e9c0af.mp3",
+      "start": 17.221,
+      "end": 17.784,
+      "exactStart": 23.851,
+      "exactEnd": 24.393
     },
     {
       "text": "一起",
-      "start": 24.428,
-      "end": 25.09,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/5da400ad3643.mp3",
+      "start": 17.784,
+      "end": 18.347,
+      "exactStart": 24.428,
+      "exactEnd": 25.09
     },
     {
       "text": "分享",
-      "start": 25.125,
-      "end": 25.692,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/1247674e6c9d.mp3",
+      "start": 18.347,
+      "end": 18.91,
+      "exactStart": 25.125,
+      "exactEnd": 25.692
     },
     {
       "text": "。",
-      "start": 25.727,
-      "end": 26.147,
-      "isPunct": true
+      "isPunct": true,
+      "start": 18.91,
+      "end": 18.96,
+      "exactStart": 25.727,
+      "exactEnd": 26.147
     }
   ]
 }

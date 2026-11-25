@@ -4,258 +4,376 @@
   "lang": "zh-HK",
   "text": "每天早上太陽出來的時候，樹枝上的小鳥都會大聲唱歌。\n\n牠的歌聲非常清脆，叫醒了所有還在睡覺的小動物。\n\n大家一起在草地上跳舞，迎接快樂的一天。",
   "audioUrl": "./assets/audio/story_005.mp3",
+  "exactAudioUrl": "./assets/audio/story_005_exact.mp3",
   "tokens": [
     {
       "text": "每天",
-      "start": 0.1,
+      "isPunct": false,
+      "wordAudio": "./assets/words/3a4329d0095e.mp3",
+      "start": 0.05,
       "end": 0.797,
-      "isPunct": false
+      "exactStart": 0.1,
+      "exactEnd": 0.797
     },
     {
       "text": "早上",
-      "start": 0.832,
-      "end": 1.559,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/d812f361f178.mp3",
+      "start": 0.797,
+      "end": 1.545,
+      "exactStart": 0.832,
+      "exactEnd": 1.559
     },
     {
       "text": "太陽",
-      "start": 1.594,
-      "end": 2.336,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/389c31a8034f.mp3",
+      "start": 1.545,
+      "end": 2.292,
+      "exactStart": 1.594,
+      "exactEnd": 2.336
     },
     {
       "text": "出來",
-      "start": 2.371,
-      "end": 3.078,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/e3f2e01acd02.mp3",
+      "start": 2.292,
+      "end": 3.04,
+      "exactStart": 2.371,
+      "exactEnd": 3.078
     },
     {
       "text": "的",
-      "start": 3.113,
-      "end": 3.29,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/3bf976e06f8b.mp3",
+      "start": 3.04,
+      "end": 3.413,
+      "exactStart": 3.113,
+      "exactEnd": 3.29
     },
     {
       "text": "時候",
-      "start": 3.325,
-      "end": 4.147,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/b18771578b80.mp3",
+      "start": 3.413,
+      "end": 4.161,
+      "exactStart": 3.325,
+      "exactEnd": 4.147
     },
     {
       "text": "，",
-      "start": 4.182,
-      "end": 4.432,
-      "isPunct": true
+      "isPunct": true,
+      "start": 4.161,
+      "end": 4.211,
+      "exactStart": 4.182,
+      "exactEnd": 4.432
     },
     {
       "text": "樹枝上",
-      "start": 4.432,
-      "end": 5.528,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/bdb1aab6890a.mp3",
+      "start": 4.161,
+      "end": 5.282,
+      "exactStart": 4.432,
+      "exactEnd": 5.528
     },
     {
       "text": "的",
-      "start": 5.563,
-      "end": 5.74,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/3bf976e06f8b.mp3",
+      "start": 5.282,
+      "end": 5.656,
+      "exactStart": 5.563,
+      "exactEnd": 5.74
     },
     {
       "text": "小鳥",
-      "start": 5.775,
-      "end": 6.557,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/31e3e7956f4f.mp3",
+      "start": 5.656,
+      "end": 6.403,
+      "exactStart": 5.775,
+      "exactEnd": 6.557
     },
     {
       "text": "都",
-      "start": 6.592,
-      "end": 6.939,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/4d46f7a5ba38.mp3",
+      "start": 6.403,
+      "end": 6.777,
+      "exactStart": 6.592,
+      "exactEnd": 6.939
     },
     {
       "text": "會",
-      "start": 6.974,
-      "end": 7.381,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/68b82024bcff.mp3",
+      "start": 6.777,
+      "end": 7.15,
+      "exactStart": 6.974,
+      "exactEnd": 7.381
     },
     {
       "text": "大聲",
-      "start": 7.416,
-      "end": 8.133,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/25998cbc263f.mp3",
+      "start": 7.15,
+      "end": 7.898,
+      "exactStart": 7.416,
+      "exactEnd": 8.133
     },
     {
       "text": "唱歌",
-      "start": 8.168,
-      "end": 8.91,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/1b53f0938fd4.mp3",
+      "start": 7.898,
+      "end": 8.645,
+      "exactStart": 8.168,
+      "exactEnd": 8.91
     },
     {
       "text": "。",
-      "start": 8.945,
-      "end": 9.365,
-      "isPunct": true
+      "isPunct": true,
+      "start": 8.645,
+      "end": 8.695,
+      "exactStart": 8.945,
+      "exactEnd": 9.365
     },
     {
       "isBreak": true
     },
     {
       "text": "牠",
-      "start": 9.915,
-      "end": 10.332,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/214b47c0909f.mp3",
+      "start": 8.645,
+      "end": 9.019,
+      "exactStart": 9.915,
+      "exactEnd": 10.332
     },
     {
       "text": "的",
-      "start": 10.367,
-      "end": 10.544,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/3bf976e06f8b.mp3",
+      "start": 9.019,
+      "end": 9.393,
+      "exactStart": 10.367,
+      "exactEnd": 10.544
     },
     {
       "text": "歌聲",
-      "start": 10.579,
-      "end": 11.256,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/d00907f2024a.mp3",
+      "start": 9.393,
+      "end": 10.14,
+      "exactStart": 10.579,
+      "exactEnd": 11.256
     },
     {
       "text": "非常",
-      "start": 11.291,
-      "end": 11.988,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/7d0999f833f1.mp3",
+      "start": 10.14,
+      "end": 10.887,
+      "exactStart": 11.291,
+      "exactEnd": 11.988
     },
     {
       "text": "清脆",
-      "start": 12.023,
-      "end": 12.795,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/cb37a77b5a6d.mp3",
+      "start": 10.887,
+      "end": 11.635,
+      "exactStart": 12.023,
+      "exactEnd": 12.795
     },
     {
       "text": "，",
-      "start": 12.83,
-      "end": 13.08,
-      "isPunct": true
+      "isPunct": true,
+      "start": 11.635,
+      "end": 11.685,
+      "exactStart": 12.83,
+      "exactEnd": 13.08
     },
     {
       "text": "叫醒",
-      "start": 13.08,
-      "end": 13.802,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/7e7cd35f0e90.mp3",
+      "start": 11.635,
+      "end": 12.382,
+      "exactStart": 13.08,
+      "exactEnd": 13.802
     },
     {
       "text": "了",
-      "start": 13.837,
-      "end": 14.219,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/9340c66afc7d.mp3",
+      "start": 12.382,
+      "end": 12.756,
+      "exactStart": 13.837,
+      "exactEnd": 14.219
     },
     {
       "text": "所有",
-      "start": 14.254,
-      "end": 15.006,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/6c8fdc4858da.mp3",
+      "start": 12.756,
+      "end": 13.503,
+      "exactStart": 14.254,
+      "exactEnd": 15.006
     },
     {
       "text": "還在",
-      "start": 15.041,
-      "end": 15.783,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/e0ec60e46292.mp3",
+      "start": 13.503,
+      "end": 14.251,
+      "exactStart": 15.041,
+      "exactEnd": 15.783
     },
     {
       "text": "睡覺",
-      "start": 15.818,
-      "end": 16.625,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/185a3de1b507.mp3",
+      "start": 14.251,
+      "end": 14.998,
+      "exactStart": 15.818,
+      "exactEnd": 16.625
     },
     {
       "text": "的",
-      "start": 16.66,
-      "end": 16.837,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/3bf976e06f8b.mp3",
+      "start": 14.998,
+      "end": 15.372,
+      "exactStart": 16.66,
+      "exactEnd": 16.837
     },
     {
       "text": "小動物",
-      "start": 16.872,
-      "end": 17.713,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/28bb64f4d86d.mp3",
+      "start": 15.372,
+      "end": 16.493,
+      "exactStart": 16.872,
+      "exactEnd": 17.713
     },
     {
       "text": "。",
-      "start": 17.748,
-      "end": 18.168,
-      "isPunct": true
+      "isPunct": true,
+      "start": 16.493,
+      "end": 16.543,
+      "exactStart": 17.748,
+      "exactEnd": 18.168
     },
     {
       "isBreak": true
     },
     {
       "text": "大家",
-      "start": 18.718,
-      "end": 19.365,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/a57c5ab084b1.mp3",
+      "start": 16.493,
+      "end": 17.24,
+      "exactStart": 18.718,
+      "exactEnd": 19.365
     },
     {
       "text": "一起",
-      "start": 19.4,
-      "end": 20.047,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/50889fbe1377.mp3",
+      "start": 17.24,
+      "end": 17.988,
+      "exactStart": 19.4,
+      "exactEnd": 20.047
     },
     {
       "text": "在",
-      "start": 20.082,
-      "end": 20.519,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/66dac7817eca.mp3",
+      "start": 17.988,
+      "end": 18.362,
+      "exactStart": 20.082,
+      "exactEnd": 20.519
     },
     {
       "text": "草地",
-      "start": 20.554,
-      "end": 21.296,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/757d759253c1.mp3",
+      "start": 18.362,
+      "end": 19.109,
+      "exactStart": 20.554,
+      "exactEnd": 21.296
     },
     {
       "text": "上",
-      "start": 21.331,
-      "end": 21.848,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/47a845acf3ab.mp3",
+      "start": 19.109,
+      "end": 19.483,
+      "exactStart": 21.331,
+      "exactEnd": 21.848
     },
     {
       "text": "跳舞",
-      "start": 21.883,
-      "end": 22.595,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/ca55d51c244c.mp3",
+      "start": 19.483,
+      "end": 20.23,
+      "exactStart": 21.883,
+      "exactEnd": 22.595
     },
     {
       "text": "，",
-      "start": 22.63,
-      "end": 22.88,
-      "isPunct": true
+      "isPunct": true,
+      "start": 20.23,
+      "end": 20.28,
+      "exactStart": 22.63,
+      "exactEnd": 22.88
     },
     {
       "text": "迎接",
-      "start": 22.88,
-      "end": 23.402,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/07ace79e4348.mp3",
+      "start": 20.23,
+      "end": 20.977,
+      "exactStart": 22.88,
+      "exactEnd": 23.402
     },
     {
       "text": "快樂",
-      "start": 23.437,
-      "end": 24.029,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/08d4ced83bcc.mp3",
+      "start": 20.977,
+      "end": 21.725,
+      "exactStart": 23.437,
+      "exactEnd": 24.029
     },
     {
       "text": "的",
-      "start": 24.064,
-      "end": 24.241,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/3bf976e06f8b.mp3",
+      "start": 21.725,
+      "end": 22.099,
+      "exactStart": 24.064,
+      "exactEnd": 24.241
     },
     {
       "text": "一天",
-      "start": 24.276,
-      "end": 24.948,
-      "isPunct": false
+      "isPunct": false,
+      "wordAudio": "./assets/words/d08027744e16.mp3",
+      "start": 22.099,
+      "end": 22.846,
+      "exactStart": 24.276,
+      "exactEnd": 24.948
     },
     {
       "text": "。",
-      "start": 24.983,
-      "end": 25.403,
-      "isPunct": true
+      "isPunct": true,
+      "start": 22.846,
+      "end": 22.896,
+      "exactStart": 24.983,
+      "exactEnd": 25.403
     }
   ]
 }
