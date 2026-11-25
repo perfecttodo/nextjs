@@ -1881,11 +1881,11 @@
           "text_tw": "The",
           "text_cn": "The",
           "isPunct": false,
-          "wordAudio": "./assets/words/3b334d9c9cd7.mp3",
+          "wordAudio": "./assets/words/8e63bef9c971.mp3",
           "start": 0.15,
           "end": 0.638,
           "exactStart": 0.1,
-          "exactEnd": 0.402
+          "exactEnd": 0.392
         },
         {
           "text": "Little",
@@ -1896,8 +1896,8 @@
           "wordAudio": "./assets/words/e3b31f8d63fc.mp3",
           "start": 0.638,
           "end": 1.126,
-          "exactStart": 0.432,
-          "exactEnd": 0.929
+          "exactStart": 0.422,
+          "exactEnd": 0.919
         },
         {
           "text": "Rabbit",
@@ -1908,8 +1908,8 @@
           "wordAudio": "./assets/words/97e13d73fa79.mp3",
           "start": 1.126,
           "end": 1.614,
-          "exactStart": 0.959,
-          "exactEnd": 1.421
+          "exactStart": 0.949,
+          "exactEnd": 1.411
         },
         {
           "text": "Makes",
@@ -1920,8 +1920,8 @@
           "wordAudio": "./assets/words/04ff8c566911.mp3",
           "start": 1.614,
           "end": 2.102,
-          "exactStart": 1.451,
-          "exactEnd": 2.063
+          "exactStart": 1.441,
+          "exactEnd": 2.053
         },
         {
           "text": "Friends",
@@ -1932,8 +1932,8 @@
           "wordAudio": "./assets/words/e9e456be0c71.mp3",
           "start": 2.102,
           "end": 2.59,
-          "exactStart": 2.093,
-          "exactEnd": 2.815
+          "exactStart": 2.083,
+          "exactEnd": 2.805
         },
         {
           "isBreak": true
@@ -1947,8 +1947,8 @@
           "wordAudio": "./assets/words/5b7670f3d881.mp3",
           "start": 2.79,
           "end": 3.278,
-          "exactStart": 3.345,
-          "exactEnd": 3.922
+          "exactStart": 3.335,
+          "exactEnd": 3.912
         },
         {
           "text": "upon",
@@ -1959,8 +1959,8 @@
           "wordAudio": "./assets/words/8a7c8d780399.mp3",
           "start": 3.278,
           "end": 3.766,
-          "exactStart": 3.952,
-          "exactEnd": 4.529
+          "exactStart": 3.942,
+          "exactEnd": 4.519
         },
         {
           "text": "a",
@@ -1968,11 +1968,11 @@
           "text_tw": "a",
           "text_cn": "a",
           "isPunct": false,
-          "wordAudio": "./assets/words/14e86de3b966.mp3",
+          "wordAudio": "./assets/words/d9b917c146bf.mp3",
           "start": 3.766,
           "end": 4.254,
-          "exactStart": 4.559,
-          "exactEnd": 4.866
+          "exactStart": 4.549,
+          "exactEnd": 4.891
         },
         {
           "text": "time",
@@ -1983,8 +1983,8 @@
           "wordAudio": "./assets/words/0e28a7a9cefa.mp3",
           "start": 4.254,
           "end": 4.742,
-          "exactStart": 4.896,
-          "exactEnd": 5.358
+          "exactStart": 4.921,
+          "exactEnd": 5.383
         },
         {
           "text": ",",
@@ -1994,8 +1994,8 @@
           "isPunct": true,
           "start": 4.742,
           "end": 4.792,
-          "exactStart": 5.388,
-          "exactEnd": 5.608
+          "exactStart": 5.413,
+          "exactEnd": 5.633
         },
         {
           "text": "there",
@@ -2006,8 +2006,8 @@
           "wordAudio": "./assets/words/b26df3b18992.mp3",
           "start": 4.742,
           "end": 5.23,
-          "exactStart": 5.608,
-          "exactEnd": 5.945
+          "exactStart": 5.633,
+          "exactEnd": 5.97
         },
         {
           "text": "was",
@@ -2018,8 +2018,8 @@
           "wordAudio": "./assets/words/6fe50185ec04.mp3",
           "start": 5.23,
           "end": 5.718,
-          "exactStart": 5.975,
-          "exactEnd": 6.432
+          "exactStart": 6.0,
+          "exactEnd": 6.457
         },
         {
           "text": "a",
@@ -2027,11 +2027,11 @@
           "text_tw": "a",
           "text_cn": "a",
           "isPunct": false,
-          "wordAudio": "./assets/words/14e86de3b966.mp3",
+          "wordAudio": "./assets/words/d9b917c146bf.mp3",
           "start": 5.718,
           "end": 6.207,
-          "exactStart": 6.462,
-          "exactEnd": 6.769
+          "exactStart": 6.487,
+          "exactEnd": 6.829
         },
         {
           "text": "cute",
@@ -2042,8 +2042,8 @@
           "wordAudio": "./assets/words/f608bee2e3ba.mp3",
           "start": 6.207,
           "end": 6.695,
-          "exactStart": 6.799,
-          "exactEnd": 7.176
+          "exactStart": 6.859,
+          "exactEnd": 7.236
         },
         {
           "text": "little",
@@ -2054,8 +2054,8 @@
           "wordAudio": "./assets/words/be450372b897.mp3",
           "start": 6.695,
           "end": 7.183,
-          "exactStart": 7.206,
-          "exactEnd": 7.703
+          "exactStart": 7.266,
+          "exactEnd": 7.763
         },
         {
           "text": "rabbit",
@@ -2066,8 +2066,8 @@
           "wordAudio": "./assets/words/fdbfe4eba2f5.mp3",
           "start": 7.183,
           "end": 7.671,
-          "exactStart": 7.733,
-          "exactEnd": 8.195
+          "exactStart": 7.793,
+          "exactEnd": 8.255
         },
         {
           "text": "with",
@@ -2078,8 +2078,8 @@
           "wordAudio": "./assets/words/15566a79522c.mp3",
           "start": 7.671,
           "end": 8.159,
-          "exactStart": 8.225,
-          "exactEnd": 8.462
+          "exactStart": 8.285,
+          "exactEnd": 8.522
         },
         {
           "text": "long",
@@ -2090,8 +2090,8 @@
           "wordAudio": "./assets/words/180d2635be79.mp3",
           "start": 8.159,
           "end": 8.647,
-          "exactStart": 8.492,
-          "exactEnd": 8.954
+          "exactStart": 8.552,
+          "exactEnd": 9.014
         },
         {
           "text": "ears",
@@ -2102,8 +2102,8 @@
           "wordAudio": "./assets/words/183ecec1725d.mp3",
           "start": 8.647,
           "end": 9.135,
-          "exactStart": 8.984,
-          "exactEnd": 9.551
+          "exactStart": 9.044,
+          "exactEnd": 9.611
         },
         {
           "text": ".",
@@ -2113,8 +2113,8 @@
           "isPunct": true,
           "start": 9.135,
           "end": 9.185,
-          "exactStart": 9.581,
-          "exactEnd": 9.801
+          "exactStart": 9.641,
+          "exactEnd": 9.861
         },
         {
           "isBreak": true
@@ -2128,8 +2128,8 @@
           "wordAudio": "./assets/words/e6e6532ecb7b.mp3",
           "start": 9.335,
           "end": 9.823,
-          "exactStart": 10.301,
-          "exactEnd": 10.793
+          "exactStart": 10.361,
+          "exactEnd": 10.853
         },
         {
           "text": "morning",
@@ -2140,8 +2140,8 @@
           "wordAudio": "./assets/words/579e56284b8b.mp3",
           "start": 9.823,
           "end": 10.311,
-          "exactStart": 10.823,
-          "exactEnd": 11.43
+          "exactStart": 10.883,
+          "exactEnd": 11.49
         },
         {
           "text": ",",
@@ -2151,8 +2151,8 @@
           "isPunct": true,
           "start": 10.311,
           "end": 10.361,
-          "exactStart": 11.46,
-          "exactEnd": 11.68
+          "exactStart": 11.52,
+          "exactEnd": 11.74
         },
         {
           "text": "she",
@@ -2163,8 +2163,8 @@
           "wordAudio": "./assets/words/e1418b570f75.mp3",
           "start": 10.311,
           "end": 10.799,
-          "exactStart": 11.68,
-          "exactEnd": 12.077
+          "exactStart": 11.74,
+          "exactEnd": 12.137
         },
         {
           "text": "went",
@@ -2175,8 +2175,8 @@
           "wordAudio": "./assets/words/d3157d6b5e0e.mp3",
           "start": 10.799,
           "end": 11.287,
-          "exactStart": 12.107,
-          "exactEnd": 12.584
+          "exactStart": 12.167,
+          "exactEnd": 12.644
         },
         {
           "text": "into",
@@ -2187,8 +2187,8 @@
           "wordAudio": "./assets/words/2aef00d1ca0d.mp3",
           "start": 11.287,
           "end": 11.775,
-          "exactStart": 12.614,
-          "exactEnd": 13.221
+          "exactStart": 12.674,
+          "exactEnd": 13.281
         },
         {
           "text": "the",
@@ -2196,11 +2196,11 @@
           "text_tw": "the",
           "text_cn": "the",
           "isPunct": false,
-          "wordAudio": "./assets/words/040a4c8398a8.mp3",
+          "wordAudio": "./assets/words/8e63bef9c971.mp3",
           "start": 11.775,
           "end": 12.263,
-          "exactStart": 13.251,
-          "exactEnd": 13.553
+          "exactStart": 13.311,
+          "exactEnd": 13.603
         },
         {
           "text": "forest",
@@ -2211,8 +2211,8 @@
           "wordAudio": "./assets/words/da7ba26eec06.mp3",
           "start": 12.263,
           "end": 12.751,
-          "exactStart": 13.583,
-          "exactEnd": 14.279
+          "exactStart": 13.633,
+          "exactEnd": 14.329
         },
         {
           "text": "to",
@@ -2223,8 +2223,8 @@
           "wordAudio": "./assets/words/b65311cc78a0.mp3",
           "start": 12.751,
           "end": 13.239,
-          "exactStart": 14.309,
-          "exactEnd": 14.641
+          "exactStart": 14.359,
+          "exactEnd": 14.691
         },
         {
           "text": "play",
@@ -2235,8 +2235,8 @@
           "wordAudio": "./assets/words/06949c9940d8.mp3",
           "start": 13.239,
           "end": 13.727,
-          "exactStart": 14.671,
-          "exactEnd": 15.083
+          "exactStart": 14.721,
+          "exactEnd": 15.133
         },
         {
           "text": "with",
@@ -2247,8 +2247,8 @@
           "wordAudio": "./assets/words/15566a79522c.mp3",
           "start": 13.727,
           "end": 14.215,
-          "exactStart": 15.113,
-          "exactEnd": 15.35
+          "exactStart": 15.163,
+          "exactEnd": 15.4
         },
         {
           "text": "different",
@@ -2259,8 +2259,8 @@
           "wordAudio": "./assets/words/b2444ac8f7ae.mp3",
           "start": 14.215,
           "end": 14.703,
-          "exactStart": 15.38,
-          "exactEnd": 16.042
+          "exactStart": 15.43,
+          "exactEnd": 16.092
         },
         {
           "text": "little",
@@ -2271,8 +2271,8 @@
           "wordAudio": "./assets/words/be450372b897.mp3",
           "start": 14.703,
           "end": 15.191,
-          "exactStart": 16.072,
-          "exactEnd": 16.569
+          "exactStart": 16.122,
+          "exactEnd": 16.619
         },
         {
           "text": "animals",
@@ -2283,8 +2283,8 @@
           "wordAudio": "./assets/words/f9649822d0df.mp3",
           "start": 15.191,
           "end": 15.679,
-          "exactStart": 16.599,
-          "exactEnd": 17.443
+          "exactStart": 16.649,
+          "exactEnd": 17.493
         },
         {
           "text": ".",
@@ -2294,8 +2294,8 @@
           "isPunct": true,
           "start": 15.679,
           "end": 15.729,
-          "exactStart": 17.473,
-          "exactEnd": 17.693
+          "exactStart": 17.523,
+          "exactEnd": 17.743
         },
         {
           "isBreak": true
@@ -2309,8 +2309,8 @@
           "wordAudio": "./assets/words/ebdd6b01422a.mp3",
           "start": 15.879,
           "end": 16.367,
-          "exactStart": 18.193,
-          "exactEnd": 18.945
+          "exactStart": 18.243,
+          "exactEnd": 18.995
         },
         {
           "text": "loved",
@@ -2321,8 +2321,8 @@
           "wordAudio": "./assets/words/a0e65d8e1bca.mp3",
           "start": 16.367,
           "end": 16.855,
-          "exactStart": 18.975,
-          "exactEnd": 19.517
+          "exactStart": 19.025,
+          "exactEnd": 19.567
         },
         {
           "text": "being",
@@ -2333,8 +2333,8 @@
           "wordAudio": "./assets/words/bb5ad972e37c.mp3",
           "start": 16.855,
           "end": 17.343,
-          "exactStart": 19.547,
-          "exactEnd": 20.029
+          "exactStart": 19.597,
+          "exactEnd": 20.079
         },
         {
           "text": "friends",
@@ -2345,8 +2345,8 @@
           "wordAudio": "./assets/words/da00194ea21a.mp3",
           "start": 17.343,
           "end": 17.832,
-          "exactStart": 20.059,
-          "exactEnd": 20.781
+          "exactStart": 20.109,
+          "exactEnd": 20.831
         },
         {
           "text": "with",
@@ -2357,8 +2357,8 @@
           "wordAudio": "./assets/words/15566a79522c.mp3",
           "start": 17.832,
           "end": 18.32,
-          "exactStart": 20.811,
-          "exactEnd": 21.048
+          "exactStart": 20.861,
+          "exactEnd": 21.098
         },
         {
           "text": "the",
@@ -2366,11 +2366,11 @@
           "text_tw": "the",
           "text_cn": "the",
           "isPunct": false,
-          "wordAudio": "./assets/words/040a4c8398a8.mp3",
+          "wordAudio": "./assets/words/8e63bef9c971.mp3",
           "start": 18.32,
           "end": 18.808,
-          "exactStart": 21.078,
-          "exactEnd": 21.38
+          "exactStart": 21.128,
+          "exactEnd": 21.42
         },
         {
           "text": "little",
@@ -2381,8 +2381,8 @@
           "wordAudio": "./assets/words/be450372b897.mp3",
           "start": 18.808,
           "end": 19.296,
-          "exactStart": 21.41,
-          "exactEnd": 21.907
+          "exactStart": 21.45,
+          "exactEnd": 21.947
         },
         {
           "text": "rabbit",
@@ -2393,8 +2393,8 @@
           "wordAudio": "./assets/words/fdbfe4eba2f5.mp3",
           "start": 19.296,
           "end": 19.784,
-          "exactStart": 21.937,
-          "exactEnd": 22.399
+          "exactStart": 21.977,
+          "exactEnd": 22.439
         },
         {
           "text": ",",
@@ -2404,8 +2404,8 @@
           "isPunct": true,
           "start": 19.784,
           "end": 19.834,
-          "exactStart": 22.429,
-          "exactEnd": 22.649
+          "exactStart": 22.469,
+          "exactEnd": 22.689
         },
         {
           "text": "and",
@@ -2416,8 +2416,8 @@
           "wordAudio": "./assets/words/e1bf4d77686b.mp3",
           "start": 19.784,
           "end": 20.272,
-          "exactStart": 22.649,
-          "exactEnd": 23.086
+          "exactStart": 22.689,
+          "exactEnd": 23.126
         },
         {
           "text": "the",
@@ -2425,11 +2425,11 @@
           "text_tw": "the",
           "text_cn": "the",
           "isPunct": false,
-          "wordAudio": "./assets/words/040a4c8398a8.mp3",
+          "wordAudio": "./assets/words/8e63bef9c971.mp3",
           "start": 20.272,
           "end": 20.76,
-          "exactStart": 23.116,
-          "exactEnd": 23.418
+          "exactStart": 23.156,
+          "exactEnd": 23.448
         },
         {
           "text": "forest",
@@ -2440,8 +2440,8 @@
           "wordAudio": "./assets/words/da7ba26eec06.mp3",
           "start": 20.76,
           "end": 21.248,
-          "exactStart": 23.448,
-          "exactEnd": 24.144
+          "exactStart": 23.478,
+          "exactEnd": 24.174
         },
         {
           "text": "was",
@@ -2452,8 +2452,8 @@
           "wordAudio": "./assets/words/6fe50185ec04.mp3",
           "start": 21.248,
           "end": 21.736,
-          "exactStart": 24.174,
-          "exactEnd": 24.631
+          "exactStart": 24.204,
+          "exactEnd": 24.661
         },
         {
           "text": "full",
@@ -2464,8 +2464,8 @@
           "wordAudio": "./assets/words/04289860da4a.mp3",
           "start": 21.736,
           "end": 22.224,
-          "exactStart": 24.661,
-          "exactEnd": 25.028
+          "exactStart": 24.691,
+          "exactEnd": 25.058
         },
         {
           "text": "of",
@@ -2476,8 +2476,8 @@
           "wordAudio": "./assets/words/80411077d401.mp3",
           "start": 22.224,
           "end": 22.712,
-          "exactStart": 25.058,
-          "exactEnd": 25.43
+          "exactStart": 25.088,
+          "exactEnd": 25.46
         },
         {
           "text": "laughter",
@@ -2488,8 +2488,8 @@
           "wordAudio": "./assets/words/863867964ff2.mp3",
           "start": 22.712,
           "end": 23.2,
-          "exactStart": 25.46,
-          "exactEnd": 26.107
+          "exactStart": 25.49,
+          "exactEnd": 26.137
         },
         {
           "text": ".",
@@ -2499,8 +2499,8 @@
           "isPunct": true,
           "start": 23.2,
           "end": 23.25,
-          "exactStart": 26.137,
-          "exactEnd": 26.357
+          "exactStart": 26.167,
+          "exactEnd": 26.387
         }
       ]
     }

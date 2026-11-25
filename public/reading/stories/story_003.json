@@ -2274,11 +2274,11 @@
           "text_tw": "The",
           "text_cn": "The",
           "isPunct": false,
-          "wordAudio": "./assets/words/3b334d9c9cd7.mp3",
+          "wordAudio": "./assets/words/8e63bef9c971.mp3",
           "start": 0.15,
           "end": 0.591,
           "exactStart": 0.1,
-          "exactEnd": 0.402
+          "exactEnd": 0.392
         },
         {
           "text": "Three",
@@ -2289,8 +2289,8 @@
           "wordAudio": "./assets/words/8bedcc01ad27.mp3",
           "start": 0.591,
           "end": 1.031,
-          "exactStart": 0.432,
-          "exactEnd": 0.809
+          "exactStart": 0.422,
+          "exactEnd": 0.799
         },
         {
           "text": "Little",
@@ -2301,8 +2301,8 @@
           "wordAudio": "./assets/words/e3b31f8d63fc.mp3",
           "start": 1.031,
           "end": 1.472,
-          "exactStart": 0.839,
-          "exactEnd": 1.336
+          "exactStart": 0.829,
+          "exactEnd": 1.326
         },
         {
           "text": "Pigs",
@@ -2313,8 +2313,8 @@
           "wordAudio": "./assets/words/7bb0609b1e33.mp3",
           "start": 1.472,
           "end": 1.912,
-          "exactStart": 1.366,
-          "exactEnd": 1.943
+          "exactStart": 1.356,
+          "exactEnd": 1.933
         },
         {
           "isBreak": true
@@ -2328,8 +2328,8 @@
           "wordAudio": "./assets/words/8bedcc01ad27.mp3",
           "start": 2.112,
           "end": 2.553,
-          "exactStart": 2.473,
-          "exactEnd": 2.85
+          "exactStart": 2.463,
+          "exactEnd": 2.84
         },
         {
           "text": "little",
@@ -2340,8 +2340,8 @@
           "wordAudio": "./assets/words/be450372b897.mp3",
           "start": 2.553,
           "end": 2.994,
-          "exactStart": 2.88,
-          "exactEnd": 3.377
+          "exactStart": 2.87,
+          "exactEnd": 3.367
         },
         {
           "text": "pigs",
@@ -2352,8 +2352,8 @@
           "wordAudio": "./assets/words/959f1c2c327d.mp3",
           "start": 2.994,
           "end": 3.434,
-          "exactStart": 3.407,
-          "exactEnd": 3.984
+          "exactStart": 3.397,
+          "exactEnd": 3.974
         },
         {
           "text": "lived",
@@ -2364,8 +2364,8 @@
           "wordAudio": "./assets/words/7eaa758f1034.mp3",
           "start": 3.434,
           "end": 3.875,
-          "exactStart": 4.014,
-          "exactEnd": 4.516
+          "exactStart": 4.004,
+          "exactEnd": 4.506
         },
         {
           "text": "in",
@@ -2376,8 +2376,8 @@
           "wordAudio": "./assets/words/a5943e6e1db9.mp3",
           "start": 3.875,
           "end": 4.315,
-          "exactStart": 4.546,
-          "exactEnd": 4.823
+          "exactStart": 4.536,
+          "exactEnd": 4.813
         },
         {
           "text": "the",
@@ -2385,11 +2385,11 @@
           "text_tw": "the",
           "text_cn": "the",
           "isPunct": false,
-          "wordAudio": "./assets/words/040a4c8398a8.mp3",
+          "wordAudio": "./assets/words/8e63bef9c971.mp3",
           "start": 4.315,
           "end": 4.756,
-          "exactStart": 4.853,
-          "exactEnd": 5.155
+          "exactStart": 4.843,
+          "exactEnd": 5.135
         },
         {
           "text": "forest",
@@ -2400,8 +2400,8 @@
           "wordAudio": "./assets/words/da7ba26eec06.mp3",
           "start": 4.756,
           "end": 5.197,
-          "exactStart": 5.185,
-          "exactEnd": 5.881
+          "exactStart": 5.165,
+          "exactEnd": 5.861
         },
         {
           "text": ",",
@@ -2411,8 +2411,8 @@
           "isPunct": true,
           "start": 5.197,
           "end": 5.247,
-          "exactStart": 5.911,
-          "exactEnd": 6.131
+          "exactStart": 5.891,
+          "exactEnd": 6.111
         },
         {
           "text": "and",
@@ -2423,8 +2423,8 @@
           "wordAudio": "./assets/words/e1bf4d77686b.mp3",
           "start": 5.197,
           "end": 5.637,
-          "exactStart": 6.131,
-          "exactEnd": 6.568
+          "exactStart": 6.111,
+          "exactEnd": 6.548
         },
         {
           "text": "they",
@@ -2435,8 +2435,8 @@
           "wordAudio": "./assets/words/11104b114b34.mp3",
           "start": 5.637,
           "end": 6.078,
-          "exactStart": 6.598,
-          "exactEnd": 6.925
+          "exactStart": 6.578,
+          "exactEnd": 6.905
         },
         {
           "text": "decided",
@@ -2447,8 +2447,8 @@
           "wordAudio": "./assets/words/95d5142602cc.mp3",
           "start": 6.078,
           "end": 6.518,
-          "exactStart": 6.955,
-          "exactEnd": 7.612
+          "exactStart": 6.935,
+          "exactEnd": 7.592
         },
         {
           "text": "to",
@@ -2459,8 +2459,8 @@
           "wordAudio": "./assets/words/b65311cc78a0.mp3",
           "start": 6.518,
           "end": 6.959,
-          "exactStart": 7.642,
-          "exactEnd": 7.974
+          "exactStart": 7.622,
+          "exactEnd": 7.954
         },
         {
           "text": "build",
@@ -2471,8 +2471,8 @@
           "wordAudio": "./assets/words/065920e024e7.mp3",
           "start": 6.959,
           "end": 7.4,
-          "exactStart": 8.004,
-          "exactEnd": 8.471
+          "exactStart": 7.984,
+          "exactEnd": 8.451
         },
         {
           "text": "their",
@@ -2483,8 +2483,8 @@
           "wordAudio": "./assets/words/587c9b9342b2.mp3",
           "start": 7.4,
           "end": 7.84,
-          "exactStart": 8.501,
-          "exactEnd": 8.838
+          "exactStart": 8.481,
+          "exactEnd": 8.818
         },
         {
           "text": "own",
@@ -2495,8 +2495,8 @@
           "wordAudio": "./assets/words/da87c9a8645c.mp3",
           "start": 7.84,
           "end": 8.281,
-          "exactStart": 8.868,
-          "exactEnd": 9.315
+          "exactStart": 8.848,
+          "exactEnd": 9.295
         },
         {
           "text": "strong",
@@ -2507,8 +2507,8 @@
           "wordAudio": "./assets/words/7595d21207f3.mp3",
           "start": 8.281,
           "end": 8.722,
-          "exactStart": 9.345,
-          "exactEnd": 9.982
+          "exactStart": 9.325,
+          "exactEnd": 9.962
         },
         {
           "text": "new",
@@ -2519,8 +2519,8 @@
           "wordAudio": "./assets/words/0e353c377ef5.mp3",
           "start": 8.722,
           "end": 9.162,
-          "exactStart": 10.012,
-          "exactEnd": 10.399
+          "exactStart": 9.992,
+          "exactEnd": 10.379
         },
         {
           "text": "houses",
@@ -2531,8 +2531,8 @@
           "wordAudio": "./assets/words/bab61bae9da4.mp3",
           "start": 9.162,
           "end": 9.603,
-          "exactStart": 10.429,
-          "exactEnd": 11.171
+          "exactStart": 10.409,
+          "exactEnd": 11.151
         },
         {
           "text": ".",
@@ -2542,8 +2542,8 @@
           "isPunct": true,
           "start": 9.603,
           "end": 9.653,
-          "exactStart": 11.201,
-          "exactEnd": 11.421
+          "exactStart": 11.181,
+          "exactEnd": 11.401
         },
         {
           "isBreak": true
@@ -2554,11 +2554,11 @@
           "text_tw": "The",
           "text_cn": "The",
           "isPunct": false,
-          "wordAudio": "./assets/words/3b334d9c9cd7.mp3",
+          "wordAudio": "./assets/words/8e63bef9c971.mp3",
           "start": 9.803,
           "end": 10.243,
-          "exactStart": 11.921,
-          "exactEnd": 12.223
+          "exactStart": 11.901,
+          "exactEnd": 12.193
         },
         {
           "text": "first",
@@ -2569,8 +2569,8 @@
           "wordAudio": "./assets/words/3b7174612265.mp3",
           "start": 10.243,
           "end": 10.684,
-          "exactStart": 12.253,
-          "exactEnd": 12.845
+          "exactStart": 12.223,
+          "exactEnd": 12.815
         },
         {
           "text": "pig",
@@ -2581,8 +2581,8 @@
           "wordAudio": "./assets/words/8ceb01ca9c2c.mp3",
           "start": 10.684,
           "end": 11.125,
-          "exactStart": 12.875,
-          "exactEnd": 13.222
+          "exactStart": 12.845,
+          "exactEnd": 13.192
         },
         {
           "text": "built",
@@ -2593,8 +2593,8 @@
           "wordAudio": "./assets/words/b983a63d9a43.mp3",
           "start": 11.125,
           "end": 11.565,
-          "exactStart": 13.252,
-          "exactEnd": 13.709
+          "exactStart": 13.222,
+          "exactEnd": 13.679
         },
         {
           "text": "a",
@@ -2602,11 +2602,11 @@
           "text_tw": "a",
           "text_cn": "a",
           "isPunct": false,
-          "wordAudio": "./assets/words/14e86de3b966.mp3",
+          "wordAudio": "./assets/words/d9b917c146bf.mp3",
           "start": 11.565,
           "end": 12.006,
-          "exactStart": 13.739,
-          "exactEnd": 14.046
+          "exactStart": 13.709,
+          "exactEnd": 14.051
         },
         {
           "text": "house",
@@ -2617,8 +2617,8 @@
           "wordAudio": "./assets/words/e4540c3bf45d.mp3",
           "start": 12.006,
           "end": 12.446,
-          "exactStart": 14.076,
-          "exactEnd": 14.628
+          "exactStart": 14.081,
+          "exactEnd": 14.633
         },
         {
           "text": "of",
@@ -2629,8 +2629,8 @@
           "wordAudio": "./assets/words/80411077d401.mp3",
           "start": 12.446,
           "end": 12.887,
-          "exactStart": 14.658,
-          "exactEnd": 15.03
+          "exactStart": 14.663,
+          "exactEnd": 15.035
         },
         {
           "text": "straw",
@@ -2641,8 +2641,8 @@
           "wordAudio": "./assets/words/642098555753.mp3",
           "start": 12.887,
           "end": 13.328,
-          "exactStart": 15.06,
-          "exactEnd": 15.647
+          "exactStart": 15.065,
+          "exactEnd": 15.652
         },
         {
           "text": ",",
@@ -2652,8 +2652,8 @@
           "isPunct": true,
           "start": 13.328,
           "end": 13.378,
-          "exactStart": 15.677,
-          "exactEnd": 15.897
+          "exactStart": 15.682,
+          "exactEnd": 15.902
         },
         {
           "text": "the",
@@ -2661,11 +2661,11 @@
           "text_tw": "the",
           "text_cn": "the",
           "isPunct": false,
-          "wordAudio": "./assets/words/040a4c8398a8.mp3",
+          "wordAudio": "./assets/words/8e63bef9c971.mp3",
           "start": 13.328,
           "end": 13.768,
-          "exactStart": 15.897,
-          "exactEnd": 16.199
+          "exactStart": 15.902,
+          "exactEnd": 16.194
         },
         {
           "text": "second",
@@ -2676,8 +2676,8 @@
           "wordAudio": "./assets/words/86c5966e8570.mp3",
           "start": 13.768,
           "end": 14.209,
-          "exactStart": 16.229,
-          "exactEnd": 16.866
+          "exactStart": 16.224,
+          "exactEnd": 16.861
         },
         {
           "text": "built",
@@ -2688,8 +2688,8 @@
           "wordAudio": "./assets/words/b983a63d9a43.mp3",
           "start": 14.209,
           "end": 14.649,
-          "exactStart": 16.896,
-          "exactEnd": 17.353
+          "exactStart": 16.891,
+          "exactEnd": 17.348
         },
         {
           "text": "one",
@@ -2700,8 +2700,8 @@
           "wordAudio": "./assets/words/b6a78ba1f576.mp3",
           "start": 14.649,
           "end": 15.09,
-          "exactStart": 17.383,
-          "exactEnd": 17.765
+          "exactStart": 17.378,
+          "exactEnd": 17.76
         },
         {
           "text": "of",
@@ -2712,8 +2712,8 @@
           "wordAudio": "./assets/words/80411077d401.mp3",
           "start": 15.09,
           "end": 15.531,
-          "exactStart": 17.795,
-          "exactEnd": 18.167
+          "exactStart": 17.79,
+          "exactEnd": 18.162
         },
         {
           "text": "wood",
@@ -2724,8 +2724,8 @@
           "wordAudio": "./assets/words/b61dd609d1c5.mp3",
           "start": 15.531,
           "end": 15.971,
-          "exactStart": 18.197,
-          "exactEnd": 18.559
+          "exactStart": 18.192,
+          "exactEnd": 18.554
         },
         {
           "text": ",",
@@ -2735,8 +2735,8 @@
           "isPunct": true,
           "start": 15.971,
           "end": 16.021,
-          "exactStart": 18.589,
-          "exactEnd": 18.809
+          "exactStart": 18.584,
+          "exactEnd": 18.804
         },
         {
           "text": "and",
@@ -2747,8 +2747,8 @@
           "wordAudio": "./assets/words/e1bf4d77686b.mp3",
           "start": 15.971,
           "end": 16.412,
-          "exactStart": 18.809,
-          "exactEnd": 19.246
+          "exactStart": 18.804,
+          "exactEnd": 19.241
         },
         {
           "text": "only",
@@ -2759,8 +2759,8 @@
           "wordAudio": "./assets/words/5a8b8b68e25f.mp3",
           "start": 16.412,
           "end": 16.852,
-          "exactStart": 19.276,
-          "exactEnd": 19.778
+          "exactStart": 19.271,
+          "exactEnd": 19.773
         },
         {
           "text": "the",
@@ -2768,11 +2768,11 @@
           "text_tw": "the",
           "text_cn": "the",
           "isPunct": false,
-          "wordAudio": "./assets/words/040a4c8398a8.mp3",
+          "wordAudio": "./assets/words/8e63bef9c971.mp3",
           "start": 16.852,
           "end": 17.293,
-          "exactStart": 19.808,
-          "exactEnd": 20.11
+          "exactStart": 19.803,
+          "exactEnd": 20.095
         },
         {
           "text": "youngest",
@@ -2783,8 +2783,8 @@
           "wordAudio": "./assets/words/e1b4189088e3.mp3",
           "start": 17.293,
           "end": 17.734,
-          "exactStart": 20.14,
-          "exactEnd": 20.982
+          "exactStart": 20.125,
+          "exactEnd": 20.967
         },
         {
           "text": "built",
@@ -2795,8 +2795,8 @@
           "wordAudio": "./assets/words/b983a63d9a43.mp3",
           "start": 17.734,
           "end": 18.174,
-          "exactStart": 21.012,
-          "exactEnd": 21.469
+          "exactStart": 20.997,
+          "exactEnd": 21.454
         },
         {
           "text": "slowly",
@@ -2807,8 +2807,8 @@
           "wordAudio": "./assets/words/58043610e6f1.mp3",
           "start": 18.174,
           "end": 18.615,
-          "exactStart": 21.499,
-          "exactEnd": 22.221
+          "exactStart": 21.484,
+          "exactEnd": 22.206
         },
         {
           "text": "with",
@@ -2819,8 +2819,8 @@
           "wordAudio": "./assets/words/15566a79522c.mp3",
           "start": 18.615,
           "end": 19.055,
-          "exactStart": 22.251,
-          "exactEnd": 22.488
+          "exactStart": 22.236,
+          "exactEnd": 22.473
         },
         {
           "text": "bricks",
@@ -2831,8 +2831,8 @@
           "wordAudio": "./assets/words/0106bdffa8e4.mp3",
           "start": 19.055,
           "end": 19.496,
-          "exactStart": 22.518,
-          "exactEnd": 23.15
+          "exactStart": 22.503,
+          "exactEnd": 23.135
         },
         {
           "text": ".",
@@ -2842,8 +2842,8 @@
           "isPunct": true,
           "start": 19.496,
           "end": 19.546,
-          "exactStart": 23.18,
-          "exactEnd": 23.4
+          "exactStart": 23.165,
+          "exactEnd": 23.385
         },
         {
           "isBreak": true
@@ -2854,11 +2854,11 @@
           "text_tw": "The",
           "text_cn": "The",
           "isPunct": false,
-          "wordAudio": "./assets/words/3b334d9c9cd7.mp3",
+          "wordAudio": "./assets/words/8e63bef9c971.mp3",
           "start": 19.696,
           "end": 20.137,
-          "exactStart": 23.9,
-          "exactEnd": 24.202
+          "exactStart": 23.885,
+          "exactEnd": 24.177
         },
         {
           "text": "big",
@@ -2869,8 +2869,8 @@
           "wordAudio": "./assets/words/468509cd1c34.mp3",
           "start": 20.137,
           "end": 20.577,
-          "exactStart": 24.232,
-          "exactEnd": 24.609
+          "exactStart": 24.207,
+          "exactEnd": 24.584
         },
         {
           "text": "bad",
@@ -2881,8 +2881,8 @@
           "wordAudio": "./assets/words/90babc76fbed.mp3",
           "start": 20.577,
           "end": 21.018,
-          "exactStart": 24.639,
-          "exactEnd": 25.016
+          "exactStart": 24.614,
+          "exactEnd": 24.991
         },
         {
           "text": "wolf",
@@ -2893,8 +2893,8 @@
           "wordAudio": "./assets/words/0ca9e3efc9e7.mp3",
           "start": 21.018,
           "end": 21.458,
-          "exactStart": 25.046,
-          "exactEnd": 25.533
+          "exactStart": 25.021,
+          "exactEnd": 25.508
         },
         {
           "text": "came",
@@ -2905,8 +2905,8 @@
           "wordAudio": "./assets/words/c9fdac8d852b.mp3",
           "start": 21.458,
           "end": 21.899,
-          "exactStart": 25.563,
-          "exactEnd": 26.02
+          "exactStart": 25.538,
+          "exactEnd": 25.995
         },
         {
           "text": "and",
@@ -2917,8 +2917,8 @@
           "wordAudio": "./assets/words/e1bf4d77686b.mp3",
           "start": 21.899,
           "end": 22.34,
-          "exactStart": 26.05,
-          "exactEnd": 26.487
+          "exactStart": 26.025,
+          "exactEnd": 26.462
         },
         {
           "text": "blew",
@@ -2929,8 +2929,8 @@
           "wordAudio": "./assets/words/9dda5932c7ea.mp3",
           "start": 22.34,
           "end": 22.78,
-          "exactStart": 26.517,
-          "exactEnd": 26.909
+          "exactStart": 26.492,
+          "exactEnd": 26.884
         },
         {
           "text": "down",
@@ -2941,8 +2941,8 @@
           "wordAudio": "./assets/words/c72b9a64a819.mp3",
           "start": 22.78,
           "end": 23.221,
-          "exactStart": 26.939,
-          "exactEnd": 27.386
+          "exactStart": 26.914,
+          "exactEnd": 27.361
         },
         {
           "text": "the",
@@ -2950,11 +2950,11 @@
           "text_tw": "the",
           "text_cn": "the",
           "isPunct": false,
-          "wordAudio": "./assets/words/040a4c8398a8.mp3",
+          "wordAudio": "./assets/words/8e63bef9c971.mp3",
           "start": 23.221,
           "end": 23.662,
-          "exactStart": 27.416,
-          "exactEnd": 27.718
+          "exactStart": 27.391,
+          "exactEnd": 27.683
         },
         {
           "text": "straw",
@@ -2965,8 +2965,8 @@
           "wordAudio": "./assets/words/642098555753.mp3",
           "start": 23.662,
           "end": 24.102,
-          "exactStart": 27.748,
-          "exactEnd": 28.335
+          "exactStart": 27.713,
+          "exactEnd": 28.3
         },
         {
           "text": "and",
@@ -2977,8 +2977,8 @@
           "wordAudio": "./assets/words/e1bf4d77686b.mp3",
           "start": 24.102,
           "end": 24.543,
-          "exactStart": 28.365,
-          "exactEnd": 28.802
+          "exactStart": 28.33,
+          "exactEnd": 28.767
         },
         {
           "text": "wood",
@@ -2989,8 +2989,8 @@
           "wordAudio": "./assets/words/b61dd609d1c5.mp3",
           "start": 24.543,
           "end": 24.983,
-          "exactStart": 28.832,
-          "exactEnd": 29.194
+          "exactStart": 28.797,
+          "exactEnd": 29.159
         },
         {
           "text": "houses",
@@ -3001,8 +3001,8 @@
           "wordAudio": "./assets/words/bab61bae9da4.mp3",
           "start": 24.983,
           "end": 25.424,
-          "exactStart": 29.224,
-          "exactEnd": 29.966
+          "exactStart": 29.189,
+          "exactEnd": 29.931
         },
         {
           "text": ",",
@@ -3012,8 +3012,8 @@
           "isPunct": true,
           "start": 25.424,
           "end": 25.474,
-          "exactStart": 29.996,
-          "exactEnd": 30.216
+          "exactStart": 29.961,
+          "exactEnd": 30.181
         },
         {
           "text": "so",
@@ -3024,8 +3024,8 @@
           "wordAudio": "./assets/words/d25574ff42a5.mp3",
           "start": 25.424,
           "end": 25.865,
-          "exactStart": 30.216,
-          "exactEnd": 30.633
+          "exactStart": 30.181,
+          "exactEnd": 30.598
         },
         {
           "text": "all",
@@ -3036,8 +3036,8 @@
           "wordAudio": "./assets/words/893393312635.mp3",
           "start": 25.865,
           "end": 26.305,
-          "exactStart": 30.663,
-          "exactEnd": 31.035
+          "exactStart": 30.628,
+          "exactEnd": 31.0
         },
         {
           "text": "three",
@@ -3048,8 +3048,8 @@
           "wordAudio": "./assets/words/b58eb1dbf0de.mp3",
           "start": 26.305,
           "end": 26.746,
-          "exactStart": 31.065,
-          "exactEnd": 31.442
+          "exactStart": 31.03,
+          "exactEnd": 31.407
         },
         {
           "text": "pigs",
@@ -3060,8 +3060,8 @@
           "wordAudio": "./assets/words/959f1c2c327d.mp3",
           "start": 26.746,
           "end": 27.186,
-          "exactStart": 31.472,
-          "exactEnd": 32.049
+          "exactStart": 31.437,
+          "exactEnd": 32.014
         },
         {
           "text": "hid",
@@ -3072,8 +3072,8 @@
           "wordAudio": "./assets/words/81b9077364c2.mp3",
           "start": 27.186,
           "end": 27.627,
-          "exactStart": 32.079,
-          "exactEnd": 32.426
+          "exactStart": 32.044,
+          "exactEnd": 32.391
         },
         {
           "text": "safely",
@@ -3084,8 +3084,8 @@
           "wordAudio": "./assets/words/174082ac6fb2.mp3",
           "start": 27.627,
           "end": 28.068,
-          "exactStart": 32.456,
-          "exactEnd": 33.133
+          "exactStart": 32.421,
+          "exactEnd": 33.098
         },
         {
           "text": "in",
@@ -3096,8 +3096,8 @@
           "wordAudio": "./assets/words/a5943e6e1db9.mp3",
           "start": 28.068,
           "end": 28.508,
-          "exactStart": 33.163,
-          "exactEnd": 33.44
+          "exactStart": 33.128,
+          "exactEnd": 33.405
         },
         {
           "text": "the",
@@ -3105,11 +3105,11 @@
           "text_tw": "the",
           "text_cn": "the",
           "isPunct": false,
-          "wordAudio": "./assets/words/040a4c8398a8.mp3",
+          "wordAudio": "./assets/words/8e63bef9c971.mp3",
           "start": 28.508,
           "end": 28.949,
-          "exactStart": 33.47,
-          "exactEnd": 33.772
+          "exactStart": 33.435,
+          "exactEnd": 33.727
         },
         {
           "text": "brick",
@@ -3120,8 +3120,8 @@
           "wordAudio": "./assets/words/7bfe4a216cc9.mp3",
           "start": 28.949,
           "end": 29.389,
-          "exactStart": 33.802,
-          "exactEnd": 34.219
+          "exactStart": 33.757,
+          "exactEnd": 34.174
         },
         {
           "text": "house",
@@ -3132,8 +3132,8 @@
           "wordAudio": "./assets/words/e4540c3bf45d.mp3",
           "start": 29.389,
           "end": 29.83,
-          "exactStart": 34.249,
-          "exactEnd": 34.801
+          "exactStart": 34.204,
+          "exactEnd": 34.756
         },
         {
           "text": ".",
@@ -3143,8 +3143,8 @@
           "isPunct": true,
           "start": 29.83,
           "end": 29.88,
-          "exactStart": 34.831,
-          "exactEnd": 35.051
+          "exactStart": 34.786,
+          "exactEnd": 35.006
         }
       ]
     }

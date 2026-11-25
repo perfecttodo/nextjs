@@ -12,7 +12,8 @@
   <main id="view-list" class="view active">
     <header class="top-bar" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
       <h1 style="font-size:24px;">📚 快樂小讀者</h1>
-      <div class="pref-bar" style="display:flex;gap:8px;">
+      <div class="pref-bar" style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="btn-open-manager" class="btn-speed" style="border-color:#F43F5E;background:#FFF1F2;color:#BE123C;">🗂️ 父母錄音庫</button>
         <button id="btn-pref-voice" class="btn-speed">🗣️ 粵語</button>
         <button id="btn-pref-script" class="btn-speed">🔤 港澳繁體</button>
       </div>
@@ -25,6 +26,8 @@
       <button id="btn-back" class="btn-back">⬅️ 返回</button>
       <h2 id="reader-title">載入中...</h2>
       <div class="header-right" style="flex-wrap:wrap;justify-content:flex-end;">
+        <button id="btn-parent-rec" class="btn-speed" style="border-color:#F43F5E;background:#FFF1F2;color:#BE123C;">🎙️ 父母錄音</button>
+        <button id="btn-parent-play" class="btn-speed" style="display:none;border-color:#F59E0B;background:#FEF3C7;color:#B45309;">👨‍👩‍👧 父母聲</button>
         <button id="btn-reader-voice" class="btn-speed" style="border-color:#8B5CF6;background:#F5F3FF;color:#5B21B6;">🗣️ 粵語</button>
         <button id="btn-reader-script" class="btn-speed" style="border-color:#EC4899;background:#FDF2F8;color:#9D174D;">🔤 港澳繁</button>
         <button id="btn-repeat" class="btn-speed" style="border-color:#10B981;background:#ECFDF5;color:#047857;">⏹️ 單篇</button>
@@ -33,6 +36,13 @@
         <span id="wake-badge" class="badge" style="display:none;">☀️ 常亮</span>
       </div>
     </header>
+
+    <!-- 錄音提示與即時聲波條（父母錄音與自己讀共用） -->
+    <div id="parent-rec-banner" style="display:none;background:#FFF1F2;color:#9F1239;padding:10px 16px;text-align:center;font-size:18px;font-weight:bold;border-bottom:2px solid #FECDD3;position:sticky;top:64px;z-index:90;">
+      <div id="rec-status-text">準備開始錄音...</div>
+      <canvas id="mic-waveform" width="320" height="44" style="margin-top:6px;background:#fff;border-radius:12px;border:1px solid #FECDD3;max-width:100%;"></canvas>
+    </div>
+
     <article id="story-content" class="story-content"></article>
     <section id="record-panel" class="record-panel hidden">
       <audio id="recorded-audio" controls playsinline></audio>
@@ -46,6 +56,34 @@
       <button id="btn-read-along" class="btn-big btn-mic"><span class="icon">🎤</span><span class="label">自己讀</span></button>
     </footer>
   </main>
+
+  <div id="modal-preview" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h3>🎧 試聽父母陪讀錄音</h3>
+      <p style="color:#64748B;margin:6px 0 12px;">請先點擊播放試聽，確認清楚後再保存：</p>
+      <audio id="preview-audio" controls playsinline style="width:100%;margin-bottom:14px;"></audio>
+      <div style="margin-bottom:16px;text-align:left;">
+        <label style="font-weight:bold;font-size:15px;display:block;margin-bottom:6px;">錄音標籤（方便區分爸爸/媽媽）：</label>
+        <input id="preview-label-input" type="text" value="媽媽的聲音" style="width:100%;padding:10px 12px;font-size:16px;border:2px solid #CBD5E1;border-radius:12px;" />
+      </div>
+      <div style="display:flex;gap:12px;">
+        <button id="btn-discard-rec" class="btn-pill" style="background:#FEE2E2;color:#B91C1C;">🗑️ 放棄重錄</button>
+        <button id="btn-confirm-save" class="btn-pill btn-save">✅ 確認保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-manager" class="modal-backdrop hidden">
+    <div class="modal-card" style="max-width:620px;max-height:85vh;display:flex;flex-direction:column;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="margin:0;">🗂️ 父母陪讀錄音管理</h3>
+        <button id="btn-close-manager" class="btn-back" style="padding:6px 14px;">✖️ 關閉</button>
+      </div>
+      <div id="manager-list" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px;padding:4px;"></div>
+    </div>
+  </div>
+
+  <script src="./parent_voice.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

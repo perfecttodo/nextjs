@@ -102,7 +102,7 @@ async def build_track(sid, lang_key, paragraphs, words_dir):
     f_step = max(0.15, (total_f_dur - 0.3) / readable_cnt)
     f_ptr = 0.15
 
-    for item in all_raw_toks:
+    for idx_item, item in enumerate(all_raw_toks):
         if item.get("isBreak"):
             tokens.append({"isBreak": True})
             w_p = os.path.join(tmp_dir, f"s_{step_i:04d}.wav"); exact_t += make_silence_wav(0.5, w_p); wav_list.append(w_p); step_i += 1
@@ -114,7 +114,17 @@ async def build_track(sid, lang_key, paragraphs, words_dir):
             tokens.append({"text": tok, "text_hk": tok, "text_tw": tok, "text_cn": tok, "isPunct": True, "start": round(f_ptr, 3), "end": round(f_ptr + 0.05, 3), "exactStart": round(exact_t, 3), "exactEnd": round(exact_t + real_p, 3)})
             exact_t += real_p
         else:
-            speak_word = cc_cn.convert(tok) if lang_key == "cn" else (cc_tw.convert(tok) if lang_key == "tw" else (cc_hk.convert(tok) if lang_key == "hk" else tok))
+            if lang_key == "en":
+                if tok == "a":
+                    speak_word = "uh"
+                elif tok.lower() == "the":
+                    # 尋找下一個實體單詞，判斷是否為母音開頭
+                    next_w = next((x["text"] for x in all_raw_toks[idx_item + 1:] if not x.get("isBreak") and not x.get("isPunct")), "")
+                    speak_word = "thee" if next_w[:1].lower() in "aeiou" else "thuh"
+                else:
+                    speak_word = tok
+            else:
+                speak_word = cc_cn.convert(tok) if lang_key == "cn" else (cc_tw.convert(tok) if lang_key == "tw" else cc_hk.convert(tok))
             w_mp3_local, w_mp3_url = await ensure_word_audio(speak_word, voice, words_dir)
             w_wav = os.path.join(tmp_dir, f"s_{step_i:04d}.wav"); dur = trim_mp3_to_wav(w_mp3_local, w_wav); wav_list.append(w_wav); step_i += 1
             tokens.append({
@@ -194,7 +204,7 @@ async def build_track(sid, lang_key, paragraphs, words_dir):
     f_step = max(0.15, (total_f_dur - 0.3) / readable_cnt)
     f_ptr = 0.15
 
-    for item in all_raw_toks:
+    for idx_item, item in enumerate(all_raw_toks):
         if item.get("isBreak"):
             tokens.append({"isBreak": True})
             w_p = os.path.join(tmp_dir, f"s_{step_i:04d}.wav"); exact_t += make_silence_wav(0.5, w_p); wav_list.append(w_p); step_i += 1
@@ -206,7 +216,17 @@ async def build_track(sid, lang_key, paragraphs, words_dir):
             tokens.append({"text": tok, "text_hk": tok, "text_tw": tok, "text_cn": tok, "isPunct": True, "start": round(f_ptr, 3), "end": round(f_ptr + 0.05, 3), "exactStart": round(exact_t, 3), "exactEnd": round(exact_t + real_p, 3)})
             exact_t += real_p
         else:
-            speak_word = cc_cn.convert(tok) if lang_key == "cn" else (cc_tw.convert(tok) if lang_key == "tw" else (cc_hk.convert(tok) if lang_key == "hk" else tok))
+            if lang_key == "en":
+                if tok == "a":
+                    speak_word = "uh"
+                elif tok.lower() == "the":
+                    # 尋找下一個實體單詞，判斷是否為母音開頭
+                    next_w = next((x["text"] for x in all_raw_toks[idx_item + 1:] if not x.get("isBreak") and not x.get("isPunct")), "")
+                    speak_word = "thee" if next_w[:1].lower() in "aeiou" else "thuh"
+                else:
+                    speak_word = tok
+            else:
+                speak_word = cc_cn.convert(tok) if lang_key == "cn" else (cc_tw.convert(tok) if lang_key == "tw" else cc_hk.convert(tok))
             w_mp3_local, w_mp3_url = await ensure_word_audio(speak_word, voice, words_dir)
             w_wav = os.path.join(tmp_dir, f"s_{step_i:04d}.wav"); dur = trim_mp3_to_wav(w_mp3_local, w_wav); wav_list.append(w_wav); step_i += 1
             tokens.append({
@@ -286,7 +306,7 @@ async def build_track(sid, lang_key, paragraphs, words_dir):
     f_step = max(0.15, (total_f_dur - 0.3) / readable_cnt)
     f_ptr = 0.15
 
-    for item in all_raw_toks:
+    for idx_item, item in enumerate(all_raw_toks):
         if item.get("isBreak"):
             tokens.append({"isBreak": True})
             w_p = os.path.join(tmp_dir, f"s_{step_i:04d}.wav"); exact_t += make_silence_wav(0.5, w_p); wav_list.append(w_p); step_i += 1
@@ -298,7 +318,17 @@ async def build_track(sid, lang_key, paragraphs, words_dir):
             tokens.append({"text": tok, "text_hk": tok, "text_tw": tok, "text_cn": tok, "isPunct": True, "start": round(f_ptr, 3), "end": round(f_ptr + 0.05, 3), "exactStart": round(exact_t, 3), "exactEnd": round(exact_t + real_p, 3)})
             exact_t += real_p
         else:
-            speak_word = cc_cn.convert(tok) if lang_key == "cn" else (cc_tw.convert(tok) if lang_key == "tw" else (cc_hk.convert(tok) if lang_key == "hk" else tok))
+            if lang_key == "en":
+                if tok == "a":
+                    speak_word = "uh"
+                elif tok.lower() == "the":
+                    # 尋找下一個實體單詞，判斷是否為母音開頭
+                    next_w = next((x["text"] for x in all_raw_toks[idx_item + 1:] if not x.get("isBreak") and not x.get("isPunct")), "")
+                    speak_word = "thee" if next_w[:1].lower() in "aeiou" else "thuh"
+                else:
+                    speak_word = tok
+            else:
+                speak_word = cc_cn.convert(tok) if lang_key == "cn" else (cc_tw.convert(tok) if lang_key == "tw" else cc_hk.convert(tok))
             w_mp3_local, w_mp3_url = await ensure_word_audio(speak_word, voice, words_dir)
             w_wav = os.path.join(tmp_dir, f"s_{step_i:04d}.wav"); dur = trim_mp3_to_wav(w_mp3_local, w_wav); wav_list.append(w_wav); step_i += 1
             tokens.append({
@@ -378,7 +408,7 @@ async def build_track(sid, lang_key, paragraphs, words_dir):
     f_step = max(0.15, (total_f_dur - 0.3) / readable_cnt)
     f_ptr = 0.15
 
-    for item in all_raw_toks:
+    for idx_item, item in enumerate(all_raw_toks):
         if item.get("isBreak"):
             tokens.append({"isBreak": True})
             w_p = os.path.join(tmp_dir, f"s_{step_i:04d}.wav"); exact_t += make_silence_wav(0.5, w_p); wav_list.append(w_p); step_i += 1
@@ -390,7 +420,17 @@ async def build_track(sid, lang_key, paragraphs, words_dir):
             tokens.append({"text": tok, "text_hk": tok, "text_tw": tok, "text_cn": tok, "isPunct": True, "start": round(f_ptr, 3), "end": round(f_ptr + 0.05, 3), "exactStart": round(exact_t, 3), "exactEnd": round(exact_t + real_p, 3)})
             exact_t += real_p
         else:
-            speak_word = cc_cn.convert(tok) if lang_key == "cn" else (cc_tw.convert(tok) if lang_key == "tw" else (cc_hk.convert(tok) if lang_key == "hk" else tok))
+            if lang_key == "en":
+                if tok == "a":
+                    speak_word = "uh"
+                elif tok.lower() == "the":
+                    # 尋找下一個實體單詞，判斷是否為母音開頭
+                    next_w = next((x["text"] for x in all_raw_toks[idx_item + 1:] if not x.get("isBreak") and not x.get("isPunct")), "")
+                    speak_word = "thee" if next_w[:1].lower() in "aeiou" else "thuh"
+                else:
+                    speak_word = tok
+            else:
+                speak_word = cc_cn.convert(tok) if lang_key == "cn" else (cc_tw.convert(tok) if lang_key == "tw" else cc_hk.convert(tok))
             w_mp3_local, w_mp3_url = await ensure_word_audio(speak_word, voice, words_dir)
             w_wav = os.path.join(tmp_dir, f"s_{step_i:04d}.wav"); dur = trim_mp3_to_wav(w_mp3_local, w_wav); wav_list.append(w_wav); step_i += 1
             tokens.append({

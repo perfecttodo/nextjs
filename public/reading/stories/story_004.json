@@ -2036,11 +2036,11 @@
           "text_tw": "a",
           "text_cn": "a",
           "isPunct": false,
-          "wordAudio": "./assets/words/14e86de3b966.mp3",
+          "wordAudio": "./assets/words/d9b917c146bf.mp3",
           "start": 6.181,
           "end": 6.667,
           "exactStart": 7.264,
-          "exactEnd": 7.571
+          "exactEnd": 7.606
         },
         {
           "text": "tiny",
@@ -2051,8 +2051,8 @@
           "wordAudio": "./assets/words/89ec52267d90.mp3",
           "start": 6.667,
           "end": 7.153,
-          "exactStart": 7.601,
-          "exactEnd": 8.108
+          "exactStart": 7.636,
+          "exactEnd": 8.143
         },
         {
           "text": "apple",
@@ -2063,8 +2063,8 @@
           "wordAudio": "./assets/words/0b72576015b7.mp3",
           "start": 7.153,
           "end": 7.639,
-          "exactStart": 8.138,
-          "exactEnd": 8.63
+          "exactStart": 8.173,
+          "exactEnd": 8.665
         },
         {
           "text": "sapling",
@@ -2075,8 +2075,8 @@
           "wordAudio": "./assets/words/b38fdcac4938.mp3",
           "start": 7.639,
           "end": 8.125,
-          "exactStart": 8.66,
-          "exactEnd": 9.401
+          "exactStart": 8.695,
+          "exactEnd": 9.436
         },
         {
           "text": "in",
@@ -2087,8 +2087,8 @@
           "wordAudio": "./assets/words/a5943e6e1db9.mp3",
           "start": 8.125,
           "end": 8.611,
-          "exactStart": 9.431,
-          "exactEnd": 9.708
+          "exactStart": 9.466,
+          "exactEnd": 9.743
         },
         {
           "text": "the",
@@ -2096,11 +2096,11 @@
           "text_tw": "the",
           "text_cn": "the",
           "isPunct": false,
-          "wordAudio": "./assets/words/040a4c8398a8.mp3",
+          "wordAudio": "./assets/words/8e63bef9c971.mp3",
           "start": 8.611,
           "end": 9.097,
-          "exactStart": 9.738,
-          "exactEnd": 10.04
+          "exactStart": 9.773,
+          "exactEnd": 10.065
         },
         {
           "text": "yard",
@@ -2111,8 +2111,8 @@
           "wordAudio": "./assets/words/c3769c5673ed.mp3",
           "start": 9.097,
           "end": 9.583,
-          "exactStart": 10.07,
-          "exactEnd": 10.532
+          "exactStart": 10.095,
+          "exactEnd": 10.557
         },
         {
           "text": ".",
@@ -2122,8 +2122,8 @@
           "isPunct": true,
           "start": 9.583,
           "end": 9.633,
-          "exactStart": 10.562,
-          "exactEnd": 10.782
+          "exactStart": 10.587,
+          "exactEnd": 10.807
         },
         {
           "isBreak": true
@@ -2137,8 +2137,8 @@
           "wordAudio": "./assets/words/4a991e670d0d.mp3",
           "start": 9.783,
           "end": 10.269,
-          "exactStart": 11.282,
-          "exactEnd": 11.629
+          "exactStart": 11.307,
+          "exactEnd": 11.654
         },
         {
           "text": "watered",
@@ -2149,8 +2149,8 @@
           "wordAudio": "./assets/words/d4c5c76578ee.mp3",
           "start": 10.269,
           "end": 10.754,
-          "exactStart": 11.659,
-          "exactEnd": 12.251
+          "exactStart": 11.684,
+          "exactEnd": 12.276
         },
         {
           "text": "the",
@@ -2158,11 +2158,11 @@
           "text_tw": "the",
           "text_cn": "the",
           "isPunct": false,
-          "wordAudio": "./assets/words/040a4c8398a8.mp3",
+          "wordAudio": "./assets/words/8e63bef9c971.mp3",
           "start": 10.754,
           "end": 11.24,
-          "exactStart": 12.281,
-          "exactEnd": 12.583
+          "exactStart": 12.306,
+          "exactEnd": 12.598
         },
         {
           "text": "little",
@@ -2173,8 +2173,8 @@
           "wordAudio": "./assets/words/be450372b897.mp3",
           "start": 11.24,
           "end": 11.726,
-          "exactStart": 12.613,
-          "exactEnd": 13.11
+          "exactStart": 12.628,
+          "exactEnd": 13.125
         },
         {
           "text": "tree",
@@ -2185,8 +2185,8 @@
           "wordAudio": "./assets/words/697b5dca7b2e.mp3",
           "start": 11.726,
           "end": 12.212,
-          "exactStart": 13.14,
-          "exactEnd": 13.537
+          "exactStart": 13.155,
+          "exactEnd": 13.552
         },
         {
           "text": "and",
@@ -2197,8 +2197,8 @@
           "wordAudio": "./assets/words/e1bf4d77686b.mp3",
           "start": 12.212,
           "end": 12.698,
-          "exactStart": 13.567,
-          "exactEnd": 14.004
+          "exactStart": 13.582,
+          "exactEnd": 14.019
         },
         {
           "text": "gave",
@@ -2209,8 +2209,8 @@
           "wordAudio": "./assets/words/8f223cedb556.mp3",
           "start": 12.698,
           "end": 13.184,
-          "exactStart": 14.034,
-          "exactEnd": 14.476
+          "exactStart": 14.049,
+          "exactEnd": 14.491
         },
         {
           "text": "it",
@@ -2221,8 +2221,8 @@
           "wordAudio": "./assets/words/11879ae27a50.mp3",
           "start": 13.184,
           "end": 13.67,
-          "exactStart": 14.506,
-          "exactEnd": 14.688
+          "exactStart": 14.521,
+          "exactEnd": 14.703
         },
         {
           "text": "sunshine",
@@ -2233,8 +2233,8 @@
           "wordAudio": "./assets/words/003ea37dbaf2.mp3",
           "start": 13.67,
           "end": 14.156,
-          "exactStart": 14.718,
-          "exactEnd": 15.501
+          "exactStart": 14.733,
+          "exactEnd": 15.516
         },
         {
           "text": "every",
@@ -2245,8 +2245,8 @@
           "wordAudio": "./assets/words/a75ebb77322f.mp3",
           "start": 14.156,
           "end": 14.642,
-          "exactStart": 15.531,
-          "exactEnd": 16.023
+          "exactStart": 15.546,
+          "exactEnd": 16.038
         },
         {
           "text": "day",
@@ -2257,8 +2257,8 @@
           "wordAudio": "./assets/words/61311e2c81a6.mp3",
           "start": 14.642,
           "end": 15.128,
-          "exactStart": 16.053,
-          "exactEnd": 16.405
+          "exactStart": 16.068,
+          "exactEnd": 16.42
         },
         {
           "text": ",",
@@ -2268,8 +2268,8 @@
           "isPunct": true,
           "start": 15.128,
           "end": 15.178,
-          "exactStart": 16.435,
-          "exactEnd": 16.655
+          "exactStart": 16.45,
+          "exactEnd": 16.67
         },
         {
           "text": "and",
@@ -2280,8 +2280,8 @@
           "wordAudio": "./assets/words/e1bf4d77686b.mp3",
           "start": 15.128,
           "end": 15.614,
-          "exactStart": 16.655,
-          "exactEnd": 17.092
+          "exactStart": 16.67,
+          "exactEnd": 17.107
         },
         {
           "text": "the",
@@ -2289,11 +2289,11 @@
           "text_tw": "the",
           "text_cn": "the",
           "isPunct": false,
-          "wordAudio": "./assets/words/040a4c8398a8.mp3",
+          "wordAudio": "./assets/words/8e63bef9c971.mp3",
           "start": 15.614,
           "end": 16.1,
-          "exactStart": 17.122,
-          "exactEnd": 17.424
+          "exactStart": 17.137,
+          "exactEnd": 17.429
         },
         {
           "text": "sapling",
@@ -2304,8 +2304,8 @@
           "wordAudio": "./assets/words/b38fdcac4938.mp3",
           "start": 16.1,
           "end": 16.586,
-          "exactStart": 17.454,
-          "exactEnd": 18.195
+          "exactStart": 17.459,
+          "exactEnd": 18.2
         },
         {
           "text": "slowly",
@@ -2316,8 +2316,8 @@
           "wordAudio": "./assets/words/58043610e6f1.mp3",
           "start": 16.586,
           "end": 17.071,
-          "exactStart": 18.225,
-          "exactEnd": 18.947
+          "exactStart": 18.23,
+          "exactEnd": 18.952
         },
         {
           "text": "grew",
@@ -2328,8 +2328,8 @@
           "wordAudio": "./assets/words/edd3b47d0d19.mp3",
           "start": 17.071,
           "end": 17.557,
-          "exactStart": 18.977,
-          "exactEnd": 19.399
+          "exactStart": 18.982,
+          "exactEnd": 19.404
         },
         {
           "text": "tall",
@@ -2340,8 +2340,8 @@
           "wordAudio": "./assets/words/4e79b74d3f4d.mp3",
           "start": 17.557,
           "end": 18.043,
-          "exactStart": 19.429,
-          "exactEnd": 19.836
+          "exactStart": 19.434,
+          "exactEnd": 19.841
         },
         {
           "text": ".",
@@ -2351,8 +2351,8 @@
           "isPunct": true,
           "start": 18.043,
           "end": 18.093,
-          "exactStart": 19.866,
-          "exactEnd": 20.086
+          "exactStart": 19.871,
+          "exactEnd": 20.091
         },
         {
           "isBreak": true
@@ -2366,8 +2366,8 @@
           "wordAudio": "./assets/words/70103e4e2dfc.mp3",
           "start": 18.243,
           "end": 18.729,
-          "exactStart": 20.586,
-          "exactEnd": 20.863
+          "exactStart": 20.591,
+          "exactEnd": 20.868
         },
         {
           "text": "autumn",
@@ -2378,8 +2378,8 @@
           "wordAudio": "./assets/words/4755d1d017e3.mp3",
           "start": 18.729,
           "end": 19.215,
-          "exactStart": 20.893,
-          "exactEnd": 21.4
+          "exactStart": 20.898,
+          "exactEnd": 21.405
         },
         {
           "text": ",",
@@ -2389,8 +2389,8 @@
           "isPunct": true,
           "start": 19.215,
           "end": 19.265,
-          "exactStart": 21.43,
-          "exactEnd": 21.65
+          "exactStart": 21.435,
+          "exactEnd": 21.655
         },
         {
           "text": "the",
@@ -2398,11 +2398,11 @@
           "text_tw": "the",
           "text_cn": "the",
           "isPunct": false,
-          "wordAudio": "./assets/words/040a4c8398a8.mp3",
+          "wordAudio": "./assets/words/8e63bef9c971.mp3",
           "start": 19.215,
           "end": 19.701,
-          "exactStart": 21.65,
-          "exactEnd": 21.952
+          "exactStart": 21.655,
+          "exactEnd": 21.947
         },
         {
           "text": "tree",
@@ -2413,8 +2413,8 @@
           "wordAudio": "./assets/words/697b5dca7b2e.mp3",
           "start": 19.701,
           "end": 20.187,
-          "exactStart": 21.982,
-          "exactEnd": 22.379
+          "exactStart": 21.977,
+          "exactEnd": 22.374
         },
         {
           "text": "was",
@@ -2425,8 +2425,8 @@
           "wordAudio": "./assets/words/6fe50185ec04.mp3",
           "start": 20.187,
           "end": 20.673,
-          "exactStart": 22.409,
-          "exactEnd": 22.866
+          "exactStart": 22.404,
+          "exactEnd": 22.861
         },
         {
           "text": "full",
@@ -2437,8 +2437,8 @@
           "wordAudio": "./assets/words/04289860da4a.mp3",
           "start": 20.673,
           "end": 21.159,
-          "exactStart": 22.896,
-          "exactEnd": 23.263
+          "exactStart": 22.891,
+          "exactEnd": 23.258
         },
         {
           "text": "of",
@@ -2449,8 +2449,8 @@
           "wordAudio": "./assets/words/80411077d401.mp3",
           "start": 21.159,
           "end": 21.645,
-          "exactStart": 23.293,
-          "exactEnd": 23.665
+          "exactStart": 23.288,
+          "exactEnd": 23.66
         },
         {
           "text": "big",
@@ -2461,8 +2461,8 @@
           "wordAudio": "./assets/words/468509cd1c34.mp3",
           "start": 21.645,
           "end": 22.131,
-          "exactStart": 23.695,
-          "exactEnd": 24.072
+          "exactStart": 23.69,
+          "exactEnd": 24.067
         },
         {
           "text": "red",
@@ -2473,8 +2473,8 @@
           "wordAudio": "./assets/words/521ad687a890.mp3",
           "start": 22.131,
           "end": 22.617,
-          "exactStart": 24.102,
-          "exactEnd": 24.434
+          "exactStart": 24.097,
+          "exactEnd": 24.429
         },
         {
           "text": "sweet",
@@ -2485,8 +2485,8 @@
           "wordAudio": "./assets/words/e1594c1bec08.mp3",
           "start": 22.617,
           "end": 23.103,
-          "exactStart": 24.464,
-          "exactEnd": 24.906
+          "exactStart": 24.459,
+          "exactEnd": 24.901
         },
         {
           "text": "apples",
@@ -2497,8 +2497,8 @@
           "wordAudio": "./assets/words/a9ac4d93ddf0.mp3",
           "start": 23.103,
           "end": 23.589,
-          "exactStart": 24.936,
-          "exactEnd": 25.648
+          "exactStart": 24.931,
+          "exactEnd": 25.643
         },
         {
           "text": ",",
@@ -2508,8 +2508,8 @@
           "isPunct": true,
           "start": 23.589,
           "end": 23.639,
-          "exactStart": 25.678,
-          "exactEnd": 25.898
+          "exactStart": 25.673,
+          "exactEnd": 25.893
         },
         {
           "text": "and",
@@ -2520,8 +2520,8 @@
           "wordAudio": "./assets/words/e1bf4d77686b.mp3",
           "start": 23.589,
           "end": 24.074,
-          "exactStart": 25.898,
-          "exactEnd": 26.335
+          "exactStart": 25.893,
+          "exactEnd": 26.33
         },
         {
           "text": "Little",
@@ -2532,8 +2532,8 @@
           "wordAudio": "./assets/words/e3b31f8d63fc.mp3",
           "start": 24.074,
           "end": 24.56,
-          "exactStart": 26.365,
-          "exactEnd": 26.862
+          "exactStart": 26.36,
+          "exactEnd": 26.857
         },
         {
           "text": "Bear",
@@ -2544,8 +2544,8 @@
           "wordAudio": "./assets/words/7764773186b7.mp3",
           "start": 24.56,
           "end": 25.046,
-          "exactStart": 26.892,
-          "exactEnd": 27.324
+          "exactStart": 26.887,
+          "exactEnd": 27.319
         },
         {
           "text": "shared",
@@ -2556,8 +2556,8 @@
           "wordAudio": "./assets/words/ef02ddac7be5.mp3",
           "start": 25.046,
           "end": 25.532,
-          "exactStart": 27.354,
-          "exactEnd": 27.896
+          "exactStart": 27.349,
+          "exactEnd": 27.891
         },
         {
           "text": "them",
@@ -2568,8 +2568,8 @@
           "wordAudio": "./assets/words/b9d364086527.mp3",
           "start": 25.532,
           "end": 26.018,
-          "exactStart": 27.926,
-          "exactEnd": 28.283
+          "exactStart": 27.921,
+          "exactEnd": 28.278
         },
         {
           "text": "with",
@@ -2580,8 +2580,8 @@
           "wordAudio": "./assets/words/15566a79522c.mp3",
           "start": 26.018,
           "end": 26.504,
-          "exactStart": 28.313,
-          "exactEnd": 28.55
+          "exactStart": 28.308,
+          "exactEnd": 28.545
         },
         {
           "text": "everyone",
@@ -2592,8 +2592,8 @@
           "wordAudio": "./assets/words/746a08341266.mp3",
           "start": 26.504,
           "end": 26.99,
-          "exactStart": 28.58,
-          "exactEnd": 29.332
+          "exactStart": 28.575,
+          "exactEnd": 29.327
         },
         {
           "text": ".",
@@ -2603,8 +2603,8 @@
           "isPunct": true,
           "start": 26.99,
           "end": 27.04,
-          "exactStart": 29.362,
-          "exactEnd": 29.582
+          "exactStart": 29.357,
+          "exactEnd": 29.577
         }
       ]
     }
