@@ -1,7 +1,15 @@
-<html lang="zh-Hant"><head>
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script>
+        window.location.replace("/resume");
+    </script>
+
     <title>首頁</title>
+
     <style>
         :root {
             --bg-color: #0f172a;
@@ -21,7 +29,8 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             line-height: 1.6;
@@ -118,29 +127,26 @@
         }
     </style>
 </head>
-<body>
 
+<body>
     <div class="container">
         <div class="profile-card">
-            <!-- 頭像或圖示 -->
-            <div class="avatar">👨&zwj;💻</div>
-            
+            <div class="avatar">👨‍💻</div>
+
             <h1><span>Alex</span></h1>
+
             <p class="subtitle">前後端軟體工程師</p>
-            
+
             <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 1.5rem;">
-               歡迎來到我的數位空間。這裡匯集了我的個人作品、求職履歷、開源專案與技術心得。
+                歡迎來到我的數位空間。這裡匯集了我的個人作品、求職履歷、開源專案與技術心得。
             </p>
 
-            <!-- 導覽按鈕區塊 -->
             <div class="links-grid">
-                <!-- 連結至子目錄的履歷頁 -->
-                <a href="./resume/" class="link-item">
+                <a href="/resume" class="link-item">
                     <h3>📄 求職作品集</h3>
                     <p>查看我的工作經歷、技術棧與精選專案</p>
                 </a>
-                
-                <!-- 連結至其他專案或部落格 (可自行替換網址) -->
+
                 <a href="/exam/index.html" target="_blank" class="link-item">
                     <h3>💻 考試練習App</h3>
                     <p>考試專用</p>
@@ -157,6 +163,5 @@
             <p>© 2026. All Rights Reserved.</p>
         </footer>
     </div>
-
-
-</body></html>
+</body>
+</html>
