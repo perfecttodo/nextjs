@@ -158,3 +158,48 @@ button:disabled, .btn-locked {
   font-weight: bold;
   cursor: pointer;
 }
+
+/* 精簡單行頂部欄（適配手機與 iPad） */
+.reader-header {
+  flex-wrap: nowrap !important;
+  height: 62px;
+  padding: 8px 14px !important;
+  gap: 8px !important;
+}
+.header-status-pill {
+  font-size: 13px;
+  font-weight: bold;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 5px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 設定抽屜分組網格 */
+.settings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+  margin-top: 10px;
+}
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #F1F5F9;
+}
+.setting-row label {
+  font-weight: bold;
+  font-size: 15px;
+  color: #334155;
+}
+.setting-row .btn-speed {
+  min-width: 125px;
+  text-align: center;
+}

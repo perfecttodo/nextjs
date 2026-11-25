@@ -1,3 +1,5 @@
+let tapToJump = localStorage.getItem('reading_tapToJump') === 'true';
+let readAlongMode = localStorage.getItem('reading_readAlongMode') || 'timed';
 let lastKidBlob = null, lastKidTimings = {};
 const LIST_API = './stories/index.json';
 const DETAIL_API = (id) => `./stories/${id}.json`;
@@ -57,6 +59,7 @@ const managerList = document.getElementById('manager-list');
 function updateParentButtonsUI() {
   const hasRec = storyParentRecs.length > 0;
   btnParentPlay.style.display = hasRec ? 'inline-block' : 'none';
+  const rowP = document.getElementById('row-parent-play'); if (rowP) rowP.style.display = hasRec ? 'flex' : 'none';
   if (!hasRec) useParentVoice = false;
   const curRec = storyParentRecs[selectedParentRecIdx];
   if (useParentVoice && curRec) {
@@ -68,6 +71,8 @@ function updateParentButtonsUI() {
     btnParentPlay.style.background = '#FEF3C7';
     btnParentPlay.style.color = '#B45309';
   }
+  updateHeaderStatusPill();
+  applyUiLanguage();
 }
 
 // 點擊「👨‍👩‍👧 父母聲」：在「關閉 -> 錄音1 -> 錄音2...」之間循環切換
@@ -90,7 +95,7 @@ btnParentPlay.addEventListener('click', async () => {
 
 function setRecordingLock(mode) {
   // mode: 'parent' (父母錄音中) | 'kid' (小朋友跟讀中) | 'none' (解除鎖定)
-  const lockIdsForParent = ['btn-back', 'btn-parent-play', 'btn-reader-voice', 'btn-reader-script', 'btn-repeat', 'btn-read-mode', 'btn-tap-jump', 'btn-mode', 'btn-speed', 'btn-play-tts', 'btn-read-along'];
+  const lockIdsForParent = ['btn-back', 'btn-open-settings', 'btn-parent-play', 'btn-reader-voice', 'btn-reader-script', 'btn-repeat', 'btn-read-mode', 'btn-tap-jump', 'btn-mode', 'btn-speed', 'btn-play-tts', 'btn-read-along'];
   const lockIdsForKid = ['btn-parent-rec', 'btn-parent-play', 'btn-reader-voice', 'btn-reader-script', 'btn-repeat', 'btn-read-mode', 'btn-tap-jump', 'btn-mode', 'btn-speed', 'btn-play-tts'];
 
   const allIds = Array.from(new Set([...lockIdsForParent, ...lockIdsForKid]));
@@ -107,6 +112,7 @@ function setRecordingLock(mode) {
 }
 
 btnParentRec.addEventListener('click', () => {
+  modalSettings.classList.add('hidden');
   if (ParentVoice.isRecording()) { ParentVoice.stopGuidedRecording(); return; }
   stopTtsPlayback(); stopReadAlong(); clearHighlight(); requestWakeLock(); setRecordingLock('parent');
   const vPref = VOICE_PREFS[voiceIdx];
@@ -121,7 +127,7 @@ btnParentRec.addEventListener('click', () => {
     onPreviewReady: (previewUrl) => {
       setRecordingLock('none'); releaseWakeLock(); clearHighlight();
       previewAudio.src = previewUrl;
-      previewLabelInput.value = '媽媽的聲音';
+      previewLabelInput.value = tUI('defaultMom');
       modalPreview.classList.remove('hidden');
     },
     onCancel: () => { setRecordingLock('none'); releaseWakeLock(); clearHighlight(); }
@@ -148,6 +154,7 @@ document.getElementById('btn-confirm-save').addEventListener('click', async () =
 
 // 父母錄音管理中心邏輯
 document.getElementById('btn-open-manager').addEventListener('click', openManagerModal);
+modalManager.addEventListener('click', (e) => { if (e.target === modalManager) { managerList.querySelectorAll('audio').forEach(a => a.pause()); modalManager.classList.add('hidden'); } });
 document.getElementById('btn-close-manager').addEventListener('click', () => {
   managerList.querySelectorAll('audio').forEach(a => a.pause());
   modalManager.classList.add('hidden');
@@ -202,6 +209,64 @@ window.handleDeleteRec = async (id) => {
 const recordPanel = document.getElementById('record-panel');
 const recordedAudioEl = document.getElementById('recorded-audio');
 
+
+const modalSettings = document.getElementById('modal-settings');
+document.getElementById('btn-open-settings').addEventListener('click', () => modalSettings.classList.remove('hidden'));
+document.getElementById('btn-close-settings').addEventListener('click', () => modalSettings.classList.add('hidden'));
+modalSettings.addEventListener('click', (e) => { if (e.target === modalSettings) modalSettings.classList.add('hidden'); });
+document.getElementById('btn-stop-rec-inline').addEventListener('click', () => ParentVoice.stopGuidedRecording());
+
+function updateHeaderStatusPill() {
+  const pill = document.getElementById('header-status-pill');
+  if (!pill) return;
+  const vName = VOICE_PREFS.at(voiceIdx).label.replace('🗣️ ', '');
+  const spName = SPEEDS.at(speedIdx).rate + 'x';
+  const curRec = storyParentRecs.at(selectedParentRecIdx);
+  const pTag = (useParentVoice && curRec) ? ` · 👨‍👩‍👧${curRec.label}` : '';
+  pill.textContent = `${vName} · ${spName}${pTag}`;
+}
+
+
+function applyUiLanguage() {
+  const setTxt = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt; };
+  setTxt('#view-list .top-bar h1', tUI('appTitle'));
+  setTxt('#btn-open-manager', tUI('recLibrary'));
+  setTxt('#btn-back', tUI('back'));
+  setTxt('#btn-open-settings', tUI('settings'));
+  const isTapOn = typeof tapToJump !== 'undefined' ? tapToJump : (localStorage.getItem('reading_tapToJump') === 'true');
+  setTxt('#btn-tap-jump', isTapOn ? tUI('tapJumpOn') : tUI('tapJumpOff'));
+  setTxt('#btn-play-tts .label', ttsAudioEl.paused ? tUI('listen') : tUI('pause'));
+  setTxt('#btn-read-along .label', isReadingAlong ? tUI('finishRead') : tUI('readAlong'));
+
+  setTxt('#modal-settings h3', tUI('settingsTitle'));
+  setTxt('#btn-close-settings', tUI('done'));
+  const rows = document.querySelectorAll('#modal-settings .setting-row label');
+  const lblKeys = ['lblVoice', 'lblScript', 'lblSpeed', 'lblMode', 'lblRepeat', 'lblReadMode', 'lblParentPlay', 'lblParentRec'];
+  rows.forEach((lbl, idx) => { if (lblKeys.at(idx)) lbl.textContent = tUI(lblKeys.at(idx)); });
+
+  setTxt('#btn-mode', playMode === 'exact' ? tUI('modeExact') : tUI('modeFluent'));
+  const repMap = ['repNone', 'repSingle', 'repList', 'repRandom'];
+  setTxt('#btn-repeat', tUI(repMap.at(repeatIdx)));
+  const curReadMode = typeof readAlongMode !== 'undefined' ? readAlongMode : (localStorage.getItem('reading_readAlongMode') || 'timed');
+  setTxt('#btn-read-mode', curReadMode === 'timed' ? tUI('readTimed') : tUI('readSpeech'));
+  if (!ParentVoice.isRecording()) setTxt('#btn-parent-rec', tUI('startRec'));
+
+  setTxt('#record-panel span', tUI('kidRecTitle'));
+  setTxt('#btn-close-record', tUI('close'));
+  setTxt('#btn-loop', recordedAudioEl.loop ? tUI('loopOn') : tUI('loopPlay'));
+  const btnSaveDb = document.getElementById('btn-save-kid-db');
+  if (btnSaveDb && !btnSaveDb.disabled) btnSaveDb.textContent = tUI('saveToSys');
+  setTxt('#btn-download', tUI('download'));
+
+  setTxt('#modal-preview h3', tUI('previewTitle'));
+  setTxt('#modal-preview p', tUI('previewDesc'));
+  setTxt('#modal-preview label', tUI('previewLabel'));
+  setTxt('#btn-discard-rec', tUI('discardRec'));
+  setTxt('#btn-confirm-save', tUI('confirmSave'));
+  setTxt('#modal-manager h3', tUI('managerTitle'));
+  setTxt('#btn-close-manager', tUI('close'));
+}
+
 function syncPrefButtons() {
   document.getElementById('btn-pref-voice').textContent = VOICE_PREFS[voiceIdx].label;
   document.getElementById('btn-pref-script').textContent = SCRIPT_PREFS[scriptIdx].fullLabel;
@@ -210,6 +275,8 @@ function syncPrefButtons() {
   btnSpeed.textContent = SPEEDS[speedIdx].label;
   btnMode.textContent = playMode === 'exact' ? '🎯 精讀' : '📖 故事';
   btnRepeat.textContent = REPEAT_MODES[repeatIdx].label;
+  updateHeaderStatusPill();
+  applyUiLanguage();
 }
 syncPrefButtons();
 
@@ -307,7 +374,7 @@ function updateMediaSession() {
   });
   navigator.mediaSession.setActionHandler('play', () => {
     ttsAudioEl.play();
-    btnPlayTts.querySelector('.label').textContent = '暫停';
+    btnPlayTts.querySelector('.label').textContent = tUI('pause');
     syncHighlightLoop();
   });
   navigator.mediaSession.setActionHandler('pause', () => stopTtsPlayback());
@@ -328,7 +395,7 @@ function updateMediaSession() {
 async function applyTrackToReader(autoPlay) {
   stopTtsPlayback(); clearHighlight();
   const track = getCurrentTrack();
-  document.getElementById('reader-title').textContent = getDisplayTitle(currentStory);
+  const rt = document.getElementById('reader-title'); if (rt) rt.textContent = getDisplayTitle(currentStory);
   renderTokens(track.tokens, track.lang);
 
   storyParentRecs = await ParentVoice.getRecordingsForStory(currentStory.id, VOICE_PREFS[voiceIdx].id);
@@ -354,13 +421,13 @@ async function applyTrackToReader(autoPlay) {
   if (autoPlay) {
     requestWakeLock();
     ttsAudioEl.play();
-    btnPlayTts.querySelector('.label').textContent = '暫停';
+    btnPlayTts.querySelector('.label').textContent = tUI('pause');
     syncHighlightLoop();
   }
 }
 
 function updateTitleAndTokensText() {
-  document.getElementById('reader-title').textContent = getDisplayTitle(currentStory);
+  const rt = document.getElementById('reader-title'); if (rt) rt.textContent = getDisplayTitle(currentStory);
   const track = getCurrentTrack();
   const sKey = `text_${SCRIPT_PREFS[scriptIdx].id}`;
   storyContent.querySelectorAll('.token').forEach(el => {
@@ -398,8 +465,8 @@ function renderTokens(tokens, lang) {
 
 
 
-let tapToJump = localStorage.getItem('reading_tapToJump') === 'true';
-let readAlongMode = localStorage.getItem('reading_readAlongMode') || 'timed'; // 'timed' (提詞定速高亮) | 'speech' (語音識別追蹤)
+
+
 let kidGuidedTimer = null;
 const btnReadMode = document.getElementById('btn-read-mode');
 
@@ -407,11 +474,13 @@ function syncReadModeUI() {
   btnReadMode.textContent = readAlongMode === 'timed' ? '⏱️ 提詞跟讀' : '🗣️ 識別跟讀';
 }
 syncReadModeUI();
+  applyUiLanguage();
 
 btnReadMode.addEventListener('click', () => {
   readAlongMode = readAlongMode === 'timed' ? 'speech' : 'timed';
   localStorage.setItem('reading_readAlongMode', readAlongMode);
   syncReadModeUI();
+  applyUiLanguage();
 });
 
 const btnTapJump = document.getElementById('btn-tap-jump');
@@ -428,11 +497,13 @@ function syncTapJumpUI() {
   }
 }
 syncTapJumpUI();
+  applyUiLanguage();
 
 btnTapJump.addEventListener('click', () => {
   tapToJump = !tapToJump;
   localStorage.setItem('reading_tapToJump', tapToJump);
   syncTapJumpUI();
+  applyUiLanguage();
 });
 
 function getTokenStartTime(idx) {
@@ -459,7 +530,7 @@ function playSingleToken(idx, el) {
     requestWakeLock();
     const targetSec = getTokenStartTime(idx);
     ttsAudioEl.playbackRate = SPEEDS[speedIdx].rate;
-    btnPlayTts.querySelector('.label').textContent = '暫停';
+    btnPlayTts.querySelector('.label').textContent = tUI('pause');
     highlightToken(idx);
 
     const startFromTarget = () => {
@@ -495,10 +566,10 @@ function playSingleToken(idx, el) {
 
 btnPlayTts.addEventListener('click', () => {
   if (!ttsAudioEl.paused) stopTtsPlayback();
-  else { stopReadAlong(); requestWakeLock(); ttsAudioEl.playbackRate = SPEEDS[speedIdx].rate; ttsAudioEl.play(); btnPlayTts.querySelector('.label').textContent = '暫停'; syncHighlightLoop(); }
+  else { stopReadAlong(); requestWakeLock(); ttsAudioEl.playbackRate = SPEEDS[speedIdx].rate; ttsAudioEl.play(); btnPlayTts.querySelector('.label').textContent = tUI('pause'); syncHighlightLoop(); }
 });
 
-function stopTtsPlayback() { ttsAudioEl.pause(); cancelAnimationFrame(rafId); btnPlayTts.querySelector('.label').textContent = '聽故事'; }
+function stopTtsPlayback() { ttsAudioEl.pause(); cancelAnimationFrame(rafId); btnPlayTts.querySelector('.label').textContent = tUI('listen'); }
 
 function handleStoryEnded() {
   clearHighlight();
@@ -517,7 +588,7 @@ function handleStoryEnded() {
     openStory(nextStory.id, true);
   } else {
     releaseWakeLock();
-    btnPlayTts.querySelector('.label').textContent = '聽故事';
+    btnPlayTts.querySelector('.label').textContent = tUI('listen');
   }
 }
 
@@ -570,7 +641,7 @@ async function startReadAlong() {
   ParentVoice.unlockAudioContext();
   stopTtsPlayback(); clearHighlight(); recordPanel.classList.add('hidden');
   readCursor = 0; isReadingAlong = true; requestWakeLock();
-  btnReadAlong.classList.add('recording'); btnReadAlong.querySelector('.label').textContent = '完成朗讀'; setRecordingLock('kid');
+  btnReadAlong.classList.add('recording'); btnReadAlong.querySelector('.label').textContent = tUI('finishRead'); setRecordingLock('kid');
 
   let stream;
   try {
@@ -704,7 +775,7 @@ function stopReadAlong() {
   clearTimeout(kidGuidedTimer);
   releaseWakeLock();
   clearHighlight();
-  btnReadAlong.classList.remove('recording'); btnReadAlong.querySelector('.label').textContent = '自己讀'; setRecordingLock('none');
+  btnReadAlong.classList.remove('recording'); btnReadAlong.querySelector('.label').textContent = tUI('readAlong'); setRecordingLock('none');
   if (recognition) { recognition.onend = null; recognition.stop(); }
   if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
 }
