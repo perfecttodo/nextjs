@@ -127,7 +127,9 @@ btnParentRec.addEventListener('click', () => {
     onPreviewReady: (previewUrl) => {
       setRecordingLock('none'); releaseWakeLock(); clearHighlight();
       previewAudio.src = previewUrl;
-      previewLabelInput.value = tUI('defaultMom');
+      renderQuickTutorTags();
+      const curTutor = FamilyManager.getActiveMember();
+      previewLabelInput.value = VOICE_PREFS.at(voiceIdx).id === 'en' ? `${curTutor.avatar} ${curTutor.name}'s Voice` : `${curTutor.avatar} ${curTutor.name}的聲音`;
       modalPreview.classList.remove('hidden');
     },
     onCancel: () => { setRecordingLock('none'); releaseWakeLock(); clearHighlight(); }
@@ -192,17 +194,20 @@ async function renderManagerList() {
 }
 
 window.handleRenameRec = async (id, oldName) => {
-  const nextName = prompt('請輸入新的錄音名稱（例如：爸爸的聲音）：', oldName);
+  const nextName = await CustomUI.showPrompt({ title: '✏️ 修改錄音名稱', desc: '請輸入新的錄音標籤名稱：', defaultValue: oldName, okText: '保存' });
   if (nextName && nextName.trim()) {
     await ParentVoice.renameRecording(id, nextName.trim());
     await renderManagerList();
+    CustomUI.showToast('✅ 錄音名稱已更新');
   }
 };
 
 window.handleDeleteRec = async (id) => {
-  if (confirm('確定要刪除這段父母陪讀錄音嗎？')) {
+  const ok = await CustomUI.showConfirm({ title: '🗑️ 刪除錄音', desc: '確定要刪除這段錄音嗎？刪除後無法恢復喔。', okText: '確定刪除', isDanger: true });
+  if (ok) {
     await ParentVoice.deleteRecording(id);
     await renderManagerList();
+    CustomUI.showToast('🗑️ 錄音已刪除');
   }
 };
 
@@ -282,7 +287,7 @@ syncPrefButtons();
 
 function cycleVoice() {
   voiceIdx = (voiceIdx + 1) % VOICE_PREFS.length;
-  localStorage.setItem('reading_voiceIdx', voiceIdx);
+  localStorage.setItem('reading_voiceIdx', voiceIdx); FamilyManager.updateActiveMemberPrefs({ voiceIdx }); renderFamilyBar();
   syncPrefButtons();
   if (allStories.length) renderStoryList(allStories);
   if (currentStory && viewReader.classList.contains('active')) applyTrackToReader(false);
@@ -290,7 +295,7 @@ function cycleVoice() {
 
 function cycleScript() {
   scriptIdx = (scriptIdx + 1) % SCRIPT_PREFS.length;
-  localStorage.setItem('reading_scriptIdx', scriptIdx);
+  localStorage.setItem('reading_scriptIdx', scriptIdx); FamilyManager.updateActiveMemberPrefs({ scriptIdx });
   syncPrefButtons();
   if (allStories.length) renderStoryList(allStories);
   if (currentStory && viewReader.classList.contains('active')) {
@@ -332,7 +337,73 @@ btnRepeat.addEventListener('click', () => {
   syncPrefButtons();
 });
 
+
+function renderFamilyBar() {
+  const bar = document.getElementById('family-bar');
+  if (!bar) return;
+  const members = FamilyManager.getMembers();
+  const active = FamilyManager.getActiveMember();
+  const tutorTag = VOICE_PREFS.at(voiceIdx).id === 'en' ? 'Tutor' : '輔導';
+
+  bar.innerHTML = members.map(m => `
+    <button class="member-chip ${m.id === active.id ? 'active' : ''}" onclick="switchFamilyMember('${m.id}')">
+      <span>${m.avatar} ${m.name}</span>
+      ${m.canTutor ? `<span class="role-tag">${tutorTag}</span>` : ''}
+    </button>
+  `).join('') + `
+    <button class="member-chip" style="border-style:dashed;color:#0284C7;" onclick="handleAddMember()">➕ 新增成員</button>
+    <button class="member-chip" style="border-style:dashed;color:#64748B;" onclick="handleEditMember()">✏️ 改名/刪除</button>
+  `;
+
+  // 根據當前成員是否為輔導者（父母/兄姊），自動顯示或隱藏設定面板中的「陪讀示範錄音」
+  const recBtn = document.getElementById('btn-parent-rec');
+  if (recBtn && recBtn.parentElement) {
+    recBtn.parentElement.style.display = active.canTutor ? 'flex' : 'none';
+  }
+}
+
+window.switchFamilyMember = (id) => {
+  const m = FamilyManager.setActiveMember(id);
+  selectedLevel = m.level !== undefined ? m.level : 0;
+  voiceIdx = m.voiceIdx !== undefined ? m.voiceIdx : 0;
+  scriptIdx = m.scriptIdx !== undefined ? m.scriptIdx : 0;
+  localStorage.setItem('reading_selectedLevel', selectedLevel); FamilyManager.updateActiveMemberPrefs({ level: selectedLevel });
+  localStorage.setItem('reading_voiceIdx', voiceIdx); FamilyManager.updateActiveMemberPrefs({ voiceIdx }); renderFamilyBar();
+  localStorage.setItem('reading_scriptIdx', scriptIdx); FamilyManager.updateActiveMemberPrefs({ scriptIdx });
+  syncPrefButtons();
+  renderFamilyBar();
+  renderStoryList(allStories);
+};
+
+
+window.handleEditMember = async () => {
+  const updated = await FamilyManager.editCurrentMember();
+  if (updated) switchFamilyMember(updated.id);
+};
+
+function renderQuickTutorTags() {
+  const box = document.getElementById('quick-tutor-tags');
+  if (!box) return;
+  const isEn = VOICE_PREFS.at(voiceIdx).id === 'en';
+  const tutors = FamilyManager.getMembers().filter(m => m.canTutor);
+  box.innerHTML = tutors.map(m => {
+    const tagTxt = isEn ? `${m.avatar} ${m.name}'s Voice` : `${m.avatar} ${m.name}的聲音`;
+    return `<button type="button" class="btn-mini" style="background:#FEF3C7;color:#92400E;border:1px solid #F59E0B;" onclick="document.getElementById('preview-label-input').value='${tagTxt.replace(/'/g, "\'")}'">${m.avatar} ${m.name}</button>`;
+  }).join('') + `<button type="button" class="btn-mini" style="background:#F1F5F9;color:#334155;border:1px solid #CBD5E1;" onclick="const inp=document.getElementById('preview-label-input');inp.value='';inp.focus();">✏️ 自定義</button>`;
+}
+
+window.handleAddMember = async () => {
+  const added = await FamilyManager.addCustomMember();
+  if (added) switchFamilyMember(added.id);
+};
+
 async function init() {
+  const activeM = FamilyManager.getActiveMember();
+  selectedLevel = activeM.level !== undefined ? activeM.level : selectedLevel;
+  voiceIdx = activeM.voiceIdx !== undefined ? activeM.voiceIdx : voiceIdx;
+  scriptIdx = activeM.scriptIdx !== undefined ? activeM.scriptIdx : scriptIdx;
+  syncPrefButtons();
+  renderFamilyBar();
   try {
     const res = await fetch(`${LIST_API}?t=${Date.now()}`);
     allStories = await res.json();
@@ -373,7 +444,7 @@ function updateLevelTabsUI() {
 document.querySelectorAll('#level-tabs .level-tab').forEach(btn => {
   btn.addEventListener('click', () => {
     selectedLevel = Number(btn.dataset.lvl);
-    localStorage.setItem('reading_selectedLevel', selectedLevel);
+    localStorage.setItem('reading_selectedLevel', selectedLevel); FamilyManager.updateActiveMemberPrefs({ level: selectedLevel });
     updateLevelTabsUI();
     renderStoryList(allStories);
   });
@@ -745,7 +816,7 @@ async function startReadAlong() {
     btnSaveDb.textContent = '✅ 保存到系統';
     recordPanel.classList.remove('hidden');
     stream.getTracks().forEach(track => track.stop());
-    if (peak < 3) alert('⚠️ 偵測不到麥克風聲音！請在上方下拉選單確認麥克風設備。');
+    if (peak < 3) CustomUI.showToast('⚠️ 偵測不到麥克風聲音，請檢查上方麥克風選項');
   };
   mediaRecorder.start(250);
 
@@ -830,7 +901,9 @@ function stopReadAlong() {
 
 document.getElementById('btn-save-kid-db').addEventListener('click', async () => {
   if (!lastKidBlob || !currentStory) return;
-  const customName = prompt('請輸入錄音名稱（方便在錄音庫查看）：', '寶寶的朗讀');
+  const curReader = FamilyManager.getActiveMember();
+  const defaultKidLabel = VOICE_PREFS.at(voiceIdx).id === 'en' ? `${curReader.avatar} ${curReader.name}'s Reading` : `${curReader.avatar} ${curReader.name}的朗讀`;
+  const customName = await CustomUI.showPrompt({ title: '💾 保存朗讀錄音', desc: '請輸入錄音名稱，方便在錄音庫查看：', defaultValue: defaultKidLabel, okText: '✅ 保存' });
   if (customName === null) return; // 用戶按取消
   const vPref = VOICE_PREFS.at(voiceIdx);
   await ParentVoice.saveDirectRecording({

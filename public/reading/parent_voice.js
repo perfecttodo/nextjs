@@ -42,7 +42,7 @@ const ParentVoice = (() => {
     if (e.target && e.target.id === 'mic-device-select') {
       selectedMicId = e.target.value;
       localStorage.setItem('reading_micDeviceId', selectedMicId);
-      alert('✅ 已切換麥克風！請重新點擊錄音按鈕即可使用新麥克風。');
+      CustomUI.showToast('✅ 已切換麥克風設備！');
     }
   });
 
@@ -235,7 +235,7 @@ const ParentVoice = (() => {
     try {
       stream = await getCleanMicStream();
     } catch (e) {
-      alert('無法存取麥克風！請檢查瀏覽器麥克風權限。');
+      CustomUI.showToast('⚠️ 無法存取麥克風，請允許瀏覽器權限');
       if (onCancel) onCancel();
       return;
     }
@@ -271,7 +271,7 @@ const ParentVoice = (() => {
       btnRec.style.color = '#BE123C';
 
       if (peak < 3) {
-        alert('⚠️ 警告：麥克風幾乎沒有收到聲音（聲波無跳動）！\n請檢查電腦/iPad 的「系統設定 -> 聲音 -> 輸入」是否選對麥克風或被靜音。');
+        CustomUI.showToast('⚠️ 麥克風幾乎沒收到聲音，請檢查上方麥克風選項');
       }
 
       if (recChunks.length > 0 && Object.keys(timings).length > 0) {

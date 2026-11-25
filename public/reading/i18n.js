@@ -44,7 +44,7 @@ const I18N_DICT = {
     discardRec: '🗑️ 放棄重錄',
     confirmSave: '✅ 確認保存',
     managerTitle: '🗂️ 家庭錄音管理庫（父母 & 寶寶）',
-    parentVoiceBtn: '👨‍👩‍👧 父母聲',
+    parentVoiceBtn: '👨‍👩‍👧 陪讀聲',
     parentVoiceOn: '(開)'
   },
   zh_hans: {
@@ -92,7 +92,7 @@ const I18N_DICT = {
     discardRec: '🗑️ 放弃重录',
     confirmSave: '✅ 确认保存',
     managerTitle: '🗂️ 家庭录音管理库（父母 & 宝宝）',
-    parentVoiceBtn: '👨‍👩‍👧 父母声',
+    parentVoiceBtn: '👨‍👩‍👧 陪读声',
     parentVoiceOn: '(开)'
   },
   en: {
