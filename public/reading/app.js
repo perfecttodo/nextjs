@@ -1,3 +1,4 @@
+let lastKidBlob = null, lastKidTimings = {};
 const LIST_API = './stories/index.json';
 const DETAIL_API = (id) => `./stories/${id}.json`;
 
@@ -89,8 +90,8 @@ btnParentPlay.addEventListener('click', async () => {
 
 function setRecordingLock(mode) {
   // mode: 'parent' (父母錄音中) | 'kid' (小朋友跟讀中) | 'none' (解除鎖定)
-  const lockIdsForParent = ['btn-back', 'btn-parent-play', 'btn-reader-voice', 'btn-reader-script', 'btn-repeat', 'btn-tap-jump', 'btn-mode', 'btn-speed', 'btn-play-tts', 'btn-read-along'];
-  const lockIdsForKid = ['btn-parent-rec', 'btn-parent-play', 'btn-reader-voice', 'btn-reader-script', 'btn-repeat', 'btn-tap-jump', 'btn-mode', 'btn-speed', 'btn-play-tts'];
+  const lockIdsForParent = ['btn-back', 'btn-parent-play', 'btn-reader-voice', 'btn-reader-script', 'btn-repeat', 'btn-read-mode', 'btn-tap-jump', 'btn-mode', 'btn-speed', 'btn-play-tts', 'btn-read-along'];
+  const lockIdsForKid = ['btn-parent-rec', 'btn-parent-play', 'btn-reader-voice', 'btn-reader-script', 'btn-repeat', 'btn-read-mode', 'btn-tap-jump', 'btn-mode', 'btn-speed', 'btn-play-tts'];
 
   const allIds = Array.from(new Set([...lockIdsForParent, ...lockIdsForKid]));
   allIds.forEach(id => {
@@ -398,6 +399,21 @@ function renderTokens(tokens, lang) {
 
 
 let tapToJump = localStorage.getItem('reading_tapToJump') === 'true';
+let readAlongMode = localStorage.getItem('reading_readAlongMode') || 'timed'; // 'timed' (提詞定速高亮) | 'speech' (語音識別追蹤)
+let kidGuidedTimer = null;
+const btnReadMode = document.getElementById('btn-read-mode');
+
+function syncReadModeUI() {
+  btnReadMode.textContent = readAlongMode === 'timed' ? '⏱️ 提詞跟讀' : '🗣️ 識別跟讀';
+}
+syncReadModeUI();
+
+btnReadMode.addEventListener('click', () => {
+  readAlongMode = readAlongMode === 'timed' ? 'speech' : 'timed';
+  localStorage.setItem('reading_readAlongMode', readAlongMode);
+  syncReadModeUI();
+});
+
 const btnTapJump = document.getElementById('btn-tap-jump');
 
 function syncTapJumpUI() {
@@ -555,42 +571,110 @@ async function startReadAlong() {
   stopTtsPlayback(); clearHighlight(); recordPanel.classList.add('hidden');
   readCursor = 0; isReadingAlong = true; requestWakeLock();
   btnReadAlong.classList.add('recording'); btnReadAlong.querySelector('.label').textContent = '完成朗讀'; setRecordingLock('kid');
-  advanceToNextReadableToken(0);
+
+  let stream;
   try {
-    const stream = await ParentVoice.getCleanMicStream();
-    document.getElementById('parent-rec-banner').style.display = 'block';
-    document.getElementById('rec-status-text').textContent = '🎤 正在跟讀錄音... 看下方紅條跳動確認話筒正常';
-    ParentVoice.startWaveformMeter(stream);
+    stream = await ParentVoice.getCleanMicStream();
+  } catch (err) {
+    alert('請允許使用麥克風權限！');
+    stopReadAlong();
+    return;
+  }
 
-    mediaRecorder = new MediaRecorder(stream); audioChunks = [];
-    mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
-    mediaRecorder.onstop = () => {
-      const peak = ParentVoice.stopWaveformMeter();
-      document.getElementById('parent-rec-banner').style.display = 'none';
-      const actualMime = mediaRecorder.mimeType || 'audio/webm';
-      const url = URL.createObjectURL(new Blob(audioChunks, { type: actualMime }));
-      recordedAudioEl.src = url;
-      const dl = document.getElementById('btn-download');
-      dl.href = url; dl.download = `${getDisplayTitle(currentStory)}_我的朗讀.${actualMime.includes('mp4') ? 'm4a' : 'webm'}`;
-      recordPanel.classList.remove('hidden');
+  const banner = document.getElementById('parent-rec-banner');
+  const statusText = document.getElementById('rec-status-text');
+  banner.style.display = 'block';
+  ParentVoice.startWaveformMeter(stream);
+
+  // 如果是「⏱️ 提詞跟讀」模式，先倒數 3 秒讓小朋友準備
+  if (readAlongMode === 'timed') {
+    for (let c = 3; c >= 1; c--) {
+      if (!isReadingAlong) {
+        ParentVoice.stopWaveformMeter();
+        banner.style.display = 'none';
+        stream.getTracks().forEach(track => track.stop());
+        return;
+      }
+      statusText.textContent = `🎤 小朋友請準備，${c} 秒後跟著黃色高亮一起讀...`;
+      await new Promise(r => setTimeout(r, 900));
+    }
+    if (!isReadingAlong) {
+      ParentVoice.stopWaveformMeter();
+      banner.style.display = 'none';
       stream.getTracks().forEach(track => track.stop());
-      if (peak < 3) alert('⚠️ 偵測不到麥克風聲音！請檢查設備的麥克風輸入設定。');
-    };
-    mediaRecorder.start(250);
-  } catch (err) { alert('請允許使用麥克風權限！'); stopReadAlong(); return; }
+      return;
+    }
+    statusText.textContent = '🔴 正在跟讀錄音... 跟著黃色高亮慢慢讀（讀完自動結束）';
+  } else {
+    statusText.textContent = '🎤 語音識別跟讀中... 讀出高亮字詞會自動跳下一個';
+    advanceToNextReadableToken(0);
+  }
 
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (SpeechRecognition) {
-    recognition = new SpeechRecognition();
-    recognition.lang = getCurrentTrack().lang || 'zh-HK';
-    recognition.continuous = true; recognition.interimResults = true;
-    recognition.onresult = (e) => {
-      let text = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) text += e.results[i].transcript;
-      matchSpokenText(text.toLowerCase());
-    };
-    recognition.onend = () => { if (isReadingAlong) recognition.start(); };
-    recognition.start();
+  mediaRecorder = new MediaRecorder(stream);
+  audioChunks = [];
+  mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
+  mediaRecorder.onstop = () => {
+    const peak = ParentVoice.stopWaveformMeter();
+    banner.style.display = 'none';
+    const actualMime = mediaRecorder.mimeType || 'audio/webm';
+    lastKidBlob = new Blob(audioChunks, { type: actualMime });
+    const url = URL.createObjectURL(lastKidBlob);
+    recordedAudioEl.src = url;
+    const dl = document.getElementById('btn-download');
+    dl.href = url; dl.download = `${getDisplayTitle(currentStory)}_我的朗讀.${actualMime.includes('mp4') ? 'm4a' : 'webm'}`;
+    const btnSaveDb = document.getElementById('btn-save-kid-db');
+    btnSaveDb.disabled = false;
+    btnSaveDb.textContent = '✅ 保存到系統';
+    recordPanel.classList.remove('hidden');
+    stream.getTracks().forEach(track => track.stop());
+    if (peak < 3) alert('⚠️ 偵測不到麥克風聲音！請在上方下拉選單確認麥克風設備。');
+  };
+  mediaRecorder.start(250);
+
+  if (readAlongMode === 'timed') {
+    // 定速提詞跟讀（與父母錄音相同的平滑高亮節奏）
+    const tokens = getCurrentTrack().tokens;
+    const readableIndices = [];
+    tokens.forEach((t, i) => { if (!t.isBreak && !t.isPunct) readableIndices.push(i); });
+    const rate = SPEEDS[speedIdx].rate;
+    lastKidTimings = {};
+    const kidStartTime = performance.now();
+    let step = 0;
+
+    function stepKidHighlight() {
+      if (!isReadingAlong) return;
+      if (step >= readableIndices.length) {
+        setTimeout(() => stopReadAlong(), 450);
+        return;
+      }
+      const tokIdx = readableIndices.at(step);
+      const tokText = tokens.at(tokIdx).text || '';
+      const charCount = Math.max(1, tokText.trim().length);
+      const baseMs = /^[A-Za-z0-9]/.test(tokText) ? 950 : (650 + charCount * 240);
+      const stepMs = Math.round(baseMs / rate);
+
+      const nowSec = (performance.now() - kidStartTime) / 1000;
+      lastKidTimings[tokIdx] = [Math.max(0, Math.round((nowSec - 0.05) * 1000) / 1000), Math.round((nowSec + stepMs / 1000 + 0.05) * 1000) / 1000];
+      highlightToken(tokIdx);
+      step++;
+      kidGuidedTimer = setTimeout(stepKidHighlight, stepMs);
+    }
+    stepKidHighlight();
+  } else {
+    // 語音識別追蹤跟讀
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = getCurrentTrack().lang || 'zh-HK';
+      recognition.continuous = true; recognition.interimResults = true;
+      recognition.onresult = (e) => {
+        let text = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) text += e.results[i].transcript;
+        matchSpokenText(text.toLowerCase());
+      };
+      recognition.onend = () => { if (isReadingAlong) recognition.start(); };
+      recognition.start();
+    }
   }
 }
 
@@ -616,11 +700,43 @@ function advanceToNextReadableToken(startIdx) {
 
 function stopReadAlong() {
   if (!isReadingAlong) return;
-  isReadingAlong = false; releaseWakeLock();
+  isReadingAlong = false;
+  clearTimeout(kidGuidedTimer);
+  releaseWakeLock();
+  clearHighlight();
   btnReadAlong.classList.remove('recording'); btnReadAlong.querySelector('.label').textContent = '自己讀'; setRecordingLock('none');
   if (recognition) { recognition.onend = null; recognition.stop(); }
   if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
 }
+
+
+document.getElementById('btn-save-kid-db').addEventListener('click', async () => {
+  if (!lastKidBlob || !currentStory) return;
+  const customName = prompt('請輸入錄音名稱（方便在錄音庫查看）：', '寶寶的朗讀');
+  if (customName === null) return; // 用戶按取消
+  const vPref = VOICE_PREFS.at(voiceIdx);
+  await ParentVoice.saveDirectRecording({
+    storyId: currentStory.id,
+    storyTitle: getDisplayTitle(currentStory),
+    langId: vPref.id,
+    langLabel: vPref.label.replace('🗣️ ', ''),
+    label: customName.trim() || '寶寶的朗讀',
+    blob: lastKidBlob,
+    timings: lastKidTimings
+  });
+  const btnSaveDb = document.getElementById('btn-save-kid-db');
+  btnSaveDb.textContent = '🎉 已保存至系統';
+  btnSaveDb.disabled = true;
+  // 若當前正在該故事頁，刷新頂部錄音切換列表，讓小朋友也能用自己的聲音播故事！
+  storyParentRecs = await ParentVoice.getRecordingsForStory(currentStory.id, vPref.id);
+  updateParentButtonsUI();
+});
+
+
+document.getElementById('btn-close-record').addEventListener('click', () => {
+  recordedAudioEl.pause();
+  recordPanel.classList.add('hidden');
+});
 
 const btnLoop = document.getElementById('btn-loop');
 btnLoop.addEventListener('click', () => {

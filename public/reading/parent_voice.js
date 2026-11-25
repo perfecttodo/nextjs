@@ -116,6 +116,23 @@ const ParentVoice = (() => {
     });
   }
 
+  async function saveDirectRecording({ storyId, storyTitle, langId, langLabel, label, blob, timings }) {
+    const database = await openDB();
+    const record = {
+      id: 'rec_' + Date.now(),
+      storyId, storyTitle, langId, langLabel,
+      label: (label || '').trim() || '寶寶的朗讀',
+      blob, timings: timings || {}, createdAt: Date.now()
+    };
+    await new Promise((resolve, reject) => {
+      const tx = database.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).put(record);
+      tx.oncomplete = () => resolve();
+      tx.onerror = (e) => reject(e);
+    });
+    return record;
+  }
+
   async function confirmSavePending(customLabel) {
     if (!pendingDraft) return null;
     const database = await openDB();
@@ -306,7 +323,7 @@ const ParentVoice = (() => {
   return {
     isRecording: () => isRecording,
     unlockAudioContext, getCleanMicStream, startWaveformMeter, stopWaveformMeter,
-    confirmSavePending, discardPending, getAllRecordings, getRecordingsForStory,
+    saveDirectRecording, confirmSavePending, discardPending, getAllRecordings, getRecordingsForStory,
     deleteRecording, renameRecording, activateRecord,
     getActiveData: () => activeParentData,
     playParentSingleWord, startGuidedRecording, stopGuidedRecording

@@ -13,7 +13,7 @@
     <header class="top-bar" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
       <h1 style="font-size:24px;">📚 快樂小讀者</h1>
       <div class="pref-bar" style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button id="btn-open-manager" class="btn-speed" style="border-color:#F43F5E;background:#FFF1F2;color:#BE123C;">🗂️ 父母錄音庫</button>
+        <button id="btn-open-manager" class="btn-speed" style="border-color:#F43F5E;background:#FFF1F2;color:#BE123C;">🗂️ 錄音管理庫</button>
         <button id="btn-pref-voice" class="btn-speed">🗣️ 粵語</button>
         <button id="btn-pref-script" class="btn-speed">🔤 港澳繁體</button>
       </div>
@@ -31,6 +31,7 @@
         <button id="btn-reader-voice" class="btn-speed" style="border-color:#8B5CF6;background:#F5F3FF;color:#5B21B6;">🗣️ 粵語</button>
         <button id="btn-reader-script" class="btn-speed" style="border-color:#EC4899;background:#FDF2F8;color:#9D174D;">🔤 港澳繁</button>
         <button id="btn-repeat" class="btn-speed" style="border-color:#10B981;background:#ECFDF5;color:#047857;">⏹️ 單篇</button>
+        <button id="btn-read-mode" class="btn-speed" style="border-color:#F97316;background:#FFF7ED;color:#C2410C;">⏱️ 提詞跟讀</button>
         <button id="btn-tap-jump" class="btn-speed" style="border-color:#0EA5E9;background:#F0F9FF;color:#0369A1;">👆 點哪讀哪</button>
         <button id="btn-mode" class="btn-speed" style="border-color:#38BDF8;background:#F0F9FF;color:#0369A1;">🎯 精讀</button>
         <button id="btn-speed" class="btn-speed">🐇 1.0x</button>
@@ -51,10 +52,15 @@
 
     <article id="story-content" class="story-content"></article>
     <section id="record-panel" class="record-panel hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+        <span style="font-weight:bold;color:#1E293B;font-size:16px;">🎧 寶寶剛才的朗讀錄音</span>
+        <button id="btn-close-record" style="border:none;background:#F1F5F9;color:#475569;padding:4px 12px;border-radius:10px;font-weight:bold;font-size:15px;cursor:pointer;">✖️ 關閉</button>
+      </div>
       <audio id="recorded-audio" controls playsinline></audio>
       <div class="record-actions">
-        <button id="btn-loop" class="btn-pill">🔁 循環播放錄音</button>
-        <a id="btn-download" class="btn-pill btn-save" download="我的朗讀.webm">💾 保存錄音</a>
+        <button id="btn-loop" class="btn-pill">🔁 循環播放</button>
+        <button id="btn-save-kid-db" class="btn-pill btn-save">✅ 保存到系統</button>
+        <a id="btn-download" class="btn-pill" style="background:#E0F2FE;color:#0369A1;" download="我的朗讀.webm">⬇️ 下載</a>
       </div>
     </section>
         <footer class="control-dock">
@@ -82,7 +88,7 @@
   <div id="modal-manager" class="modal-backdrop hidden">
     <div class="modal-card" style="max-width:620px;max-height:85vh;display:flex;flex-direction:column;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <h3 style="margin:0;">🗂️ 父母陪讀錄音管理</h3>
+        <h3 style="margin:0;">🗂️ 家庭錄音管理庫（父母 & 寶寶）</h3>
         <button id="btn-close-manager" class="btn-back" style="padding:6px 14px;">✖️ 關閉</button>
       </div>
       <div id="manager-list" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px;padding:4px;"></div>
