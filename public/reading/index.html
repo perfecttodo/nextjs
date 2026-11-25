@@ -10,15 +10,24 @@
 </head>
 <body>
   <main id="view-list" class="view active">
-    <header class="top-bar"><h1>📚 選一本故事書</h1></header>
+    <header class="top-bar" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+      <h1 style="font-size:24px;">📚 快樂小讀者</h1>
+      <div class="pref-bar" style="display:flex;gap:8px;">
+        <button id="btn-pref-voice" class="btn-speed">🗣️ 粵語</button>
+        <button id="btn-pref-script" class="btn-speed">🔤 港澳繁體</button>
+      </div>
+    </header>
     <div id="story-grid" class="story-grid"></div>
   </main>
 
   <main id="view-reader" class="view">
-    <header class="reader-header">
+    <header class="reader-header" style="flex-wrap:wrap;gap:8px;">
       <button id="btn-back" class="btn-back">⬅️ 返回</button>
       <h2 id="reader-title">載入中...</h2>
-      <div class="header-right">
+      <div class="header-right" style="flex-wrap:wrap;justify-content:flex-end;">
+        <button id="btn-reader-voice" class="btn-speed" style="border-color:#8B5CF6;background:#F5F3FF;color:#5B21B6;">🗣️ 粵語</button>
+        <button id="btn-reader-script" class="btn-speed" style="border-color:#EC4899;background:#FDF2F8;color:#9D174D;">🔤 港澳繁</button>
+        <button id="btn-repeat" class="btn-speed" style="border-color:#10B981;background:#ECFDF5;color:#047857;">⏹️ 單篇</button>
         <button id="btn-mode" class="btn-speed" style="border-color:#38BDF8;background:#F0F9FF;color:#0369A1;">🎯 精讀</button>
         <button id="btn-speed" class="btn-speed">🐇 1.0x</button>
         <span id="wake-badge" class="badge" style="display:none;">☀️ 常亮</span>

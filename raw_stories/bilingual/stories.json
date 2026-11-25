@@ -1,0 +1,30 @@
+[
+  {
+    "id": "story_001",
+    "title_zh": "小兔子找朋友",
+    "title_en": "The Little Rabbit Makes Friends",
+    "zh": "從前，有一隻好可愛的小兔子，牠有一對長長的耳朵。\n每天早上，牠都會去森林裡面找不同的小動物一起玩。\n大家都很喜歡和小兔子做朋友，整個森林都充滿了笑聲。",
+    "en": "Once upon a time, there was a cute little rabbit with long ears.\nEvery morning, she went into the forest to play with different little animals.\nEveryone loved being friends with the little rabbit, and the forest was full of laughter."
+  },
+  {
+    "id": "story_002",
+    "title_zh": "龜兔賽跑",
+    "title_en": "The Tortoise and the Hare",
+    "zh": "有一天，驕傲的兔子先生和烏龜先生比賽跑步。\n兔子跑得非常快，他看見烏龜走得這麼慢，就在大樹下面睡著了。\n烏龜一步一步地向前走，最後竟然贏得了比賽！",
+    "en": "One day, a proud hare and a tortoise had a running race.\nThe hare ran very fast. Seeing the tortoise walking so slowly, he fell asleep under a big tree.\nThe tortoise walked forward step by step and finally won the race!"
+  },
+  {
+    "id": "story_003",
+    "title_zh": "三隻小豬",
+    "title_en": "The Three Little Pigs",
+    "zh": "森林裡住著三隻小豬，牠們決定各自蓋一間堅固的新房子。\n豬大哥用稻草蓋房子，豬二哥用木頭蓋房子，只有豬小弟用磚頭慢慢蓋。\n大野狼來了，吹倒了稻草屋和木頭屋，最後三隻小豬都躲進了安全的磚頭屋。",
+    "en": "Three little pigs lived in the forest, and they decided to build their own strong new houses.\nThe first pig built a house of straw, the second built one of wood, and only the youngest built slowly with bricks.\nThe big bad wolf came and blew down the straw and wood houses, so all three pigs hid safely in the brick house."
+  },
+  {
+    "id": "story_004",
+    "title_zh": "小熊種果樹",
+    "title_en": "Little Bear Plants an Apple Tree",
+    "zh": "春天到了，小熊在院子裡種下了一顆小小的蘋果樹苗。\n牠每天給小樹澆水、曬太陽，小樹苗慢慢長高了。\n到了秋天，樹上結滿了又大又紅的甜蘋果，小熊請大家一起分享。",
+    "en": "Spring arrived, and Little Bear planted a tiny apple sapling in the yard.\nHe watered the little tree and gave it sunshine every day, and the sapling slowly grew tall.\nIn autumn, the tree was full of big red sweet apples, and Little Bear shared them with everyone."
+  }
+]
