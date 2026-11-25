@@ -560,3 +560,50 @@ html, body {
     font-size: 11px !important;
   }
 }
+
+/* 非阻塞式滿屏星星祝賀動畫層（不阻擋點擊，不干擾連續播放） */
+.star-celebration-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3000;
+  overflow: hidden;
+}
+
+.celebration-badge {
+  position: absolute;
+  top: 22%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  background: linear-gradient(135deg, #FEF08A 0%, #F59E0B 100%);
+  color: #78350F;
+  padding: 16px 28px;
+  border-radius: 30px;
+  font-size: clamp(20px, 5vw, 28px);
+  font-weight: 900;
+  box-shadow: 0 12px 30px rgba(245, 158, 11, 0.45), 0 0 0 5px rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  opacity: 0;
+  animation: badgePopFade 3.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes badgePopFade {
+  0%   { opacity: 0; transform: translate(-50%, -30%) scale(0.5); }
+  15%  { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+  25%  { opacity: 1; transform: translate(-50%, -50%) scale(1.0); }
+  80%  { opacity: 1; transform: translate(-50%, -55%) scale(1.0); }
+  100% { opacity: 0; transform: translate(-50%, -75%) scale(0.95); }
+}
+
+.falling-star {
+  position: absolute;
+  top: -50px;
+  user-select: none;
+  animation: starFallSpin linear forwards;
+}
+
+@keyframes starFallSpin {
+  0%   { transform: translateY(0) rotate(0deg) scale(0.6); opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(110vh) rotate(540deg) scale(1.2); opacity: 0; }
+}

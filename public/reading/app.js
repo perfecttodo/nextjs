@@ -769,7 +769,38 @@ btnPlayTts.addEventListener('click', () => {
 
 function stopTtsPlayback() { ttsAudioEl.pause(); cancelAnimationFrame(rafId); btnPlayTts.querySelector('.label').textContent = tUI('listen'); }
 
+
+function triggerStarCelebration() {
+  // 移除舊的未結束動畫層
+  const old = document.querySelector('.star-celebration-layer');
+  if (old) old.remove();
+
+  const layer = document.createElement('div');
+  layer.className = 'star-celebration-layer';
+
+  // 僅保留滿屏星星雨，不顯示中央文字橫幅以免遮擋故事正文
+
+  // 2. 生成 36 顆滿屏隨機飄落的星星與彩帶
+  const icons = ['⭐', '🌟', '✨', '🎉', '🏆', '💫'];
+  for (let i = 0; i < 36; i++) {
+    const star = document.createElement('span');
+    star.className = 'falling-star';
+    star.textContent = icons[i % icons.length];
+    star.style.left = Math.random() * 96 + 'vw';
+    star.style.fontSize = (22 + Math.random() * 24) + 'px';
+    const dur = 2.0 + Math.random() * 1.4;
+    const delay = Math.random() * 0.55;
+    star.style.animationDuration = dur + 's';
+    star.style.animationDelay = delay + 's';
+    layer.appendChild(star);
+  }
+
+  document.body.appendChild(layer);
+  setTimeout(() => { if (layer.parentNode) layer.remove(); }, 3600);
+}
+
 function handleStoryEnded() {
+  triggerStarCelebration();
   clearHighlight();
   const mode = REPEAT_MODES[repeatIdx].id;
   if (mode === 'single') {
@@ -913,6 +944,7 @@ async function startReadAlong() {
     function stepKidHighlight() {
       if (!isReadingAlong) return;
       if (step >= readableIndices.length) {
+        triggerStarCelebration();
         setTimeout(() => stopReadAlong(), 450);
         return;
       }
