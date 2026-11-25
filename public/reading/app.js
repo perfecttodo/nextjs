@@ -433,7 +433,7 @@ function syncHighlightLoop() {
   if (useParentVoice && pData && pData.timings) {
     let activeIdx = -1;
     for (const [idxStr, range] of Object.entries(pData.timings)) {
-      if (t >= range && t <= range) { activeIdx = Number(idxStr); break; }
+      const [st, ed] = range; if (t >= st && t <= ed) { activeIdx = Number(idxStr); break; }
     }
     if (activeIdx !== -1) highlightToken(activeIdx);
   } else if (playMode === 'exact') {

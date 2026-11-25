@@ -268,8 +268,9 @@ const ParentVoice = (() => {
       }
     };
 
+    let recStartTime = performance.now();
+    mediaRecorder.onstart = () => { recStartTime = performance.now(); };
     mediaRecorder.start(250);
-    const recStartTime = performance.now();
     const readableIndices = [];
     tokens.forEach((t, i) => { if (!t.isBreak && !t.isPunct) readableIndices.push(i); });
 
