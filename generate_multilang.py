@@ -147,8 +147,8 @@ async def main():
         zh_paras = [p.strip() for p in item["zh"].split("\n") if p.strip()]
         en_paras = [p.strip() for p in item["en"].split("\n") if p.strip()]
         tracks = {}
-        for lk in ["hk", "tw", "cn"]: tracks[lk] = await build_track(sid, lk, zh_paras, "public/reading/assets/words")
-        tracks["en"] = await build_track(sid, "en", en_paras, "public/reading/assets/words")
+        for lk in ["hk", "tw", "cn"]: tracks[lk] = await build_track(sid, lk, [item["title_zh"]] + zh_paras, "public/reading/assets/words")
+        tracks["en"] = await build_track(sid, "en", [item["title_en"]] + en_paras, "public/reading/assets/words")
 
         detail = {
             "id": sid,
@@ -239,8 +239,8 @@ async def main():
         zh_paras = [p.strip() for p in item["zh"].split("\n") if p.strip()]
         en_paras = [p.strip() for p in item["en"].split("\n") if p.strip()]
         tracks = {}
-        for lk in ["hk", "tw", "cn"]: tracks[lk] = await build_track(sid, lk, zh_paras, "public/reading/assets/words")
-        tracks["en"] = await build_track(sid, "en", en_paras, "public/reading/assets/words")
+        for lk in ["hk", "tw", "cn"]: tracks[lk] = await build_track(sid, lk, [item["title_zh"]] + zh_paras, "public/reading/assets/words")
+        tracks["en"] = await build_track(sid, "en", [item["title_en"]] + en_paras, "public/reading/assets/words")
 
         detail = {
             "id": sid,
@@ -331,8 +331,8 @@ async def main():
         zh_paras = [p.strip() for p in item["zh"].split("\n") if p.strip()]
         en_paras = [p.strip() for p in item["en"].split("\n") if p.strip()]
         tracks = {}
-        for lk in ["hk", "tw", "cn"]: tracks[lk] = await build_track(sid, lk, zh_paras, "public/reading/assets/words")
-        tracks["en"] = await build_track(sid, "en", en_paras, "public/reading/assets/words")
+        for lk in ["hk", "tw", "cn"]: tracks[lk] = await build_track(sid, lk, [item["title_zh"]] + zh_paras, "public/reading/assets/words")
+        tracks["en"] = await build_track(sid, "en", [item["title_en"]] + en_paras, "public/reading/assets/words")
 
         detail = {
             "id": sid,
@@ -423,8 +423,8 @@ async def main():
         zh_paras = [p.strip() for p in item["zh"].split("\n") if p.strip()]
         en_paras = [p.strip() for p in item["en"].split("\n") if p.strip()]
         tracks = {}
-        for lk in ["hk", "tw", "cn"]: tracks[lk] = await build_track(sid, lk, zh_paras, "public/reading/assets/words")
-        tracks["en"] = await build_track(sid, "en", en_paras, "public/reading/assets/words")
+        for lk in ["hk", "tw", "cn"]: tracks[lk] = await build_track(sid, lk, [item["title_zh"]] + zh_paras, "public/reading/assets/words")
+        tracks["en"] = await build_track(sid, "en", [item["title_en"]] + en_paras, "public/reading/assets/words")
 
         detail = {
             "id": sid,

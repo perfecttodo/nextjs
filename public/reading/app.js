@@ -172,16 +172,23 @@ function updateTitleAndTokensText() {
 function renderTokens(tokens, lang) {
   const isEn = (lang || '').startsWith('en');
   const sKey = `text_${SCRIPT_PREFS[scriptIdx].id}`;
-  let html = `<p class="story-para ${isEn ? 'en-para' : ''}">`;
+  let isFirstPara = true;
+  let html = `<h2 class="story-title-heading">`;
   tokens.forEach((t, idx) => {
-    if (t.isBreak) html += `</p><p class="story-para ${isEn ? 'en-para' : ''}">`;
-    else {
+    if (t.isBreak) {
+      if (isFirstPara) {
+        html += `</h2><p class="story-para ${isEn ? 'en-para' : ''}">`;
+        isFirstPara = false;
+      } else {
+        html += `</p><p class="story-para ${isEn ? 'en-para' : ''}">`;
+      }
+    } else {
       const disp = t[sKey] || t.text;
       const space = (!t.isPunct && /^[A-Za-z0-9]/.test(disp)) ? ' ' : '';
       html += `<span class="token ${t.isPunct ? 'punct' : ''}" data-idx="${idx}">${disp}${space}</span>`;
     }
   });
-  storyContent.innerHTML = html + '</p>';
+  storyContent.innerHTML = html + (isFirstPara ? '</h2>' : '</p>');
   storyContent.querySelectorAll('.token:not(.punct)').forEach(el => el.addEventListener('click', () => playSingleToken(Number(el.dataset.idx), el)));
 }
 
