@@ -33,8 +33,15 @@
       <button id="btn-back" class="btn-back" style="padding:8px 12px;font-size:16px;">⬅️ 返回</button>
       <span id="header-status-pill" class="header-status-pill">粵語 · 1.0x</span>
       <div class="header-right" style="gap:6px;">
-        <button id="btn-tap-jump" class="btn-speed" style="padding:7px 10px;font-size:14px;border-color:#0EA5E9;background:#F0F9FF;color:#0369A1;">👆 點哪讀哪</button>
-        <button id="btn-open-settings" class="btn-speed" style="padding:7px 12px;font-size:15px;border-color:#64748B;background:#F8FAFC;color:#1E293B;">⚙️ 設定</button>
+        <div class="quick-tools">
+          <button id="q-voice" class="btn-speed quick-btn show-desktop" style="border-color:#8B5CF6;background:#F5F3FF;color:#5B21B6;">🗣️ 粵語</button>
+          <button id="q-speed" class="btn-speed quick-btn show-tablet">🐇 1.0x</button>
+          <button id="q-font" class="btn-speed quick-btn show-tablet" style="border-color:#6366F1;background:#EEF2FF;color:#4338CA;">🔠 標準</button>
+          <button id="q-repeat" class="btn-speed quick-btn show-desktop" style="border-color:#10B981;background:#ECFDF5;color:#047857;">⏹️ 單篇</button>
+          <button id="q-parent" class="btn-speed quick-btn show-desktop" style="display:none;border-color:#F59E0B;background:#FEF3C7;color:#B45309;">👨‍👩‍👧 陪讀聲</button>
+          <button id="btn-tap-jump" class="btn-speed quick-btn" style="border-color:#0EA5E9;background:#F0F9FF;color:#0369A1;">👆 點哪讀哪</button>
+        </div>
+        <button id="btn-open-settings" class="btn-speed quick-btn" style="border-color:#64748B;background:#F8FAFC;color:#1E293B;">⚙️ 設定</button>
         <span id="wake-badge" class="badge" style="display:none;">☀️</span>
       </div>
     </header>
@@ -76,6 +83,7 @@
       <div class="settings-grid">
         <div class="setting-row"><label>🗣️ 朗讀語音</label><button id="btn-reader-voice" class="btn-speed" style="border-color:#8B5CF6;background:#F5F3FF;color:#5B21B6;">🗣️ 粵語</button></div>
         <div class="setting-row"><label>🔤 顯示字形</label><button id="btn-reader-script" class="btn-speed" style="border-color:#EC4899;background:#FDF2F8;color:#9D174D;">🔤 港澳繁</button></div>
+        <div class="setting-row"><label id="lbl-font-size">🔠 字詞大小</label><button id="btn-font-size" class="btn-speed" style="border-color:#6366F1;background:#EEF2FF;color:#4338CA;">🔠 標準</button></div>
         <div class="setting-row"><label>🐇 朗讀語速</label><button id="btn-speed" class="btn-speed">🐇 1.0x</button></div>
         <div class="setting-row"><label>🎯 對齊模式</label><button id="btn-mode" class="btn-speed" style="border-color:#38BDF8;background:#F0F9FF;color:#0369A1;">🎯 精讀</button></div>
         <div class="setting-row"><label>🔁 循環播放</label><button id="btn-repeat" class="btn-speed" style="border-color:#10B981;background:#ECFDF5;color:#047857;">⏹️ 單篇</button></div>

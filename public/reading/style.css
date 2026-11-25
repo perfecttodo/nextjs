@@ -467,3 +467,72 @@ html, body {
   padding-top: 185px !important;
   transition: padding-top 0.2s ease;
 }
+
+/* 強制讓每個字詞膠囊內的文字絕對水平與垂直居中 */
+.token {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 4px 10px !important;
+  margin: 3px 2px !important;
+  line-height: 1.25 !important;
+  vertical-align: middle !important;
+}
+
+/* 標點符號保持緊湊，不拉寬留白 */
+.token.punct {
+  padding: 4px 2px !important;
+  margin: 3px 0 !important;
+}
+
+/* 英文單詞之間保留自然單詞間距，同時保持框內文字對稱居中 */
+.en-para .token:not(.punct) {
+  padding: 4px 8px !important;
+  margin: 3px 4px !important;
+}
+
+/* 動態字詞大小調整 */
+:root {
+  --story-font-scale: 1;
+}
+.story-content {
+  font-size: calc(clamp(26px, 4.8vw, 38px) * var(--story-font-scale)) !important;
+}
+.story-title-heading {
+  font-size: calc(clamp(30px, 5.5vw, 44px) * var(--story-font-scale)) !important;
+}
+
+/* 響應式頂部快捷工具列：隨螢幕寬度自動放出常用設定 */
+.quick-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.quick-btn {
+  padding: 7px 10px !important;
+  font-size: 14px !important;
+  white-space: nowrap;
+}
+
+/* 預設（手機直屏 < 560px）：只顯示最核心的「點哪讀哪」與「設定」 */
+.show-tablet, .show-desktop {
+  display: none !important;
+}
+
+/* 平板直屏 / 寬屏手機 (>= 560px)：自動放出「語速」與「字詞大小」 */
+@media (min-width: 560px) {
+  .show-tablet {
+    display: inline-flex !important;
+  }
+}
+
+/* iPad 橫屏 / 電腦大螢幕 (>= 900px)：自動放出「語音」、「循環」與「陪讀聲」 */
+@media (min-width: 900px) {
+  .show-desktop {
+    display: inline-flex !important;
+  }
+  .header-status-pill {
+    display: none !important; /* 大螢幕按鈕已直接顯示狀態，隱藏多餘文字徽章 */
+  }
+}

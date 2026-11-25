@@ -1,3 +1,11 @@
+const btnFontSize = document.getElementById('btn-font-size');
+const FONT_SIZES = [
+  { scale: 1.0, zh_hant: '🔠 標準', zh_hans: '🔠 标准', en: '🔠 Normal' },
+  { scale: 1.25, zh_hant: '🔠 大字', zh_hans: '🔠 大字', en: '🔠 Large' },
+  { scale: 1.5, zh_hant: '🔠 特大', zh_hans: '🔠 特大', en: '🔠 Extra Large' },
+  { scale: 0.85, zh_hant: '🔠 適中', zh_hans: '🔠 适中', en: '🔠 Compact' }
+];
+let fontSizeIdx = Number(localStorage.getItem('reading_fontSizeIdx')) || 0;
 let tapToJump = localStorage.getItem('reading_tapToJump') === 'true';
 let readAlongMode = localStorage.getItem('reading_readAlongMode') || 'timed';
 let lastKidBlob = null, lastKidTimings = {};
@@ -21,7 +29,13 @@ const SCRIPT_PREFS = [
   { id: 'tw', label: '🔤 台灣繁', fullLabel: '🔤 台灣繁體' },
   { id: 'cn', label: '🔤 简体', fullLabel: '🔤 简体中文' }
 ];
-const SPEEDS = [{ rate: 1.0, label: '🐇 1.0x' }, { rate: 0.8, label: '🐢 0.8x' }, { rate: 1.2, label: '🚀 1.2x' }];
+const SPEEDS = [
+  { rate: 1.0, label: '🐇 1.0x' },
+  { rate: 0.8, label: '🐢 0.8x' },
+  { rate: 0.7, label: '🐌 0.7x' },
+  { rate: 0.5, label: '🦥 0.5x' },
+  { rate: 1.2, label: '🚀 1.2x' }
+];
 const REPEAT_MODES = [
   { id: 'none', label: '⏹️ 單篇' },
   { id: 'single', label: '🔂 單篇循環' },
@@ -73,6 +87,8 @@ function updateParentButtonsUI() {
   }
   updateHeaderStatusPill();
   applyUiLanguage();
+  if (typeof applyFontSize === 'function') applyFontSize();
+  if (typeof syncQuickButtonsState === 'function') syncQuickButtonsState();
 }
 
 // 點擊「👨‍👩‍👧 父母聲」：在「關閉 -> 錄音1 -> 錄音2...」之間循環切換
@@ -109,6 +125,7 @@ function setRecordingLock(mode) {
   } else if (mode === 'kid') {
     lockIdsForKid.forEach(id => { const el = document.getElementById(id); if (el) el.disabled = true; });
   }
+  if (typeof syncQuickButtonsState === 'function') syncQuickButtonsState();
 }
 
 btnParentRec.addEventListener('click', () => {
@@ -232,6 +249,39 @@ function updateHeaderStatusPill() {
 }
 
 
+
+const QUICK_PAIRS = [
+  ['q-voice', 'btn-reader-voice'],
+  ['q-speed', 'btn-speed'],
+  ['q-font', 'btn-font-size'],
+  ['q-repeat', 'btn-repeat'],
+  ['q-parent', 'btn-parent-play']
+];
+
+QUICK_PAIRS.forEach(([qId, targetId]) => {
+  const qBtn = document.getElementById(qId);
+  const tBtn = document.getElementById(targetId);
+  if (qBtn && tBtn) {
+    qBtn.addEventListener('click', () => tBtn.click());
+  }
+});
+
+function syncQuickButtonsState() {
+  QUICK_PAIRS.forEach(([qId, targetId]) => {
+    const qBtn = document.getElementById(qId);
+    const tBtn = document.getElementById(targetId);
+    if (!qBtn || !tBtn) return;
+    qBtn.textContent = tBtn.textContent;
+    qBtn.disabled = tBtn.disabled;
+    if (qId === 'q-parent') {
+      const hasRec = storyParentRecs.length > 0;
+      qBtn.style.setProperty('display', hasRec ? '' : 'none', hasRec ? '' : 'important');
+      qBtn.style.background = tBtn.style.background;
+      qBtn.style.color = tBtn.style.color;
+    }
+  });
+}
+
 function applyUiLanguage() {
   const setTxt = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt; };
   setTxt('#view-list .top-bar h1', tUI('appTitle'));
@@ -246,7 +296,7 @@ function applyUiLanguage() {
   setTxt('#modal-settings h3', tUI('settingsTitle'));
   setTxt('#btn-close-settings', tUI('done'));
   const rows = document.querySelectorAll('#modal-settings .setting-row label');
-  const lblKeys = ['lblVoice', 'lblScript', 'lblSpeed', 'lblMode', 'lblRepeat', 'lblReadMode', 'lblParentPlay', 'lblParentRec'];
+  const lblKeys = ['lblVoice', 'lblScript', 'lblFontSize', 'lblSpeed', 'lblMode', 'lblRepeat', 'lblReadMode', 'lblParentPlay', 'lblParentRec'];
   rows.forEach((lbl, idx) => { if (lblKeys.at(idx)) lbl.textContent = tUI(lblKeys.at(idx)); });
 
   setTxt('#btn-mode', playMode === 'exact' ? tUI('modeExact') : tUI('modeFluent'));
@@ -282,6 +332,8 @@ function syncPrefButtons() {
   btnRepeat.textContent = REPEAT_MODES[repeatIdx].label;
   updateHeaderStatusPill();
   applyUiLanguage();
+  if (typeof applyFontSize === 'function') applyFontSize();
+  if (typeof syncQuickButtonsState === 'function') syncQuickButtonsState();
 }
 syncPrefButtons();
 
@@ -316,6 +368,29 @@ function applyCurrentPlaybackRate() {
 }
 ttsAudioEl.addEventListener('loadedmetadata', applyCurrentPlaybackRate);
 ttsAudioEl.addEventListener('playing', applyCurrentPlaybackRate);
+
+
+
+function applyFontSize() {
+  const item = FONT_SIZES.at(fontSizeIdx) || FONT_SIZES.at(0);
+  document.documentElement.style.setProperty('--story-font-scale', item.scale);
+  if (btnFontSize) {
+    const langKey = getUiLangKey(VOICE_PREFS.at(voiceIdx).id, SCRIPT_PREFS.at(scriptIdx).id);
+    btnFontSize.textContent = item[langKey] || item.zh_hant;
+  }
+  const lbl = document.getElementById('lbl-font-size');
+  if (lbl) lbl.textContent = tUI('lblFontSize');
+}
+applyFontSize();
+
+if (btnFontSize) {
+  btnFontSize.addEventListener('click', () => {
+    fontSizeIdx = (fontSizeIdx + 1) % FONT_SIZES.length;
+    localStorage.setItem('reading_fontSizeIdx', fontSizeIdx);
+    applyFontSize();
+    syncQuickButtonsState();
+  });
+}
 
 btnSpeed.addEventListener('click', () => {
   speedIdx = (speedIdx + 1) % SPEEDS.length;
@@ -599,6 +674,8 @@ btnReadMode.addEventListener('click', () => {
   localStorage.setItem('reading_readAlongMode', readAlongMode);
   syncReadModeUI();
   applyUiLanguage();
+  if (typeof applyFontSize === 'function') applyFontSize();
+  if (typeof syncQuickButtonsState === 'function') syncQuickButtonsState();
 });
 
 const btnTapJump = document.getElementById('btn-tap-jump');
@@ -622,6 +699,8 @@ btnTapJump.addEventListener('click', () => {
   localStorage.setItem('reading_tapToJump', tapToJump);
   syncTapJumpUI();
   applyUiLanguage();
+  if (typeof applyFontSize === 'function') applyFontSize();
+  if (typeof syncQuickButtonsState === 'function') syncQuickButtonsState();
 });
 
 function getTokenStartTime(idx) {
@@ -667,6 +746,7 @@ function playSingleToken(idx, el) {
   stopTtsPlayback();
   wordPlayer.pause();
   const token = getCurrentTrack().tokens[idx], rate = SPEEDS[speedIdx].rate;
+  clearHighlight();
   storyContent.querySelectorAll('.token.tapped').forEach(x => x.classList.remove('tapped'));
   el.classList.add('tapped');
 
@@ -923,6 +1003,17 @@ document.getElementById('btn-save-kid-db').addEventListener('click', async () =>
   updateParentButtonsUI();
 });
 
+
+
+document.addEventListener('click', (e) => {
+  if (!recordPanel || recordPanel.classList.contains('hidden')) return;
+  const dlgModal = document.getElementById('modal-dialog');
+  if (dlgModal && !dlgModal.classList.contains('hidden')) return;
+  if (!recordPanel.contains(e.target) && !btnReadAlong.contains(e.target)) {
+    recordedAudioEl.pause();
+    recordPanel.classList.add('hidden');
+  }
+});
 
 document.getElementById('btn-close-record').addEventListener('click', () => {
   recordedAudioEl.pause();
