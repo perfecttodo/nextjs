@@ -483,8 +483,7 @@ function updateTitleAndTokensText() {
     const tok = track.tokens[Number(el.dataset.idx)];
     if (tok && !tok.isBreak) {
       const disp = tok[sKey] || tok.text;
-      const space = (!tok.isPunct && /^[A-Za-z0-9]/.test(disp)) ? ' ' : '';
-      el.textContent = disp + space;
+      el.textContent = disp;
     }
   });
 }
@@ -504,8 +503,7 @@ function renderTokens(tokens, lang) {
       }
     } else {
       const disp = t[sKey] || t.text;
-      const space = (!t.isPunct && /^[A-Za-z0-9]/.test(disp)) ? ' ' : '';
-      html += `<span class="token ${t.isPunct ? 'punct' : ''}" data-idx="${idx}">${disp}${space}</span>`;
+      html += `<span class="token ${t.isPunct ? 'punct' : ''}" data-idx="${idx}">${disp}</span>`;
     }
   });
   storyContent.innerHTML = html + (isFirstPara ? '</h2>' : '</p>');

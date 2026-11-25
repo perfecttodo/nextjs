@@ -240,3 +240,19 @@ button:disabled, .btn-locked {
 .lvl-1 { background: #DCFCE7; color: #15803D; }
 .lvl-2 { background: #FEF3C7; color: #B45309; }
 .lvl-3 { background: #E0E7FF; color: #4338CA; }
+
+/* 讓每個字詞膠囊內的文字絕對水平與垂直居中 */
+.token {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  vertical-align: middle;
+}
+.token.punct {
+  padding-left: 1px;
+  padding-right: 2px;
+}
+.en-para .token:not(.punct) {
+  margin-right: 6px;
+}
