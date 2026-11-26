@@ -207,6 +207,16 @@ const ParentVoice = (() => {
     return all.filter(r => r.storyId === storyId && r.langId === langId);
   }
 
+  async function importRawRecord(record) {
+    const database = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = database.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).put(record);
+      tx.oncomplete = () => resolve(record);
+      tx.onerror = (e) => reject(e);
+    });
+  }
+
   async function deleteRecording(id) {
     const database = await openDB();
     return new Promise((resolve) => {
@@ -355,7 +365,7 @@ const ParentVoice = (() => {
     isRecording: () => isRecording,
     unlockAudioContext, runVisualCountdown, getCleanMicStream, startWaveformMeter, stopWaveformMeter,
     saveDirectRecording, confirmSavePending, discardPending, getAllRecordings, getRecordingsForStory,
-    deleteRecording, renameRecording, activateRecord,
+    importRawRecord, deleteRecording, renameRecording, activateRecord,
     getActiveData: () => activeParentData,
     playParentSingleWord, startGuidedRecording, stopGuidedRecording
   };

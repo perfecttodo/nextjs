@@ -175,7 +175,10 @@ document.getElementById('btn-confirm-save').addEventListener('click', async () =
 });
 
 // 父母錄音管理中心邏輯
-document.getElementById('btn-open-manager').addEventListener('click', openManagerModal);
+document.getElementById('btn-open-manager').addEventListener('click', () => {
+  if (typeof GDriveSync !== 'undefined') GDriveSync.renderPanel();
+  openManagerModal();
+});
 modalManager.addEventListener('click', (e) => { if (e.target === modalManager) { managerList.querySelectorAll('audio').forEach(a => a.pause()); modalManager.classList.add('hidden'); } });
 document.getElementById('btn-close-manager-bottom').addEventListener('click', () => document.getElementById('btn-close-manager').click());
 document.getElementById('btn-close-manager').addEventListener('click', () => {
@@ -190,6 +193,8 @@ async function openManagerModal() {
 
 let managerFilterLabel = 'ALL';
 async function renderManagerList() {
+  if (typeof GDriveSync !== 'undefined') GDriveSync.renderPanel();
+  if (typeof GDriveSync !== 'undefined') GDriveSync.renderPanel();
   const allList = await ParentVoice.getAllRecordings();
   const filterBar = document.getElementById('manager-filter-bar');
   if (filterBar) {
@@ -213,7 +218,7 @@ async function renderManagerList() {
     return `
       <div class="rec-item">
         <div class="rec-item-header">
-          <div class="rec-item-title">#${list.length - idx} 📖 ${rec.storyTitle} · <span style="color:#D97706;">${rec.label}</span></div>
+          <div class="rec-item-title" style="display:flex;align-items:center;gap:8px;">${(typeof GDriveSync !== "undefined" && GDriveSync.isEnabled()) ? `<input type="checkbox" class="gdrive-rec-chk" value="${rec.id}" style="width:18px;height:18px;accent-color:#0284C7;flex-shrink:0;" checked />` : ""}<span>#${list.length - idx} 📖 ${rec.storyTitle} · <span style="color:#D97706;">${rec.label}</span></span></div>
           <div class="rec-item-meta">語言：${rec.langLabel} ｜ 時長：<span id="dur-${rec.id}">${getRecEstimatedDuration(rec) || '--:--'}</span> ｜ ${dateStr}</div>
         </div>
         <audio controls playsinline src="${url}" style="width:100%;height:40px;" onloadedmetadata="if(isFinite(this.duration)){const el=document.getElementById('dur-${rec.id}');if(el)el.textContent=formatSecMMSS(this.duration);}"></audio>
@@ -234,6 +239,7 @@ window.setManagerFilter = async (lbl) => {
 
 
 window.playRecInStory = async (recId) => {
+  if (typeof GDriveSync !== 'undefined') GDriveSync.renderPanel();
   const allList = await ParentVoice.getAllRecordings();
   const targetRec = allList.find(r => r.id === recId);
   if (!targetRec) return;
