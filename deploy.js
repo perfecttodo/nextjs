@@ -18,6 +18,8 @@ const IGNORE_ITEMS = new Set([
   try {
     await fs.remove(WORKTREE_DIR);
     execSync('git worktree prune', { stdio: 'ignore' });
+    // 先從遠端拉取最新的 main 分支紀錄，避免與 GitHub Actions 的提交衝突
+    execSync('git fetch origin main:main', { stdio: 'inherit' });
     execSync(`git worktree add "${WORKTREE_DIR}" main`, { stdio: 'inherit' });
 
     const existing = await fs.readdir(WORKTREE_DIR);
@@ -33,7 +35,6 @@ const IGNORE_ITEMS = new Set([
       await fs.copy(path.join(__dirname, item), path.join(WORKTREE_DIR, item));
     }
 
-    // 確保 main 分支的 package.json 的 build 指令為 next build
     const mainPkgPath = path.join(WORKTREE_DIR, 'package.json');
     if (await fs.pathExists(mainPkgPath)) {
       const pkg = await fs.readJson(mainPkgPath);
@@ -50,11 +51,11 @@ const IGNORE_ITEMS = new Set([
     const status = execSync('git status --porcelain', { cwd: WORKTREE_DIR }).toString().trim();
 
     if (status) {
-      execSync('git commit -m "chore: fix next build script and sync obfuscated public"', { cwd: WORKTREE_DIR, stdio: 'inherit' });
+      execSync('git commit -m "chore: sync Next.js project with obfuscated public"', { cwd: WORKTREE_DIR, stdio: 'inherit' });
       execSync('git push origin main', { cwd: WORKTREE_DIR, stdio: 'inherit' });
-      console.log('🚀 已修復 build 指令並重新推送到 main 分支！');
+      console.log('🚀 已成功同步並推送到 main 分支！');
     } else {
-      console.log('ℹ️ 內容無變化，無需推送。');
+      console.log('ℹ️ 遠端 main 分支已是最新內容（GitHub Actions 已完成同步），無需重複推送。');
     }
   } finally {
     execSync(`git worktree remove -f "${WORKTREE_DIR}"`, { stdio: 'ignore' });
