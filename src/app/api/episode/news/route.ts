@@ -1,0 +1,103 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { doIt } from '../bot-sync';
+const albumId = process.env.BOT_ALBUM_ID;
+
+export async function GET(request: NextRequest) {
+  try {
+
+    try{
+          await doIt();
+    } catch(ee){
+      console.error(ee);
+    }
+
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '100');
+    const offset = (page - 1) * limit;
+
+    // Get published episodes ordered by upload date descending
+    const [episodes, total] = await Promise.all([
+      prisma.episode.findMany({
+        where: { status: 'published',albumId: albumId},
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit,
+        select: {
+          id: true,
+          title: true,
+          originalName: true,
+          blobUrl: true,
+          format: true,
+          duration: true,
+          fileSize: true,
+          status: true,
+          ownerId: true,
+          createdAt: true,
+          updatedAt: true,
+          description:true,
+          // category/subcategory moved under album
+          album: {
+            select: {
+              id: true,
+              name: true,
+            }
+          },
+          // owner relation not selected; use ownerId if needed
+        },
+      }),
+      prisma.episode.count({
+        where: { status: 'published' },
+      }),
+    ]);
+
+const groupedByDescription = episodes.reduce((acc, episode) => {
+  const description = episode.description;
+  if(description){
+  if (!acc[description]) {
+    acc[description] = [];
+  }
+  acc[description].push(episode);
+  }
+
+  return acc;
+}, {} as Record<string, typeof episodes>);
+
+const data =  [
+  
+  { "title": 'CBS '+episodes[0].createdAt.toISOString().split('T')[0],
+      "img": "",
+      "urls": episodes.filter(e=>e.blobUrl.indexOf('cbs')>-1).map((e: { title: any;  blobUrl: any;createdAt:any })=>  {return {url:e.blobUrl,title:e.createdAt.toISOString().split('T')[0] + ' '+e.title,date:e.createdAt}})
+      
+    },{ "title": 'MSN '+episodes[0].createdAt.toISOString().split('T')[0],
+      "img": "",
+      "urls": episodes.filter(e=>e.blobUrl.indexOf('msn')>-1).map((e: { title: any; blobUrl: any;createdAt:any })=>  {return {url:e.blobUrl,title:e.createdAt.toISOString().split('T')[0] + ' '+e.title,date:e.createdAt}})
+      
+    }].concat(Object.entries(groupedByDescription).map(([description, groupEpisodes]) => {
+  return {
+    title: description + groupEpisodes[0].createdAt.toISOString().split('T')[0],
+    img: "",
+    urls: groupEpisodes.map(e => ({
+      url: e.blobUrl,
+      title: e.createdAt.toISOString().split('T')[0] + ' '+e.title,
+      "img": "",
+      date: e.createdAt,
+    }))
+  };
+}));
+    const news = {  "id": 100,
+  "channel": "News",
+  "clean": 1,
+  "data": data,
+  "sync": 1
+  };
+    return NextResponse.json(news);
+  } catch (error) {
+    console.error('Error fetching published episodes:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch published episodes' },
+      { status: 500 }
+    );
+  }
+}

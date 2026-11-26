@@ -1,0 +1,621 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import videojs from 'video.js';
+import 'video.js/dist/video-js.css';
+import { useAudioPlayerStore } from '@/app/store/audioPlayerStore';
+import { Episode } from '@/types/audio';
+import PlayButton from '@/app/components/PlayButton'
+
+export default function FixedAudioPlayer() {
+  const {
+    audio,
+    isPlaying,
+    playMode,
+    currentTime,
+    duration,
+    episodes,
+    currentIndex,
+    playHistory,
+    play,
+    pause,
+    next,
+    previous,
+    ended,
+    cyclePlayMode,
+    setCurrentTime,
+    setDuration,
+    setAudio,
+    removeTrack,
+    removeFromHistory,
+    clearHistory,isToggle,togglePlay,
+    setStatus,
+  } = useAudioPlayerStore();
+
+  const [showPlaylist, setShowPlaylist] = useState(false);
+  const [url, setUrl] = useState<string|null>(null);
+  const [type, setType] = useState<string|null>(null);
+  const [viewMode, setViewMode] = useState<'playlist' | 'history'>('playlist');
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const playerRef = useRef<any>(null);
+  const [userInteracted, setUserInteracted] = useState(false);
+
+  // Function to handle clear history with confirmation
+  const handleClearHistory = () => {
+    if (!showClearConfirm) {
+      // First click - show confirmation
+      setShowClearConfirm(true);
+      // Auto-hide confirmation after 5 seconds
+      setTimeout(() => setShowClearConfirm(false), 5000);
+    } else {
+      // Second click - actually clear history
+      clearHistory();
+      setShowClearConfirm(false);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (!playerRef.current) return;
+    const time = playerRef.current.currentTime();
+    if (typeof time === 'number') {
+      setCurrentTime(time);
+      const playerDuration = playerRef.current.duration();
+      if (typeof playerDuration === 'number' && time >= playerDuration - 0.1) {
+        ended();
+      }
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (!playerRef.current) return;
+    const dur = playerRef.current.duration();
+    if (typeof dur === 'number') setDuration(dur);
+    setStatus('loaded');
+
+  };
+
+  const handleEnded = () => {
+    ended();
+  };
+  const handleError = () =>{
+    setStatus('error');
+    ended();
+  }
+
+
+  // Initialize VideoJS player and handle events
+  useEffect(() => {
+    if (!videoRef.current) return;
+
+    let player = playerRef.current;
+
+    if (player) return;
+
+    if (!player) {
+      player = videojs(videoRef.current, {
+        html5: {
+          vhs: {
+            enableLowInitialPlaylist: true,
+            smoothQualityChange: true,
+            overrideNative: true
+          }
+        },
+        controls: false,
+        autoplay: false,
+        preload: 'metadata',
+        fluid: true,
+        responsive: true,
+        playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
+        controlBar: {
+          children: []
+        }
+      });
+      playerRef.current = player;
+
+      player.on('timeupdate', handleTimeUpdate);
+      player.on('loadedmetadata', handleLoadedMetadata);
+      player.on('ended', handleEnded);
+      player.on('error', handleError);
+      player.on('play', play);
+      player.on('pause', pause);
+
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', () => {
+          if (playerRef.current) {
+            togglePlay();
+          }
+        });
+
+        navigator.mediaSession.setActionHandler('pause', () => {
+          if (playerRef.current) {
+            togglePlay();
+          }
+        });
+
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+          console.log('MediaSession next track');
+          next();
+        });
+
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+          console.log('MediaSession previous track');
+          previous();
+        });
+
+        try {
+          navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+            const skipTime = details.seekOffset || 10;
+            if (playerRef.current) {
+              playerRef.current.currentTime(Math.max(0, playerRef.current.currentTime() - skipTime));
+            }
+          });
+
+          navigator.mediaSession.setActionHandler('seekforward', (details) => {
+            const skipTime = details.seekOffset || 10;
+            if (playerRef.current) {
+              playerRef.current.currentTime(Math.min(
+                playerRef.current.duration(),
+                playerRef.current.currentTime() + skipTime
+              ));
+            }
+          });
+        } catch (error) {
+          console.log('Seek actions not supported:', error);
+        }
+
+        player.one('loadedmetadata', () => {
+          setCurrentTime(0);
+          setDuration(player.duration());
+        });
+      }
+    }
+    // Set up Media Session API for background control
+    if ('mediaSession' in navigator && audio) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: audio.title || 'Unknown',
+        artist: 'Unknown Artist',
+        album: 'Unknown Album'
+      });
+    }
+
+    return () => {};
+  }, [audio]);
+
+  useEffect(() => {
+    return () => {
+      if (playerRef.current) {
+        let player = playerRef.current;
+        player.off('timeupdate', handleTimeUpdate);
+        player.off('loadedmetadata', handleLoadedMetadata);
+        player.off('ended', handleEnded);
+        player.off('play', play);
+        player.off('pause', pause);
+
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.setActionHandler('play', null);
+          navigator.mediaSession.setActionHandler('pause', null);
+          navigator.mediaSession.setActionHandler('nexttrack', null);
+          navigator.mediaSession.setActionHandler('previoustrack', null);
+          navigator.mediaSession.setActionHandler('seekbackward', null);
+          navigator.mediaSession.setActionHandler('seekforward', null);
+        }
+
+        playerRef.current.dispose();
+        playerRef.current = null;
+      }
+    };
+  }, []);
+
+  function getType(audio: Episode) {
+    switch (audio.format) {
+      case 'mp3':
+        return 'audio/mp3';
+      case 'm4a':
+        return 'audio/mp4';
+      case 'm3u8':
+        return 'application/x-mpegURL';
+        case 'mpd':
+          return 'application/dash+xml';
+      default:
+        return audio.format;
+    }
+  }
+
+  // Handle user interaction for autoplay policies
+  useEffect(() => {
+    const handleInteraction = () => {
+      setUserInteracted(true);
+    };
+    document.addEventListener('click', handleInteraction);
+    return () => document.removeEventListener('click', handleInteraction);
+  }, []);
+
+  useEffect(() => {
+    if (!audio) return;
+    setUrl(audio.blobUrl);
+    let type = getType(audio);
+    setType(type);
+  }, [audio]);
+
+  // Handle audio source changes
+  useEffect(() => {
+    if (!playerRef.current || !url) return;
+
+    const player = playerRef.current;
+
+    if(!player.paused())player.pause();
+    setStatus('');
+
+    player.src({
+      src: url,
+      type
+    });
+    player.play();
+  }, [url,type, userInteracted]);
+
+  // Format time helper
+  const formatTime = (time: number) => {
+    if (isNaN(time) || time === undefined || time < 0) {
+      return "NA";
+    }
+
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  // Seek handler
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = parseFloat(e.target.value);
+    if (playerRef.current) {
+      playerRef.current.currentTime(time);
+    }
+  };
+
+  useEffect(() => {
+    if (!playerRef.current) return;
+
+    if (!playerRef.current.paused()) {
+      playerRef.current.pause()
+      pause();
+    } else {
+      playerRef.current.play();
+      play();
+    }
+  }, [isToggle, userInteracted]);
+
+  // Toggle play/pause
+  const togglePlayPause = () => {
+    togglePlay();
+  };
+
+  if (!audio) return null;
+
+  return (
+    <div style={{ marginTop: '60px' }}>
+      {/* CSS Animations */}
+      <style jsx>{`
+        @keyframes slideInBounce {
+          0% {
+            transform: translateX(100%);
+          }
+          70% {
+            transform: translateX(-5%);
+          }
+          100% {
+            transform: translateX(0%);
+          }
+        }
+        
+        @keyframes fadeInUp {
+          0% {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+
+      {/* Video.js player (hidden) */}
+      <div data-vjs-player style={{ display: 'none' }}>
+        <video
+          ref={videoRef}
+          className="video-js vjs-default-skin"
+          playsInline
+          webkit-playsinline="true"
+        />
+      </div>
+
+      {/* Playlist Sidebar - Now slides from right */}
+      <div
+        className={`fixed right-0 top-16 bottom-20 w-80 bg-white border-l border-gray-200 z-40 overflow-y-auto transition-all duration-300 ease-in-out transform ${showPlaylist
+          ? 'translate-x-0 shadow-2xl'
+          : 'translate-x-full shadow-none'
+          }`}
+        style={{
+          animation: showPlaylist ? 'slideInBounce 0.4s ease-out' : 'none'
+        }}
+      >
+        <div className={`p-4 border-b border-gray-200 transition-all duration-500 ease-in-out ${showPlaylist ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+          }`}>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">
+                {viewMode === 'playlist' ? 'Playlist' : 'Play History'}
+              </h3>
+              <p className="text-sm text-gray-500">
+                {viewMode === 'playlist' ? `${episodes.length} tracks` : `${playHistory.length} items`}
+              </p>
+            </div>
+            <button
+              onClick={() => setShowPlaylist(false)}
+              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+              title="Close playlist"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* View Mode Toggle */}
+          <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('playlist')}
+              className={`px-3 py-1 text-sm rounded-md transition-all duration-200 ${viewMode === 'playlist'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+                }`}
+            >
+              Playlist
+            </button>
+            <button
+              onClick={() => setViewMode('history')}
+              className={`px-3 py-1 text-sm rounded-md transition-all duration-200 ${viewMode === 'history'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-blue-600 hover:text-blue-700'
+                }`}
+            >
+              History
+            </button>
+          </div>
+        </div>
+        <div className={`p-2 transition-opacity duration-500 ease-in-out ${showPlaylist ? 'opacity-100' : 'opacity-0'
+          }`}>
+          {viewMode === 'playlist' ? (
+            episodes.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-2">🎵</div>
+                <p>No tracks in playlist</p>
+              </div>
+            ) : (
+              episodes.map((track, index) => (
+                <div
+                  key={track.id}
+                  onClick={() => setAudio(track)}
+                  className={`p-3 rounded-lg cursor-pointer transition-all duration-300 ease-in-out group ${currentIndex === index
+                    ? 'bg-blue-100 border-l-4 border-blue-500'
+                    : 'hover:bg-gray-50'
+                    }`}
+                  style={{
+                    animationDelay: showPlaylist ? `${index * 50}ms` : '0ms',
+                    animation: showPlaylist ? 'fadeInUp 0.5s ease-out forwards' : 'none'
+                  }}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-shrink-0">
+                      {currentIndex === index && isPlaying ? (
+                        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                        </div>
+                      ) : (
+                        <div className="w-6 h-6 text-gray-400 text-center text-sm">
+                          {index + 1}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className={`font-medium text-sm truncate ${currentIndex === index ? 'text-blue-700' : 'text-gray-800'
+                        }`}>
+                        {track.title}
+                      </div>
+                      <div className="text-xs text-gray-500 truncate">
+                        {track.originalName}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="text-xs text-gray-400">
+                        {track.duration ? formatTime(track.duration) : '--:--'}
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeTrack(index);
+                        }}
+                        className="p-1 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Remove from playlist"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )
+          ) : (
+            playHistory.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-2">⏰</div>
+                <p>No play history yet</p>
+                <p className="text-xs text-gray-400 mt-1">Tracks you play will appear here</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {playHistory.map((track, index) => (
+                  <div
+                    key={track.id}
+                    onClick={() => setAudio(track)}
+                    className="p-3 rounded-lg cursor-pointer transition-all duration-300 ease-in-out group hover:bg-gray-50"
+                    style={{
+                      animationDelay: showPlaylist ? `${index * 50}ms` : '0ms',
+                      animation: showPlaylist ? 'fadeInUp 0.5s ease-out forwards' : 'none'
+                    }}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        <div className="w-6 h-6 text-gray-400 text-center text-sm">
+                          {index + 1}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm truncate text-gray-800">
+                          {track.title}
+                        </div>
+                        <div className="text-xs text-gray-500 truncate">
+                          {track.originalName}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="text-xs text-gray-400">
+                          {track.duration ? formatTime(track.duration) : '--:--'}
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFromHistory(index);
+                          }}
+                          className="p-1 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                          title="Remove from history"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Clear History Button with Confirmation */}
+                <div className="pt-2 border-t border-gray-100">
+                  {showClearConfirm ? (
+                    <div className="flex flex-col space-y-2">
+                      <p className="text-sm text-red-600 font-medium text-center">
+                        Are you sure? This cannot be undone.
+                      </p>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={handleClearHistory}
+                          className="flex-1 px-3 py-2 text-sm bg-red-600 text-white hover:bg-red-700 rounded-md transition-colors"
+                        >
+                          Yes, Clear All
+                        </button>
+                        <button
+                          onClick={() => setShowClearConfirm(false)}
+                          className="flex-1 px-3 py-2 text-sm bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-md transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleClearHistory}
+                      className="w-full px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors flex items-center justify-center"
+                    >
+                      <span>🗑️</span>
+                      <span className="ml-2">Clear All History</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          )}
+        </div>
+      </div>
+
+      {/* Backdrop overlay for click outside */}
+      <div
+        className={`fixed inset-0  z-30 transition-all duration-300 ease-in-out ${showPlaylist
+          ? 'bg-opacity-25 pointer-events-auto'
+          : 'bg-opacity-0 pointer-events-none'
+          }`}
+        onClick={() => setShowPlaylist(false)}
+      />
+
+      {/* Player UI */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+        {/* Progress bar */}
+        <div className="absolute -top-1 left-0 right-0">
+          <div className="flex items-center px-2 text-xs text-gray-500">
+            <span className="w-10 text-right">{formatTime(currentTime)}</span>
+            <input
+              type="range"
+              min="0"
+              max={duration || 100}
+              value={currentTime}
+              onChange={handleSeek}
+              className="flex-1 mx-2 h-1 bg-gray-200 rounded-full appearance-none cursor-pointer"
+              style={{
+                background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(currentTime / (duration || 1)) * 100}%, #e5e7eb ${(currentTime / (duration || 1)) * 100}%, #e5e7eb 100%)`
+              }}
+            />
+            <span className="w-10 text-left">{formatTime(duration)}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between px-4 py-3">
+          {/* Track info */}
+          <div className="flex items-center min-w-0 flex-1">
+            <div className="ml-2 min-w-0">
+              <div className="font-medium text-sm truncate">{audio.title}</div>
+              <div className="text-xs text-gray-500">
+                {episodes.length > 0 && (
+                  <span className="mr-2">
+                    {currentIndex + 1} of {episodes.length}
+                  </span>
+                )}
+                {formatTime(audio.duration || 0)}
+              </div>
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center space-x-4">
+            <button onClick={previous} className="p-2 text-gray-600 hover:text-gray-900">
+              ⏮️
+            </button>
+            <PlayButton episode={audio} episodes={null}/>
+            <button onClick={next} className="p-2 text-gray-600 hover:text-gray-900">
+              ⏭️
+            </button>
+          </div>
+
+          {/* Playlist toggle */}
+          <button
+            onClick={() => setShowPlaylist(!showPlaylist)}
+            className={`p-2 rounded-md transition-all duration-200 ease-in-out relative transform ${showPlaylist
+              ? 'bg-blue-100 text-blue-600 hover:bg-blue-200 scale-105'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:scale-105'
+              }`}
+            title={showPlaylist ? 'Hide playlist' : 'Show playlist'}
+          >
+            {viewMode === 'history' ? '⏰' : '📋'}
+      
+          </button>
+
+          {/* Play mode */}
+          <button
+            onClick={cyclePlayMode}
+            className="p-2 text-gray-600 hover:text-gray-900"
+            title={`Play mode: ${playMode}`}
+          >
+            {playMode === 'loop' ? '🔁' : playMode === 'random' ? '🔀' : '→'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,44 @@
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "@/app/globals.css";
+import { getSessionUser } from "@/lib/session";
+import Header from "@/app/components/comm/Header";
+import FixedShareAudioPlayer from '@/app/components/comm/FixedShareAudioPlayer';
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Tayino",
+  description: "Collect and share your audio content with Tayino.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+
+};
+
+export default async function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  const user = await getSessionUser();
+  return (
+    <html lang="en">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} style={{ marginTop: '60px' }}>
+        <Header user={user} />
+        {children}
+        <FixedShareAudioPlayer />
+      </body>
+    </html>
+  );
+}

@@ -1,0 +1,42 @@
+name: Sync Next.js & Obfuscate Public to Main
+
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Prepare main branch directory
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@://github.com"
+          git fetch origin main:main || git branch main
+          git worktree add .tmp-main-worktree main
+          find .tmp-main-worktree -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          rsync -av --exclude='.git' --exclude='node_modules' --exclude='.next' --exclude='.tmp-main-worktree' --exclude='dist' --exclude='public' --exclude='build.js' --exclude='deploy.js' ./ .tmp-main-worktree/
+          node build.js .tmp-main-worktree/public
+          cd .tmp-main-worktree
+          git add -A
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "chore: sync Next.js project with obfuscated public (CI)"
+            git push origin main
+          fi

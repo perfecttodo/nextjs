@@ -1,0 +1,85 @@
+// Datasource
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Generator
+generator client {
+  provider = "prisma-client-js"
+}
+
+model TestingItem {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  status      Status   @default(todo)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  ownerId     String?
+}
+
+enum Status {
+  todo
+  in_progress
+  done
+}
+
+model User {
+  id        String        @id
+  email     String        @unique
+  emailVerified Boolean?
+  name      String?
+  password  String?       // For email/password auth
+  githubId  String?       @unique // For GitHub OAuth
+  createdAt DateTime?      @default(now())
+  updatedAt DateTime?      @default(now())
+  albums    Album[]       // User's albums
+  
+  @@index([githubId])
+}
+
+
+model Album {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  color       String?    // Hex color for UI display
+  ownerId     String
+  owner       User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  episodes  Episode[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([name, ownerId]) // Allow same name for different owners
+  @@index([ownerId])
+}
+
+model Episode {
+  id            String      @id @default(uuid())
+  title         String
+  originalName  String
+  blobUrl       String     
+  format        String
+  duration      Int?        // in seconds
+  fileSize      Int         // in bytes
+  status        AudioStatus @default(draft)
+  language      String?     // Language of the audio content
+  description  String?     // Description of the audio content
+  originalWebsite String?   // Original website where audio was found (optional)
+  ownerId       String
+  albumId       String?     // Add album relationship
+  album         Album?      @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([ownerId])
+  @@index([albumId])
+}
+
+enum AudioStatus {
+  draft
+  published
+}
+
+

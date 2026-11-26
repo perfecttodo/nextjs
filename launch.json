@@ -1,0 +1,7 @@
+{
+    "name": "Next.js: Server",
+    "type": "node",
+    "request": "attach",
+    "port": 9230, // Default Node.js inspect port
+    "cwd": "${workspaceFolder}"
+  }
