@@ -653,3 +653,66 @@ html, body {
   40%  { transform: scale(1.08); opacity: 1; }
   100% { transform: scale(1.0); opacity: 1; }
 }
+
+/* 錄音管理庫響應式優化：防止小螢幕擠壓變形 */
+#modal-manager .modal-card {
+  padding: 16px !important;
+  width: 94vw !important;
+  max-width: 560px !important;
+}
+
+#manager-filter-bar {
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+#manager-filter-bar::-webkit-scrollbar {
+  display: none;
+}
+#manager-filter-bar .btn-mini {
+  flex-shrink: 0;
+  padding: 7px 12px !important;
+}
+
+/* 三層垂直卡片佈局，徹底消除橫向擠壓 */
+.rec-item {
+  background: #F8FAFC !important;
+  border: 2px solid #E2E8F0 !important;
+  border-radius: 18px !important;
+  padding: 14px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+.rec-item-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+.rec-item-title {
+  font-weight: 800;
+  font-size: 16px;
+  color: #1E293B;
+  line-height: 1.4;
+  word-break: break-word;
+}
+.rec-item-meta {
+  font-size: 13px;
+  color: #64748B;
+}
+.rec-item-btns {
+  display: flex !important;
+  gap: 8px !important;
+  width: 100%;
+}
+.rec-item-btns .btn-mini {
+  flex: 1;
+  justify-content: center;
+  text-align: center;
+  padding: 8px 6px !important;
+  font-size: 14px !important;
+  border-radius: 12px !important;
+}

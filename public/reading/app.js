@@ -208,19 +208,19 @@ async function renderManagerList() {
   managerList.innerHTML = list.map((rec, idx) => {
     const url = URL.createObjectURL(rec.blob);
     const dateStr = new Date(rec.createdAt).toLocaleString('zh-HK', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
+    const ext = (rec.blob && rec.blob.type && rec.blob.type.includes('mp4')) ? 'm4a' : 'webm';
     return `
       <div class="rec-item">
-        <div class="rec-item-top">
-          <div>
-            <div class="rec-item-title">#${list.length - idx} 📖 ${rec.storyTitle} · <span style="color:#D97706;">${rec.label}</span> <span style="font-size:13px;color:#64748B;font-weight:normal;">(${dateStr})</span></div>
-            <div class="rec-item-meta">語言：${rec.langLabel} ｜ 錄製時間：${dateStr}</div>
-          </div>
-          <div class="rec-item-btns">
-            <button class="btn-mini" style="background:#E0F2FE;color:#0369A1;" onclick="handleRenameRec('${rec.id}', '${rec.label.replace(/'/g, "\'")}')">✏️ 改名</button>
-            <button class="btn-mini" style="background:#FEE2E2;color:#B91C1C;" onclick="handleDeleteRec('${rec.id}')">🗑️ 刪除</button>
-          </div>
+        <div class="rec-item-header">
+          <div class="rec-item-title">#${list.length - idx} 📖 ${rec.storyTitle} · <span style="color:#D97706;">${rec.label}</span></div>
+          <div class="rec-item-meta">語言：${rec.langLabel} ｜ 錄製時間：${dateStr}</div>
         </div>
-        <audio controls playsinline src="${url}" style="width:100%;height:38px;"></audio>
+        <audio controls playsinline src="${url}" style="width:100%;height:40px;"></audio>
+        <div class="rec-item-btns">
+          <a class="btn-mini" style="background:#DCFCE7;color:#15803D;text-decoration:none;display:inline-flex;align-items:center;" href="${url}" download="${rec.storyTitle}_${rec.label}.${ext}">⬇️ 下載</a>
+          <button class="btn-mini" style="background:#E0F2FE;color:#0369A1;" onclick="handleRenameRec('${rec.id}', '${rec.label.replace(/'/g, "\'")}')">✏️ 改名</button>
+          <button class="btn-mini" style="background:#FEE2E2;color:#B91C1C;" onclick="handleDeleteRec('${rec.id}')">🗑️ 刪除</button>
+        </div>
       </div>`;
   }).join('');
 }
