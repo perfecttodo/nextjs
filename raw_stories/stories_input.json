@@ -1,5 +1,0 @@
-[
-  { "id": "story_hk_01", "title": "小兔子找朋友（粵語）", "lang": "zh-HK", "langLabel": "粵語", "voice": "zh-HK-HiuGaaiNeural", "text": "從前，有一隻好可愛嘅小兔子。佢每日都喺森林入面搵朋友一齊玩。" },
-  { "id": "story_tw_01", "title": "愛唱歌的小鳥（國語）", "lang": "zh-TW", "langLabel": "國語", "voice": "zh-TW-HsiaoChenNeural", "text": "每天早上，樹枝上的小鳥都會大聲唱歌，叫醒所有還在睡覺的小動物。" },
-  { "id": "story_en_01", "title": "The Little Star", "lang": "en-US", "langLabel": "English", "voice": "en-US-AnaNeural", "text": "Twinkle, twinkle, little star. How I wonder what you are!" }
-]
