@@ -111,10 +111,17 @@
   <div id="modal-manager" class="modal-backdrop hidden">
     <div class="modal-card" style="max-width:620px;max-height:85vh;display:flex;flex-direction:column;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><h3 style="margin:0;">🗂️ 家庭錄音管理庫</h3><button id="btn-close-manager" class="btn-back" style="padding:6px 14px;">✖️ 關閉</button></div>
+      <div id="manager-filter-bar" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
       <div id="manager-list" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px;padding:4px;"></div>
     </div>
   </div>
     <!-- 自定義漂浮提示條 (取代 alert) -->
+    <!-- 錄音前中央大數字倒計時遮罩 -->
+  <div id="countdown-overlay" class="countdown-overlay hidden">
+    <div id="countdown-num" class="countdown-circle">3</div>
+    <div id="countdown-hint" class="countdown-hint">🎙️ 請準備，倒數結束後開始朗讀...</div>
+  </div>
+
   <div id="custom-toast" class="custom-toast"></div>
 
   <!-- 自定義通用對話框 (取代 prompt / confirm) -->

@@ -76,12 +76,13 @@ function updateParentButtonsUI() {
   const rowP = document.getElementById('row-parent-play'); if (rowP) rowP.style.display = hasRec ? 'flex' : 'none';
   if (!hasRec) useParentVoice = false;
   const curRec = storyParentRecs[selectedParentRecIdx];
+  const timeTag = curRec ? new Date(curRec.createdAt).toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
   if (useParentVoice && curRec) {
-    btnParentPlay.textContent = `👨‍👩‍👧 ${curRec.label}(開)`;
+    btnParentPlay.textContent = `👨‍👩‍👧 ${curRec.label} ${timeTag}(開)`;
     btnParentPlay.style.background = '#F59E0B';
     btnParentPlay.style.color = '#FFF';
   } else {
-    btnParentPlay.textContent = hasRec ? `👨‍👩‍👧 ${curRec.label}` : '👨‍👩‍👧 父母聲';
+    btnParentPlay.textContent = hasRec ? `👨‍👩‍👧 ${curRec.label} ${timeTag}` : '👨‍👩‍👧 陪讀聲';
     btnParentPlay.style.background = '#FEF3C7';
     btnParentPlay.style.color = '#B45309';
   }
@@ -186,20 +187,32 @@ async function openManagerModal() {
   await renderManagerList();
 }
 
+let managerFilterLabel = 'ALL';
 async function renderManagerList() {
-  const list = await ParentVoice.getAllRecordings();
+  const allList = await ParentVoice.getAllRecordings();
+  const filterBar = document.getElementById('manager-filter-bar');
+  if (filterBar) {
+    const uniqueLabels = Array.from(new Set(allList.map(r => r.label)));
+    filterBar.innerHTML = `<button class="btn-mini" style="background:${managerFilterLabel === 'ALL' ? '#F59E0B' : '#F1F5F9'};color:${managerFilterLabel === 'ALL' ? '#fff' : '#334155'};" onclick="setManagerFilter('ALL')">📚 全部 (${allList.length})</button>` +
+      uniqueLabels.map(lbl => {
+        const cnt = allList.filter(r => r.label === lbl).length;
+        const active = managerFilterLabel === lbl;
+        return `<button class="btn-mini" style="background:${active ? '#F59E0B' : '#FEF3C7'};color:${active ? '#fff' : '#92400E'};" onclick="setManagerFilter('${lbl.replace(/'/g, "\'")}')">${lbl} (${cnt})</button>`;
+      }).join('');
+  }
+  const list = managerFilterLabel === 'ALL' ? allList : allList.filter(r => r.label === managerFilterLabel);
   if (list.length === 0) {
-    managerList.innerHTML = '<p style="color:#64748B;padding:24px 0;">目前還沒有保存任何父母陪讀錄音喔！<br>打開任一故事點擊「🎙️ 父母錄音」即可開始錄製。</p>';
+    managerList.innerHTML = '<p style="color:#64748B;padding:24px 0;">目前還沒有保存任何錄音喔！<br>打開任一故事點擊「🎤 自己讀」或「🎙️ 開始錄製」即可保存。</p>';
     return;
   }
-  managerList.innerHTML = list.map(rec => {
+  managerList.innerHTML = list.map((rec, idx) => {
     const url = URL.createObjectURL(rec.blob);
-    const dateStr = new Date(rec.createdAt).toLocaleString('zh-HK', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const dateStr = new Date(rec.createdAt).toLocaleString('zh-HK', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
     return `
       <div class="rec-item">
         <div class="rec-item-top">
           <div>
-            <div class="rec-item-title">📖 ${rec.storyTitle} · <span style="color:#D97706;">${rec.label}</span></div>
+            <div class="rec-item-title">#${list.length - idx} 📖 ${rec.storyTitle} · <span style="color:#D97706;">${rec.label}</span> <span style="font-size:13px;color:#64748B;font-weight:normal;">(${dateStr})</span></div>
             <div class="rec-item-meta">語言：${rec.langLabel} ｜ 錄製時間：${dateStr}</div>
           </div>
           <div class="rec-item-btns">
@@ -211,6 +224,11 @@ async function renderManagerList() {
       </div>`;
   }).join('');
 }
+
+window.setManagerFilter = async (lbl) => {
+  managerFilterLabel = lbl;
+  await renderManagerList();
+};
 
 window.handleRenameRec = async (id, oldName) => {
   const nextName = await CustomUI.showPrompt({ title: '✏️ 修改錄音名稱', desc: '請輸入新的錄音標籤名稱：', defaultValue: oldName, okText: '保存' });
@@ -284,6 +302,23 @@ function syncQuickButtonsState() {
   });
 }
 
+
+function getListenButtonLabel() {
+  if (!ttsAudioEl.paused) return tUI('pause');
+  const curRec = storyParentRecs.at(selectedParentRecIdx);
+  if (useParentVoice && curRec && curRec.label) {
+    const isEn = VOICE_PREFS.at(voiceIdx).id === 'en';
+    const sId = SCRIPT_PREFS.at(scriptIdx).id;
+    let speaker = curRec.label
+      .replace(/的聲音|的声音|的朗讀|的朗读|'s Voice|'s Reading/gi, '')
+      .trim();
+    if (speaker.length > 8) speaker = speaker.slice(0, 8) + '…';
+    if (isEn) return `🎧 Listen to ${speaker}`;
+    return sId === 'cn' ? `🎧 听${speaker}讲故事` : `🎧 聽${speaker}講故事`;
+  }
+  return tUI('listen');
+}
+
 function applyUiLanguage() {
   const setTxt = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt; };
   setTxt('#view-list .top-bar h1', tUI('appTitle'));
@@ -292,7 +327,7 @@ function applyUiLanguage() {
   setTxt('#btn-open-settings', tUI('settings'));
   const isTapOn = typeof tapToJump !== 'undefined' ? tapToJump : (localStorage.getItem('reading_tapToJump') === 'true');
   setTxt('#btn-tap-jump', isTapOn ? tUI('tapJumpOn') : tUI('tapJumpOff'));
-  setTxt('#btn-play-tts .label', ttsAudioEl.paused ? tUI('listen') : tUI('pause'));
+  setTxt('#btn-play-tts .label', getListenButtonLabel());
   setTxt('#btn-read-along .label', isReadingAlong ? tUI('finishRead') : tUI('readAlong'));
 
   setTxt('#modal-settings h3', tUI('settingsTitle'));
@@ -769,7 +804,7 @@ btnPlayTts.addEventListener('click', () => {
   else { stopReadAlong(); requestWakeLock(); applyCurrentPlaybackRate(); ttsAudioEl.play(); btnPlayTts.querySelector('.label').textContent = tUI('pause'); syncHighlightLoop(); }
 });
 
-function stopTtsPlayback() { ttsAudioEl.pause(); cancelAnimationFrame(rafId); btnPlayTts.querySelector('.label').textContent = tUI('listen'); }
+function stopTtsPlayback() { ttsAudioEl.pause(); cancelAnimationFrame(rafId); btnPlayTts.querySelector('.label').textContent = getListenButtonLabel(); }
 
 
 function triggerStarCelebration() {
@@ -819,7 +854,7 @@ function handleStoryEnded() {
     openStory(nextStory.id, true);
   } else {
     releaseWakeLock();
-    btnPlayTts.querySelector('.label').textContent = tUI('listen');
+    btnPlayTts.querySelector('.label').textContent = getListenButtonLabel();
   }
 }
 
@@ -872,13 +907,17 @@ async function startReadAlong() {
   ParentVoice.unlockAudioContext();
   stopTtsPlayback(); clearHighlight(); recordPanel.classList.add('hidden');
   readCursor = 0; isReadingAlong = true; requestWakeLock();
-  btnReadAlong.classList.add('recording'); btnReadAlong.querySelector('.label').textContent = tUI('finishRead'); setRecordingLock('kid');
+  btnReadAlong.classList.add('recording');
+  btnReadAlong.disabled = true;
+  btnReadAlong.querySelector('.label').textContent = '準備中...';
+  setRecordingLock('kid');
 
   let stream;
   try {
     stream = await ParentVoice.getCleanMicStream();
   } catch (err) {
-    alert('請允許使用麥克風權限！');
+    btnReadAlong.disabled = false;
+    CustomUI.showToast('⚠️ 請允許使用麥克風權限');
     stopReadAlong();
     return;
   }
@@ -887,25 +926,23 @@ async function startReadAlong() {
   const statusText = document.getElementById('rec-status-text');
   banner.style.display = 'block';
   ParentVoice.startWaveformMeter(stream);
+  statusText.textContent = '🎤 倒數結束後才正式開始錄音喔...';
 
-  // 如果是「⏱️ 提詞跟讀」模式，先倒數 3 秒讓小朋友準備
+  const hintMsg = VOICE_PREFS.at(voiceIdx).id === 'en'
+    ? '🎤 Get ready! Start reading after countdown...'
+    : '🎤 小朋友請準備，倒數結束後開始自己讀...';
+  const okToStart = await ParentVoice.runVisualCountdown(hintMsg, () => !isReadingAlong);
+  btnReadAlong.disabled = false;
+
+  if (!okToStart) {
+    ParentVoice.stopWaveformMeter();
+    banner.style.display = 'none';
+    stream.getTracks().forEach(track => track.stop());
+    return;
+  }
+
+  btnReadAlong.querySelector('.label').textContent = tUI('finishRead');
   if (readAlongMode === 'timed') {
-    for (let c = 3; c >= 1; c--) {
-      if (!isReadingAlong) {
-        ParentVoice.stopWaveformMeter();
-        banner.style.display = 'none';
-        stream.getTracks().forEach(track => track.stop());
-        return;
-      }
-      statusText.textContent = `🎤 小朋友請準備，${c} 秒後跟著黃色高亮一起讀...`;
-      await new Promise(r => setTimeout(r, 900));
-    }
-    if (!isReadingAlong) {
-      ParentVoice.stopWaveformMeter();
-      banner.style.display = 'none';
-      stream.getTracks().forEach(track => track.stop());
-      return;
-    }
     statusText.textContent = '🔴 正在跟讀錄音... 跟著黃色高亮慢慢讀（讀完自動結束）';
   } else {
     statusText.textContent = '🎤 語音識別跟讀中... 讀出高亮字詞會自動跳下一個';

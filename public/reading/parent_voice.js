@@ -51,6 +51,41 @@ const ParentVoice = (() => {
     if (meterCtx.state === 'suspended') meterCtx.resume().catch(() => {});
   }
 
+  async function runVisualCountdown(hintMsg, shouldAbort) {
+    const overlay = document.getElementById('countdown-overlay');
+    const numEl = document.getElementById('countdown-num');
+    const hintEl = document.getElementById('countdown-hint');
+    if (!overlay || !numEl) return true;
+
+    if (hintEl) hintEl.textContent = hintMsg;
+    overlay.classList.remove('hidden');
+
+    for (let c = 3; c >= 1; c--) {
+      if (shouldAbort && shouldAbort()) {
+        overlay.classList.add('hidden');
+        return false;
+      }
+      numEl.textContent = String(c);
+      // 重新觸發彈跳動畫
+      numEl.style.animation = 'none';
+      void numEl.offsetWidth;
+      numEl.style.animation = '';
+      await new Promise(r => setTimeout(r, 950));
+    }
+
+    if (shouldAbort && shouldAbort()) {
+      overlay.classList.add('hidden');
+      return false;
+    }
+
+    numEl.textContent = 'GO!';
+    numEl.style.fontSize = '46px';
+    await new Promise(r => setTimeout(r, 350));
+    numEl.style.fontSize = '';
+    overlay.classList.add('hidden');
+    return true;
+  }
+
   function startWaveformMeter(stream) {
     peakLevel = 0;
     const canvas = document.getElementById('mic-waveform');
@@ -247,13 +282,9 @@ const ParentVoice = (() => {
     banner.style.display = 'block';
     startWaveformMeter(stream);
 
-    for (let c = 3; c >= 1; c--) {
-      if (!isRecording) { stopWaveformMeter(); stream.getTracks().forEach(t => t.stop()); return; }
-      statusText.textContent = `🎙️ 對著話筒說話測試波形，${c} 秒後開始錄音...`;
-      await new Promise(r => setTimeout(r, 900));
-    }
-
-    if (!isRecording) { stopWaveformMeter(); stream.getTracks().forEach(t => t.stop()); return; }
+    statusText.textContent = '🎙️ 請準備，倒數結束後開始錄音...';
+    const ready = await runVisualCountdown('🎙️ 陪讀錄音準備中，倒數結束後開始...', () => !isRecording);
+    if (!ready) { stopWaveformMeter(); banner.style.display = 'none'; stream.getTracks().forEach(t => t.stop()); return; }
     statusText.textContent = '🔴 正在錄音中... 請跟著高亮字詞慢慢讀（下方紅條跳動代表收音正常）';
 
     // 使用瀏覽器原生最相容的預設編碼，並每 250ms 寫入一次音頻塊
@@ -322,7 +353,7 @@ const ParentVoice = (() => {
 
   return {
     isRecording: () => isRecording,
-    unlockAudioContext, getCleanMicStream, startWaveformMeter, stopWaveformMeter,
+    unlockAudioContext, runVisualCountdown, getCleanMicStream, startWaveformMeter, stopWaveformMeter,
     saveDirectRecording, confirmSavePending, discardPending, getAllRecordings, getRecordingsForStory,
     deleteRecording, renameRecording, activateRecord,
     getActiveData: () => activeParentData,

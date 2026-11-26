@@ -607,3 +607,49 @@ html, body {
   80%  { opacity: 1; }
   100% { transform: translateY(110vh) rotate(540deg) scale(1.2); opacity: 0; }
 }
+
+/* 錄音前中央醒目大數字倒計時遮罩 */
+.countdown-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 2500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.countdown-overlay.hidden {
+  display: none !important;
+}
+.countdown-circle {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FEF08A 0%, #F59E0B 100%);
+  color: #78350F;
+  font-size: 68px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 35px rgba(245, 158, 11, 0.5), 0 0 0 8px rgba(255, 255, 255, 0.9);
+  animation: countPulse 0.85s ease-out infinite;
+}
+.countdown-hint {
+  background: #FFFFFF;
+  color: #1E293B;
+  padding: 10px 22px;
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+@keyframes countPulse {
+  0%   { transform: scale(0.75); opacity: 0.7; }
+  40%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1.0); opacity: 1; }
+}
