@@ -130,5 +130,71 @@
       "en": "Why Does the Moon Change Shape"
     },
     "cover": "/reading/assets/covers/story_012.png?v=2"
+  },
+  {
+    "id": "story_013",
+    "level": 1,
+    "titles": {
+      "hk": "小螞蟻儲糧過冬",
+      "tw": "小螞蟻儲糧過冬",
+      "cn": "小蚂蚁储粮过冬",
+      "en": "Little Ant Saves Food for Winter"
+    },
+    "cover": "/reading/assets/covers/story_013.png?v=2"
+  },
+  {
+    "id": "story_014",
+    "level": 1,
+    "titles": {
+      "hk": "小豬的三個撲滿",
+      "tw": "小豬的三個撲滿",
+      "cn": "小猪的三个扑满",
+      "en": "Little Pig's Three Piggy Banks"
+    },
+    "cover": "/reading/assets/covers/story_014.png?v=2"
+  },
+  {
+    "id": "story_015",
+    "level": 2,
+    "titles": {
+      "hk": "需要還是想要",
+      "tw": "需要還是想要",
+      "cn": "需要还是想要",
+      "en": "Needs vs Wants"
+    },
+    "cover": "/reading/assets/covers/story_015.png?v=2"
+  },
+  {
+    "id": "story_016",
+    "level": 2,
+    "titles": {
+      "hk": "小熊的檸檬水攤",
+      "tw": "小熊的檸檬水攤",
+      "cn": "小熊的柠檬水摊",
+      "en": "Little Bear's Lemonade Stand"
+    },
+    "cover": "/reading/assets/covers/story_016.png?v=2"
+  },
+  {
+    "id": "story_017",
+    "level": 3,
+    "titles": {
+      "hk": "兩顆魔法糖果",
+      "tw": "兩顆魔法糖果",
+      "cn": "两颗魔法糖果",
+      "en": "Two Magic Candies"
+    },
+    "cover": "/reading/assets/covers/story_017.png?v=2"
+  },
+  {
+    "id": "story_018",
+    "level": 3,
+    "titles": {
+      "hk": "小裁縫的記帳本",
+      "tw": "小裁縫的記帳本",
+      "cn": "小裁缝的记帐本",
+      "en": "The Little Tailor's Ledger"
+    },
+    "cover": "/reading/assets/covers/story_018.png?v=2"
   }
 ]
