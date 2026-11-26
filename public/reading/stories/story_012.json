@@ -20,33 +20,21 @@
           "isPunct": false,
           "wordAudio": "./assets/words/a63c4d46e141.mp3",
           "start": 0.15,
-          "end": 0.793,
+          "end": 0.853,
           "exactStart": 0.1,
           "exactEnd": 0.777
         },
         {
-          "text": "為",
-          "text_hk": "為",
-          "text_tw": "為",
-          "text_cn": "为",
+          "text": "為什麼",
+          "text_hk": "為什麼",
+          "text_tw": "為什麼",
+          "text_cn": "为什么",
           "isPunct": false,
-          "wordAudio": "./assets/words/04a411e43fa9.mp3",
-          "start": 0.793,
-          "end": 1.435,
+          "wordAudio": "./assets/words/b7cd25cce387.mp3",
+          "start": 0.853,
+          "end": 1.556,
           "exactStart": 0.807,
-          "exactEnd": 1.234
-        },
-        {
-          "text": "什麼",
-          "text_hk": "什麼",
-          "text_tw": "什麼",
-          "text_cn": "什么",
-          "isPunct": false,
-          "wordAudio": "./assets/words/e1c1f7f1fb1d.mp3",
-          "start": 1.435,
-          "end": 2.078,
-          "exactStart": 1.264,
-          "exactEnd": 1.996
+          "exactEnd": 1.743
         },
         {
           "text": "會",
@@ -55,10 +43,10 @@
           "text_cn": "会",
           "isPunct": false,
           "wordAudio": "./assets/words/68b82024bcff.mp3",
-          "start": 2.078,
-          "end": 2.72,
-          "exactStart": 2.026,
-          "exactEnd": 2.433
+          "start": 1.556,
+          "end": 2.259,
+          "exactStart": 1.773,
+          "exactEnd": 2.18
         },
         {
           "text": "變形",
@@ -67,10 +55,10 @@
           "text_cn": "变形",
           "isPunct": false,
           "wordAudio": "./assets/words/a389a8439d4d.mp3",
-          "start": 2.72,
-          "end": 3.363,
-          "exactStart": 2.463,
-          "exactEnd": 3.09
+          "start": 2.259,
+          "end": 2.962,
+          "exactStart": 2.21,
+          "exactEnd": 2.837
         },
         {
           "isBreak": true
@@ -82,10 +70,10 @@
           "text_cn": "晚上",
           "isPunct": false,
           "wordAudio": "./assets/words/01d0a4334674.mp3",
-          "start": 3.563,
-          "end": 4.205,
-          "exactStart": 3.62,
-          "exactEnd": 4.387
+          "start": 3.162,
+          "end": 3.865,
+          "exactStart": 3.367,
+          "exactEnd": 4.134
         },
         {
           "text": "抬頭",
@@ -94,10 +82,10 @@
           "text_cn": "抬头",
           "isPunct": false,
           "wordAudio": "./assets/words/121e92e69373.mp3",
-          "start": 4.205,
-          "end": 4.848,
-          "exactStart": 4.417,
-          "exactEnd": 5.124
+          "start": 3.865,
+          "end": 4.568,
+          "exactStart": 4.164,
+          "exactEnd": 4.871
         },
         {
           "text": "看",
@@ -106,10 +94,10 @@
           "text_cn": "看",
           "isPunct": false,
           "wordAudio": "./assets/words/92f9c971f5ff.mp3",
-          "start": 4.848,
-          "end": 5.49,
-          "exactStart": 5.154,
-          "exactEnd": 5.646
+          "start": 4.568,
+          "end": 5.271,
+          "exactStart": 4.901,
+          "exactEnd": 5.393
         },
         {
           "text": "天空",
@@ -118,10 +106,10 @@
           "text_cn": "天空",
           "isPunct": false,
           "wordAudio": "./assets/words/7a58d56633a3.mp3",
-          "start": 5.49,
-          "end": 6.133,
-          "exactStart": 5.676,
-          "exactEnd": 6.403
+          "start": 5.271,
+          "end": 5.974,
+          "exactStart": 5.423,
+          "exactEnd": 6.15
         },
         {
           "text": "，",
@@ -129,34 +117,22 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 6.133,
-          "end": 6.183,
-          "exactStart": 6.433,
-          "exactEnd": 6.653
+          "start": 5.974,
+          "end": 6.024,
+          "exactStart": 6.18,
+          "exactEnd": 6.4
         },
         {
-          "text": "有",
-          "text_hk": "有",
-          "text_tw": "有",
-          "text_cn": "有",
+          "text": "有時候",
+          "text_hk": "有時候",
+          "text_tw": "有時候",
+          "text_cn": "有时候",
           "isPunct": false,
-          "wordAudio": "./assets/words/078638fc581b.mp3",
-          "start": 6.133,
-          "end": 6.775,
-          "exactStart": 6.653,
-          "exactEnd": 7.035
-        },
-        {
-          "text": "時候",
-          "text_hk": "時候",
-          "text_tw": "時候",
-          "text_cn": "时候",
-          "isPunct": false,
-          "wordAudio": "./assets/words/b18771578b80.mp3",
-          "start": 6.775,
-          "end": 7.418,
-          "exactStart": 7.065,
-          "exactEnd": 7.887
+          "wordAudio": "./assets/words/e7106104c040.mp3",
+          "start": 5.974,
+          "end": 6.677,
+          "exactStart": 6.4,
+          "exactEnd": 7.437
         },
         {
           "text": "月亮",
@@ -165,10 +141,10 @@
           "text_cn": "月亮",
           "isPunct": false,
           "wordAudio": "./assets/words/a63c4d46e141.mp3",
-          "start": 7.418,
-          "end": 8.061,
-          "exactStart": 7.917,
-          "exactEnd": 8.594
+          "start": 6.677,
+          "end": 7.38,
+          "exactStart": 7.467,
+          "exactEnd": 8.144
         },
         {
           "text": "像",
@@ -177,34 +153,22 @@
           "text_cn": "像",
           "isPunct": false,
           "wordAudio": "./assets/words/d4de1aa6b014.mp3",
-          "start": 8.061,
-          "end": 8.703,
-          "exactStart": 8.624,
-          "exactEnd": 9.086
+          "start": 7.38,
+          "end": 8.083,
+          "exactStart": 8.174,
+          "exactEnd": 8.636
         },
         {
-          "text": "彎",
-          "text_hk": "彎",
-          "text_tw": "彎",
-          "text_cn": "弯",
+          "text": "彎彎",
+          "text_hk": "彎彎",
+          "text_tw": "彎彎",
+          "text_cn": "弯弯",
           "isPunct": false,
-          "wordAudio": "./assets/words/2f2eceb265a2.mp3",
-          "start": 8.703,
-          "end": 9.346,
-          "exactStart": 9.116,
-          "exactEnd": 9.573
-        },
-        {
-          "text": "彎",
-          "text_hk": "彎",
-          "text_tw": "彎",
-          "text_cn": "弯",
-          "isPunct": false,
-          "wordAudio": "./assets/words/2f2eceb265a2.mp3",
-          "start": 9.346,
-          "end": 9.988,
-          "exactStart": 9.603,
-          "exactEnd": 10.06
+          "wordAudio": "./assets/words/3e1ac5523431.mp3",
+          "start": 8.083,
+          "end": 8.786,
+          "exactStart": 8.666,
+          "exactEnd": 9.508
         },
         {
           "text": "的",
@@ -213,10 +177,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/3bf976e06f8b.mp3",
-          "start": 9.988,
-          "end": 10.631,
-          "exactStart": 10.09,
-          "exactEnd": 10.267
+          "start": 8.786,
+          "end": 9.489,
+          "exactStart": 9.538,
+          "exactEnd": 9.715
         },
         {
           "text": "小船",
@@ -225,10 +189,10 @@
           "text_cn": "小船",
           "isPunct": false,
           "wordAudio": "./assets/words/28d2c2085348.mp3",
-          "start": 10.631,
-          "end": 11.273,
-          "exactStart": 10.297,
-          "exactEnd": 11.104
+          "start": 9.489,
+          "end": 10.191,
+          "exactStart": 9.745,
+          "exactEnd": 10.552
         },
         {
           "text": "，",
@@ -236,34 +200,22 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 11.273,
-          "end": 11.323,
-          "exactStart": 11.134,
-          "exactEnd": 11.354
+          "start": 10.191,
+          "end": 10.241,
+          "exactStart": 10.582,
+          "exactEnd": 10.802
         },
         {
-          "text": "有",
-          "text_hk": "有",
-          "text_tw": "有",
-          "text_cn": "有",
+          "text": "有時候",
+          "text_hk": "有時候",
+          "text_tw": "有時候",
+          "text_cn": "有时候",
           "isPunct": false,
-          "wordAudio": "./assets/words/078638fc581b.mp3",
-          "start": 11.273,
-          "end": 11.916,
-          "exactStart": 11.354,
-          "exactEnd": 11.736
-        },
-        {
-          "text": "時候",
-          "text_hk": "時候",
-          "text_tw": "時候",
-          "text_cn": "时候",
-          "isPunct": false,
-          "wordAudio": "./assets/words/b18771578b80.mp3",
-          "start": 11.916,
-          "end": 12.558,
-          "exactStart": 11.766,
-          "exactEnd": 12.588
+          "wordAudio": "./assets/words/e7106104c040.mp3",
+          "start": 10.191,
+          "end": 10.894,
+          "exactStart": 10.802,
+          "exactEnd": 11.839
         },
         {
           "text": "又",
@@ -272,10 +224,10 @@
           "text_cn": "又",
           "isPunct": false,
           "wordAudio": "./assets/words/65e183028f14.mp3",
-          "start": 12.558,
-          "end": 13.201,
-          "exactStart": 12.618,
-          "exactEnd": 12.995
+          "start": 10.894,
+          "end": 11.597,
+          "exactStart": 11.869,
+          "exactEnd": 12.246
         },
         {
           "text": "像",
@@ -284,10 +236,10 @@
           "text_cn": "像",
           "isPunct": false,
           "wordAudio": "./assets/words/d4de1aa6b014.mp3",
-          "start": 13.201,
-          "end": 13.843,
-          "exactStart": 13.025,
-          "exactEnd": 13.487
+          "start": 11.597,
+          "end": 12.3,
+          "exactStart": 12.276,
+          "exactEnd": 12.738
         },
         {
           "text": "圓圓",
@@ -296,10 +248,10 @@
           "text_cn": "圆圆",
           "isPunct": false,
           "wordAudio": "./assets/words/addf212f47ca.mp3",
-          "start": 13.843,
-          "end": 14.486,
-          "exactStart": 13.517,
-          "exactEnd": 14.199
+          "start": 12.3,
+          "end": 13.003,
+          "exactStart": 12.768,
+          "exactEnd": 13.45
         },
         {
           "text": "的",
@@ -308,10 +260,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/3bf976e06f8b.mp3",
-          "start": 14.486,
-          "end": 15.128,
-          "exactStart": 14.229,
-          "exactEnd": 14.406
+          "start": 13.003,
+          "end": 13.706,
+          "exactStart": 13.48,
+          "exactEnd": 13.657
         },
         {
           "text": "大玉盤",
@@ -320,10 +272,10 @@
           "text_cn": "大玉盘",
           "isPunct": false,
           "wordAudio": "./assets/words/d4b1a5c4a41f.mp3",
-          "start": 15.128,
-          "end": 15.771,
-          "exactStart": 14.436,
-          "exactEnd": 15.305
+          "start": 13.706,
+          "end": 14.409,
+          "exactStart": 13.687,
+          "exactEnd": 14.556
         },
         {
           "text": "。",
@@ -331,10 +283,10 @@
           "text_tw": "。",
           "text_cn": "。",
           "isPunct": true,
-          "start": 15.771,
-          "end": 15.821,
-          "exactStart": 15.335,
-          "exactEnd": 15.735
+          "start": 14.409,
+          "end": 14.459,
+          "exactStart": 14.586,
+          "exactEnd": 14.986
         },
         {
           "isBreak": true
@@ -346,10 +298,10 @@
           "text_cn": "其实",
           "isPunct": false,
           "wordAudio": "./assets/words/3e9ecc52ef13.mp3",
-          "start": 15.971,
-          "end": 16.614,
-          "exactStart": 16.235,
-          "exactEnd": 16.757
+          "start": 14.609,
+          "end": 15.312,
+          "exactStart": 15.486,
+          "exactEnd": 16.008
         },
         {
           "text": "月亮",
@@ -358,10 +310,10 @@
           "text_cn": "月亮",
           "isPunct": false,
           "wordAudio": "./assets/words/a63c4d46e141.mp3",
-          "start": 16.614,
-          "end": 17.256,
-          "exactStart": 16.787,
-          "exactEnd": 17.464
+          "start": 15.312,
+          "end": 16.015,
+          "exactStart": 16.038,
+          "exactEnd": 16.715
         },
         {
           "text": "本身",
@@ -370,10 +322,10 @@
           "text_cn": "本身",
           "isPunct": false,
           "wordAudio": "./assets/words/ef529f9d62bb.mp3",
-          "start": 17.256,
-          "end": 17.899,
-          "exactStart": 17.494,
-          "exactEnd": 18.166
+          "start": 16.015,
+          "end": 16.718,
+          "exactStart": 16.745,
+          "exactEnd": 17.417
         },
         {
           "text": "不會",
@@ -382,10 +334,10 @@
           "text_cn": "不会",
           "isPunct": false,
           "wordAudio": "./assets/words/eb90964c06cd.mp3",
-          "start": 17.899,
-          "end": 18.541,
-          "exactStart": 18.196,
-          "exactEnd": 18.823
+          "start": 16.718,
+          "end": 17.421,
+          "exactStart": 17.447,
+          "exactEnd": 18.074
         },
         {
           "text": "發光",
@@ -394,10 +346,10 @@
           "text_cn": "发光",
           "isPunct": false,
           "wordAudio": "./assets/words/dd17698fc7f4.mp3",
-          "start": 18.541,
-          "end": 19.184,
-          "exactStart": 18.853,
-          "exactEnd": 19.59
+          "start": 17.421,
+          "end": 18.124,
+          "exactStart": 18.104,
+          "exactEnd": 18.841
         },
         {
           "text": "，",
@@ -405,10 +357,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 19.184,
-          "end": 19.234,
-          "exactStart": 19.62,
-          "exactEnd": 19.84
+          "start": 18.124,
+          "end": 18.174,
+          "exactStart": 18.871,
+          "exactEnd": 19.091
         },
         {
           "text": "也",
@@ -417,10 +369,10 @@
           "text_cn": "也",
           "isPunct": false,
           "wordAudio": "./assets/words/756bc56c7d50.mp3",
-          "start": 19.184,
-          "end": 19.826,
-          "exactStart": 19.84,
-          "exactEnd": 20.227
+          "start": 18.124,
+          "end": 18.827,
+          "exactStart": 19.091,
+          "exactEnd": 19.478
         },
         {
           "text": "不會",
@@ -429,10 +381,10 @@
           "text_cn": "不会",
           "isPunct": false,
           "wordAudio": "./assets/words/eb90964c06cd.mp3",
-          "start": 19.826,
-          "end": 20.469,
-          "exactStart": 20.257,
-          "exactEnd": 20.884
+          "start": 18.827,
+          "end": 19.53,
+          "exactStart": 19.508,
+          "exactEnd": 20.135
         },
         {
           "text": "真的",
@@ -441,10 +393,10 @@
           "text_cn": "真的",
           "isPunct": false,
           "wordAudio": "./assets/words/556bcb0924b7.mp3",
-          "start": 20.469,
-          "end": 21.111,
-          "exactStart": 20.914,
-          "exactEnd": 21.421
+          "start": 19.53,
+          "end": 20.233,
+          "exactStart": 20.165,
+          "exactEnd": 20.672
         },
         {
           "text": "改變",
@@ -453,10 +405,10 @@
           "text_cn": "改变",
           "isPunct": false,
           "wordAudio": "./assets/words/f5a09d85d775.mp3",
-          "start": 21.111,
-          "end": 21.754,
-          "exactStart": 21.451,
-          "exactEnd": 22.143
+          "start": 20.233,
+          "end": 20.936,
+          "exactStart": 20.702,
+          "exactEnd": 21.394
         },
         {
           "text": "形狀",
@@ -465,10 +417,10 @@
           "text_cn": "形状",
           "isPunct": false,
           "wordAudio": "./assets/words/ee66fc5f5fa1.mp3",
-          "start": 21.754,
-          "end": 22.396,
-          "exactStart": 22.173,
-          "exactEnd": 22.885
+          "start": 20.936,
+          "end": 21.639,
+          "exactStart": 21.424,
+          "exactEnd": 22.136
         },
         {
           "text": "，",
@@ -476,10 +428,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 22.396,
-          "end": 22.446,
-          "exactStart": 22.915,
-          "exactEnd": 23.135
+          "start": 21.639,
+          "end": 21.689,
+          "exactStart": 22.166,
+          "exactEnd": 22.386
         },
         {
           "text": "它",
@@ -488,10 +440,10 @@
           "text_cn": "它",
           "isPunct": false,
           "wordAudio": "./assets/words/3f761f284181.mp3",
-          "start": 22.396,
-          "end": 23.039,
-          "exactStart": 23.135,
-          "exactEnd": 23.552
+          "start": 21.639,
+          "end": 22.342,
+          "exactStart": 22.386,
+          "exactEnd": 22.803
         },
         {
           "text": "只是",
@@ -500,34 +452,22 @@
           "text_cn": "只是",
           "isPunct": false,
           "wordAudio": "./assets/words/f6bad9e7efa1.mp3",
-          "start": 23.039,
-          "end": 23.682,
-          "exactStart": 23.582,
-          "exactEnd": 24.289
+          "start": 22.342,
+          "end": 23.045,
+          "exactStart": 22.833,
+          "exactEnd": 23.54
         },
         {
-          "text": "反射",
-          "text_hk": "反射",
-          "text_tw": "反射",
-          "text_cn": "反射",
+          "text": "反射了",
+          "text_hk": "反射了",
+          "text_tw": "反射了",
+          "text_cn": "反射了",
           "isPunct": false,
-          "wordAudio": "./assets/words/dd4b90d27288.mp3",
-          "start": 23.682,
-          "end": 24.324,
-          "exactStart": 24.319,
-          "exactEnd": 25.076
-        },
-        {
-          "text": "了",
-          "text_hk": "了",
-          "text_tw": "了",
-          "text_cn": "了",
-          "isPunct": false,
-          "wordAudio": "./assets/words/9340c66afc7d.mp3",
-          "start": 24.324,
-          "end": 24.967,
-          "exactStart": 25.106,
-          "exactEnd": 25.488
+          "wordAudio": "./assets/words/254efc5507e8.mp3",
+          "start": 23.045,
+          "end": 23.748,
+          "exactStart": 23.57,
+          "exactEnd": 24.545
         },
         {
           "text": "太陽",
@@ -536,10 +476,10 @@
           "text_cn": "太阳",
           "isPunct": false,
           "wordAudio": "./assets/words/389c31a8034f.mp3",
-          "start": 24.967,
-          "end": 25.609,
-          "exactStart": 25.518,
-          "exactEnd": 26.26
+          "start": 23.748,
+          "end": 24.451,
+          "exactStart": 24.575,
+          "exactEnd": 25.317
         },
         {
           "text": "的",
@@ -548,10 +488,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/3bf976e06f8b.mp3",
-          "start": 25.609,
-          "end": 26.252,
-          "exactStart": 26.29,
-          "exactEnd": 26.467
+          "start": 24.451,
+          "end": 25.154,
+          "exactStart": 25.347,
+          "exactEnd": 25.524
         },
         {
           "text": "光芒",
@@ -560,10 +500,10 @@
           "text_cn": "光芒",
           "isPunct": false,
           "wordAudio": "./assets/words/3e2542e0e983.mp3",
-          "start": 26.252,
-          "end": 26.894,
-          "exactStart": 26.497,
-          "exactEnd": 27.169
+          "start": 25.154,
+          "end": 25.857,
+          "exactStart": 25.554,
+          "exactEnd": 26.226
         },
         {
           "text": "。",
@@ -571,10 +511,10 @@
           "text_tw": "。",
           "text_cn": "。",
           "isPunct": true,
-          "start": 26.894,
-          "end": 26.944,
-          "exactStart": 27.199,
-          "exactEnd": 27.599
+          "start": 25.857,
+          "end": 25.907,
+          "exactStart": 26.256,
+          "exactEnd": 26.656
         },
         {
           "isBreak": true
@@ -586,10 +526,10 @@
           "text_cn": "随著",
           "isPunct": false,
           "wordAudio": "./assets/words/53d2f6035d19.mp3",
-          "start": 27.094,
-          "end": 27.737,
-          "exactStart": 28.099,
-          "exactEnd": 28.741
+          "start": 26.057,
+          "end": 26.76,
+          "exactStart": 27.156,
+          "exactEnd": 27.798
         },
         {
           "text": "月亮",
@@ -598,10 +538,10 @@
           "text_cn": "月亮",
           "isPunct": false,
           "wordAudio": "./assets/words/a63c4d46e141.mp3",
-          "start": 27.737,
-          "end": 28.379,
-          "exactStart": 28.771,
-          "exactEnd": 29.448
+          "start": 26.76,
+          "end": 27.463,
+          "exactStart": 27.828,
+          "exactEnd": 28.505
         },
         {
           "text": "繞著",
@@ -610,10 +550,10 @@
           "text_cn": "绕著",
           "isPunct": false,
           "wordAudio": "./assets/words/c0c73aaf4ae6.mp3",
-          "start": 28.379,
-          "end": 29.022,
-          "exactStart": 29.478,
-          "exactEnd": 30.035
+          "start": 27.463,
+          "end": 28.166,
+          "exactStart": 28.535,
+          "exactEnd": 29.092
         },
         {
           "text": "地球",
@@ -622,10 +562,10 @@
           "text_cn": "地球",
           "isPunct": false,
           "wordAudio": "./assets/words/0fb7145cadbd.mp3",
-          "start": 29.022,
-          "end": 29.664,
-          "exactStart": 30.065,
-          "exactEnd": 30.707
+          "start": 28.166,
+          "end": 28.869,
+          "exactStart": 29.122,
+          "exactEnd": 29.764
         },
         {
           "text": "轉動",
@@ -634,10 +574,10 @@
           "text_cn": "转动",
           "isPunct": false,
           "wordAudio": "./assets/words/cc2bc3d7b88b.mp3",
-          "start": 29.664,
-          "end": 30.307,
-          "exactStart": 30.737,
-          "exactEnd": 31.414
+          "start": 28.869,
+          "end": 29.571,
+          "exactStart": 29.794,
+          "exactEnd": 30.471
         },
         {
           "text": "，",
@@ -645,10 +585,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 30.307,
-          "end": 30.357,
-          "exactStart": 31.444,
-          "exactEnd": 31.664
+          "start": 29.571,
+          "end": 29.621,
+          "exactStart": 30.501,
+          "exactEnd": 30.721
         },
         {
           "text": "我們",
@@ -657,10 +597,10 @@
           "text_cn": "我们",
           "isPunct": false,
           "wordAudio": "./assets/words/0ca0878f6d60.mp3",
-          "start": 30.307,
-          "end": 30.949,
-          "exactStart": 31.664,
-          "exactEnd": 32.231
+          "start": 29.571,
+          "end": 30.274,
+          "exactStart": 30.721,
+          "exactEnd": 31.288
         },
         {
           "text": "看到",
@@ -669,22 +609,34 @@
           "text_cn": "看到",
           "isPunct": false,
           "wordAudio": "./assets/words/9243a9cbfc22.mp3",
-          "start": 30.949,
-          "end": 31.592,
-          "exactStart": 32.261,
-          "exactEnd": 32.993
+          "start": 30.274,
+          "end": 30.977,
+          "exactStart": 31.318,
+          "exactEnd": 32.05
         },
         {
-          "text": "被陽光",
-          "text_hk": "被陽光",
-          "text_tw": "被陽光",
-          "text_cn": "被阳光",
+          "text": "被",
+          "text_hk": "被",
+          "text_tw": "被",
+          "text_cn": "被",
           "isPunct": false,
-          "wordAudio": "./assets/words/256e159030b3.mp3",
-          "start": 31.592,
-          "end": 32.235,
-          "exactStart": 33.023,
-          "exactEnd": 34.007
+          "wordAudio": "./assets/words/482e9f1a080d.mp3",
+          "start": 30.977,
+          "end": 31.68,
+          "exactStart": 32.08,
+          "exactEnd": 32.447
+        },
+        {
+          "text": "陽光",
+          "text_hk": "陽光",
+          "text_tw": "陽光",
+          "text_cn": "阳光",
+          "isPunct": false,
+          "wordAudio": "./assets/words/0edabb893e8f.mp3",
+          "start": 31.68,
+          "end": 32.383,
+          "exactStart": 32.477,
+          "exactEnd": 33.179
         },
         {
           "text": "照亮",
@@ -693,10 +645,10 @@
           "text_cn": "照亮",
           "isPunct": false,
           "wordAudio": "./assets/words/763f44ba239e.mp3",
-          "start": 32.235,
-          "end": 32.877,
-          "exactStart": 34.037,
-          "exactEnd": 34.764
+          "start": 32.383,
+          "end": 33.086,
+          "exactStart": 33.209,
+          "exactEnd": 33.936
         },
         {
           "text": "的",
@@ -705,10 +657,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/3bf976e06f8b.mp3",
-          "start": 32.877,
-          "end": 33.52,
-          "exactStart": 34.794,
-          "exactEnd": 34.971
+          "start": 33.086,
+          "end": 33.789,
+          "exactStart": 33.966,
+          "exactEnd": 34.143
         },
         {
           "text": "部分",
@@ -717,10 +669,10 @@
           "text_cn": "部分",
           "isPunct": false,
           "wordAudio": "./assets/words/d291e0c502c5.mp3",
-          "start": 33.52,
-          "end": 34.162,
-          "exactStart": 35.001,
-          "exactEnd": 35.638
+          "start": 33.789,
+          "end": 34.492,
+          "exactStart": 34.173,
+          "exactEnd": 34.81
         },
         {
           "text": "不同",
@@ -729,10 +681,10 @@
           "text_cn": "不同",
           "isPunct": false,
           "wordAudio": "./assets/words/009014c7c968.mp3",
-          "start": 34.162,
-          "end": 34.805,
-          "exactStart": 35.668,
-          "exactEnd": 36.235
+          "start": 34.492,
+          "end": 35.195,
+          "exactStart": 34.84,
+          "exactEnd": 35.407
         },
         {
           "text": "，",
@@ -740,10 +692,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 34.805,
-          "end": 34.855,
-          "exactStart": 36.265,
-          "exactEnd": 36.485
+          "start": 35.195,
+          "end": 35.245,
+          "exactStart": 35.437,
+          "exactEnd": 35.657
         },
         {
           "text": "就",
@@ -752,70 +704,58 @@
           "text_cn": "就",
           "isPunct": false,
           "wordAudio": "./assets/words/78d7a0b797be.mp3",
-          "start": 34.805,
-          "end": 35.447,
-          "exactStart": 36.485,
-          "exactEnd": 36.892
+          "start": 35.195,
+          "end": 35.898,
+          "exactStart": 35.657,
+          "exactEnd": 36.064
         },
         {
-          "text": "出現",
-          "text_hk": "出現",
-          "text_tw": "出現",
-          "text_cn": "出现",
+          "text": "出現了",
+          "text_hk": "出現了",
+          "text_tw": "出現了",
+          "text_cn": "出现了",
           "isPunct": false,
-          "wordAudio": "./assets/words/d42824c5a7aa.mp3",
-          "start": 35.447,
-          "end": 36.09,
-          "exactStart": 36.922,
-          "exactEnd": 37.589
+          "wordAudio": "./assets/words/c4fc75daf501.mp3",
+          "start": 35.898,
+          "end": 36.601,
+          "exactStart": 36.094,
+          "exactEnd": 37.027
         },
         {
-          "text": "了",
-          "text_hk": "了",
-          "text_tw": "了",
-          "text_cn": "了",
+          "text": "月圓",
+          "text_hk": "月圓",
+          "text_tw": "月圓",
+          "text_cn": "月圆",
           "isPunct": false,
-          "wordAudio": "./assets/words/9340c66afc7d.mp3",
-          "start": 36.09,
-          "end": 36.732,
-          "exactStart": 37.619,
-          "exactEnd": 38.001
+          "wordAudio": "./assets/words/246f98fed7b0.mp3",
+          "start": 36.601,
+          "end": 37.304,
+          "exactStart": 37.057,
+          "exactEnd": 37.719
         },
         {
-          "text": "月",
-          "text_hk": "月",
-          "text_tw": "月",
-          "text_cn": "月",
+          "text": "和",
+          "text_hk": "和",
+          "text_tw": "和",
+          "text_cn": "和",
           "isPunct": false,
-          "wordAudio": "./assets/words/824bb0fb9abb.mp3",
-          "start": 36.732,
-          "end": 37.375,
-          "exactStart": 38.031,
-          "exactEnd": 38.263
+          "wordAudio": "./assets/words/29f649fcca52.mp3",
+          "start": 37.304,
+          "end": 38.007,
+          "exactStart": 37.749,
+          "exactEnd": 38.096
         },
         {
-          "text": "圓和月",
-          "text_hk": "圓和月",
-          "text_tw": "圓和月",
-          "text_cn": "圆和月",
+          "text": "月缺",
+          "text_hk": "月缺",
+          "text_tw": "月缺",
+          "text_cn": "月缺",
           "isPunct": false,
-          "wordAudio": "./assets/words/43b22845aaa4.mp3",
-          "start": 37.375,
-          "end": 38.017,
-          "exactStart": 38.293,
-          "exactEnd": 39.08
-        },
-        {
-          "text": "缺",
-          "text_hk": "缺",
-          "text_tw": "缺",
-          "text_cn": "缺",
-          "isPunct": false,
-          "wordAudio": "./assets/words/f22ec5a60bf6.mp3",
-          "start": 38.017,
-          "end": 38.66,
-          "exactStart": 39.11,
-          "exactEnd": 39.397
+          "wordAudio": "./assets/words/953b8c5db76b.mp3",
+          "start": 38.007,
+          "end": 38.71,
+          "exactStart": 38.126,
+          "exactEnd": 38.633
         },
         {
           "text": "。",
@@ -823,10 +763,10 @@
           "text_tw": "。",
           "text_cn": "。",
           "isPunct": true,
-          "start": 38.66,
-          "end": 38.71,
-          "exactStart": 39.427,
-          "exactEnd": 39.827
+          "start": 38.71,
+          "end": 38.76,
+          "exactStart": 38.663,
+          "exactEnd": 39.063
         }
       ]
     },
@@ -843,33 +783,21 @@
           "isPunct": false,
           "wordAudio": "./assets/words/37ed050d864d.mp3",
           "start": 0.15,
-          "end": 0.608,
+          "end": 0.82,
           "exactStart": 0.1,
           "exactEnd": 0.647
         },
         {
-          "text": "為",
-          "text_hk": "為",
-          "text_tw": "為",
-          "text_cn": "为",
+          "text": "為什麼",
+          "text_hk": "為什麼",
+          "text_tw": "為什麼",
+          "text_cn": "为什么",
           "isPunct": false,
-          "wordAudio": "./assets/words/a41b3947d2c0.mp3",
-          "start": 0.608,
-          "end": 1.066,
+          "wordAudio": "./assets/words/25d93e84a4d5.mp3",
+          "start": 0.82,
+          "end": 1.489,
           "exactStart": 0.677,
-          "exactEnd": 0.944
-        },
-        {
-          "text": "什麼",
-          "text_hk": "什麼",
-          "text_tw": "什麼",
-          "text_cn": "什么",
-          "isPunct": false,
-          "wordAudio": "./assets/words/3e19f16ac9ae.mp3",
-          "start": 1.066,
-          "end": 1.523,
-          "exactStart": 0.974,
-          "exactEnd": 1.521
+          "exactEnd": 1.334
         },
         {
           "text": "會",
@@ -878,10 +806,10 @@
           "text_cn": "会",
           "isPunct": false,
           "wordAudio": "./assets/words/74938abef3bc.mp3",
-          "start": 1.523,
-          "end": 1.981,
-          "exactStart": 1.551,
-          "exactEnd": 1.823
+          "start": 1.489,
+          "end": 2.159,
+          "exactStart": 1.364,
+          "exactEnd": 1.636
         },
         {
           "text": "變形",
@@ -890,10 +818,10 @@
           "text_cn": "变形",
           "isPunct": false,
           "wordAudio": "./assets/words/2fb7b5e3ce8f.mp3",
-          "start": 1.981,
-          "end": 2.439,
-          "exactStart": 1.853,
-          "exactEnd": 2.46
+          "start": 2.159,
+          "end": 2.829,
+          "exactStart": 1.666,
+          "exactEnd": 2.273
         },
         {
           "isBreak": true
@@ -905,10 +833,10 @@
           "text_cn": "晚上",
           "isPunct": false,
           "wordAudio": "./assets/words/e674c5d6ddc4.mp3",
-          "start": 2.639,
-          "end": 3.097,
-          "exactStart": 2.99,
-          "exactEnd": 3.582
+          "start": 3.029,
+          "end": 3.698,
+          "exactStart": 2.803,
+          "exactEnd": 3.395
         },
         {
           "text": "抬頭",
@@ -917,10 +845,10 @@
           "text_cn": "抬头",
           "isPunct": false,
           "wordAudio": "./assets/words/461283d2a3d2.mp3",
-          "start": 3.097,
-          "end": 3.555,
-          "exactStart": 3.612,
-          "exactEnd": 4.204
+          "start": 3.698,
+          "end": 4.368,
+          "exactStart": 3.425,
+          "exactEnd": 4.017
         },
         {
           "text": "看",
@@ -929,10 +857,10 @@
           "text_cn": "看",
           "isPunct": false,
           "wordAudio": "./assets/words/4875f6fe5bcb.mp3",
-          "start": 3.555,
-          "end": 4.012,
-          "exactStart": 4.234,
-          "exactEnd": 4.536
+          "start": 4.368,
+          "end": 5.037,
+          "exactStart": 4.047,
+          "exactEnd": 4.349
         },
         {
           "text": "天空",
@@ -941,10 +869,10 @@
           "text_cn": "天空",
           "isPunct": false,
           "wordAudio": "./assets/words/be0f03f406b2.mp3",
-          "start": 4.012,
-          "end": 4.47,
-          "exactStart": 4.566,
-          "exactEnd": 5.118
+          "start": 5.037,
+          "end": 5.707,
+          "exactStart": 4.379,
+          "exactEnd": 4.931
         },
         {
           "text": "，",
@@ -952,34 +880,22 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 4.47,
-          "end": 4.52,
-          "exactStart": 5.148,
-          "exactEnd": 5.368
+          "start": 5.707,
+          "end": 5.757,
+          "exactStart": 4.961,
+          "exactEnd": 5.181
         },
         {
-          "text": "有",
-          "text_hk": "有",
-          "text_tw": "有",
-          "text_cn": "有",
+          "text": "有時候",
+          "text_hk": "有時候",
+          "text_tw": "有時候",
+          "text_cn": "有时候",
           "isPunct": false,
-          "wordAudio": "./assets/words/24c09365ce53.mp3",
-          "start": 4.47,
-          "end": 4.928,
-          "exactStart": 5.368,
-          "exactEnd": 5.625
-        },
-        {
-          "text": "時候",
-          "text_hk": "時候",
-          "text_tw": "時候",
-          "text_cn": "时候",
-          "isPunct": false,
-          "wordAudio": "./assets/words/9c7280769014.mp3",
-          "start": 4.928,
-          "end": 5.386,
-          "exactStart": 5.655,
-          "exactEnd": 6.292
+          "wordAudio": "./assets/words/308ca5c130b2.mp3",
+          "start": 5.707,
+          "end": 6.377,
+          "exactStart": 5.181,
+          "exactEnd": 5.948
         },
         {
           "text": "月亮",
@@ -988,10 +904,10 @@
           "text_cn": "月亮",
           "isPunct": false,
           "wordAudio": "./assets/words/37ed050d864d.mp3",
-          "start": 5.386,
-          "end": 5.844,
-          "exactStart": 6.322,
-          "exactEnd": 6.869
+          "start": 6.377,
+          "end": 7.046,
+          "exactStart": 5.978,
+          "exactEnd": 6.525
         },
         {
           "text": "像",
@@ -1000,34 +916,22 @@
           "text_cn": "像",
           "isPunct": false,
           "wordAudio": "./assets/words/fe67edb0deb2.mp3",
-          "start": 5.844,
-          "end": 6.301,
-          "exactStart": 6.899,
-          "exactEnd": 7.296
+          "start": 7.046,
+          "end": 7.716,
+          "exactStart": 6.555,
+          "exactEnd": 6.952
         },
         {
-          "text": "彎",
-          "text_hk": "彎",
-          "text_tw": "彎",
-          "text_cn": "弯",
+          "text": "彎彎",
+          "text_hk": "彎彎",
+          "text_tw": "彎彎",
+          "text_cn": "弯弯",
           "isPunct": false,
-          "wordAudio": "./assets/words/f74ea603a1fb.mp3",
-          "start": 6.301,
-          "end": 6.759,
-          "exactStart": 7.326,
-          "exactEnd": 7.598
-        },
-        {
-          "text": "彎",
-          "text_hk": "彎",
-          "text_tw": "彎",
-          "text_cn": "弯",
-          "isPunct": false,
-          "wordAudio": "./assets/words/f74ea603a1fb.mp3",
-          "start": 6.759,
-          "end": 7.217,
-          "exactStart": 7.628,
-          "exactEnd": 7.9
+          "wordAudio": "./assets/words/c88a570f9f4f.mp3",
+          "start": 7.716,
+          "end": 8.386,
+          "exactStart": 6.982,
+          "exactEnd": 7.509
         },
         {
           "text": "的",
@@ -1036,10 +940,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d4bcd7fc49f0.mp3",
-          "start": 7.217,
-          "end": 7.675,
-          "exactStart": 7.93,
-          "exactEnd": 8.167
+          "start": 8.386,
+          "end": 9.055,
+          "exactStart": 7.539,
+          "exactEnd": 7.776
         },
         {
           "text": "小船",
@@ -1048,10 +952,10 @@
           "text_cn": "小船",
           "isPunct": false,
           "wordAudio": "./assets/words/c8a3860bb7dc.mp3",
-          "start": 7.675,
-          "end": 8.133,
-          "exactStart": 8.197,
-          "exactEnd": 8.894
+          "start": 9.055,
+          "end": 9.725,
+          "exactStart": 7.806,
+          "exactEnd": 8.503
         },
         {
           "text": "，",
@@ -1059,34 +963,22 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 8.133,
-          "end": 8.183,
-          "exactStart": 8.924,
-          "exactEnd": 9.144
+          "start": 9.725,
+          "end": 9.775,
+          "exactStart": 8.533,
+          "exactEnd": 8.753
         },
         {
-          "text": "有",
-          "text_hk": "有",
-          "text_tw": "有",
-          "text_cn": "有",
+          "text": "有時候",
+          "text_hk": "有時候",
+          "text_tw": "有時候",
+          "text_cn": "有时候",
           "isPunct": false,
-          "wordAudio": "./assets/words/24c09365ce53.mp3",
-          "start": 8.133,
-          "end": 8.59,
-          "exactStart": 9.144,
-          "exactEnd": 9.401
-        },
-        {
-          "text": "時候",
-          "text_hk": "時候",
-          "text_tw": "時候",
-          "text_cn": "时候",
-          "isPunct": false,
-          "wordAudio": "./assets/words/9c7280769014.mp3",
-          "start": 8.59,
-          "end": 9.048,
-          "exactStart": 9.431,
-          "exactEnd": 10.068
+          "wordAudio": "./assets/words/308ca5c130b2.mp3",
+          "start": 9.725,
+          "end": 10.394,
+          "exactStart": 8.753,
+          "exactEnd": 9.52
         },
         {
           "text": "又",
@@ -1095,10 +987,10 @@
           "text_cn": "又",
           "isPunct": false,
           "wordAudio": "./assets/words/aa0aff6354ee.mp3",
-          "start": 9.048,
-          "end": 9.506,
-          "exactStart": 10.098,
-          "exactEnd": 10.37
+          "start": 10.394,
+          "end": 11.064,
+          "exactStart": 9.55,
+          "exactEnd": 9.822
         },
         {
           "text": "像",
@@ -1107,10 +999,10 @@
           "text_cn": "像",
           "isPunct": false,
           "wordAudio": "./assets/words/fe67edb0deb2.mp3",
-          "start": 9.506,
-          "end": 9.964,
-          "exactStart": 10.4,
-          "exactEnd": 10.797
+          "start": 11.064,
+          "end": 11.734,
+          "exactStart": 9.852,
+          "exactEnd": 10.249
         },
         {
           "text": "圓圓",
@@ -1119,10 +1011,10 @@
           "text_cn": "圆圆",
           "isPunct": false,
           "wordAudio": "./assets/words/c7572e0fce9c.mp3",
-          "start": 9.964,
-          "end": 10.422,
-          "exactStart": 10.827,
-          "exactEnd": 11.434
+          "start": 11.734,
+          "end": 12.403,
+          "exactStart": 10.279,
+          "exactEnd": 10.886
         },
         {
           "text": "的",
@@ -1131,10 +1023,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d4bcd7fc49f0.mp3",
-          "start": 10.422,
-          "end": 10.879,
-          "exactStart": 11.464,
-          "exactEnd": 11.701
+          "start": 12.403,
+          "end": 13.073,
+          "exactStart": 10.916,
+          "exactEnd": 11.153
         },
         {
           "text": "大玉盤",
@@ -1143,10 +1035,10 @@
           "text_cn": "大玉盘",
           "isPunct": false,
           "wordAudio": "./assets/words/082ac642c35a.mp3",
-          "start": 10.879,
-          "end": 11.337,
-          "exactStart": 11.731,
-          "exactEnd": 12.538
+          "start": 13.073,
+          "end": 13.743,
+          "exactStart": 11.183,
+          "exactEnd": 11.99
         },
         {
           "text": "。",
@@ -1154,10 +1046,10 @@
           "text_tw": "。",
           "text_cn": "。",
           "isPunct": true,
-          "start": 11.337,
-          "end": 11.387,
-          "exactStart": 12.568,
-          "exactEnd": 12.968
+          "start": 13.743,
+          "end": 13.793,
+          "exactStart": 12.02,
+          "exactEnd": 12.42
         },
         {
           "isBreak": true
@@ -1169,10 +1061,10 @@
           "text_cn": "其实",
           "isPunct": false,
           "wordAudio": "./assets/words/51fddf51a1c2.mp3",
-          "start": 11.537,
-          "end": 11.995,
-          "exactStart": 13.468,
-          "exactEnd": 14.105
+          "start": 13.943,
+          "end": 14.612,
+          "exactStart": 12.92,
+          "exactEnd": 13.557
         },
         {
           "text": "月亮",
@@ -1181,10 +1073,10 @@
           "text_cn": "月亮",
           "isPunct": false,
           "wordAudio": "./assets/words/37ed050d864d.mp3",
-          "start": 11.995,
-          "end": 12.453,
-          "exactStart": 14.135,
-          "exactEnd": 14.682
+          "start": 14.612,
+          "end": 15.282,
+          "exactStart": 13.587,
+          "exactEnd": 14.134
         },
         {
           "text": "本身",
@@ -1193,10 +1085,10 @@
           "text_cn": "本身",
           "isPunct": false,
           "wordAudio": "./assets/words/7ff894dfe97d.mp3",
-          "start": 12.453,
-          "end": 12.911,
-          "exactStart": 14.712,
-          "exactEnd": 15.234
+          "start": 15.282,
+          "end": 15.951,
+          "exactStart": 14.164,
+          "exactEnd": 14.686
         },
         {
           "text": "不會",
@@ -1205,10 +1097,10 @@
           "text_cn": "不会",
           "isPunct": false,
           "wordAudio": "./assets/words/02f5bcb99032.mp3",
-          "start": 12.911,
-          "end": 13.368,
-          "exactStart": 15.264,
-          "exactEnd": 15.766
+          "start": 15.951,
+          "end": 16.621,
+          "exactStart": 14.716,
+          "exactEnd": 15.218
         },
         {
           "text": "發光",
@@ -1217,10 +1109,10 @@
           "text_cn": "发光",
           "isPunct": false,
           "wordAudio": "./assets/words/fdd3101ec73a.mp3",
-          "start": 13.368,
-          "end": 13.826,
-          "exactStart": 15.796,
-          "exactEnd": 16.238
+          "start": 16.621,
+          "end": 17.291,
+          "exactStart": 15.248,
+          "exactEnd": 15.69
         },
         {
           "text": "，",
@@ -1228,10 +1120,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 13.826,
-          "end": 13.876,
-          "exactStart": 16.268,
-          "exactEnd": 16.488
+          "start": 17.291,
+          "end": 17.341,
+          "exactStart": 15.72,
+          "exactEnd": 15.94
         },
         {
           "text": "也",
@@ -1240,10 +1132,10 @@
           "text_cn": "也",
           "isPunct": false,
           "wordAudio": "./assets/words/dc7295a30428.mp3",
-          "start": 13.826,
-          "end": 14.284,
-          "exactStart": 16.488,
-          "exactEnd": 16.745
+          "start": 17.291,
+          "end": 17.96,
+          "exactStart": 15.94,
+          "exactEnd": 16.197
         },
         {
           "text": "不會",
@@ -1252,10 +1144,10 @@
           "text_cn": "不会",
           "isPunct": false,
           "wordAudio": "./assets/words/02f5bcb99032.mp3",
-          "start": 14.284,
-          "end": 14.742,
-          "exactStart": 16.775,
-          "exactEnd": 17.277
+          "start": 17.96,
+          "end": 18.63,
+          "exactStart": 16.227,
+          "exactEnd": 16.729
         },
         {
           "text": "真的",
@@ -1264,10 +1156,10 @@
           "text_cn": "真的",
           "isPunct": false,
           "wordAudio": "./assets/words/579801ba6a44.mp3",
-          "start": 14.742,
-          "end": 15.199,
-          "exactStart": 17.307,
-          "exactEnd": 17.799
+          "start": 18.63,
+          "end": 19.3,
+          "exactStart": 16.759,
+          "exactEnd": 17.251
         },
         {
           "text": "改變",
@@ -1276,10 +1168,10 @@
           "text_cn": "改变",
           "isPunct": false,
           "wordAudio": "./assets/words/8f931736b702.mp3",
-          "start": 15.199,
-          "end": 15.657,
-          "exactStart": 17.829,
-          "exactEnd": 18.386
+          "start": 19.3,
+          "end": 19.969,
+          "exactStart": 17.281,
+          "exactEnd": 17.838
         },
         {
           "text": "形狀",
@@ -1288,10 +1180,10 @@
           "text_cn": "形状",
           "isPunct": false,
           "wordAudio": "./assets/words/11fb38e29aca.mp3",
-          "start": 15.657,
-          "end": 16.115,
-          "exactStart": 18.416,
-          "exactEnd": 19.108
+          "start": 19.969,
+          "end": 20.639,
+          "exactStart": 17.868,
+          "exactEnd": 18.56
         },
         {
           "text": "，",
@@ -1299,10 +1191,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 16.115,
-          "end": 16.165,
-          "exactStart": 19.138,
-          "exactEnd": 19.358
+          "start": 20.639,
+          "end": 20.689,
+          "exactStart": 18.59,
+          "exactEnd": 18.81
         },
         {
           "text": "它",
@@ -1311,10 +1203,10 @@
           "text_cn": "它",
           "isPunct": false,
           "wordAudio": "./assets/words/d333f179dcbc.mp3",
-          "start": 16.115,
-          "end": 16.573,
-          "exactStart": 19.358,
-          "exactEnd": 19.62
+          "start": 20.639,
+          "end": 21.309,
+          "exactStart": 18.81,
+          "exactEnd": 19.072
         },
         {
           "text": "只是",
@@ -1323,34 +1215,22 @@
           "text_cn": "只是",
           "isPunct": false,
           "wordAudio": "./assets/words/9b798715d138.mp3",
-          "start": 16.573,
-          "end": 17.031,
-          "exactStart": 19.65,
-          "exactEnd": 20.232
+          "start": 21.309,
+          "end": 21.978,
+          "exactStart": 19.102,
+          "exactEnd": 19.684
         },
         {
-          "text": "反射",
-          "text_hk": "反射",
-          "text_tw": "反射",
-          "text_cn": "反射",
+          "text": "反射了",
+          "text_hk": "反射了",
+          "text_tw": "反射了",
+          "text_cn": "反射了",
           "isPunct": false,
-          "wordAudio": "./assets/words/59b697c47b87.mp3",
-          "start": 17.031,
-          "end": 17.488,
-          "exactStart": 20.262,
-          "exactEnd": 20.824
-        },
-        {
-          "text": "了",
-          "text_hk": "了",
-          "text_tw": "了",
-          "text_cn": "了",
-          "isPunct": false,
-          "wordAudio": "./assets/words/c7f6dde7e486.mp3",
-          "start": 17.488,
-          "end": 17.946,
-          "exactStart": 20.854,
-          "exactEnd": 21.116
+          "wordAudio": "./assets/words/2befe8c58a5a.mp3",
+          "start": 21.978,
+          "end": 22.648,
+          "exactStart": 19.714,
+          "exactEnd": 20.361
         },
         {
           "text": "太陽",
@@ -1359,10 +1239,10 @@
           "text_cn": "太阳",
           "isPunct": false,
           "wordAudio": "./assets/words/3370f4e3faa8.mp3",
-          "start": 17.946,
-          "end": 18.404,
-          "exactStart": 21.146,
-          "exactEnd": 21.713
+          "start": 22.648,
+          "end": 23.317,
+          "exactStart": 20.391,
+          "exactEnd": 20.958
         },
         {
           "text": "的",
@@ -1371,10 +1251,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d4bcd7fc49f0.mp3",
-          "start": 18.404,
-          "end": 18.862,
-          "exactStart": 21.743,
-          "exactEnd": 21.98
+          "start": 23.317,
+          "end": 23.987,
+          "exactStart": 20.988,
+          "exactEnd": 21.225
         },
         {
           "text": "光芒",
@@ -1383,10 +1263,10 @@
           "text_cn": "光芒",
           "isPunct": false,
           "wordAudio": "./assets/words/b06d0feacb15.mp3",
-          "start": 18.862,
-          "end": 19.32,
-          "exactStart": 22.01,
-          "exactEnd": 22.547
+          "start": 23.987,
+          "end": 24.657,
+          "exactStart": 21.255,
+          "exactEnd": 21.792
         },
         {
           "text": "。",
@@ -1394,10 +1274,10 @@
           "text_tw": "。",
           "text_cn": "。",
           "isPunct": true,
-          "start": 19.32,
-          "end": 19.37,
-          "exactStart": 22.577,
-          "exactEnd": 22.977
+          "start": 24.657,
+          "end": 24.707,
+          "exactStart": 21.822,
+          "exactEnd": 22.222
         },
         {
           "isBreak": true
@@ -1409,10 +1289,10 @@
           "text_cn": "随著",
           "isPunct": false,
           "wordAudio": "./assets/words/cd878350fb3a.mp3",
-          "start": 19.52,
-          "end": 19.977,
-          "exactStart": 23.477,
-          "exactEnd": 24.079
+          "start": 24.857,
+          "end": 25.526,
+          "exactStart": 22.722,
+          "exactEnd": 23.324
         },
         {
           "text": "月亮",
@@ -1421,10 +1301,10 @@
           "text_cn": "月亮",
           "isPunct": false,
           "wordAudio": "./assets/words/37ed050d864d.mp3",
-          "start": 19.977,
-          "end": 20.435,
-          "exactStart": 24.109,
-          "exactEnd": 24.656
+          "start": 25.526,
+          "end": 26.196,
+          "exactStart": 23.354,
+          "exactEnd": 23.901
         },
         {
           "text": "繞著",
@@ -1433,10 +1313,10 @@
           "text_cn": "绕著",
           "isPunct": false,
           "wordAudio": "./assets/words/e2f6e76cf86a.mp3",
-          "start": 20.435,
-          "end": 20.893,
-          "exactStart": 24.686,
-          "exactEnd": 25.203
+          "start": 26.196,
+          "end": 26.866,
+          "exactStart": 23.931,
+          "exactEnd": 24.448
         },
         {
           "text": "地球",
@@ -1445,10 +1325,10 @@
           "text_cn": "地球",
           "isPunct": false,
           "wordAudio": "./assets/words/efc2807c1d19.mp3",
-          "start": 20.893,
-          "end": 21.351,
-          "exactStart": 25.233,
-          "exactEnd": 25.835
+          "start": 26.866,
+          "end": 27.535,
+          "exactStart": 24.478,
+          "exactEnd": 25.08
         },
         {
           "text": "轉動",
@@ -1457,10 +1337,10 @@
           "text_cn": "转动",
           "isPunct": false,
           "wordAudio": "./assets/words/dd00936c9df1.mp3",
-          "start": 21.351,
-          "end": 21.809,
-          "exactStart": 25.865,
-          "exactEnd": 26.457
+          "start": 27.535,
+          "end": 28.205,
+          "exactStart": 25.11,
+          "exactEnd": 25.702
         },
         {
           "text": "，",
@@ -1468,10 +1348,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 21.809,
-          "end": 21.859,
-          "exactStart": 26.487,
-          "exactEnd": 26.707
+          "start": 28.205,
+          "end": 28.255,
+          "exactStart": 25.732,
+          "exactEnd": 25.952
         },
         {
           "text": "我們",
@@ -1480,10 +1360,10 @@
           "text_cn": "我们",
           "isPunct": false,
           "wordAudio": "./assets/words/7b2bfa5f9b52.mp3",
-          "start": 21.809,
-          "end": 22.266,
-          "exactStart": 26.707,
-          "exactEnd": 27.199
+          "start": 28.205,
+          "end": 28.874,
+          "exactStart": 25.952,
+          "exactEnd": 26.444
         },
         {
           "text": "看到",
@@ -1492,22 +1372,34 @@
           "text_cn": "看到",
           "isPunct": false,
           "wordAudio": "./assets/words/2d6302adfbcc.mp3",
-          "start": 22.266,
-          "end": 22.724,
-          "exactStart": 27.229,
-          "exactEnd": 27.801
+          "start": 28.874,
+          "end": 29.544,
+          "exactStart": 26.474,
+          "exactEnd": 27.046
         },
         {
-          "text": "被陽光",
-          "text_hk": "被陽光",
-          "text_tw": "被陽光",
-          "text_cn": "被阳光",
+          "text": "被",
+          "text_hk": "被",
+          "text_tw": "被",
+          "text_cn": "被",
           "isPunct": false,
-          "wordAudio": "./assets/words/e398a77abfa1.mp3",
-          "start": 22.724,
-          "end": 23.182,
-          "exactStart": 27.831,
-          "exactEnd": 28.528
+          "wordAudio": "./assets/words/fe684cb04e35.mp3",
+          "start": 29.544,
+          "end": 30.214,
+          "exactStart": 27.076,
+          "exactEnd": 27.348
+        },
+        {
+          "text": "陽光",
+          "text_hk": "陽光",
+          "text_tw": "陽光",
+          "text_cn": "阳光",
+          "isPunct": false,
+          "wordAudio": "./assets/words/94591adb8bb0.mp3",
+          "start": 30.214,
+          "end": 30.883,
+          "exactStart": 27.378,
+          "exactEnd": 27.9
         },
         {
           "text": "照亮",
@@ -1516,10 +1408,10 @@
           "text_cn": "照亮",
           "isPunct": false,
           "wordAudio": "./assets/words/4ee5e7968584.mp3",
-          "start": 23.182,
-          "end": 23.64,
-          "exactStart": 28.558,
-          "exactEnd": 29.13
+          "start": 30.883,
+          "end": 31.553,
+          "exactStart": 27.93,
+          "exactEnd": 28.502
         },
         {
           "text": "的",
@@ -1528,10 +1420,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d4bcd7fc49f0.mp3",
-          "start": 23.64,
-          "end": 24.098,
-          "exactStart": 29.16,
-          "exactEnd": 29.397
+          "start": 31.553,
+          "end": 32.223,
+          "exactStart": 28.532,
+          "exactEnd": 28.769
         },
         {
           "text": "部分",
@@ -1540,10 +1432,10 @@
           "text_cn": "部分",
           "isPunct": false,
           "wordAudio": "./assets/words/3151a761f294.mp3",
-          "start": 24.098,
-          "end": 24.555,
-          "exactStart": 29.427,
-          "exactEnd": 29.929
+          "start": 32.223,
+          "end": 32.892,
+          "exactStart": 28.799,
+          "exactEnd": 29.301
         },
         {
           "text": "不同",
@@ -1552,10 +1444,10 @@
           "text_cn": "不同",
           "isPunct": false,
           "wordAudio": "./assets/words/051c5bb16363.mp3",
-          "start": 24.555,
-          "end": 25.013,
-          "exactStart": 29.959,
-          "exactEnd": 30.491
+          "start": 32.892,
+          "end": 33.562,
+          "exactStart": 29.331,
+          "exactEnd": 29.863
         },
         {
           "text": "，",
@@ -1563,10 +1455,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 25.013,
-          "end": 25.063,
-          "exactStart": 30.521,
-          "exactEnd": 30.741
+          "start": 33.562,
+          "end": 33.612,
+          "exactStart": 29.893,
+          "exactEnd": 30.113
         },
         {
           "text": "就",
@@ -1575,70 +1467,58 @@
           "text_cn": "就",
           "isPunct": false,
           "wordAudio": "./assets/words/648f2da3d610.mp3",
-          "start": 25.013,
-          "end": 25.471,
-          "exactStart": 30.741,
-          "exactEnd": 31.038
+          "start": 33.562,
+          "end": 34.231,
+          "exactStart": 30.113,
+          "exactEnd": 30.41
         },
         {
-          "text": "出現",
-          "text_hk": "出現",
-          "text_tw": "出現",
-          "text_cn": "出现",
+          "text": "出現了",
+          "text_hk": "出現了",
+          "text_tw": "出現了",
+          "text_cn": "出现了",
           "isPunct": false,
-          "wordAudio": "./assets/words/f94839342104.mp3",
-          "start": 25.471,
-          "end": 25.929,
-          "exactStart": 31.068,
-          "exactEnd": 31.67
+          "wordAudio": "./assets/words/938580bc0c4e.mp3",
+          "start": 34.231,
+          "end": 34.901,
+          "exactStart": 30.44,
+          "exactEnd": 31.142
         },
         {
-          "text": "了",
-          "text_hk": "了",
-          "text_tw": "了",
-          "text_cn": "了",
+          "text": "月圓",
+          "text_hk": "月圓",
+          "text_tw": "月圓",
+          "text_cn": "月圆",
           "isPunct": false,
-          "wordAudio": "./assets/words/c7f6dde7e486.mp3",
-          "start": 25.929,
-          "end": 26.387,
-          "exactStart": 31.7,
-          "exactEnd": 31.962
+          "wordAudio": "./assets/words/e6c935ffb100.mp3",
+          "start": 34.901,
+          "end": 35.571,
+          "exactStart": 31.172,
+          "exactEnd": 31.784
         },
         {
-          "text": "月",
-          "text_hk": "月",
-          "text_tw": "月",
-          "text_cn": "月",
+          "text": "和",
+          "text_hk": "和",
+          "text_tw": "和",
+          "text_cn": "和",
           "isPunct": false,
-          "wordAudio": "./assets/words/7bf87f81dbfb.mp3",
-          "start": 26.387,
-          "end": 26.844,
-          "exactStart": 31.992,
-          "exactEnd": 32.244
+          "wordAudio": "./assets/words/d7fdd021d00d.mp3",
+          "start": 35.571,
+          "end": 36.24,
+          "exactStart": 31.814,
+          "exactEnd": 32.111
         },
         {
-          "text": "圓和月",
-          "text_hk": "圓和月",
-          "text_tw": "圓和月",
-          "text_cn": "圆和月",
+          "text": "月缺",
+          "text_hk": "月缺",
+          "text_tw": "月缺",
+          "text_cn": "月缺",
           "isPunct": false,
-          "wordAudio": "./assets/words/acbb9a478980.mp3",
-          "start": 26.844,
-          "end": 27.302,
-          "exactStart": 32.274,
-          "exactEnd": 33.028
-        },
-        {
-          "text": "缺",
-          "text_hk": "缺",
-          "text_tw": "缺",
-          "text_cn": "缺",
-          "isPunct": false,
-          "wordAudio": "./assets/words/81cbcc70eee3.mp3",
-          "start": 27.302,
-          "end": 27.76,
-          "exactStart": 33.058,
-          "exactEnd": 33.41
+          "wordAudio": "./assets/words/24ffb9b36d99.mp3",
+          "start": 36.24,
+          "end": 36.91,
+          "exactStart": 32.141,
+          "exactEnd": 32.678
         },
         {
           "text": "。",
@@ -1646,10 +1526,10 @@
           "text_tw": "。",
           "text_cn": "。",
           "isPunct": true,
-          "start": 27.76,
-          "end": 27.81,
-          "exactStart": 33.44,
-          "exactEnd": 33.84
+          "start": 36.91,
+          "end": 36.96,
+          "exactStart": 32.708,
+          "exactEnd": 33.108
         }
       ]
     },
@@ -1666,33 +1546,21 @@
           "isPunct": false,
           "wordAudio": "./assets/words/ed0cc04b288e.mp3",
           "start": 0.15,
-          "end": 0.6,
+          "end": 0.642,
           "exactStart": 0.1,
           "exactEnd": 0.647
         },
         {
-          "text": "為",
-          "text_hk": "為",
-          "text_tw": "為",
-          "text_cn": "为",
+          "text": "為什麼",
+          "text_hk": "為什麼",
+          "text_tw": "為什麼",
+          "text_cn": "为什么",
           "isPunct": false,
-          "wordAudio": "./assets/words/3525638869f0.mp3",
-          "start": 0.6,
-          "end": 1.05,
+          "wordAudio": "./assets/words/099c78725be6.mp3",
+          "start": 0.642,
+          "end": 1.134,
           "exactStart": 0.677,
-          "exactEnd": 1.034
-        },
-        {
-          "text": "什麼",
-          "text_hk": "什麼",
-          "text_tw": "什麼",
-          "text_cn": "什么",
-          "isPunct": false,
-          "wordAudio": "./assets/words/e2679ff5b73a.mp3",
-          "start": 1.05,
-          "end": 1.501,
-          "exactStart": 1.064,
-          "exactEnd": 1.586
+          "exactEnd": 1.309
         },
         {
           "text": "會",
@@ -1701,10 +1569,10 @@
           "text_cn": "会",
           "isPunct": false,
           "wordAudio": "./assets/words/26267ca771fe.mp3",
-          "start": 1.501,
-          "end": 1.951,
-          "exactStart": 1.616,
-          "exactEnd": 1.943
+          "start": 1.134,
+          "end": 1.626,
+          "exactStart": 1.339,
+          "exactEnd": 1.666
         },
         {
           "text": "變形",
@@ -1713,10 +1581,10 @@
           "text_cn": "变形",
           "isPunct": false,
           "wordAudio": "./assets/words/e9c10eca0505.mp3",
-          "start": 1.951,
-          "end": 2.401,
-          "exactStart": 1.973,
-          "exactEnd": 2.63
+          "start": 1.626,
+          "end": 2.117,
+          "exactStart": 1.696,
+          "exactEnd": 2.353
         },
         {
           "isBreak": true
@@ -1728,10 +1596,10 @@
           "text_cn": "晚上",
           "isPunct": false,
           "wordAudio": "./assets/words/40aa6e7ac617.mp3",
-          "start": 2.601,
-          "end": 3.051,
-          "exactStart": 3.16,
-          "exactEnd": 3.707
+          "start": 2.317,
+          "end": 2.809,
+          "exactStart": 2.883,
+          "exactEnd": 3.43
         },
         {
           "text": "抬頭",
@@ -1740,10 +1608,10 @@
           "text_cn": "抬头",
           "isPunct": false,
           "wordAudio": "./assets/words/23ec0d52d0bc.mp3",
-          "start": 3.051,
-          "end": 3.501,
-          "exactStart": 3.737,
-          "exactEnd": 4.354
+          "start": 2.809,
+          "end": 3.301,
+          "exactStart": 3.46,
+          "exactEnd": 4.077
         },
         {
           "text": "看",
@@ -1752,10 +1620,10 @@
           "text_cn": "看",
           "isPunct": false,
           "wordAudio": "./assets/words/444952772e89.mp3",
-          "start": 3.501,
-          "end": 3.951,
-          "exactStart": 4.384,
-          "exactEnd": 4.766
+          "start": 3.301,
+          "end": 3.793,
+          "exactStart": 4.107,
+          "exactEnd": 4.489
         },
         {
           "text": "天空",
@@ -1764,10 +1632,10 @@
           "text_cn": "天空",
           "isPunct": false,
           "wordAudio": "./assets/words/47d32bac2342.mp3",
-          "start": 3.951,
-          "end": 4.402,
-          "exactStart": 4.796,
-          "exactEnd": 5.413
+          "start": 3.793,
+          "end": 4.285,
+          "exactStart": 4.519,
+          "exactEnd": 5.136
         },
         {
           "text": "，",
@@ -1775,34 +1643,22 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 4.402,
-          "end": 4.452,
-          "exactStart": 5.443,
-          "exactEnd": 5.663
+          "start": 4.285,
+          "end": 4.335,
+          "exactStart": 5.166,
+          "exactEnd": 5.386
         },
         {
-          "text": "有",
-          "text_hk": "有",
-          "text_tw": "有",
-          "text_cn": "有",
+          "text": "有時候",
+          "text_hk": "有時候",
+          "text_tw": "有時候",
+          "text_cn": "有时候",
           "isPunct": false,
-          "wordAudio": "./assets/words/4a10a123d9c1.mp3",
-          "start": 4.402,
-          "end": 4.852,
-          "exactStart": 5.663,
-          "exactEnd": 6.0
-        },
-        {
-          "text": "時候",
-          "text_hk": "時候",
-          "text_tw": "時候",
-          "text_cn": "时候",
-          "isPunct": false,
-          "wordAudio": "./assets/words/df6c195cc75c.mp3",
-          "start": 4.852,
-          "end": 5.302,
-          "exactStart": 6.03,
-          "exactEnd": 6.617
+          "wordAudio": "./assets/words/0fb4539d375b.mp3",
+          "start": 4.285,
+          "end": 4.777,
+          "exactStart": 5.386,
+          "exactEnd": 6.073
         },
         {
           "text": "月亮",
@@ -1811,10 +1667,10 @@
           "text_cn": "月亮",
           "isPunct": false,
           "wordAudio": "./assets/words/ed0cc04b288e.mp3",
-          "start": 5.302,
-          "end": 5.752,
-          "exactStart": 6.647,
-          "exactEnd": 7.194
+          "start": 4.777,
+          "end": 5.269,
+          "exactStart": 6.103,
+          "exactEnd": 6.65
         },
         {
           "text": "像",
@@ -1823,34 +1679,22 @@
           "text_cn": "像",
           "isPunct": false,
           "wordAudio": "./assets/words/a53ff1f37c2a.mp3",
-          "start": 5.752,
-          "end": 6.202,
-          "exactStart": 7.224,
-          "exactEnd": 7.641
+          "start": 5.269,
+          "end": 5.76,
+          "exactStart": 6.68,
+          "exactEnd": 7.097
         },
         {
-          "text": "彎",
-          "text_hk": "彎",
-          "text_tw": "彎",
-          "text_cn": "弯",
+          "text": "彎彎",
+          "text_hk": "彎彎",
+          "text_tw": "彎彎",
+          "text_cn": "弯弯",
           "isPunct": false,
-          "wordAudio": "./assets/words/6a6ee10420ea.mp3",
-          "start": 6.202,
-          "end": 6.652,
-          "exactStart": 7.671,
-          "exactEnd": 8.028
-        },
-        {
-          "text": "彎",
-          "text_hk": "彎",
-          "text_tw": "彎",
-          "text_cn": "弯",
-          "isPunct": false,
-          "wordAudio": "./assets/words/6a6ee10420ea.mp3",
-          "start": 6.652,
-          "end": 7.103,
-          "exactStart": 8.058,
-          "exactEnd": 8.415
+          "wordAudio": "./assets/words/d53d1ff88314.mp3",
+          "start": 5.76,
+          "end": 6.252,
+          "exactStart": 7.127,
+          "exactEnd": 7.634
         },
         {
           "text": "的",
@@ -1859,10 +1703,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d25f1b378933.mp3",
-          "start": 7.103,
-          "end": 7.553,
-          "exactStart": 8.445,
-          "exactEnd": 8.792
+          "start": 6.252,
+          "end": 6.744,
+          "exactStart": 7.664,
+          "exactEnd": 8.011
         },
         {
           "text": "小船",
@@ -1871,10 +1715,10 @@
           "text_cn": "小船",
           "isPunct": false,
           "wordAudio": "./assets/words/5b2a40aad23f.mp3",
-          "start": 7.553,
-          "end": 8.003,
-          "exactStart": 8.822,
-          "exactEnd": 9.484
+          "start": 6.744,
+          "end": 7.236,
+          "exactStart": 8.041,
+          "exactEnd": 8.703
         },
         {
           "text": "，",
@@ -1882,34 +1726,22 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 8.003,
-          "end": 8.053,
-          "exactStart": 9.514,
-          "exactEnd": 9.734
+          "start": 7.236,
+          "end": 7.286,
+          "exactStart": 8.733,
+          "exactEnd": 8.953
         },
         {
-          "text": "有",
-          "text_hk": "有",
-          "text_tw": "有",
-          "text_cn": "有",
+          "text": "有時候",
+          "text_hk": "有時候",
+          "text_tw": "有時候",
+          "text_cn": "有时候",
           "isPunct": false,
-          "wordAudio": "./assets/words/4a10a123d9c1.mp3",
-          "start": 8.003,
-          "end": 8.453,
-          "exactStart": 9.734,
-          "exactEnd": 10.071
-        },
-        {
-          "text": "時候",
-          "text_hk": "時候",
-          "text_tw": "時候",
-          "text_cn": "时候",
-          "isPunct": false,
-          "wordAudio": "./assets/words/df6c195cc75c.mp3",
-          "start": 8.453,
-          "end": 8.903,
-          "exactStart": 10.101,
-          "exactEnd": 10.688
+          "wordAudio": "./assets/words/0fb4539d375b.mp3",
+          "start": 7.236,
+          "end": 7.728,
+          "exactStart": 8.953,
+          "exactEnd": 9.64
         },
         {
           "text": "又",
@@ -1918,10 +1750,10 @@
           "text_cn": "又",
           "isPunct": false,
           "wordAudio": "./assets/words/d0c9cecc93fe.mp3",
-          "start": 8.903,
-          "end": 9.353,
-          "exactStart": 10.718,
-          "exactEnd": 11.08
+          "start": 7.728,
+          "end": 8.22,
+          "exactStart": 9.67,
+          "exactEnd": 10.032
         },
         {
           "text": "像",
@@ -1930,10 +1762,10 @@
           "text_cn": "像",
           "isPunct": false,
           "wordAudio": "./assets/words/a53ff1f37c2a.mp3",
-          "start": 9.353,
-          "end": 9.804,
-          "exactStart": 11.11,
-          "exactEnd": 11.527
+          "start": 8.22,
+          "end": 8.711,
+          "exactStart": 10.062,
+          "exactEnd": 10.479
         },
         {
           "text": "圓圓",
@@ -1942,10 +1774,10 @@
           "text_cn": "圆圆",
           "isPunct": false,
           "wordAudio": "./assets/words/169f9e3ef365.mp3",
-          "start": 9.804,
-          "end": 10.254,
-          "exactStart": 11.557,
-          "exactEnd": 12.189
+          "start": 8.711,
+          "end": 9.203,
+          "exactStart": 10.509,
+          "exactEnd": 11.141
         },
         {
           "text": "的",
@@ -1954,10 +1786,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d25f1b378933.mp3",
-          "start": 10.254,
-          "end": 10.704,
-          "exactStart": 12.219,
-          "exactEnd": 12.566
+          "start": 9.203,
+          "end": 9.695,
+          "exactStart": 11.171,
+          "exactEnd": 11.518
         },
         {
           "text": "大玉盤",
@@ -1966,10 +1798,10 @@
           "text_cn": "大玉盘",
           "isPunct": false,
           "wordAudio": "./assets/words/2fd50ba72fd2.mp3",
-          "start": 10.704,
-          "end": 11.154,
-          "exactStart": 12.596,
-          "exactEnd": 13.398
+          "start": 9.695,
+          "end": 10.187,
+          "exactStart": 11.548,
+          "exactEnd": 12.35
         },
         {
           "text": "。",
@@ -1977,10 +1809,10 @@
           "text_tw": "。",
           "text_cn": "。",
           "isPunct": true,
-          "start": 11.154,
-          "end": 11.204,
-          "exactStart": 13.428,
-          "exactEnd": 13.828
+          "start": 10.187,
+          "end": 10.237,
+          "exactStart": 12.38,
+          "exactEnd": 12.78
         },
         {
           "isBreak": true
@@ -1992,10 +1824,10 @@
           "text_cn": "其实",
           "isPunct": false,
           "wordAudio": "./assets/words/154d78a1230b.mp3",
-          "start": 11.354,
-          "end": 11.804,
-          "exactStart": 14.328,
-          "exactEnd": 14.98
+          "start": 10.387,
+          "end": 10.879,
+          "exactStart": 13.28,
+          "exactEnd": 13.932
         },
         {
           "text": "月亮",
@@ -2004,10 +1836,10 @@
           "text_cn": "月亮",
           "isPunct": false,
           "wordAudio": "./assets/words/ed0cc04b288e.mp3",
-          "start": 11.804,
-          "end": 12.254,
-          "exactStart": 15.01,
-          "exactEnd": 15.557
+          "start": 10.879,
+          "end": 11.371,
+          "exactStart": 13.962,
+          "exactEnd": 14.509
         },
         {
           "text": "本身",
@@ -2016,10 +1848,10 @@
           "text_cn": "本身",
           "isPunct": false,
           "wordAudio": "./assets/words/eac96be6d023.mp3",
-          "start": 12.254,
-          "end": 12.705,
-          "exactStart": 15.587,
-          "exactEnd": 16.149
+          "start": 11.371,
+          "end": 11.863,
+          "exactStart": 14.539,
+          "exactEnd": 15.101
         },
         {
           "text": "不會",
@@ -2028,10 +1860,10 @@
           "text_cn": "不会",
           "isPunct": false,
           "wordAudio": "./assets/words/76452978a219.mp3",
-          "start": 12.705,
-          "end": 13.155,
-          "exactStart": 16.179,
-          "exactEnd": 16.711
+          "start": 11.863,
+          "end": 12.354,
+          "exactStart": 15.131,
+          "exactEnd": 15.663
         },
         {
           "text": "發光",
@@ -2040,10 +1872,10 @@
           "text_cn": "发光",
           "isPunct": false,
           "wordAudio": "./assets/words/528153cae876.mp3",
-          "start": 13.155,
-          "end": 13.605,
-          "exactStart": 16.741,
-          "exactEnd": 17.243
+          "start": 12.354,
+          "end": 12.846,
+          "exactStart": 15.693,
+          "exactEnd": 16.195
         },
         {
           "text": "，",
@@ -2051,10 +1883,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 13.605,
-          "end": 13.655,
-          "exactStart": 17.273,
-          "exactEnd": 17.493
+          "start": 12.846,
+          "end": 12.896,
+          "exactStart": 16.225,
+          "exactEnd": 16.445
         },
         {
           "text": "也",
@@ -2063,10 +1895,10 @@
           "text_cn": "也",
           "isPunct": false,
           "wordAudio": "./assets/words/b9cc151da75a.mp3",
-          "start": 13.605,
-          "end": 14.055,
-          "exactStart": 17.493,
-          "exactEnd": 17.815
+          "start": 12.846,
+          "end": 13.338,
+          "exactStart": 16.445,
+          "exactEnd": 16.767
         },
         {
           "text": "不會",
@@ -2075,10 +1907,10 @@
           "text_cn": "不会",
           "isPunct": false,
           "wordAudio": "./assets/words/76452978a219.mp3",
-          "start": 14.055,
-          "end": 14.505,
-          "exactStart": 17.845,
-          "exactEnd": 18.377
+          "start": 13.338,
+          "end": 13.83,
+          "exactStart": 16.797,
+          "exactEnd": 17.329
         },
         {
           "text": "真的",
@@ -2087,10 +1919,10 @@
           "text_cn": "真的",
           "isPunct": false,
           "wordAudio": "./assets/words/df17c93351be.mp3",
-          "start": 14.505,
-          "end": 14.955,
-          "exactStart": 18.407,
-          "exactEnd": 18.954
+          "start": 13.83,
+          "end": 14.322,
+          "exactStart": 17.359,
+          "exactEnd": 17.906
         },
         {
           "text": "改變",
@@ -2099,10 +1931,10 @@
           "text_cn": "改变",
           "isPunct": false,
           "wordAudio": "./assets/words/91e443c73beb.mp3",
-          "start": 14.955,
-          "end": 15.406,
-          "exactStart": 18.984,
-          "exactEnd": 19.571
+          "start": 14.322,
+          "end": 14.814,
+          "exactStart": 17.936,
+          "exactEnd": 18.523
         },
         {
           "text": "形狀",
@@ -2111,10 +1943,10 @@
           "text_cn": "形状",
           "isPunct": false,
           "wordAudio": "./assets/words/0c76ca8e8145.mp3",
-          "start": 15.406,
-          "end": 15.856,
-          "exactStart": 19.601,
-          "exactEnd": 20.208
+          "start": 14.814,
+          "end": 15.306,
+          "exactStart": 18.553,
+          "exactEnd": 19.16
         },
         {
           "text": "，",
@@ -2122,10 +1954,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 15.856,
-          "end": 15.906,
-          "exactStart": 20.238,
-          "exactEnd": 20.458
+          "start": 15.306,
+          "end": 15.356,
+          "exactStart": 19.19,
+          "exactEnd": 19.41
         },
         {
           "text": "它",
@@ -2134,10 +1966,10 @@
           "text_cn": "它",
           "isPunct": false,
           "wordAudio": "./assets/words/0d5076f47b8a.mp3",
-          "start": 15.856,
-          "end": 16.306,
-          "exactStart": 20.458,
-          "exactEnd": 20.79
+          "start": 15.306,
+          "end": 15.797,
+          "exactStart": 19.41,
+          "exactEnd": 19.742
         },
         {
           "text": "只是",
@@ -2146,34 +1978,22 @@
           "text_cn": "只是",
           "isPunct": false,
           "wordAudio": "./assets/words/1d74b0ccb71b.mp3",
-          "start": 16.306,
-          "end": 16.756,
-          "exactStart": 20.82,
-          "exactEnd": 21.437
+          "start": 15.797,
+          "end": 16.289,
+          "exactStart": 19.772,
+          "exactEnd": 20.389
         },
         {
-          "text": "反射",
-          "text_hk": "反射",
-          "text_tw": "反射",
-          "text_cn": "反射",
+          "text": "反射了",
+          "text_hk": "反射了",
+          "text_tw": "反射了",
+          "text_cn": "反射了",
           "isPunct": false,
-          "wordAudio": "./assets/words/9703ebc80dd0.mp3",
-          "start": 16.756,
-          "end": 17.206,
-          "exactStart": 21.467,
-          "exactEnd": 22.034
-        },
-        {
-          "text": "了",
-          "text_hk": "了",
-          "text_tw": "了",
-          "text_cn": "了",
-          "isPunct": false,
-          "wordAudio": "./assets/words/710e54162778.mp3",
-          "start": 17.206,
-          "end": 17.656,
-          "exactStart": 22.064,
-          "exactEnd": 22.396
+          "wordAudio": "./assets/words/4a7d404f22d5.mp3",
+          "start": 16.289,
+          "end": 16.781,
+          "exactStart": 20.419,
+          "exactEnd": 21.166
         },
         {
           "text": "太陽",
@@ -2182,10 +2002,10 @@
           "text_cn": "太阳",
           "isPunct": false,
           "wordAudio": "./assets/words/37923c614f66.mp3",
-          "start": 17.656,
-          "end": 18.107,
-          "exactStart": 22.426,
-          "exactEnd": 23.018
+          "start": 16.781,
+          "end": 17.273,
+          "exactStart": 21.196,
+          "exactEnd": 21.788
         },
         {
           "text": "的",
@@ -2194,10 +2014,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d25f1b378933.mp3",
-          "start": 18.107,
-          "end": 18.557,
-          "exactStart": 23.048,
-          "exactEnd": 23.395
+          "start": 17.273,
+          "end": 17.765,
+          "exactStart": 21.818,
+          "exactEnd": 22.165
         },
         {
           "text": "光芒",
@@ -2206,10 +2026,10 @@
           "text_cn": "光芒",
           "isPunct": false,
           "wordAudio": "./assets/words/56b2c9510c3b.mp3",
-          "start": 18.557,
-          "end": 19.007,
-          "exactStart": 23.425,
-          "exactEnd": 23.967
+          "start": 17.765,
+          "end": 18.257,
+          "exactStart": 22.195,
+          "exactEnd": 22.737
         },
         {
           "text": "。",
@@ -2217,10 +2037,10 @@
           "text_tw": "。",
           "text_cn": "。",
           "isPunct": true,
-          "start": 19.007,
-          "end": 19.057,
-          "exactStart": 23.997,
-          "exactEnd": 24.397
+          "start": 18.257,
+          "end": 18.307,
+          "exactStart": 22.767,
+          "exactEnd": 23.167
         },
         {
           "isBreak": true
@@ -2232,10 +2052,10 @@
           "text_cn": "随著",
           "isPunct": false,
           "wordAudio": "./assets/words/ab59ef4bb8de.mp3",
-          "start": 19.207,
-          "end": 19.657,
-          "exactStart": 24.897,
-          "exactEnd": 25.534
+          "start": 18.457,
+          "end": 18.949,
+          "exactStart": 23.667,
+          "exactEnd": 24.304
         },
         {
           "text": "月亮",
@@ -2244,10 +2064,10 @@
           "text_cn": "月亮",
           "isPunct": false,
           "wordAudio": "./assets/words/ed0cc04b288e.mp3",
-          "start": 19.657,
-          "end": 20.107,
-          "exactStart": 25.564,
-          "exactEnd": 26.111
+          "start": 18.949,
+          "end": 19.44,
+          "exactStart": 24.334,
+          "exactEnd": 24.881
         },
         {
           "text": "繞著",
@@ -2256,10 +2076,10 @@
           "text_cn": "绕著",
           "isPunct": false,
           "wordAudio": "./assets/words/2b3467d9a267.mp3",
-          "start": 20.107,
-          "end": 20.557,
-          "exactStart": 26.141,
-          "exactEnd": 26.703
+          "start": 19.44,
+          "end": 19.932,
+          "exactStart": 24.911,
+          "exactEnd": 25.473
         },
         {
           "text": "地球",
@@ -2268,10 +2088,10 @@
           "text_cn": "地球",
           "isPunct": false,
           "wordAudio": "./assets/words/0586223040bf.mp3",
-          "start": 20.557,
-          "end": 21.008,
-          "exactStart": 26.733,
-          "exactEnd": 27.345
+          "start": 19.932,
+          "end": 20.424,
+          "exactStart": 25.503,
+          "exactEnd": 26.115
         },
         {
           "text": "轉動",
@@ -2280,10 +2100,10 @@
           "text_cn": "转动",
           "isPunct": false,
           "wordAudio": "./assets/words/3a88d7181b04.mp3",
-          "start": 21.008,
-          "end": 21.458,
-          "exactStart": 27.375,
-          "exactEnd": 27.922
+          "start": 20.424,
+          "end": 20.916,
+          "exactStart": 26.145,
+          "exactEnd": 26.692
         },
         {
           "text": "，",
@@ -2291,10 +2111,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 21.458,
-          "end": 21.508,
-          "exactStart": 27.952,
-          "exactEnd": 28.172
+          "start": 20.916,
+          "end": 20.966,
+          "exactStart": 26.722,
+          "exactEnd": 26.942
         },
         {
           "text": "我們",
@@ -2303,10 +2123,10 @@
           "text_cn": "我们",
           "isPunct": false,
           "wordAudio": "./assets/words/e74ced1d556a.mp3",
-          "start": 21.458,
-          "end": 21.908,
-          "exactStart": 28.172,
-          "exactEnd": 28.639
+          "start": 20.916,
+          "end": 21.408,
+          "exactStart": 26.942,
+          "exactEnd": 27.409
         },
         {
           "text": "看到",
@@ -2315,22 +2135,34 @@
           "text_cn": "看到",
           "isPunct": false,
           "wordAudio": "./assets/words/08c7784b9665.mp3",
-          "start": 21.908,
-          "end": 22.358,
-          "exactStart": 28.669,
-          "exactEnd": 29.206
+          "start": 21.408,
+          "end": 21.9,
+          "exactStart": 27.439,
+          "exactEnd": 27.976
         },
         {
-          "text": "被陽光",
-          "text_hk": "被陽光",
-          "text_tw": "被陽光",
-          "text_cn": "被阳光",
+          "text": "被",
+          "text_hk": "被",
+          "text_tw": "被",
+          "text_cn": "被",
           "isPunct": false,
-          "wordAudio": "./assets/words/8725c05602ff.mp3",
-          "start": 22.358,
-          "end": 22.808,
-          "exactStart": 29.236,
-          "exactEnd": 29.983
+          "wordAudio": "./assets/words/a82fa2a82b83.mp3",
+          "start": 21.9,
+          "end": 22.391,
+          "exactStart": 28.006,
+          "exactEnd": 28.363
+        },
+        {
+          "text": "陽光",
+          "text_hk": "陽光",
+          "text_tw": "陽光",
+          "text_cn": "阳光",
+          "isPunct": false,
+          "wordAudio": "./assets/words/972a105a3571.mp3",
+          "start": 22.391,
+          "end": 22.883,
+          "exactStart": 28.393,
+          "exactEnd": 28.955
         },
         {
           "text": "照亮",
@@ -2339,10 +2171,10 @@
           "text_cn": "照亮",
           "isPunct": false,
           "wordAudio": "./assets/words/6ea49d1d330a.mp3",
-          "start": 22.808,
-          "end": 23.258,
-          "exactStart": 30.013,
-          "exactEnd": 30.57
+          "start": 22.883,
+          "end": 23.375,
+          "exactStart": 28.985,
+          "exactEnd": 29.542
         },
         {
           "text": "的",
@@ -2351,10 +2183,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d25f1b378933.mp3",
-          "start": 23.258,
-          "end": 23.709,
-          "exactStart": 30.6,
-          "exactEnd": 30.947
+          "start": 23.375,
+          "end": 23.867,
+          "exactStart": 29.572,
+          "exactEnd": 29.919
         },
         {
           "text": "部分",
@@ -2363,10 +2195,10 @@
           "text_cn": "部分",
           "isPunct": false,
           "wordAudio": "./assets/words/df3b8f351419.mp3",
-          "start": 23.709,
-          "end": 24.159,
-          "exactStart": 30.977,
-          "exactEnd": 31.494
+          "start": 23.867,
+          "end": 24.359,
+          "exactStart": 29.949,
+          "exactEnd": 30.466
         },
         {
           "text": "不同",
@@ -2375,10 +2207,10 @@
           "text_cn": "不同",
           "isPunct": false,
           "wordAudio": "./assets/words/1e8212f97baa.mp3",
-          "start": 24.159,
-          "end": 24.609,
-          "exactStart": 31.524,
-          "exactEnd": 32.101
+          "start": 24.359,
+          "end": 24.851,
+          "exactStart": 30.496,
+          "exactEnd": 31.073
         },
         {
           "text": "，",
@@ -2386,10 +2218,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 24.609,
-          "end": 24.659,
-          "exactStart": 32.131,
-          "exactEnd": 32.351
+          "start": 24.851,
+          "end": 24.901,
+          "exactStart": 31.103,
+          "exactEnd": 31.323
         },
         {
           "text": "就",
@@ -2398,70 +2230,58 @@
           "text_cn": "就",
           "isPunct": false,
           "wordAudio": "./assets/words/a654b1da089d.mp3",
-          "start": 24.609,
-          "end": 25.059,
-          "exactStart": 32.351,
-          "exactEnd": 32.708
+          "start": 24.851,
+          "end": 25.343,
+          "exactStart": 31.323,
+          "exactEnd": 31.68
         },
         {
-          "text": "出現",
-          "text_hk": "出現",
-          "text_tw": "出現",
-          "text_cn": "出现",
+          "text": "出現了",
+          "text_hk": "出現了",
+          "text_tw": "出現了",
+          "text_cn": "出现了",
           "isPunct": false,
-          "wordAudio": "./assets/words/5b92e30f74aa.mp3",
-          "start": 25.059,
-          "end": 25.509,
-          "exactStart": 32.738,
-          "exactEnd": 33.335
+          "wordAudio": "./assets/words/b5f2051da62f.mp3",
+          "start": 25.343,
+          "end": 25.834,
+          "exactStart": 31.71,
+          "exactEnd": 32.437
         },
         {
-          "text": "了",
-          "text_hk": "了",
-          "text_tw": "了",
-          "text_cn": "了",
+          "text": "月圓",
+          "text_hk": "月圓",
+          "text_tw": "月圓",
+          "text_cn": "月圆",
           "isPunct": false,
-          "wordAudio": "./assets/words/710e54162778.mp3",
-          "start": 25.509,
-          "end": 25.959,
-          "exactStart": 33.365,
-          "exactEnd": 33.697
+          "wordAudio": "./assets/words/99dd2083ddb9.mp3",
+          "start": 25.834,
+          "end": 26.326,
+          "exactStart": 32.467,
+          "exactEnd": 33.069
         },
         {
-          "text": "月",
-          "text_hk": "月",
-          "text_tw": "月",
-          "text_cn": "月",
+          "text": "和",
+          "text_hk": "和",
+          "text_tw": "和",
+          "text_cn": "和",
           "isPunct": false,
-          "wordAudio": "./assets/words/ac31318f86e4.mp3",
-          "start": 25.959,
-          "end": 26.41,
-          "exactStart": 33.727,
-          "exactEnd": 34.084
+          "wordAudio": "./assets/words/50f0966e4721.mp3",
+          "start": 26.326,
+          "end": 26.818,
+          "exactStart": 33.099,
+          "exactEnd": 33.466
         },
         {
-          "text": "圓和月",
-          "text_hk": "圓和月",
-          "text_tw": "圓和月",
-          "text_cn": "圆和月",
+          "text": "月缺",
+          "text_hk": "月缺",
+          "text_tw": "月缺",
+          "text_cn": "月缺",
           "isPunct": false,
-          "wordAudio": "./assets/words/562d2ca2faac.mp3",
-          "start": 26.41,
-          "end": 26.86,
-          "exactStart": 34.114,
-          "exactEnd": 34.916
-        },
-        {
-          "text": "缺",
-          "text_hk": "缺",
-          "text_tw": "缺",
-          "text_cn": "缺",
-          "isPunct": false,
-          "wordAudio": "./assets/words/8af20728a986.mp3",
-          "start": 26.86,
+          "wordAudio": "./assets/words/eb558f27557f.mp3",
+          "start": 26.818,
           "end": 27.31,
-          "exactStart": 34.946,
-          "exactEnd": 35.338
+          "exactStart": 33.496,
+          "exactEnd": 34.128
         },
         {
           "text": "。",
@@ -2471,8 +2291,8 @@
           "isPunct": true,
           "start": 27.31,
           "end": 27.36,
-          "exactStart": 35.368,
-          "exactEnd": 35.768
+          "exactStart": 34.158,
+          "exactEnd": 34.558
         }
       ]
     },

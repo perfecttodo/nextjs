@@ -28,6 +28,18 @@ VOICES = {
 
 def tokenize_zh(text):
     tokens = []
+    # 若包含人工預分詞分隔符 '|'，嚴格按人工標記邊界切分（標點符號自動獨立分離）
+    if '|' in text:
+        for chunk in text.split('|'):
+            for seg in re.split(r'([^\u4e00-\u9fff]+)', chunk):
+                if not seg.strip(): continue
+                if re.match(r'^[\u4e00-\u9fff]+$', seg):
+                    tokens.append(seg)
+                else:
+                    for ch in seg:
+                        if ch.strip(): tokens.append(ch)
+        return tokens
+
     for seg in re.split(r'([^\u4e00-\u9fff]+)', text):
         if not seg.strip(): continue
         if re.match(r'^[\u4e00-\u9fff]+$', seg):
@@ -80,7 +92,7 @@ async def build_track(sid, lang_key, paragraphs, words_dir):
     exact_mp3 = f"public/reading/assets/audio/{sid}_{lang_key}_exact.mp3"
 
     # 1. 生成流暢整篇語音（若為簡體或台灣正體，餵給對應語音引擎的標準字形）
-    tts_paras = [cc_cn.convert(p) if lang_key == "cn" else (cc_tw.convert(p) if lang_key == "tw" else (cc_hk.convert(p) if lang_key == "hk" else p)) for p in paragraphs]
+    tts_paras = [cc_cn.convert(p.replace("|", "")) if lang_key == "cn" else (cc_tw.convert(p) if lang_key == "tw" else (cc_hk.convert(p) if lang_key == "hk" else p)) for p in paragraphs]
     await edge_tts.Communicate("\n".join(tts_paras), voice, rate="-12%").save(fluent_mp3)
 
     # 計算整篇流暢音軌總長度供句級均勻分布
@@ -162,7 +174,7 @@ async def main():
 
         detail = {
             "id": sid,
-            "titles": {"hk": cc_hk.convert(item["title_zh"]), "tw": cc_tw.convert(item["title_zh"]), "cn": cc_cn.convert(item["title_zh"]), "en": item["title_en"]},
+            "titles": {"hk": cc_hk.convert(item["title_zh"].replace("|", "")), "tw": cc_tw.convert(item["title_zh"].replace("|", "")), "cn": cc_cn.convert(item["title_zh"].replace("|", "")), "en": item["title_en"].replace("|", "")},
             "tracks": tracks
         }
         json.dump(detail, open(f"public/reading/stories/{sid}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
@@ -183,7 +195,7 @@ async def build_track(sid, lang_key, paragraphs, words_dir):
     exact_mp3 = f"public/reading/assets/audio/{sid}_{lang_key}_exact.mp3"
 
     # 1. 生成流暢整篇語音（若為簡體或台灣正體，餵給對應語音引擎的標準字形）
-    tts_paras = [cc_cn.convert(p) if lang_key == "cn" else (cc_tw.convert(p) if lang_key == "tw" else (cc_hk.convert(p) if lang_key == "hk" else p)) for p in paragraphs]
+    tts_paras = [cc_cn.convert(p.replace("|", "")) if lang_key == "cn" else (cc_tw.convert(p) if lang_key == "tw" else (cc_hk.convert(p) if lang_key == "hk" else p)) for p in paragraphs]
     await edge_tts.Communicate("\n".join(tts_paras), voice, rate="-12%").save(fluent_mp3)
 
     # 計算整篇流暢音軌總長度供句級均勻分布
@@ -265,7 +277,7 @@ async def main():
 
         detail = {
             "id": sid,
-            "titles": {"hk": cc_hk.convert(item["title_zh"]), "tw": cc_tw.convert(item["title_zh"]), "cn": cc_cn.convert(item["title_zh"]), "en": item["title_en"]},
+            "titles": {"hk": cc_hk.convert(item["title_zh"].replace("|", "")), "tw": cc_tw.convert(item["title_zh"].replace("|", "")), "cn": cc_cn.convert(item["title_zh"].replace("|", "")), "en": item["title_en"].replace("|", "")},
             "tracks": tracks
         }
         json.dump(detail, open(f"public/reading/stories/{sid}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
@@ -286,7 +298,7 @@ async def build_track(sid, lang_key, paragraphs, words_dir):
     exact_mp3 = f"public/reading/assets/audio/{sid}_{lang_key}_exact.mp3"
 
     # 1. 生成流暢整篇語音（若為簡體或台灣正體，餵給對應語音引擎的標準字形）
-    tts_paras = [cc_cn.convert(p) if lang_key == "cn" else (cc_tw.convert(p) if lang_key == "tw" else (cc_hk.convert(p) if lang_key == "hk" else p)) for p in paragraphs]
+    tts_paras = [cc_cn.convert(p.replace("|", "")) if lang_key == "cn" else (cc_tw.convert(p) if lang_key == "tw" else (cc_hk.convert(p) if lang_key == "hk" else p)) for p in paragraphs]
     await edge_tts.Communicate("\n".join(tts_paras), voice, rate="-12%").save(fluent_mp3)
 
     # 計算整篇流暢音軌總長度供句級均勻分布
@@ -368,7 +380,7 @@ async def main():
 
         detail = {
             "id": sid,
-            "titles": {"hk": cc_hk.convert(item["title_zh"]), "tw": cc_tw.convert(item["title_zh"]), "cn": cc_cn.convert(item["title_zh"]), "en": item["title_en"]},
+            "titles": {"hk": cc_hk.convert(item["title_zh"].replace("|", "")), "tw": cc_tw.convert(item["title_zh"].replace("|", "")), "cn": cc_cn.convert(item["title_zh"].replace("|", "")), "en": item["title_en"].replace("|", "")},
             "tracks": tracks
         }
         json.dump(detail, open(f"public/reading/stories/{sid}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
@@ -389,7 +401,7 @@ async def build_track(sid, lang_key, paragraphs, words_dir):
     exact_mp3 = f"public/reading/assets/audio/{sid}_{lang_key}_exact.mp3"
 
     # 1. 生成流暢整篇語音（若為簡體或台灣正體，餵給對應語音引擎的標準字形）
-    tts_paras = [cc_cn.convert(p) if lang_key == "cn" else (cc_tw.convert(p) if lang_key == "tw" else (cc_hk.convert(p) if lang_key == "hk" else p)) for p in paragraphs]
+    tts_paras = [cc_cn.convert(p.replace("|", "")) if lang_key == "cn" else (cc_tw.convert(p) if lang_key == "tw" else (cc_hk.convert(p) if lang_key == "hk" else p)) for p in paragraphs]
     await edge_tts.Communicate("\n".join(tts_paras), voice, rate="-12%").save(fluent_mp3)
 
     # 計算整篇流暢音軌總長度供句級均勻分布
@@ -471,7 +483,7 @@ async def main():
 
         detail = {
             "id": sid,
-            "titles": {"hk": cc_hk.convert(item["title_zh"]), "tw": cc_tw.convert(item["title_zh"]), "cn": cc_cn.convert(item["title_zh"]), "en": item["title_en"]},
+            "titles": {"hk": cc_hk.convert(item["title_zh"].replace("|", "")), "tw": cc_tw.convert(item["title_zh"].replace("|", "")), "cn": cc_cn.convert(item["title_zh"].replace("|", "")), "en": item["title_en"].replace("|", "")},
             "tracks": tracks
         }
         json.dump(detail, open(f"public/reading/stories/{sid}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)

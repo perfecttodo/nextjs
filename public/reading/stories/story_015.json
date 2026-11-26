@@ -20,7 +20,7 @@
           "isPunct": false,
           "wordAudio": "./assets/words/0eb8cdc0a14d.mp3",
           "start": 0.15,
-          "end": 0.739,
+          "end": 0.846,
           "exactStart": 0.1,
           "exactEnd": 0.862
         },
@@ -31,8 +31,8 @@
           "text_cn": "还是",
           "isPunct": false,
           "wordAudio": "./assets/words/818c3aaeae72.mp3",
-          "start": 0.739,
-          "end": 1.328,
+          "start": 0.846,
+          "end": 1.542,
           "exactStart": 0.892,
           "exactEnd": 1.684
         },
@@ -43,8 +43,8 @@
           "text_cn": "想要",
           "isPunct": false,
           "wordAudio": "./assets/words/fb1a056b95d2.mp3",
-          "start": 1.328,
-          "end": 1.916,
+          "start": 1.542,
+          "end": 2.237,
           "exactStart": 1.714,
           "exactEnd": 2.506
         },
@@ -58,70 +58,46 @@
           "text_cn": "小猴子",
           "isPunct": false,
           "wordAudio": "./assets/words/59b2209e7002.mp3",
-          "start": 2.116,
-          "end": 2.705,
+          "start": 2.437,
+          "end": 3.133,
           "exactStart": 3.036,
           "exactEnd": 4.088
         },
         {
-          "text": "拿",
-          "text_hk": "拿",
-          "text_tw": "拿",
-          "text_cn": "拿",
+          "text": "拿著",
+          "text_hk": "拿著",
+          "text_tw": "拿著",
+          "text_cn": "拿著",
           "isPunct": false,
-          "wordAudio": "./assets/words/7a7ca1c3b50a.mp3",
-          "start": 2.705,
-          "end": 3.294,
+          "wordAudio": "./assets/words/b8a61ee1345a.mp3",
+          "start": 3.133,
+          "end": 3.829,
           "exactStart": 4.118,
-          "exactEnd": 4.49
+          "exactEnd": 4.73
         },
         {
-          "text": "著存",
-          "text_hk": "著存",
-          "text_tw": "著存",
-          "text_cn": "著存",
+          "text": "存了",
+          "text_hk": "存了",
+          "text_tw": "存了",
+          "text_cn": "存了",
           "isPunct": false,
-          "wordAudio": "./assets/words/1e1bc9b57b4f.mp3",
-          "start": 3.294,
-          "end": 3.883,
-          "exactStart": 4.52,
-          "exactEnd": 5.252
+          "wordAudio": "./assets/words/b57c93199f63.mp3",
+          "start": 3.829,
+          "end": 4.525,
+          "exactStart": 4.76,
+          "exactEnd": 5.477
         },
         {
-          "text": "了",
-          "text_hk": "了",
-          "text_tw": "了",
-          "text_cn": "了",
+          "text": "很久",
+          "text_hk": "很久",
+          "text_tw": "很久",
+          "text_cn": "很久",
           "isPunct": false,
-          "wordAudio": "./assets/words/9340c66afc7d.mp3",
-          "start": 3.883,
-          "end": 4.472,
-          "exactStart": 5.282,
-          "exactEnd": 5.664
-        },
-        {
-          "text": "很",
-          "text_hk": "很",
-          "text_tw": "很",
-          "text_cn": "很",
-          "isPunct": false,
-          "wordAudio": "./assets/words/48228bc0f397.mp3",
-          "start": 4.472,
-          "end": 5.061,
-          "exactStart": 5.694,
-          "exactEnd": 6.141
-        },
-        {
-          "text": "久",
-          "text_hk": "久",
-          "text_tw": "久",
-          "text_cn": "久",
-          "isPunct": false,
-          "wordAudio": "./assets/words/e3eb27013168.mp3",
-          "start": 5.061,
-          "end": 5.649,
-          "exactStart": 6.171,
-          "exactEnd": 6.558
+          "wordAudio": "./assets/words/69ede3386ee0.mp3",
+          "start": 4.525,
+          "end": 5.221,
+          "exactStart": 5.507,
+          "exactEnd": 6.234
         },
         {
           "text": "的",
@@ -130,46 +106,46 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/3bf976e06f8b.mp3",
-          "start": 5.649,
-          "end": 6.238,
-          "exactStart": 6.588,
-          "exactEnd": 6.765
+          "start": 5.221,
+          "end": 5.916,
+          "exactStart": 6.264,
+          "exactEnd": 6.441
         },
         {
-          "text": "零用",
-          "text_hk": "零用",
-          "text_tw": "零用",
-          "text_cn": "零用",
+          "text": "零用錢",
+          "text_hk": "零用錢",
+          "text_tw": "零用錢",
+          "text_cn": "零用钱",
           "isPunct": false,
-          "wordAudio": "./assets/words/1110eafd57dd.mp3",
-          "start": 6.238,
-          "end": 6.827,
-          "exactStart": 6.795,
-          "exactEnd": 7.497
+          "wordAudio": "./assets/words/52d76d81f9b3.mp3",
+          "start": 5.916,
+          "end": 6.612,
+          "exactStart": 6.471,
+          "exactEnd": 7.465
         },
         {
-          "text": "錢",
-          "text_hk": "錢",
-          "text_tw": "錢",
-          "text_cn": "钱",
+          "text": "去",
+          "text_hk": "去",
+          "text_tw": "去",
+          "text_cn": "去",
           "isPunct": false,
-          "wordAudio": "./assets/words/ef309c70ea97.mp3",
-          "start": 6.827,
-          "end": 7.416,
-          "exactStart": 7.527,
-          "exactEnd": 8.009
+          "wordAudio": "./assets/words/58a118ccbd55.mp3",
+          "start": 6.612,
+          "end": 7.308,
+          "exactStart": 7.495,
+          "exactEnd": 7.922
         },
         {
-          "text": "去逛",
-          "text_hk": "去逛",
-          "text_tw": "去逛",
-          "text_cn": "去逛",
+          "text": "逛",
+          "text_hk": "逛",
+          "text_tw": "逛",
+          "text_cn": "逛",
           "isPunct": false,
-          "wordAudio": "./assets/words/7569b11a213b.mp3",
-          "start": 7.416,
-          "end": 8.005,
-          "exactStart": 8.039,
-          "exactEnd": 8.855
+          "wordAudio": "./assets/words/b1daa2edb0c3.mp3",
+          "start": 7.308,
+          "end": 8.004,
+          "exactStart": 7.952,
+          "exactEnd": 8.444
         },
         {
           "text": "熱鬧",
@@ -178,10 +154,10 @@
           "text_cn": "热闹",
           "isPunct": false,
           "wordAudio": "./assets/words/71055d0235b8.mp3",
-          "start": 8.005,
-          "end": 8.593,
-          "exactStart": 8.885,
-          "exactEnd": 9.567
+          "start": 8.004,
+          "end": 8.7,
+          "exactStart": 8.474,
+          "exactEnd": 9.156
         },
         {
           "text": "的",
@@ -190,10 +166,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/3bf976e06f8b.mp3",
-          "start": 8.593,
-          "end": 9.182,
-          "exactStart": 9.597,
-          "exactEnd": 9.774
+          "start": 8.7,
+          "end": 9.395,
+          "exactStart": 9.186,
+          "exactEnd": 9.363
         },
         {
           "text": "森林",
@@ -202,10 +178,10 @@
           "text_cn": "森林",
           "isPunct": false,
           "wordAudio": "./assets/words/4689d2473416.mp3",
-          "start": 9.182,
-          "end": 9.771,
-          "exactStart": 9.804,
-          "exactEnd": 10.491
+          "start": 9.395,
+          "end": 10.091,
+          "exactStart": 9.393,
+          "exactEnd": 10.08
         },
         {
           "text": "市集",
@@ -214,10 +190,10 @@
           "text_cn": "市集",
           "isPunct": false,
           "wordAudio": "./assets/words/91617831dc8f.mp3",
-          "start": 9.771,
-          "end": 10.36,
-          "exactStart": 10.521,
-          "exactEnd": 11.158
+          "start": 10.091,
+          "end": 10.787,
+          "exactStart": 10.11,
+          "exactEnd": 10.747
         },
         {
           "text": "。",
@@ -225,10 +201,10 @@
           "text_tw": "。",
           "text_cn": "。",
           "isPunct": true,
-          "start": 10.36,
-          "end": 10.41,
-          "exactStart": 11.188,
-          "exactEnd": 11.588
+          "start": 10.787,
+          "end": 10.837,
+          "exactStart": 10.777,
+          "exactEnd": 11.177
         },
         {
           "isBreak": true
@@ -240,34 +216,22 @@
           "text_cn": "他",
           "isPunct": false,
           "wordAudio": "./assets/words/141f73033b2c.mp3",
-          "start": 10.56,
-          "end": 11.149,
-          "exactStart": 12.088,
-          "exactEnd": 12.505
+          "start": 10.987,
+          "end": 11.683,
+          "exactStart": 11.677,
+          "exactEnd": 12.094
         },
         {
-          "text": "看",
-          "text_hk": "看",
-          "text_tw": "看",
-          "text_cn": "看",
+          "text": "看見",
+          "text_hk": "看見",
+          "text_tw": "看見",
+          "text_cn": "看见",
           "isPunct": false,
-          "wordAudio": "./assets/words/92f9c971f5ff.mp3",
-          "start": 11.149,
-          "end": 11.737,
-          "exactStart": 12.535,
-          "exactEnd": 13.027
-        },
-        {
-          "text": "見",
-          "text_hk": "見",
-          "text_tw": "見",
-          "text_cn": "见",
-          "isPunct": false,
-          "wordAudio": "./assets/words/86978b836595.mp3",
-          "start": 11.737,
-          "end": 12.326,
-          "exactStart": 13.057,
-          "exactEnd": 13.469
+          "wordAudio": "./assets/words/11906f84437e.mp3",
+          "start": 11.683,
+          "end": 12.379,
+          "exactStart": 12.124,
+          "exactEnd": 12.931
         },
         {
           "text": "會",
@@ -276,10 +240,10 @@
           "text_cn": "会",
           "isPunct": false,
           "wordAudio": "./assets/words/68b82024bcff.mp3",
-          "start": 12.326,
-          "end": 12.915,
-          "exactStart": 13.499,
-          "exactEnd": 13.906
+          "start": 12.379,
+          "end": 13.074,
+          "exactStart": 12.961,
+          "exactEnd": 13.368
         },
         {
           "text": "發光",
@@ -288,10 +252,10 @@
           "text_cn": "发光",
           "isPunct": false,
           "wordAudio": "./assets/words/dd17698fc7f4.mp3",
-          "start": 12.915,
-          "end": 13.504,
-          "exactStart": 13.936,
-          "exactEnd": 14.673
+          "start": 13.074,
+          "end": 13.77,
+          "exactStart": 13.398,
+          "exactEnd": 14.135
         },
         {
           "text": "的",
@@ -300,58 +264,34 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/3bf976e06f8b.mp3",
-          "start": 13.504,
-          "end": 14.093,
-          "exactStart": 14.703,
-          "exactEnd": 14.88
+          "start": 13.77,
+          "end": 14.466,
+          "exactStart": 14.165,
+          "exactEnd": 14.342
         },
         {
-          "text": "泡泡",
-          "text_hk": "泡泡",
-          "text_tw": "泡泡",
-          "text_cn": "泡泡",
+          "text": "泡泡槍",
+          "text_hk": "泡泡槍",
+          "text_tw": "泡泡槍",
+          "text_cn": "泡泡枪",
           "isPunct": false,
-          "wordAudio": "./assets/words/e7fe599f5d22.mp3",
-          "start": 14.093,
-          "end": 14.682,
-          "exactStart": 14.91,
-          "exactEnd": 15.652
+          "wordAudio": "./assets/words/03e4754e9935.mp3",
+          "start": 14.466,
+          "end": 15.162,
+          "exactStart": 14.372,
+          "exactEnd": 15.434
         },
         {
-          "text": "槍",
-          "text_hk": "槍",
-          "text_tw": "槍",
-          "text_cn": "枪",
+          "text": "好想",
+          "text_hk": "好想",
+          "text_tw": "好想",
+          "text_cn": "好想",
           "isPunct": false,
-          "wordAudio": "./assets/words/9a0326dca24b.mp3",
-          "start": 14.682,
-          "end": 15.27,
-          "exactStart": 15.682,
-          "exactEnd": 16.174
-        },
-        {
-          "text": "好",
-          "text_hk": "好",
-          "text_tw": "好",
-          "text_cn": "好",
-          "isPunct": false,
-          "wordAudio": "./assets/words/bc372eb52806.mp3",
-          "start": 15.27,
-          "end": 15.859,
-          "exactStart": 16.204,
-          "exactEnd": 16.576
-        },
-        {
-          "text": "想",
-          "text_hk": "想",
-          "text_tw": "想",
-          "text_cn": "想",
-          "isPunct": false,
-          "wordAudio": "./assets/words/7265adde1b28.mp3",
-          "start": 15.859,
-          "end": 16.448,
-          "exactStart": 16.606,
-          "exactEnd": 17.133
+          "wordAudio": "./assets/words/3dc2fe43e9b4.mp3",
+          "start": 15.162,
+          "end": 15.858,
+          "exactStart": 15.464,
+          "exactEnd": 16.186
         },
         {
           "text": "買",
@@ -360,10 +300,10 @@
           "text_cn": "买",
           "isPunct": false,
           "wordAudio": "./assets/words/6655eef2f319.mp3",
-          "start": 16.448,
-          "end": 17.037,
-          "exactStart": 17.163,
-          "exactEnd": 17.6
+          "start": 15.858,
+          "end": 16.553,
+          "exactStart": 16.216,
+          "exactEnd": 16.653
         },
         {
           "text": "，",
@@ -371,10 +311,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 17.037,
-          "end": 17.087,
-          "exactStart": 17.63,
-          "exactEnd": 17.85
+          "start": 16.553,
+          "end": 16.603,
+          "exactStart": 16.683,
+          "exactEnd": 16.903
         },
         {
           "text": "但",
@@ -383,10 +323,10 @@
           "text_cn": "但",
           "isPunct": false,
           "wordAudio": "./assets/words/1bf6e3fa8634.mp3",
-          "start": 17.037,
-          "end": 17.626,
-          "exactStart": 17.85,
-          "exactEnd": 18.267
+          "start": 16.553,
+          "end": 17.249,
+          "exactStart": 16.903,
+          "exactEnd": 17.32
         },
         {
           "text": "又",
@@ -395,10 +335,10 @@
           "text_cn": "又",
           "isPunct": false,
           "wordAudio": "./assets/words/65e183028f14.mp3",
-          "start": 17.626,
-          "end": 18.214,
-          "exactStart": 18.297,
-          "exactEnd": 18.674
+          "start": 17.249,
+          "end": 17.945,
+          "exactStart": 17.35,
+          "exactEnd": 17.727
         },
         {
           "text": "想起",
@@ -407,34 +347,22 @@
           "text_cn": "想起",
           "isPunct": false,
           "wordAudio": "./assets/words/4fcaecc29b6b.mp3",
-          "start": 18.214,
-          "end": 18.803,
-          "exactStart": 18.704,
-          "exactEnd": 19.496
+          "start": 17.945,
+          "end": 18.641,
+          "exactStart": 17.757,
+          "exactEnd": 18.549
         },
         {
-          "text": "繪畫",
-          "text_hk": "繪畫",
-          "text_tw": "繪畫",
-          "text_cn": "绘画",
+          "text": "繪畫課",
+          "text_hk": "繪畫課",
+          "text_tw": "繪畫課",
+          "text_cn": "绘画课",
           "isPunct": false,
-          "wordAudio": "./assets/words/20c80d6f4806.mp3",
-          "start": 18.803,
-          "end": 19.392,
-          "exactStart": 19.526,
-          "exactEnd": 20.213
-        },
-        {
-          "text": "課",
-          "text_hk": "課",
-          "text_tw": "課",
-          "text_cn": "课",
-          "isPunct": false,
-          "wordAudio": "./assets/words/685f7bbbe2ef.mp3",
-          "start": 19.392,
-          "end": 19.981,
-          "exactStart": 20.243,
-          "exactEnd": 20.665
+          "wordAudio": "./assets/words/6b5c430004c2.mp3",
+          "start": 18.641,
+          "end": 19.337,
+          "exactStart": 18.579,
+          "exactEnd": 19.554
         },
         {
           "text": "需要",
@@ -443,10 +371,10 @@
           "text_cn": "需要",
           "isPunct": false,
           "wordAudio": "./assets/words/0eb8cdc0a14d.mp3",
-          "start": 19.981,
-          "end": 20.57,
-          "exactStart": 20.695,
-          "exactEnd": 21.457
+          "start": 19.337,
+          "end": 20.032,
+          "exactStart": 19.584,
+          "exactEnd": 20.346
         },
         {
           "text": "的",
@@ -455,10 +383,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/3bf976e06f8b.mp3",
-          "start": 20.57,
-          "end": 21.158,
-          "exactStart": 21.487,
-          "exactEnd": 21.664
+          "start": 20.032,
+          "end": 20.728,
+          "exactStart": 20.376,
+          "exactEnd": 20.553
         },
         {
           "text": "彩色",
@@ -467,10 +395,10 @@
           "text_cn": "彩色",
           "isPunct": false,
           "wordAudio": "./assets/words/6b028761f17c.mp3",
-          "start": 21.158,
-          "end": 21.747,
-          "exactStart": 21.694,
-          "exactEnd": 22.266
+          "start": 20.728,
+          "end": 21.424,
+          "exactStart": 20.583,
+          "exactEnd": 21.155
         },
         {
           "text": "畫筆",
@@ -479,46 +407,22 @@
           "text_cn": "画笔",
           "isPunct": false,
           "wordAudio": "./assets/words/9046df8d3841.mp3",
-          "start": 21.747,
-          "end": 22.336,
-          "exactStart": 22.296,
-          "exactEnd": 22.793
+          "start": 21.424,
+          "end": 22.12,
+          "exactStart": 21.185,
+          "exactEnd": 21.682
         },
         {
-          "text": "用",
-          "text_hk": "用",
-          "text_tw": "用",
-          "text_cn": "用",
+          "text": "用完了",
+          "text_hk": "用完了",
+          "text_tw": "用完了",
+          "text_cn": "用完了",
           "isPunct": false,
-          "wordAudio": "./assets/words/848528c37323.mp3",
-          "start": 22.336,
-          "end": 22.925,
-          "exactStart": 22.823,
-          "exactEnd": 23.245
-        },
-        {
-          "text": "完",
-          "text_hk": "完",
-          "text_tw": "完",
-          "text_cn": "完",
-          "isPunct": false,
-          "wordAudio": "./assets/words/db6138cb91c2.mp3",
-          "start": 22.925,
-          "end": 23.514,
-          "exactStart": 23.275,
-          "exactEnd": 23.647
-        },
-        {
-          "text": "了",
-          "text_hk": "了",
-          "text_tw": "了",
-          "text_cn": "了",
-          "isPunct": false,
-          "wordAudio": "./assets/words/9340c66afc7d.mp3",
-          "start": 23.514,
-          "end": 24.103,
-          "exactStart": 23.677,
-          "exactEnd": 24.059
+          "wordAudio": "./assets/words/ae9ff2073e34.mp3",
+          "start": 22.12,
+          "end": 22.816,
+          "exactStart": 21.712,
+          "exactEnd": 22.644
         },
         {
           "text": "。",
@@ -526,10 +430,10 @@
           "text_tw": "。",
           "text_cn": "。",
           "isPunct": true,
-          "start": 24.103,
-          "end": 24.153,
-          "exactStart": 24.089,
-          "exactEnd": 24.489
+          "start": 22.816,
+          "end": 22.866,
+          "exactStart": 22.674,
+          "exactEnd": 23.074
         },
         {
           "isBreak": true
@@ -541,46 +445,22 @@
           "text_cn": "小猴子",
           "isPunct": false,
           "wordAudio": "./assets/words/59b2209e7002.mp3",
-          "start": 24.303,
-          "end": 24.891,
-          "exactStart": 24.989,
-          "exactEnd": 26.041
+          "start": 23.016,
+          "end": 23.711,
+          "exactStart": 23.574,
+          "exactEnd": 24.626
         },
         {
-          "text": "想",
-          "text_hk": "想",
-          "text_tw": "想",
-          "text_cn": "想",
+          "text": "想了想",
+          "text_hk": "想了想",
+          "text_tw": "想了想",
+          "text_cn": "想了想",
           "isPunct": false,
-          "wordAudio": "./assets/words/7265adde1b28.mp3",
-          "start": 24.891,
-          "end": 25.48,
-          "exactStart": 26.071,
-          "exactEnd": 26.598
-        },
-        {
-          "text": "了",
-          "text_hk": "了",
-          "text_tw": "了",
-          "text_cn": "了",
-          "isPunct": false,
-          "wordAudio": "./assets/words/9340c66afc7d.mp3",
-          "start": 25.48,
-          "end": 26.069,
-          "exactStart": 26.628,
-          "exactEnd": 27.01
-        },
-        {
-          "text": "想",
-          "text_hk": "想",
-          "text_tw": "想",
-          "text_cn": "想",
-          "isPunct": false,
-          "wordAudio": "./assets/words/7265adde1b28.mp3",
-          "start": 26.069,
-          "end": 26.658,
-          "exactStart": 27.04,
-          "exactEnd": 27.567
+          "wordAudio": "./assets/words/0ad05b155b28.mp3",
+          "start": 23.711,
+          "end": 24.407,
+          "exactStart": 24.656,
+          "exactEnd": 25.747
         },
         {
           "text": "，",
@@ -588,10 +468,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 26.658,
-          "end": 26.708,
-          "exactStart": 27.597,
-          "exactEnd": 27.817
+          "start": 24.407,
+          "end": 24.457,
+          "exactStart": 25.777,
+          "exactEnd": 25.997
         },
         {
           "text": "決定",
@@ -600,22 +480,34 @@
           "text_cn": "决定",
           "isPunct": false,
           "wordAudio": "./assets/words/376456cd62ce.mp3",
-          "start": 26.658,
-          "end": 27.247,
-          "exactStart": 27.817,
-          "exactEnd": 28.449
+          "start": 24.407,
+          "end": 25.103,
+          "exactStart": 25.997,
+          "exactEnd": 26.629
         },
         {
-          "text": "先買",
-          "text_hk": "先買",
-          "text_tw": "先買",
-          "text_cn": "先买",
+          "text": "先",
+          "text_hk": "先",
+          "text_tw": "先",
+          "text_cn": "先",
           "isPunct": false,
-          "wordAudio": "./assets/words/469de33cdf5b.mp3",
-          "start": 27.247,
-          "end": 27.835,
-          "exactStart": 28.479,
-          "exactEnd": 29.331
+          "wordAudio": "./assets/words/946f5332d4d8.mp3",
+          "start": 25.103,
+          "end": 25.799,
+          "exactStart": 26.659,
+          "exactEnd": 27.161
+        },
+        {
+          "text": "買",
+          "text_hk": "買",
+          "text_tw": "買",
+          "text_cn": "买",
+          "isPunct": false,
+          "wordAudio": "./assets/words/6655eef2f319.mp3",
+          "start": 25.799,
+          "end": 26.495,
+          "exactStart": 27.191,
+          "exactEnd": 27.628
         },
         {
           "text": "學習",
@@ -624,10 +516,10 @@
           "text_cn": "学习",
           "isPunct": false,
           "wordAudio": "./assets/words/9eb1a4883f46.mp3",
-          "start": 27.835,
-          "end": 28.424,
-          "exactStart": 29.361,
-          "exactEnd": 29.958
+          "start": 26.495,
+          "end": 27.19,
+          "exactStart": 27.658,
+          "exactEnd": 28.255
         },
         {
           "text": "「",
@@ -635,10 +527,10 @@
           "text_tw": "「",
           "text_cn": "「",
           "isPunct": true,
-          "start": 28.424,
-          "end": 28.474,
-          "exactStart": 29.988,
-          "exactEnd": 30.208
+          "start": 27.19,
+          "end": 27.24,
+          "exactStart": 28.285,
+          "exactEnd": 28.505
         },
         {
           "text": "需要",
@@ -647,10 +539,10 @@
           "text_cn": "需要",
           "isPunct": false,
           "wordAudio": "./assets/words/0eb8cdc0a14d.mp3",
-          "start": 28.424,
-          "end": 29.013,
-          "exactStart": 30.208,
-          "exactEnd": 30.97
+          "start": 27.19,
+          "end": 27.886,
+          "exactStart": 28.505,
+          "exactEnd": 29.267
         },
         {
           "text": "」",
@@ -658,10 +550,10 @@
           "text_tw": "」",
           "text_cn": "」",
           "isPunct": true,
-          "start": 29.013,
-          "end": 29.063,
-          "exactStart": 31.0,
-          "exactEnd": 31.22
+          "start": 27.886,
+          "end": 27.936,
+          "exactStart": 29.297,
+          "exactEnd": 29.517
         },
         {
           "text": "的",
@@ -670,10 +562,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/3bf976e06f8b.mp3",
-          "start": 29.013,
-          "end": 29.602,
-          "exactStart": 31.22,
-          "exactEnd": 31.397
+          "start": 27.886,
+          "end": 28.582,
+          "exactStart": 29.517,
+          "exactEnd": 29.694
         },
         {
           "text": "畫筆",
@@ -682,10 +574,10 @@
           "text_cn": "画笔",
           "isPunct": false,
           "wordAudio": "./assets/words/9046df8d3841.mp3",
-          "start": 29.602,
-          "end": 30.191,
-          "exactStart": 31.427,
-          "exactEnd": 31.924
+          "start": 28.582,
+          "end": 29.278,
+          "exactStart": 29.724,
+          "exactEnd": 30.221
         },
         {
           "text": "，",
@@ -693,10 +585,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 30.191,
-          "end": 30.241,
-          "exactStart": 31.954,
-          "exactEnd": 32.174
+          "start": 29.278,
+          "end": 29.328,
+          "exactStart": 30.251,
+          "exactEnd": 30.471
         },
         {
           "text": "把",
@@ -705,10 +597,10 @@
           "text_cn": "把",
           "isPunct": false,
           "wordAudio": "./assets/words/9f1b441ab0a2.mp3",
-          "start": 30.191,
-          "end": 30.779,
-          "exactStart": 32.174,
-          "exactEnd": 32.526
+          "start": 29.278,
+          "end": 29.974,
+          "exactStart": 30.471,
+          "exactEnd": 30.823
         },
         {
           "text": "「",
@@ -716,10 +608,10 @@
           "text_tw": "「",
           "text_cn": "「",
           "isPunct": true,
-          "start": 30.779,
-          "end": 30.829,
-          "exactStart": 32.556,
-          "exactEnd": 32.776
+          "start": 29.974,
+          "end": 30.024,
+          "exactStart": 30.853,
+          "exactEnd": 31.073
         },
         {
           "text": "想要",
@@ -728,10 +620,10 @@
           "text_cn": "想要",
           "isPunct": false,
           "wordAudio": "./assets/words/fb1a056b95d2.mp3",
-          "start": 30.779,
-          "end": 31.368,
-          "exactStart": 32.776,
-          "exactEnd": 33.568
+          "start": 29.974,
+          "end": 30.669,
+          "exactStart": 31.073,
+          "exactEnd": 31.865
         },
         {
           "text": "」",
@@ -739,10 +631,10 @@
           "text_tw": "」",
           "text_cn": "」",
           "isPunct": true,
-          "start": 31.368,
-          "end": 31.418,
-          "exactStart": 33.598,
-          "exactEnd": 33.818
+          "start": 30.669,
+          "end": 30.719,
+          "exactStart": 31.895,
+          "exactEnd": 32.115
         },
         {
           "text": "的",
@@ -751,10 +643,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/3bf976e06f8b.mp3",
-          "start": 31.368,
-          "end": 31.957,
-          "exactStart": 33.818,
-          "exactEnd": 33.995
+          "start": 30.669,
+          "end": 31.365,
+          "exactStart": 32.115,
+          "exactEnd": 32.292
         },
         {
           "text": "玩具",
@@ -763,34 +655,34 @@
           "text_cn": "玩具",
           "isPunct": false,
           "wordAudio": "./assets/words/6edfd0bc8a87.mp3",
-          "start": 31.957,
-          "end": 32.546,
-          "exactStart": 34.025,
-          "exactEnd": 34.722
+          "start": 31.365,
+          "end": 32.061,
+          "exactStart": 32.322,
+          "exactEnd": 33.019
         },
         {
-          "text": "寫",
-          "text_hk": "寫",
-          "text_tw": "寫",
-          "text_cn": "写",
+          "text": "寫進",
+          "text_hk": "寫進",
+          "text_tw": "寫進",
+          "text_cn": "写进",
           "isPunct": false,
-          "wordAudio": "./assets/words/f0d2cea72145.mp3",
-          "start": 32.546,
-          "end": 33.135,
-          "exactStart": 34.752,
-          "exactEnd": 35.234
+          "wordAudio": "./assets/words/a8c5678c52e1.mp3",
+          "start": 32.061,
+          "end": 32.757,
+          "exactStart": 33.049,
+          "exactEnd": 33.861
         },
         {
-          "text": "進願望",
-          "text_hk": "進願望",
-          "text_tw": "進願望",
-          "text_cn": "进愿望",
+          "text": "願望",
+          "text_hk": "願望",
+          "text_tw": "願望",
+          "text_cn": "愿望",
           "isPunct": false,
-          "wordAudio": "./assets/words/525301c2c111.mp3",
-          "start": 33.135,
-          "end": 33.724,
-          "exactStart": 35.264,
-          "exactEnd": 36.258
+          "wordAudio": "./assets/words/26cde88c4ae1.mp3",
+          "start": 32.757,
+          "end": 33.453,
+          "exactStart": 33.891,
+          "exactEnd": 34.583
         },
         {
           "text": "清單",
@@ -799,10 +691,10 @@
           "text_cn": "清单",
           "isPunct": false,
           "wordAudio": "./assets/words/99b60a8de8d5.mp3",
-          "start": 33.724,
-          "end": 34.312,
-          "exactStart": 36.288,
-          "exactEnd": 37.099
+          "start": 33.453,
+          "end": 34.148,
+          "exactStart": 34.613,
+          "exactEnd": 35.424
         },
         {
           "text": "慢慢",
@@ -811,10 +703,10 @@
           "text_cn": "慢慢",
           "isPunct": false,
           "wordAudio": "./assets/words/68cf01fab502.mp3",
-          "start": 34.312,
-          "end": 34.901,
-          "exactStart": 37.129,
-          "exactEnd": 37.871
+          "start": 34.148,
+          "end": 34.844,
+          "exactStart": 35.454,
+          "exactEnd": 36.196
         },
         {
           "text": "存錢",
@@ -823,10 +715,10 @@
           "text_cn": "存钱",
           "isPunct": false,
           "wordAudio": "./assets/words/82521e822c65.mp3",
-          "start": 34.901,
-          "end": 35.49,
-          "exactStart": 37.901,
-          "exactEnd": 38.648
+          "start": 34.844,
+          "end": 35.54,
+          "exactStart": 36.226,
+          "exactEnd": 36.973
         },
         {
           "text": "。",
@@ -834,10 +726,10 @@
           "text_tw": "。",
           "text_cn": "。",
           "isPunct": true,
-          "start": 35.49,
-          "end": 35.54,
-          "exactStart": 38.678,
-          "exactEnd": 39.078
+          "start": 35.54,
+          "end": 35.59,
+          "exactStart": 37.003,
+          "exactEnd": 37.403
         }
       ]
     },
@@ -854,7 +746,7 @@
           "isPunct": false,
           "wordAudio": "./assets/words/8e8a2456e56b.mp3",
           "start": 0.15,
-          "end": 0.587,
+          "end": 0.83,
           "exactStart": 0.1,
           "exactEnd": 0.677
         },
@@ -865,8 +757,8 @@
           "text_cn": "还是",
           "isPunct": false,
           "wordAudio": "./assets/words/35658816bdbc.mp3",
-          "start": 0.587,
-          "end": 1.023,
+          "start": 0.83,
+          "end": 1.511,
           "exactStart": 0.707,
           "exactEnd": 1.294
         },
@@ -877,8 +769,8 @@
           "text_cn": "想要",
           "isPunct": false,
           "wordAudio": "./assets/words/eb53ccfab072.mp3",
-          "start": 1.023,
-          "end": 1.46,
+          "start": 1.511,
+          "end": 2.191,
           "exactStart": 1.324,
           "exactEnd": 1.956
         },
@@ -892,70 +784,46 @@
           "text_cn": "小猴子",
           "isPunct": false,
           "wordAudio": "./assets/words/131f600f295a.mp3",
-          "start": 1.66,
-          "end": 2.096,
+          "start": 2.391,
+          "end": 3.072,
           "exactStart": 2.486,
           "exactEnd": 3.295
         },
         {
-          "text": "拿",
-          "text_hk": "拿",
-          "text_tw": "拿",
-          "text_cn": "拿",
+          "text": "拿著",
+          "text_hk": "拿著",
+          "text_tw": "拿著",
+          "text_cn": "拿著",
           "isPunct": false,
-          "wordAudio": "./assets/words/cd1babb88b7c.mp3",
-          "start": 2.096,
-          "end": 2.533,
+          "wordAudio": "./assets/words/87b1d1fcf3c6.mp3",
+          "start": 3.072,
+          "end": 3.752,
           "exactStart": 3.325,
-          "exactEnd": 3.642
+          "exactEnd": 3.872
         },
         {
-          "text": "著存",
-          "text_hk": "著存",
-          "text_tw": "著存",
-          "text_cn": "著存",
+          "text": "存了",
+          "text_hk": "存了",
+          "text_tw": "存了",
+          "text_cn": "存了",
           "isPunct": false,
-          "wordAudio": "./assets/words/173a5304e208.mp3",
-          "start": 2.533,
-          "end": 2.97,
-          "exactStart": 3.672,
-          "exactEnd": 4.309
+          "wordAudio": "./assets/words/48898e32311e.mp3",
+          "start": 3.752,
+          "end": 4.432,
+          "exactStart": 3.902,
+          "exactEnd": 4.489
         },
         {
-          "text": "了",
-          "text_hk": "了",
-          "text_tw": "了",
-          "text_cn": "了",
+          "text": "很久",
+          "text_hk": "很久",
+          "text_tw": "很久",
+          "text_cn": "很久",
           "isPunct": false,
-          "wordAudio": "./assets/words/c7f6dde7e486.mp3",
-          "start": 2.97,
-          "end": 3.406,
-          "exactStart": 4.339,
-          "exactEnd": 4.601
-        },
-        {
-          "text": "很",
-          "text_hk": "很",
-          "text_tw": "很",
-          "text_cn": "很",
-          "isPunct": false,
-          "wordAudio": "./assets/words/626351859fa3.mp3",
-          "start": 3.406,
-          "end": 3.843,
-          "exactStart": 4.631,
-          "exactEnd": 4.938
-        },
-        {
-          "text": "久",
-          "text_hk": "久",
-          "text_tw": "久",
-          "text_cn": "久",
-          "isPunct": false,
-          "wordAudio": "./assets/words/3241b0edfee6.mp3",
-          "start": 3.843,
-          "end": 4.279,
-          "exactStart": 4.968,
-          "exactEnd": 5.3
+          "wordAudio": "./assets/words/b413067b39f9.mp3",
+          "start": 4.432,
+          "end": 5.113,
+          "exactStart": 4.519,
+          "exactEnd": 5.051
         },
         {
           "text": "的",
@@ -964,46 +832,46 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d4bcd7fc49f0.mp3",
-          "start": 4.279,
-          "end": 4.716,
-          "exactStart": 5.33,
-          "exactEnd": 5.567
+          "start": 5.113,
+          "end": 5.793,
+          "exactStart": 5.081,
+          "exactEnd": 5.318
         },
         {
-          "text": "零用",
-          "text_hk": "零用",
-          "text_tw": "零用",
-          "text_cn": "零用",
+          "text": "零用錢",
+          "text_hk": "零用錢",
+          "text_tw": "零用錢",
+          "text_cn": "零用钱",
           "isPunct": false,
-          "wordAudio": "./assets/words/37ca4bb3f10b.mp3",
-          "start": 4.716,
-          "end": 5.153,
-          "exactStart": 5.597,
-          "exactEnd": 6.174
+          "wordAudio": "./assets/words/dbc62b6b887e.mp3",
+          "start": 5.793,
+          "end": 6.474,
+          "exactStart": 5.348,
+          "exactEnd": 6.199
         },
         {
-          "text": "錢",
-          "text_hk": "錢",
-          "text_tw": "錢",
-          "text_cn": "钱",
+          "text": "去",
+          "text_hk": "去",
+          "text_tw": "去",
+          "text_cn": "去",
           "isPunct": false,
-          "wordAudio": "./assets/words/f6feafe59791.mp3",
-          "start": 5.153,
-          "end": 5.589,
-          "exactStart": 6.204,
-          "exactEnd": 6.621
+          "wordAudio": "./assets/words/74f5ade383b8.mp3",
+          "start": 6.474,
+          "end": 7.154,
+          "exactStart": 6.229,
+          "exactEnd": 6.626
         },
         {
-          "text": "去逛",
-          "text_hk": "去逛",
-          "text_tw": "去逛",
-          "text_cn": "去逛",
+          "text": "逛",
+          "text_hk": "逛",
+          "text_tw": "逛",
+          "text_cn": "逛",
           "isPunct": false,
-          "wordAudio": "./assets/words/3c40ce7978bd.mp3",
-          "start": 5.589,
-          "end": 6.026,
-          "exactStart": 6.651,
-          "exactEnd": 7.258
+          "wordAudio": "./assets/words/67747c3ecfc6.mp3",
+          "start": 7.154,
+          "end": 7.834,
+          "exactStart": 6.656,
+          "exactEnd": 6.953
         },
         {
           "text": "熱鬧",
@@ -1012,10 +880,10 @@
           "text_cn": "热闹",
           "isPunct": false,
           "wordAudio": "./assets/words/b86d7c9a0867.mp3",
-          "start": 6.026,
-          "end": 6.463,
-          "exactStart": 7.288,
-          "exactEnd": 7.81
+          "start": 7.834,
+          "end": 8.515,
+          "exactStart": 6.983,
+          "exactEnd": 7.505
         },
         {
           "text": "的",
@@ -1024,10 +892,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d4bcd7fc49f0.mp3",
-          "start": 6.463,
-          "end": 6.899,
-          "exactStart": 7.84,
-          "exactEnd": 8.077
+          "start": 8.515,
+          "end": 9.195,
+          "exactStart": 7.535,
+          "exactEnd": 7.772
         },
         {
           "text": "森林",
@@ -1036,10 +904,10 @@
           "text_cn": "森林",
           "isPunct": false,
           "wordAudio": "./assets/words/bcb82caa48b0.mp3",
-          "start": 6.899,
-          "end": 7.336,
-          "exactStart": 8.107,
-          "exactEnd": 8.674
+          "start": 9.195,
+          "end": 9.876,
+          "exactStart": 7.802,
+          "exactEnd": 8.369
         },
         {
           "text": "市集",
@@ -1048,10 +916,10 @@
           "text_cn": "市集",
           "isPunct": false,
           "wordAudio": "./assets/words/108c6bfacf4d.mp3",
-          "start": 7.336,
-          "end": 7.772,
-          "exactStart": 8.704,
-          "exactEnd": 9.406
+          "start": 9.876,
+          "end": 10.556,
+          "exactStart": 8.399,
+          "exactEnd": 9.101
         },
         {
           "text": "。",
@@ -1059,10 +927,10 @@
           "text_tw": "。",
           "text_cn": "。",
           "isPunct": true,
-          "start": 7.772,
-          "end": 7.822,
-          "exactStart": 9.436,
-          "exactEnd": 9.836
+          "start": 10.556,
+          "end": 10.606,
+          "exactStart": 9.131,
+          "exactEnd": 9.531
         },
         {
           "isBreak": true
@@ -1074,34 +942,22 @@
           "text_cn": "他",
           "isPunct": false,
           "wordAudio": "./assets/words/f38d0b2551aa.mp3",
-          "start": 7.972,
-          "end": 8.409,
-          "exactStart": 10.336,
-          "exactEnd": 10.598
+          "start": 10.756,
+          "end": 11.436,
+          "exactStart": 10.031,
+          "exactEnd": 10.293
         },
         {
-          "text": "看",
-          "text_hk": "看",
-          "text_tw": "看",
-          "text_cn": "看",
+          "text": "看見",
+          "text_hk": "看見",
+          "text_tw": "看見",
+          "text_cn": "看见",
           "isPunct": false,
-          "wordAudio": "./assets/words/4875f6fe5bcb.mp3",
-          "start": 8.409,
-          "end": 8.846,
-          "exactStart": 10.628,
+          "wordAudio": "./assets/words/add268dcc913.mp3",
+          "start": 11.436,
+          "end": 12.117,
+          "exactStart": 10.323,
           "exactEnd": 10.93
-        },
-        {
-          "text": "見",
-          "text_hk": "見",
-          "text_tw": "見",
-          "text_cn": "见",
-          "isPunct": false,
-          "wordAudio": "./assets/words/e60aee3fbaa2.mp3",
-          "start": 8.846,
-          "end": 9.282,
-          "exactStart": 10.96,
-          "exactEnd": 11.292
         },
         {
           "text": "會",
@@ -1110,10 +966,10 @@
           "text_cn": "会",
           "isPunct": false,
           "wordAudio": "./assets/words/74938abef3bc.mp3",
-          "start": 9.282,
-          "end": 9.719,
-          "exactStart": 11.322,
-          "exactEnd": 11.594
+          "start": 12.117,
+          "end": 12.797,
+          "exactStart": 10.96,
+          "exactEnd": 11.232
         },
         {
           "text": "發光",
@@ -1122,10 +978,10 @@
           "text_cn": "发光",
           "isPunct": false,
           "wordAudio": "./assets/words/fdd3101ec73a.mp3",
-          "start": 9.719,
-          "end": 10.155,
-          "exactStart": 11.624,
-          "exactEnd": 12.066
+          "start": 12.797,
+          "end": 13.478,
+          "exactStart": 11.262,
+          "exactEnd": 11.704
         },
         {
           "text": "的",
@@ -1134,58 +990,34 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d4bcd7fc49f0.mp3",
-          "start": 10.155,
-          "end": 10.592,
-          "exactStart": 12.096,
-          "exactEnd": 12.333
+          "start": 13.478,
+          "end": 14.158,
+          "exactStart": 11.734,
+          "exactEnd": 11.971
         },
         {
-          "text": "泡泡",
-          "text_hk": "泡泡",
-          "text_tw": "泡泡",
-          "text_cn": "泡泡",
+          "text": "泡泡槍",
+          "text_hk": "泡泡槍",
+          "text_tw": "泡泡槍",
+          "text_cn": "泡泡枪",
           "isPunct": false,
-          "wordAudio": "./assets/words/11992af4658d.mp3",
-          "start": 10.592,
-          "end": 11.029,
-          "exactStart": 12.363,
-          "exactEnd": 12.925
+          "wordAudio": "./assets/words/db0c8b61c377.mp3",
+          "start": 14.158,
+          "end": 14.838,
+          "exactStart": 12.001,
+          "exactEnd": 12.813
         },
         {
-          "text": "槍",
-          "text_hk": "槍",
-          "text_tw": "槍",
-          "text_cn": "枪",
+          "text": "好想",
+          "text_hk": "好想",
+          "text_tw": "好想",
+          "text_cn": "好想",
           "isPunct": false,
-          "wordAudio": "./assets/words/3de3a257d1d3.mp3",
-          "start": 11.029,
-          "end": 11.465,
-          "exactStart": 12.955,
-          "exactEnd": 13.312
-        },
-        {
-          "text": "好",
-          "text_hk": "好",
-          "text_tw": "好",
-          "text_cn": "好",
-          "isPunct": false,
-          "wordAudio": "./assets/words/eb4a6b3c9443.mp3",
-          "start": 11.465,
-          "end": 11.902,
-          "exactStart": 13.342,
-          "exactEnd": 13.644
-        },
-        {
-          "text": "想",
-          "text_hk": "想",
-          "text_tw": "想",
-          "text_cn": "想",
-          "isPunct": false,
-          "wordAudio": "./assets/words/af61a309a536.mp3",
-          "start": 11.902,
-          "end": 12.338,
-          "exactStart": 13.674,
-          "exactEnd": 14.086
+          "wordAudio": "./assets/words/fe7d188c72c7.mp3",
+          "start": 14.838,
+          "end": 15.519,
+          "exactStart": 12.843,
+          "exactEnd": 13.45
         },
         {
           "text": "買",
@@ -1194,10 +1026,10 @@
           "text_cn": "买",
           "isPunct": false,
           "wordAudio": "./assets/words/cf516f9692e1.mp3",
-          "start": 12.338,
-          "end": 12.775,
-          "exactStart": 14.116,
-          "exactEnd": 14.378
+          "start": 15.519,
+          "end": 16.199,
+          "exactStart": 13.48,
+          "exactEnd": 13.742
         },
         {
           "text": "，",
@@ -1205,10 +1037,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 12.775,
-          "end": 12.825,
-          "exactStart": 14.408,
-          "exactEnd": 14.628
+          "start": 16.199,
+          "end": 16.249,
+          "exactStart": 13.772,
+          "exactEnd": 13.992
         },
         {
           "text": "但",
@@ -1217,10 +1049,10 @@
           "text_cn": "但",
           "isPunct": false,
           "wordAudio": "./assets/words/2220c00d188d.mp3",
-          "start": 12.775,
-          "end": 13.212,
-          "exactStart": 14.628,
-          "exactEnd": 14.92
+          "start": 16.199,
+          "end": 16.88,
+          "exactStart": 13.992,
+          "exactEnd": 14.284
         },
         {
           "text": "又",
@@ -1229,10 +1061,10 @@
           "text_cn": "又",
           "isPunct": false,
           "wordAudio": "./assets/words/aa0aff6354ee.mp3",
-          "start": 13.212,
-          "end": 13.648,
-          "exactStart": 14.95,
-          "exactEnd": 15.222
+          "start": 16.88,
+          "end": 17.56,
+          "exactStart": 14.314,
+          "exactEnd": 14.586
         },
         {
           "text": "想起",
@@ -1241,34 +1073,22 @@
           "text_cn": "想起",
           "isPunct": false,
           "wordAudio": "./assets/words/f7e744caf7c3.mp3",
-          "start": 13.648,
-          "end": 14.085,
-          "exactStart": 15.252,
-          "exactEnd": 15.889
+          "start": 17.56,
+          "end": 18.24,
+          "exactStart": 14.616,
+          "exactEnd": 15.253
         },
         {
-          "text": "繪畫",
-          "text_hk": "繪畫",
-          "text_tw": "繪畫",
-          "text_cn": "绘画",
+          "text": "繪畫課",
+          "text_hk": "繪畫課",
+          "text_tw": "繪畫課",
+          "text_cn": "绘画课",
           "isPunct": false,
-          "wordAudio": "./assets/words/c8a638d9ba96.mp3",
-          "start": 14.085,
-          "end": 14.522,
-          "exactStart": 15.919,
-          "exactEnd": 16.471
-        },
-        {
-          "text": "課",
-          "text_hk": "課",
-          "text_tw": "課",
-          "text_cn": "课",
-          "isPunct": false,
-          "wordAudio": "./assets/words/40b6d68d554d.mp3",
-          "start": 14.522,
-          "end": 14.958,
-          "exactStart": 16.501,
-          "exactEnd": 16.793
+          "wordAudio": "./assets/words/573db2bd9f82.mp3",
+          "start": 18.24,
+          "end": 18.921,
+          "exactStart": 15.283,
+          "exactEnd": 16.047
         },
         {
           "text": "需要",
@@ -1277,10 +1097,10 @@
           "text_cn": "需要",
           "isPunct": false,
           "wordAudio": "./assets/words/8e8a2456e56b.mp3",
-          "start": 14.958,
-          "end": 15.395,
-          "exactStart": 16.823,
-          "exactEnd": 17.4
+          "start": 18.921,
+          "end": 19.601,
+          "exactStart": 16.077,
+          "exactEnd": 16.654
         },
         {
           "text": "的",
@@ -1289,10 +1109,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d4bcd7fc49f0.mp3",
-          "start": 15.395,
-          "end": 15.831,
-          "exactStart": 17.43,
-          "exactEnd": 17.667
+          "start": 19.601,
+          "end": 20.282,
+          "exactStart": 16.684,
+          "exactEnd": 16.921
         },
         {
           "text": "彩色",
@@ -1301,10 +1121,10 @@
           "text_cn": "彩色",
           "isPunct": false,
           "wordAudio": "./assets/words/57dfe0104db1.mp3",
-          "start": 15.831,
-          "end": 16.268,
-          "exactStart": 17.697,
-          "exactEnd": 18.314
+          "start": 20.282,
+          "end": 20.962,
+          "exactStart": 16.951,
+          "exactEnd": 17.568
         },
         {
           "text": "畫筆",
@@ -1313,46 +1133,22 @@
           "text_cn": "画笔",
           "isPunct": false,
           "wordAudio": "./assets/words/1b8e0f5152a0.mp3",
-          "start": 16.268,
-          "end": 16.705,
-          "exactStart": 18.344,
-          "exactEnd": 18.781
+          "start": 20.962,
+          "end": 21.642,
+          "exactStart": 17.598,
+          "exactEnd": 18.035
         },
         {
-          "text": "用",
-          "text_hk": "用",
-          "text_tw": "用",
-          "text_cn": "用",
+          "text": "用完了",
+          "text_hk": "用完了",
+          "text_tw": "用完了",
+          "text_cn": "用完了",
           "isPunct": false,
-          "wordAudio": "./assets/words/f669576a273e.mp3",
-          "start": 16.705,
-          "end": 17.141,
-          "exactStart": 18.811,
-          "exactEnd": 19.103
-        },
-        {
-          "text": "完",
-          "text_hk": "完",
-          "text_tw": "完",
-          "text_cn": "完",
-          "isPunct": false,
-          "wordAudio": "./assets/words/a3de7db94a6b.mp3",
-          "start": 17.141,
-          "end": 17.578,
-          "exactStart": 19.133,
-          "exactEnd": 19.46
-        },
-        {
-          "text": "了",
-          "text_hk": "了",
-          "text_tw": "了",
-          "text_cn": "了",
-          "isPunct": false,
-          "wordAudio": "./assets/words/c7f6dde7e486.mp3",
-          "start": 17.578,
-          "end": 18.014,
-          "exactStart": 19.49,
-          "exactEnd": 19.752
+          "wordAudio": "./assets/words/e6c6d78f67ae.mp3",
+          "start": 21.642,
+          "end": 22.323,
+          "exactStart": 18.065,
+          "exactEnd": 18.777
         },
         {
           "text": "。",
@@ -1360,10 +1156,10 @@
           "text_tw": "。",
           "text_cn": "。",
           "isPunct": true,
-          "start": 18.014,
-          "end": 18.064,
-          "exactStart": 19.782,
-          "exactEnd": 20.182
+          "start": 22.323,
+          "end": 22.373,
+          "exactStart": 18.807,
+          "exactEnd": 19.207
         },
         {
           "isBreak": true
@@ -1375,46 +1171,22 @@
           "text_cn": "小猴子",
           "isPunct": false,
           "wordAudio": "./assets/words/131f600f295a.mp3",
-          "start": 18.214,
-          "end": 18.651,
-          "exactStart": 20.682,
-          "exactEnd": 21.491
+          "start": 22.523,
+          "end": 23.203,
+          "exactStart": 19.707,
+          "exactEnd": 20.516
         },
         {
-          "text": "想",
-          "text_hk": "想",
-          "text_tw": "想",
-          "text_cn": "想",
+          "text": "想了想",
+          "text_hk": "想了想",
+          "text_tw": "想了想",
+          "text_cn": "想了想",
           "isPunct": false,
-          "wordAudio": "./assets/words/af61a309a536.mp3",
-          "start": 18.651,
-          "end": 19.088,
-          "exactStart": 21.521,
-          "exactEnd": 21.933
-        },
-        {
-          "text": "了",
-          "text_hk": "了",
-          "text_tw": "了",
-          "text_cn": "了",
-          "isPunct": false,
-          "wordAudio": "./assets/words/c7f6dde7e486.mp3",
-          "start": 19.088,
-          "end": 19.524,
-          "exactStart": 21.963,
-          "exactEnd": 22.225
-        },
-        {
-          "text": "想",
-          "text_hk": "想",
-          "text_tw": "想",
-          "text_cn": "想",
-          "isPunct": false,
-          "wordAudio": "./assets/words/af61a309a536.mp3",
-          "start": 19.524,
-          "end": 19.961,
-          "exactStart": 22.255,
-          "exactEnd": 22.667
+          "wordAudio": "./assets/words/debc1f9de464.mp3",
+          "start": 23.203,
+          "end": 23.884,
+          "exactStart": 20.546,
+          "exactEnd": 21.333
         },
         {
           "text": "，",
@@ -1422,10 +1194,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 19.961,
-          "end": 20.011,
-          "exactStart": 22.697,
-          "exactEnd": 22.917
+          "start": 23.884,
+          "end": 23.934,
+          "exactStart": 21.363,
+          "exactEnd": 21.583
         },
         {
           "text": "決定",
@@ -1434,22 +1206,34 @@
           "text_cn": "决定",
           "isPunct": false,
           "wordAudio": "./assets/words/ccefb4c6448b.mp3",
-          "start": 19.961,
-          "end": 20.397,
-          "exactStart": 22.917,
-          "exactEnd": 23.459
+          "start": 23.884,
+          "end": 24.564,
+          "exactStart": 21.583,
+          "exactEnd": 22.125
         },
         {
-          "text": "先買",
-          "text_hk": "先買",
-          "text_tw": "先買",
-          "text_cn": "先买",
+          "text": "先",
+          "text_hk": "先",
+          "text_tw": "先",
+          "text_cn": "先",
           "isPunct": false,
-          "wordAudio": "./assets/words/842ab8b11ecd.mp3",
-          "start": 20.397,
-          "end": 20.834,
-          "exactStart": 23.489,
-          "exactEnd": 24.056
+          "wordAudio": "./assets/words/cc9dc08838d0.mp3",
+          "start": 24.564,
+          "end": 25.244,
+          "exactStart": 22.155,
+          "exactEnd": 22.527
+        },
+        {
+          "text": "買",
+          "text_hk": "買",
+          "text_tw": "買",
+          "text_cn": "买",
+          "isPunct": false,
+          "wordAudio": "./assets/words/cf516f9692e1.mp3",
+          "start": 25.244,
+          "end": 25.925,
+          "exactStart": 22.557,
+          "exactEnd": 22.819
         },
         {
           "text": "學習",
@@ -1458,10 +1242,10 @@
           "text_cn": "学习",
           "isPunct": false,
           "wordAudio": "./assets/words/e6bfc56e3dd8.mp3",
-          "start": 20.834,
-          "end": 21.271,
-          "exactStart": 24.086,
-          "exactEnd": 24.758
+          "start": 25.925,
+          "end": 26.605,
+          "exactStart": 22.849,
+          "exactEnd": 23.521
         },
         {
           "text": "「",
@@ -1469,10 +1253,10 @@
           "text_tw": "「",
           "text_cn": "「",
           "isPunct": true,
-          "start": 21.271,
-          "end": 21.321,
-          "exactStart": 24.788,
-          "exactEnd": 25.008
+          "start": 26.605,
+          "end": 26.655,
+          "exactStart": 23.551,
+          "exactEnd": 23.771
         },
         {
           "text": "需要",
@@ -1481,10 +1265,10 @@
           "text_cn": "需要",
           "isPunct": false,
           "wordAudio": "./assets/words/8e8a2456e56b.mp3",
-          "start": 21.271,
-          "end": 21.707,
-          "exactStart": 25.008,
-          "exactEnd": 25.585
+          "start": 26.605,
+          "end": 27.286,
+          "exactStart": 23.771,
+          "exactEnd": 24.348
         },
         {
           "text": "」",
@@ -1492,10 +1276,10 @@
           "text_tw": "」",
           "text_cn": "」",
           "isPunct": true,
-          "start": 21.707,
-          "end": 21.757,
-          "exactStart": 25.615,
-          "exactEnd": 25.835
+          "start": 27.286,
+          "end": 27.336,
+          "exactStart": 24.378,
+          "exactEnd": 24.598
         },
         {
           "text": "的",
@@ -1504,10 +1288,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d4bcd7fc49f0.mp3",
-          "start": 21.707,
-          "end": 22.144,
-          "exactStart": 25.835,
-          "exactEnd": 26.072
+          "start": 27.286,
+          "end": 27.966,
+          "exactStart": 24.598,
+          "exactEnd": 24.835
         },
         {
           "text": "畫筆",
@@ -1516,10 +1300,10 @@
           "text_cn": "画笔",
           "isPunct": false,
           "wordAudio": "./assets/words/1b8e0f5152a0.mp3",
-          "start": 22.144,
-          "end": 22.581,
-          "exactStart": 26.102,
-          "exactEnd": 26.539
+          "start": 27.966,
+          "end": 28.646,
+          "exactStart": 24.865,
+          "exactEnd": 25.302
         },
         {
           "text": "，",
@@ -1527,10 +1311,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 22.581,
-          "end": 22.631,
-          "exactStart": 26.569,
-          "exactEnd": 26.789
+          "start": 28.646,
+          "end": 28.696,
+          "exactStart": 25.332,
+          "exactEnd": 25.552
         },
         {
           "text": "把",
@@ -1539,10 +1323,10 @@
           "text_cn": "把",
           "isPunct": false,
           "wordAudio": "./assets/words/96ea65f4309b.mp3",
-          "start": 22.581,
-          "end": 23.017,
-          "exactStart": 26.789,
-          "exactEnd": 27.036
+          "start": 28.646,
+          "end": 29.327,
+          "exactStart": 25.552,
+          "exactEnd": 25.799
         },
         {
           "text": "「",
@@ -1550,10 +1334,10 @@
           "text_tw": "「",
           "text_cn": "「",
           "isPunct": true,
-          "start": 23.017,
-          "end": 23.067,
-          "exactStart": 27.066,
-          "exactEnd": 27.286
+          "start": 29.327,
+          "end": 29.377,
+          "exactStart": 25.829,
+          "exactEnd": 26.049
         },
         {
           "text": "想要",
@@ -1562,10 +1346,10 @@
           "text_cn": "想要",
           "isPunct": false,
           "wordAudio": "./assets/words/eb53ccfab072.mp3",
-          "start": 23.017,
-          "end": 23.454,
-          "exactStart": 27.286,
-          "exactEnd": 27.918
+          "start": 29.327,
+          "end": 30.007,
+          "exactStart": 26.049,
+          "exactEnd": 26.681
         },
         {
           "text": "」",
@@ -1573,10 +1357,10 @@
           "text_tw": "」",
           "text_cn": "」",
           "isPunct": true,
-          "start": 23.454,
-          "end": 23.504,
-          "exactStart": 27.948,
-          "exactEnd": 28.168
+          "start": 30.007,
+          "end": 30.057,
+          "exactStart": 26.711,
+          "exactEnd": 26.931
         },
         {
           "text": "的",
@@ -1585,10 +1369,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d4bcd7fc49f0.mp3",
-          "start": 23.454,
-          "end": 23.89,
-          "exactStart": 28.168,
-          "exactEnd": 28.405
+          "start": 30.007,
+          "end": 30.688,
+          "exactStart": 26.931,
+          "exactEnd": 27.168
         },
         {
           "text": "玩具",
@@ -1597,34 +1381,34 @@
           "text_cn": "玩具",
           "isPunct": false,
           "wordAudio": "./assets/words/c566e4724670.mp3",
-          "start": 23.89,
-          "end": 24.327,
-          "exactStart": 28.435,
-          "exactEnd": 29.002
+          "start": 30.688,
+          "end": 31.368,
+          "exactStart": 27.198,
+          "exactEnd": 27.765
         },
         {
-          "text": "寫",
-          "text_hk": "寫",
-          "text_tw": "寫",
-          "text_cn": "写",
+          "text": "寫進",
+          "text_hk": "寫進",
+          "text_tw": "寫進",
+          "text_cn": "写进",
           "isPunct": false,
-          "wordAudio": "./assets/words/546c03124ecc.mp3",
-          "start": 24.327,
-          "end": 24.764,
-          "exactStart": 29.032,
-          "exactEnd": 29.399
+          "wordAudio": "./assets/words/b1dbc8698fbf.mp3",
+          "start": 31.368,
+          "end": 32.048,
+          "exactStart": 27.795,
+          "exactEnd": 28.372
         },
         {
-          "text": "進願望",
-          "text_hk": "進願望",
-          "text_tw": "進願望",
-          "text_cn": "进愿望",
+          "text": "願望",
+          "text_hk": "願望",
+          "text_tw": "願望",
+          "text_cn": "愿望",
           "isPunct": false,
-          "wordAudio": "./assets/words/6b69148d6159.mp3",
-          "start": 24.764,
-          "end": 25.2,
-          "exactStart": 29.429,
-          "exactEnd": 30.235
+          "wordAudio": "./assets/words/7c81e5654eab.mp3",
+          "start": 32.048,
+          "end": 32.729,
+          "exactStart": 28.402,
+          "exactEnd": 28.959
         },
         {
           "text": "清單",
@@ -1633,10 +1417,10 @@
           "text_cn": "清单",
           "isPunct": false,
           "wordAudio": "./assets/words/aa5bb1917927.mp3",
-          "start": 25.2,
-          "end": 25.637,
-          "exactStart": 30.265,
-          "exactEnd": 30.812
+          "start": 32.729,
+          "end": 33.409,
+          "exactStart": 28.989,
+          "exactEnd": 29.536
         },
         {
           "text": "慢慢",
@@ -1645,10 +1429,10 @@
           "text_cn": "慢慢",
           "isPunct": false,
           "wordAudio": "./assets/words/90511d179b3e.mp3",
-          "start": 25.637,
-          "end": 26.073,
-          "exactStart": 30.842,
-          "exactEnd": 31.394
+          "start": 33.409,
+          "end": 34.09,
+          "exactStart": 29.566,
+          "exactEnd": 30.118
         },
         {
           "text": "存錢",
@@ -1657,10 +1441,10 @@
           "text_cn": "存钱",
           "isPunct": false,
           "wordAudio": "./assets/words/6d77bd439288.mp3",
-          "start": 26.073,
-          "end": 26.51,
-          "exactStart": 31.424,
-          "exactEnd": 32.131
+          "start": 34.09,
+          "end": 34.77,
+          "exactStart": 30.148,
+          "exactEnd": 30.855
         },
         {
           "text": "。",
@@ -1668,10 +1452,10 @@
           "text_tw": "。",
           "text_cn": "。",
           "isPunct": true,
-          "start": 26.51,
-          "end": 26.56,
-          "exactStart": 32.161,
-          "exactEnd": 32.561
+          "start": 34.77,
+          "end": 34.82,
+          "exactStart": 30.885,
+          "exactEnd": 31.285
         }
       ]
     },
@@ -1688,7 +1472,7 @@
           "isPunct": false,
           "wordAudio": "./assets/words/bade87d52cda.mp3",
           "start": 0.15,
-          "end": 0.555,
+          "end": 0.628,
           "exactStart": 0.1,
           "exactEnd": 0.677
         },
@@ -1699,8 +1483,8 @@
           "text_cn": "还是",
           "isPunct": false,
           "wordAudio": "./assets/words/522ce5fa59c2.mp3",
-          "start": 0.555,
-          "end": 0.961,
+          "start": 0.628,
+          "end": 1.107,
           "exactStart": 0.707,
           "exactEnd": 1.344
         },
@@ -1711,8 +1495,8 @@
           "text_cn": "想要",
           "isPunct": false,
           "wordAudio": "./assets/words/0408abb740ba.mp3",
-          "start": 0.961,
-          "end": 1.366,
+          "start": 1.107,
+          "end": 1.585,
           "exactStart": 1.374,
           "exactEnd": 1.991
         },
@@ -1726,70 +1510,46 @@
           "text_cn": "小猴子",
           "isPunct": false,
           "wordAudio": "./assets/words/9e708a632d94.mp3",
-          "start": 1.566,
-          "end": 1.972,
+          "start": 1.785,
+          "end": 2.264,
           "exactStart": 2.521,
           "exactEnd": 3.298
         },
         {
-          "text": "拿",
-          "text_hk": "拿",
-          "text_tw": "拿",
-          "text_cn": "拿",
+          "text": "拿著",
+          "text_hk": "拿著",
+          "text_tw": "拿著",
+          "text_cn": "拿著",
           "isPunct": false,
-          "wordAudio": "./assets/words/fcaf5a9694cd.mp3",
-          "start": 1.972,
-          "end": 2.377,
+          "wordAudio": "./assets/words/a8120379e814.mp3",
+          "start": 2.264,
+          "end": 2.742,
           "exactStart": 3.328,
-          "exactEnd": 3.675
+          "exactEnd": 3.91
         },
         {
-          "text": "著存",
-          "text_hk": "著存",
-          "text_tw": "著存",
-          "text_cn": "著存",
+          "text": "存了",
+          "text_hk": "存了",
+          "text_tw": "存了",
+          "text_cn": "存了",
           "isPunct": false,
-          "wordAudio": "./assets/words/e8be75e78427.mp3",
-          "start": 2.377,
-          "end": 2.783,
-          "exactStart": 3.705,
-          "exactEnd": 4.327
+          "wordAudio": "./assets/words/c3212cfc1b5e.mp3",
+          "start": 2.742,
+          "end": 3.22,
+          "exactStart": 3.94,
+          "exactEnd": 4.477
         },
         {
-          "text": "了",
-          "text_hk": "了",
-          "text_tw": "了",
-          "text_cn": "了",
+          "text": "很久",
+          "text_hk": "很久",
+          "text_tw": "很久",
+          "text_cn": "很久",
           "isPunct": false,
-          "wordAudio": "./assets/words/710e54162778.mp3",
-          "start": 2.783,
-          "end": 3.188,
-          "exactStart": 4.357,
-          "exactEnd": 4.689
-        },
-        {
-          "text": "很",
-          "text_hk": "很",
-          "text_tw": "很",
-          "text_cn": "很",
-          "isPunct": false,
-          "wordAudio": "./assets/words/67405a37b321.mp3",
-          "start": 3.188,
-          "end": 3.593,
-          "exactStart": 4.719,
-          "exactEnd": 5.071
-        },
-        {
-          "text": "久",
-          "text_hk": "久",
-          "text_tw": "久",
-          "text_cn": "久",
-          "isPunct": false,
-          "wordAudio": "./assets/words/58af8e617e92.mp3",
-          "start": 3.593,
-          "end": 3.999,
-          "exactStart": 5.101,
-          "exactEnd": 5.453
+          "wordAudio": "./assets/words/5cb4f085f647.mp3",
+          "start": 3.22,
+          "end": 3.699,
+          "exactStart": 4.507,
+          "exactEnd": 5.074
         },
         {
           "text": "的",
@@ -1798,46 +1558,46 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d25f1b378933.mp3",
-          "start": 3.999,
-          "end": 4.404,
-          "exactStart": 5.483,
-          "exactEnd": 5.83
+          "start": 3.699,
+          "end": 4.177,
+          "exactStart": 5.104,
+          "exactEnd": 5.451
         },
         {
-          "text": "零用",
-          "text_hk": "零用",
-          "text_tw": "零用",
-          "text_cn": "零用",
+          "text": "零用錢",
+          "text_hk": "零用錢",
+          "text_tw": "零用錢",
+          "text_cn": "零用钱",
           "isPunct": false,
-          "wordAudio": "./assets/words/a74c8586c671.mp3",
-          "start": 4.404,
-          "end": 4.81,
-          "exactStart": 5.86,
-          "exactEnd": 6.442
+          "wordAudio": "./assets/words/9e6e6a2b7353.mp3",
+          "start": 4.177,
+          "end": 4.656,
+          "exactStart": 5.481,
+          "exactEnd": 6.308
         },
         {
-          "text": "錢",
-          "text_hk": "錢",
-          "text_tw": "錢",
-          "text_cn": "钱",
+          "text": "去",
+          "text_hk": "去",
+          "text_tw": "去",
+          "text_cn": "去",
           "isPunct": false,
-          "wordAudio": "./assets/words/e66520a2c4fb.mp3",
-          "start": 4.81,
-          "end": 5.215,
-          "exactStart": 6.472,
-          "exactEnd": 6.874
+          "wordAudio": "./assets/words/1e36f86d8df2.mp3",
+          "start": 4.656,
+          "end": 5.134,
+          "exactStart": 6.338,
+          "exactEnd": 6.74
         },
         {
-          "text": "去逛",
-          "text_hk": "去逛",
-          "text_tw": "去逛",
-          "text_cn": "去逛",
+          "text": "逛",
+          "text_hk": "逛",
+          "text_tw": "逛",
+          "text_cn": "逛",
           "isPunct": false,
-          "wordAudio": "./assets/words/4d58470d5ee8.mp3",
-          "start": 5.215,
-          "end": 5.621,
-          "exactStart": 6.904,
-          "exactEnd": 7.441
+          "wordAudio": "./assets/words/70217aad0d8f.mp3",
+          "start": 5.134,
+          "end": 5.612,
+          "exactStart": 6.77,
+          "exactEnd": 7.112
         },
         {
           "text": "熱鬧",
@@ -1846,10 +1606,10 @@
           "text_cn": "热闹",
           "isPunct": false,
           "wordAudio": "./assets/words/6e4b52117a42.mp3",
-          "start": 5.621,
-          "end": 6.026,
-          "exactStart": 7.471,
-          "exactEnd": 8.043
+          "start": 5.612,
+          "end": 6.091,
+          "exactStart": 7.142,
+          "exactEnd": 7.714
         },
         {
           "text": "的",
@@ -1858,10 +1618,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d25f1b378933.mp3",
-          "start": 6.026,
-          "end": 6.431,
-          "exactStart": 8.073,
-          "exactEnd": 8.42
+          "start": 6.091,
+          "end": 6.569,
+          "exactStart": 7.744,
+          "exactEnd": 8.091
         },
         {
           "text": "森林",
@@ -1870,10 +1630,10 @@
           "text_cn": "森林",
           "isPunct": false,
           "wordAudio": "./assets/words/2d8e38d588ee.mp3",
-          "start": 6.431,
-          "end": 6.837,
-          "exactStart": 8.45,
-          "exactEnd": 9.117
+          "start": 6.569,
+          "end": 7.048,
+          "exactStart": 8.121,
+          "exactEnd": 8.788
         },
         {
           "text": "市集",
@@ -1882,10 +1642,10 @@
           "text_cn": "市集",
           "isPunct": false,
           "wordAudio": "./assets/words/05352e0aac35.mp3",
-          "start": 6.837,
-          "end": 7.242,
-          "exactStart": 9.147,
-          "exactEnd": 9.814
+          "start": 7.048,
+          "end": 7.526,
+          "exactStart": 8.818,
+          "exactEnd": 9.485
         },
         {
           "text": "。",
@@ -1893,10 +1653,10 @@
           "text_tw": "。",
           "text_cn": "。",
           "isPunct": true,
-          "start": 7.242,
-          "end": 7.292,
-          "exactStart": 9.844,
-          "exactEnd": 10.244
+          "start": 7.526,
+          "end": 7.576,
+          "exactStart": 9.515,
+          "exactEnd": 9.915
         },
         {
           "isBreak": true
@@ -1908,34 +1668,22 @@
           "text_cn": "他",
           "isPunct": false,
           "wordAudio": "./assets/words/cd7317ebb27b.mp3",
-          "start": 7.442,
-          "end": 7.848,
-          "exactStart": 10.744,
-          "exactEnd": 11.076
+          "start": 7.726,
+          "end": 8.204,
+          "exactStart": 10.415,
+          "exactEnd": 10.747
         },
         {
-          "text": "看",
-          "text_hk": "看",
-          "text_tw": "看",
-          "text_cn": "看",
+          "text": "看見",
+          "text_hk": "看見",
+          "text_tw": "看見",
+          "text_cn": "看见",
           "isPunct": false,
-          "wordAudio": "./assets/words/444952772e89.mp3",
-          "start": 7.848,
-          "end": 8.253,
-          "exactStart": 11.106,
-          "exactEnd": 11.488
-        },
-        {
-          "text": "見",
-          "text_hk": "見",
-          "text_tw": "見",
-          "text_cn": "见",
-          "isPunct": false,
-          "wordAudio": "./assets/words/72667179c7ab.mp3",
-          "start": 8.253,
-          "end": 8.658,
-          "exactStart": 11.518,
-          "exactEnd": 11.9
+          "wordAudio": "./assets/words/553169390f19.mp3",
+          "start": 8.204,
+          "end": 8.683,
+          "exactStart": 10.777,
+          "exactEnd": 11.329
         },
         {
           "text": "會",
@@ -1944,10 +1692,10 @@
           "text_cn": "会",
           "isPunct": false,
           "wordAudio": "./assets/words/26267ca771fe.mp3",
-          "start": 8.658,
-          "end": 9.064,
-          "exactStart": 11.93,
-          "exactEnd": 12.257
+          "start": 8.683,
+          "end": 9.161,
+          "exactStart": 11.359,
+          "exactEnd": 11.686
         },
         {
           "text": "發光",
@@ -1956,10 +1704,10 @@
           "text_cn": "发光",
           "isPunct": false,
           "wordAudio": "./assets/words/528153cae876.mp3",
-          "start": 9.064,
-          "end": 9.469,
-          "exactStart": 12.287,
-          "exactEnd": 12.789
+          "start": 9.161,
+          "end": 9.64,
+          "exactStart": 11.716,
+          "exactEnd": 12.218
         },
         {
           "text": "的",
@@ -1968,58 +1716,34 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d25f1b378933.mp3",
-          "start": 9.469,
-          "end": 9.875,
-          "exactStart": 12.819,
-          "exactEnd": 13.166
+          "start": 9.64,
+          "end": 10.118,
+          "exactStart": 12.248,
+          "exactEnd": 12.595
         },
         {
-          "text": "泡泡",
-          "text_hk": "泡泡",
-          "text_tw": "泡泡",
-          "text_cn": "泡泡",
+          "text": "泡泡槍",
+          "text_hk": "泡泡槍",
+          "text_tw": "泡泡槍",
+          "text_cn": "泡泡枪",
           "isPunct": false,
-          "wordAudio": "./assets/words/77423006269c.mp3",
-          "start": 9.875,
-          "end": 10.28,
-          "exactStart": 13.196,
-          "exactEnd": 13.743
+          "wordAudio": "./assets/words/b98daa09c9a3.mp3",
+          "start": 10.118,
+          "end": 10.596,
+          "exactStart": 12.625,
+          "exactEnd": 13.422
         },
         {
-          "text": "槍",
-          "text_hk": "槍",
-          "text_tw": "槍",
-          "text_cn": "枪",
+          "text": "好想",
+          "text_hk": "好想",
+          "text_tw": "好想",
+          "text_cn": "好想",
           "isPunct": false,
-          "wordAudio": "./assets/words/40bd21a5a64c.mp3",
-          "start": 10.28,
-          "end": 10.686,
-          "exactStart": 13.773,
-          "exactEnd": 14.145
-        },
-        {
-          "text": "好",
-          "text_hk": "好",
-          "text_tw": "好",
-          "text_cn": "好",
-          "isPunct": false,
-          "wordAudio": "./assets/words/41ee811549c6.mp3",
-          "start": 10.686,
-          "end": 11.091,
-          "exactStart": 14.175,
-          "exactEnd": 14.487
-        },
-        {
-          "text": "想",
-          "text_hk": "想",
-          "text_tw": "想",
-          "text_cn": "想",
-          "isPunct": false,
-          "wordAudio": "./assets/words/333b515737f6.mp3",
-          "start": 11.091,
-          "end": 11.496,
-          "exactStart": 14.517,
-          "exactEnd": 14.944
+          "wordAudio": "./assets/words/80b7b5a56aae.mp3",
+          "start": 10.596,
+          "end": 11.075,
+          "exactStart": 13.452,
+          "exactEnd": 14.054
         },
         {
           "text": "買",
@@ -2028,10 +1752,10 @@
           "text_cn": "买",
           "isPunct": false,
           "wordAudio": "./assets/words/71dc13a7c74e.mp3",
-          "start": 11.496,
-          "end": 11.902,
-          "exactStart": 14.974,
-          "exactEnd": 15.311
+          "start": 11.075,
+          "end": 11.553,
+          "exactStart": 14.084,
+          "exactEnd": 14.421
         },
         {
           "text": "，",
@@ -2039,10 +1763,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 11.902,
-          "end": 11.952,
-          "exactStart": 15.341,
-          "exactEnd": 15.561
+          "start": 11.553,
+          "end": 11.603,
+          "exactStart": 14.451,
+          "exactEnd": 14.671
         },
         {
           "text": "但",
@@ -2051,10 +1775,10 @@
           "text_cn": "但",
           "isPunct": false,
           "wordAudio": "./assets/words/a5c3f04cbc35.mp3",
-          "start": 11.902,
-          "end": 12.307,
-          "exactStart": 15.561,
-          "exactEnd": 15.918
+          "start": 11.553,
+          "end": 12.032,
+          "exactStart": 14.671,
+          "exactEnd": 15.028
         },
         {
           "text": "又",
@@ -2063,10 +1787,10 @@
           "text_cn": "又",
           "isPunct": false,
           "wordAudio": "./assets/words/d0c9cecc93fe.mp3",
-          "start": 12.307,
-          "end": 12.713,
-          "exactStart": 15.948,
-          "exactEnd": 16.31
+          "start": 12.032,
+          "end": 12.51,
+          "exactStart": 15.058,
+          "exactEnd": 15.42
         },
         {
           "text": "想起",
@@ -2075,34 +1799,22 @@
           "text_cn": "想起",
           "isPunct": false,
           "wordAudio": "./assets/words/513c1171c31e.mp3",
-          "start": 12.713,
-          "end": 13.118,
-          "exactStart": 16.34,
-          "exactEnd": 17.027
+          "start": 12.51,
+          "end": 12.988,
+          "exactStart": 15.45,
+          "exactEnd": 16.137
         },
         {
-          "text": "繪畫",
-          "text_hk": "繪畫",
-          "text_tw": "繪畫",
-          "text_cn": "绘画",
+          "text": "繪畫課",
+          "text_hk": "繪畫課",
+          "text_tw": "繪畫課",
+          "text_cn": "绘画课",
           "isPunct": false,
-          "wordAudio": "./assets/words/473f47e31db2.mp3",
-          "start": 13.118,
-          "end": 13.524,
-          "exactStart": 17.057,
-          "exactEnd": 17.619
-        },
-        {
-          "text": "課",
-          "text_hk": "課",
-          "text_tw": "課",
-          "text_cn": "课",
-          "isPunct": false,
-          "wordAudio": "./assets/words/fa802309a431.mp3",
-          "start": 13.524,
-          "end": 13.929,
-          "exactStart": 17.649,
-          "exactEnd": 18.021
+          "wordAudio": "./assets/words/5db58cce66be.mp3",
+          "start": 12.988,
+          "end": 13.467,
+          "exactStart": 16.167,
+          "exactEnd": 16.919
         },
         {
           "text": "需要",
@@ -2111,10 +1823,10 @@
           "text_cn": "需要",
           "isPunct": false,
           "wordAudio": "./assets/words/bade87d52cda.mp3",
-          "start": 13.929,
-          "end": 14.334,
-          "exactStart": 18.051,
-          "exactEnd": 18.628
+          "start": 13.467,
+          "end": 13.945,
+          "exactStart": 16.949,
+          "exactEnd": 17.526
         },
         {
           "text": "的",
@@ -2123,10 +1835,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d25f1b378933.mp3",
-          "start": 14.334,
-          "end": 14.74,
-          "exactStart": 18.658,
-          "exactEnd": 19.005
+          "start": 13.945,
+          "end": 14.424,
+          "exactStart": 17.556,
+          "exactEnd": 17.903
         },
         {
           "text": "彩色",
@@ -2135,10 +1847,10 @@
           "text_cn": "彩色",
           "isPunct": false,
           "wordAudio": "./assets/words/55e97c7cde91.mp3",
-          "start": 14.74,
-          "end": 15.145,
-          "exactStart": 19.035,
-          "exactEnd": 19.687
+          "start": 14.424,
+          "end": 14.902,
+          "exactStart": 17.933,
+          "exactEnd": 18.585
         },
         {
           "text": "畫筆",
@@ -2147,46 +1859,22 @@
           "text_cn": "画笔",
           "isPunct": false,
           "wordAudio": "./assets/words/52722439172e.mp3",
-          "start": 15.145,
-          "end": 15.551,
-          "exactStart": 19.717,
-          "exactEnd": 20.284
+          "start": 14.902,
+          "end": 15.38,
+          "exactStart": 18.615,
+          "exactEnd": 19.182
         },
         {
-          "text": "用",
-          "text_hk": "用",
-          "text_tw": "用",
-          "text_cn": "用",
+          "text": "用完了",
+          "text_hk": "用完了",
+          "text_tw": "用完了",
+          "text_cn": "用完了",
           "isPunct": false,
-          "wordAudio": "./assets/words/244a9154d4f3.mp3",
-          "start": 15.551,
-          "end": 15.956,
-          "exactStart": 20.314,
-          "exactEnd": 20.676
-        },
-        {
-          "text": "完",
-          "text_hk": "完",
-          "text_tw": "完",
-          "text_cn": "完",
-          "isPunct": false,
-          "wordAudio": "./assets/words/fd62832a9757.mp3",
-          "start": 15.956,
-          "end": 16.362,
-          "exactStart": 20.706,
-          "exactEnd": 21.028
-        },
-        {
-          "text": "了",
-          "text_hk": "了",
-          "text_tw": "了",
-          "text_cn": "了",
-          "isPunct": false,
-          "wordAudio": "./assets/words/710e54162778.mp3",
-          "start": 16.362,
-          "end": 16.767,
-          "exactStart": 21.058,
-          "exactEnd": 21.39
+          "wordAudio": "./assets/words/474910953129.mp3",
+          "start": 15.38,
+          "end": 15.859,
+          "exactStart": 19.212,
+          "exactEnd": 19.909
         },
         {
           "text": "。",
@@ -2194,10 +1882,10 @@
           "text_tw": "。",
           "text_cn": "。",
           "isPunct": true,
-          "start": 16.767,
-          "end": 16.817,
-          "exactStart": 21.42,
-          "exactEnd": 21.82
+          "start": 15.859,
+          "end": 15.909,
+          "exactStart": 19.939,
+          "exactEnd": 20.339
         },
         {
           "isBreak": true
@@ -2209,46 +1897,22 @@
           "text_cn": "小猴子",
           "isPunct": false,
           "wordAudio": "./assets/words/9e708a632d94.mp3",
-          "start": 16.967,
-          "end": 17.372,
-          "exactStart": 22.32,
-          "exactEnd": 23.097
+          "start": 16.059,
+          "end": 16.537,
+          "exactStart": 20.839,
+          "exactEnd": 21.616
         },
         {
-          "text": "想",
-          "text_hk": "想",
-          "text_tw": "想",
-          "text_cn": "想",
+          "text": "想了想",
+          "text_hk": "想了想",
+          "text_tw": "想了想",
+          "text_cn": "想了想",
           "isPunct": false,
-          "wordAudio": "./assets/words/333b515737f6.mp3",
-          "start": 17.372,
-          "end": 17.778,
-          "exactStart": 23.127,
-          "exactEnd": 23.554
-        },
-        {
-          "text": "了",
-          "text_hk": "了",
-          "text_tw": "了",
-          "text_cn": "了",
-          "isPunct": false,
-          "wordAudio": "./assets/words/710e54162778.mp3",
-          "start": 17.778,
-          "end": 18.183,
-          "exactStart": 23.584,
-          "exactEnd": 23.916
-        },
-        {
-          "text": "想",
-          "text_hk": "想",
-          "text_tw": "想",
-          "text_cn": "想",
-          "isPunct": false,
-          "wordAudio": "./assets/words/333b515737f6.mp3",
-          "start": 18.183,
-          "end": 18.589,
-          "exactStart": 23.946,
-          "exactEnd": 24.373
+          "wordAudio": "./assets/words/c1c11bf76e01.mp3",
+          "start": 16.537,
+          "end": 17.016,
+          "exactStart": 21.646,
+          "exactEnd": 22.413
         },
         {
           "text": "，",
@@ -2256,10 +1920,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 18.589,
-          "end": 18.639,
-          "exactStart": 24.403,
-          "exactEnd": 24.623
+          "start": 17.016,
+          "end": 17.066,
+          "exactStart": 22.443,
+          "exactEnd": 22.663
         },
         {
           "text": "決定",
@@ -2268,22 +1932,34 @@
           "text_cn": "决定",
           "isPunct": false,
           "wordAudio": "./assets/words/484f052ecd00.mp3",
-          "start": 18.589,
-          "end": 18.994,
-          "exactStart": 24.623,
-          "exactEnd": 25.2
+          "start": 17.016,
+          "end": 17.494,
+          "exactStart": 22.663,
+          "exactEnd": 23.24
         },
         {
-          "text": "先買",
-          "text_hk": "先買",
-          "text_tw": "先買",
-          "text_cn": "先买",
+          "text": "先",
+          "text_hk": "先",
+          "text_tw": "先",
+          "text_cn": "先",
           "isPunct": false,
-          "wordAudio": "./assets/words/0c8adf99c980.mp3",
-          "start": 18.994,
-          "end": 19.399,
-          "exactStart": 25.23,
-          "exactEnd": 25.847
+          "wordAudio": "./assets/words/70addede8076.mp3",
+          "start": 17.494,
+          "end": 17.972,
+          "exactStart": 23.27,
+          "exactEnd": 23.702
+        },
+        {
+          "text": "買",
+          "text_hk": "買",
+          "text_tw": "買",
+          "text_cn": "买",
+          "isPunct": false,
+          "wordAudio": "./assets/words/71dc13a7c74e.mp3",
+          "start": 17.972,
+          "end": 18.451,
+          "exactStart": 23.732,
+          "exactEnd": 24.069
         },
         {
           "text": "學習",
@@ -2292,10 +1968,10 @@
           "text_cn": "学习",
           "isPunct": false,
           "wordAudio": "./assets/words/da76a91eed1d.mp3",
-          "start": 19.399,
-          "end": 19.805,
-          "exactStart": 25.877,
-          "exactEnd": 26.564
+          "start": 18.451,
+          "end": 18.929,
+          "exactStart": 24.099,
+          "exactEnd": 24.786
         },
         {
           "text": "「",
@@ -2303,10 +1979,10 @@
           "text_tw": "「",
           "text_cn": "「",
           "isPunct": true,
-          "start": 19.805,
-          "end": 19.855,
-          "exactStart": 26.594,
-          "exactEnd": 26.814
+          "start": 18.929,
+          "end": 18.979,
+          "exactStart": 24.816,
+          "exactEnd": 25.036
         },
         {
           "text": "需要",
@@ -2315,10 +1991,10 @@
           "text_cn": "需要",
           "isPunct": false,
           "wordAudio": "./assets/words/bade87d52cda.mp3",
-          "start": 19.805,
-          "end": 20.21,
-          "exactStart": 26.814,
-          "exactEnd": 27.391
+          "start": 18.929,
+          "end": 19.408,
+          "exactStart": 25.036,
+          "exactEnd": 25.613
         },
         {
           "text": "」",
@@ -2326,10 +2002,10 @@
           "text_tw": "」",
           "text_cn": "」",
           "isPunct": true,
-          "start": 20.21,
-          "end": 20.26,
-          "exactStart": 27.421,
-          "exactEnd": 27.641
+          "start": 19.408,
+          "end": 19.458,
+          "exactStart": 25.643,
+          "exactEnd": 25.863
         },
         {
           "text": "的",
@@ -2338,10 +2014,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d25f1b378933.mp3",
-          "start": 20.21,
-          "end": 20.616,
-          "exactStart": 27.641,
-          "exactEnd": 27.988
+          "start": 19.408,
+          "end": 19.886,
+          "exactStart": 25.863,
+          "exactEnd": 26.21
         },
         {
           "text": "畫筆",
@@ -2350,10 +2026,10 @@
           "text_cn": "画笔",
           "isPunct": false,
           "wordAudio": "./assets/words/52722439172e.mp3",
-          "start": 20.616,
-          "end": 21.021,
-          "exactStart": 28.018,
-          "exactEnd": 28.585
+          "start": 19.886,
+          "end": 20.364,
+          "exactStart": 26.24,
+          "exactEnd": 26.807
         },
         {
           "text": "，",
@@ -2361,10 +2037,10 @@
           "text_tw": "，",
           "text_cn": "，",
           "isPunct": true,
-          "start": 21.021,
-          "end": 21.071,
-          "exactStart": 28.615,
-          "exactEnd": 28.835
+          "start": 20.364,
+          "end": 20.414,
+          "exactStart": 26.837,
+          "exactEnd": 27.057
         },
         {
           "text": "把",
@@ -2373,10 +2049,10 @@
           "text_cn": "把",
           "isPunct": false,
           "wordAudio": "./assets/words/74fdcc7f02c2.mp3",
-          "start": 21.021,
-          "end": 21.427,
-          "exactStart": 28.835,
-          "exactEnd": 29.162
+          "start": 20.364,
+          "end": 20.843,
+          "exactStart": 27.057,
+          "exactEnd": 27.384
         },
         {
           "text": "「",
@@ -2384,10 +2060,10 @@
           "text_tw": "「",
           "text_cn": "「",
           "isPunct": true,
-          "start": 21.427,
-          "end": 21.477,
-          "exactStart": 29.192,
-          "exactEnd": 29.412
+          "start": 20.843,
+          "end": 20.893,
+          "exactStart": 27.414,
+          "exactEnd": 27.634
         },
         {
           "text": "想要",
@@ -2396,10 +2072,10 @@
           "text_cn": "想要",
           "isPunct": false,
           "wordAudio": "./assets/words/0408abb740ba.mp3",
-          "start": 21.427,
-          "end": 21.832,
-          "exactStart": 29.412,
-          "exactEnd": 30.029
+          "start": 20.843,
+          "end": 21.321,
+          "exactStart": 27.634,
+          "exactEnd": 28.251
         },
         {
           "text": "」",
@@ -2407,10 +2083,10 @@
           "text_tw": "」",
           "text_cn": "」",
           "isPunct": true,
-          "start": 21.832,
-          "end": 21.882,
-          "exactStart": 30.059,
-          "exactEnd": 30.279
+          "start": 21.321,
+          "end": 21.371,
+          "exactStart": 28.281,
+          "exactEnd": 28.501
         },
         {
           "text": "的",
@@ -2419,10 +2095,10 @@
           "text_cn": "的",
           "isPunct": false,
           "wordAudio": "./assets/words/d25f1b378933.mp3",
-          "start": 21.832,
-          "end": 22.237,
-          "exactStart": 30.279,
-          "exactEnd": 30.626
+          "start": 21.321,
+          "end": 21.8,
+          "exactStart": 28.501,
+          "exactEnd": 28.848
         },
         {
           "text": "玩具",
@@ -2431,34 +2107,34 @@
           "text_cn": "玩具",
           "isPunct": false,
           "wordAudio": "./assets/words/fcf78a4e31bf.mp3",
-          "start": 22.237,
-          "end": 22.643,
-          "exactStart": 30.656,
-          "exactEnd": 31.233
+          "start": 21.8,
+          "end": 22.278,
+          "exactStart": 28.878,
+          "exactEnd": 29.455
         },
         {
-          "text": "寫",
-          "text_hk": "寫",
-          "text_tw": "寫",
-          "text_cn": "写",
+          "text": "寫進",
+          "text_hk": "寫進",
+          "text_tw": "寫進",
+          "text_cn": "写进",
           "isPunct": false,
-          "wordAudio": "./assets/words/29e833da52d7.mp3",
-          "start": 22.643,
-          "end": 23.048,
-          "exactStart": 31.263,
-          "exactEnd": 31.685
+          "wordAudio": "./assets/words/6c33a9d79122.mp3",
+          "start": 22.278,
+          "end": 22.756,
+          "exactStart": 29.485,
+          "exactEnd": 30.127
         },
         {
-          "text": "進願望",
-          "text_hk": "進願望",
-          "text_tw": "進願望",
-          "text_cn": "进愿望",
+          "text": "願望",
+          "text_hk": "願望",
+          "text_tw": "願望",
+          "text_cn": "愿望",
           "isPunct": false,
-          "wordAudio": "./assets/words/18baa7dccba5.mp3",
-          "start": 23.048,
-          "end": 23.454,
-          "exactStart": 31.715,
-          "exactEnd": 32.492
+          "wordAudio": "./assets/words/c02cef08c99e.mp3",
+          "start": 22.756,
+          "end": 23.235,
+          "exactStart": 30.157,
+          "exactEnd": 30.684
         },
         {
           "text": "清單",
@@ -2467,10 +2143,10 @@
           "text_cn": "清单",
           "isPunct": false,
           "wordAudio": "./assets/words/ab7c4d5e0caa.mp3",
-          "start": 23.454,
-          "end": 23.859,
-          "exactStart": 32.522,
-          "exactEnd": 33.114
+          "start": 23.235,
+          "end": 23.713,
+          "exactStart": 30.714,
+          "exactEnd": 31.306
         },
         {
           "text": "慢慢",
@@ -2479,10 +2155,10 @@
           "text_cn": "慢慢",
           "isPunct": false,
           "wordAudio": "./assets/words/307288d393ff.mp3",
-          "start": 23.859,
-          "end": 24.265,
-          "exactStart": 33.144,
-          "exactEnd": 33.686
+          "start": 23.713,
+          "end": 24.192,
+          "exactStart": 31.336,
+          "exactEnd": 31.878
         },
         {
           "text": "存錢",
@@ -2491,10 +2167,10 @@
           "text_cn": "存钱",
           "isPunct": false,
           "wordAudio": "./assets/words/3e0e157c312d.mp3",
-          "start": 24.265,
+          "start": 24.192,
           "end": 24.67,
-          "exactStart": 33.716,
-          "exactEnd": 34.368
+          "exactStart": 31.908,
+          "exactEnd": 32.56
         },
         {
           "text": "。",
@@ -2504,8 +2180,8 @@
           "isPunct": true,
           "start": 24.67,
           "end": 24.72,
-          "exactStart": 34.398,
-          "exactEnd": 34.798
+          "exactStart": 32.59,
+          "exactEnd": 32.99
         }
       ]
     },
