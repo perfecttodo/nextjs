@@ -213,10 +213,11 @@ async function renderManagerList() {
       <div class="rec-item">
         <div class="rec-item-header">
           <div class="rec-item-title">#${list.length - idx} 📖 ${rec.storyTitle} · <span style="color:#D97706;">${rec.label}</span></div>
-          <div class="rec-item-meta">語言：${rec.langLabel} ｜ 錄製時間：${dateStr}</div>
+          <div class="rec-item-meta">語言：${rec.langLabel} ｜ 時長：<span id="dur-${rec.id}">${getRecEstimatedDuration(rec) || '--:--'}</span> ｜ ${dateStr}</div>
         </div>
-        <audio controls playsinline src="${url}" style="width:100%;height:40px;"></audio>
+        <audio controls playsinline src="${url}" style="width:100%;height:40px;" onloadedmetadata="if(isFinite(this.duration)){const el=document.getElementById('dur-${rec.id}');if(el)el.textContent=formatSecMMSS(this.duration);}"></audio>
         <div class="rec-item-btns">
+          <button class="btn-mini" style="background:#FEF3C7;color:#B45309;border:1px solid #F59E0B;" onclick="playRecInStory('${rec.id}')">▶️ 故事播放</button>
           <a class="btn-mini" style="background:#DCFCE7;color:#15803D;text-decoration:none;display:inline-flex;align-items:center;" href="${url}" download="${rec.storyTitle}_${rec.label}.${ext}">⬇️ 下載</a>
           <button class="btn-mini" style="background:#E0F2FE;color:#0369A1;" onclick="handleRenameRec('${rec.id}', '${rec.label.replace(/'/g, "\'")}')">✏️ 改名</button>
           <button class="btn-mini" style="background:#FEE2E2;color:#B91C1C;" onclick="handleDeleteRec('${rec.id}')">🗑️ 刪除</button>
@@ -228,6 +229,49 @@ async function renderManagerList() {
 window.setManagerFilter = async (lbl) => {
   managerFilterLabel = lbl;
   await renderManagerList();
+};
+
+
+window.playRecInStory = async (recId) => {
+  const allList = await ParentVoice.getAllRecordings();
+  const targetRec = allList.find(r => r.id === recId);
+  if (!targetRec) return;
+
+  // 1. 關閉錄音庫彈窗並暫停試聽音頻
+  managerList.querySelectorAll('audio').forEach(a => a.pause());
+  modalManager.classList.add('hidden');
+
+  // 2. 自動切換到該錄音錄製時的語音（如粵語/國語/普通話/英文）
+  const vIdx = VOICE_PREFS.findIndex(v => v.id === targetRec.langId);
+  if (vIdx !== -1 && vIdx !== voiceIdx) {
+    voiceIdx = vIdx;
+    localStorage.setItem('reading_voiceIdx', voiceIdx);
+    FamilyManager.updateActiveMemberPrefs({ voiceIdx });
+    syncPrefButtons();
+    renderFamilyBar();
+  }
+
+  // 3. 啟用陪讀/家庭錄音模式，並開啟對應的故事書
+  useParentVoice = true;
+  localStorage.setItem('reading_useParentVoice', 'true');
+  await openStory(targetRec.storyId, false);
+
+  // 4. 精準定位到這一筆錄音（即使同一個人錄了多次也能選中對應那一筆）并開始同步高亮播放
+  const foundIdx = storyParentRecs.findIndex(r => r.id === recId);
+  if (foundIdx !== -1) {
+    selectedParentRecIdx = foundIdx;
+    await ParentVoice.activateRecord(storyParentRecs[foundIdx]);
+    updateParentButtonsUI();
+    ttsAudioEl.src = storyParentRecs[foundIdx].url;
+    applyCurrentPlaybackRate();
+    ttsAudioEl.load();
+  }
+
+  requestWakeLock();
+  ttsAudioEl.play().then(() => {
+    btnPlayTts.querySelector('.label').textContent = getListenButtonLabel();
+    syncHighlightLoop();
+  }).catch(() => {});
 };
 
 window.handleRenameRec = async (id, oldName) => {
@@ -317,6 +361,26 @@ function getListenButtonLabel() {
     return sId === 'cn' ? `🎧 听${speaker}讲故事` : `🎧 聽${speaker}講故事`;
   }
   return tUI('listen');
+}
+
+
+function formatSecMMSS(sec) {
+  if (!isFinite(sec) || isNaN(sec) || sec < 0) return '00:00';
+  const s = Math.round(sec);
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return `${String(m).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
+}
+
+function getRecEstimatedDuration(rec) {
+  if (rec && rec.timings) {
+    const vals = Object.values(rec.timings);
+    if (vals.length > 0) {
+      const maxEnd = Math.max(...vals.map(pair => Number(pair.at(1)) || 0));
+      if (maxEnd > 0) return formatSecMMSS(maxEnd);
+    }
+  }
+  return '';
 }
 
 function applyUiLanguage() {
@@ -860,6 +924,16 @@ function handleStoryEnded() {
 
 function syncHighlightLoop() {
   const t = ttsAudioEl.currentTime;
+  const playLbl = btnPlayTts.querySelector('.label');
+  if (playLbl && !ttsAudioEl.paused) {
+    let totalDur = ttsAudioEl.duration;
+    if ((!isFinite(totalDur) || isNaN(totalDur)) && useParentVoice && ParentVoice.getActiveData()) {
+      const vals = Object.values(ParentVoice.getActiveData().timings || {});
+      if (vals.length) totalDur = Math.max(...vals.map(p => Number(p.at(1)) || 0));
+    }
+    const durSuffix = (isFinite(totalDur) && totalDur > 0) ? ` ${formatSecMMSS(t)}/${formatSecMMSS(totalDur)}` : ` ${formatSecMMSS(t)}`;
+    playLbl.textContent = tUI('pause') + durSuffix;
+  }
   const tokens = getCurrentTrack().tokens;
 
   const pData = ParentVoice.getActiveData();
