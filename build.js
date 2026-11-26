@@ -5,7 +5,7 @@ const { minify: minifyJs } = require('terser');
 const JavaScriptObfuscator = require('javascript-obfuscator');
 
 const SRC_DIR = path.resolve(__dirname, 'public');
-const OUT_DIR = path.resolve(__dirname, process.argv || 'dist');
+const OUT_DIR = path.resolve(__dirname, process.argv[2] || 'dist');
 
 const htmlMinifyOptions = {
   collapseWhitespace: true,
