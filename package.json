@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
@@ -58,6 +58,7 @@
     "tailwindcss": "^4",
     "terser": "^5.51.4",
     "tsx": "^4.20.4",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "webpack-obfuscator": "^3.6.1"
   }
 }
