@@ -750,3 +750,57 @@ html, body {
   border-radius: 18px !important;
   line-height: 1 !important;
 }
+
+/* 錄音管理庫標題列與底部關閉按鈕優化 */
+.manager-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #F1F5F9;
+  flex-shrink: 0;
+}
+.manager-header-bar h3 {
+  margin: 0 !important;
+  font-size: 18px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.btn-close-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #F1F5F9;
+  color: #475569;
+  font-size: 18px;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.btn-close-circle:active {
+  background: #E2E8F0;
+  transform: scale(0.94);
+}
+.btn-manager-bottom-close {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  border: none;
+  background: #F1F5F9;
+  color: #334155;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.btn-manager-bottom-close:active {
+  background: #E2E8F0;
+}

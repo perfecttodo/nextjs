@@ -177,6 +177,7 @@ document.getElementById('btn-confirm-save').addEventListener('click', async () =
 // 父母錄音管理中心邏輯
 document.getElementById('btn-open-manager').addEventListener('click', openManagerModal);
 modalManager.addEventListener('click', (e) => { if (e.target === modalManager) { managerList.querySelectorAll('audio').forEach(a => a.pause()); modalManager.classList.add('hidden'); } });
+document.getElementById('btn-close-manager-bottom').addEventListener('click', () => document.getElementById('btn-close-manager').click());
 document.getElementById('btn-close-manager').addEventListener('click', () => {
   managerList.querySelectorAll('audio').forEach(a => a.pause());
   modalManager.classList.add('hidden');
@@ -267,11 +268,11 @@ window.playRecInStory = async (recId) => {
     ttsAudioEl.load();
   }
 
-  requestWakeLock();
-  ttsAudioEl.play().then(() => {
-    btnPlayTts.querySelector('.label').textContent = getListenButtonLabel();
-    syncHighlightLoop();
-  }).catch(() => {});
+  // 保持待播就緒狀態，讓底部按鈕明確顯示「🎧 聽XX講故事」，由用戶點擊開始播放
+  stopTtsPlayback();
+  clearHighlight();
+  const playLbl = btnPlayTts.querySelector('.label');
+  if (playLbl) playLbl.textContent = getListenButtonLabel();
 };
 
 window.handleRenameRec = async (id, oldName) => {
@@ -420,7 +421,7 @@ function applyUiLanguage() {
   setTxt('#btn-discard-rec', tUI('discardRec'));
   setTxt('#btn-confirm-save', tUI('confirmSave'));
   setTxt('#modal-manager h3', tUI('managerTitle'));
-  setTxt('#btn-close-manager', tUI('close'));
+  setTxt('#btn-close-manager-bottom', tUI('done'));
 }
 
 function syncPrefButtons() {
