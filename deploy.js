@@ -18,8 +18,8 @@ const IGNORE_ITEMS = new Set([
   try {
     await fs.remove(WORKTREE_DIR);
     execSync('git worktree prune', { stdio: 'ignore' });
-    // 先從遠端拉取最新的 main 分支紀錄，避免與 GitHub Actions 的提交衝突
-    execSync('git fetch origin main:main', { stdio: 'inherit' });
+    // 加上 + 號強制將本地 main 指針對齊遠端 origin/main
+    execSync('git fetch origin +main:main', { stdio: 'inherit' });
     execSync(`git worktree add "${WORKTREE_DIR}" main`, { stdio: 'inherit' });
 
     const existing = await fs.readdir(WORKTREE_DIR);
@@ -55,10 +55,12 @@ const IGNORE_ITEMS = new Set([
       execSync('git push origin main', { cwd: WORKTREE_DIR, stdio: 'inherit' });
       console.log('🚀 已成功同步並推送到 main 分支！');
     } else {
-      console.log('ℹ️ 遠端 main 分支已是最新內容（GitHub Actions 已完成同步），無需重複推送。');
+      console.log('ℹ️ 遠端 main 分支已是最新內容，無需重複推送。');
     }
   } finally {
-    execSync(`git worktree remove -f "${WORKTREE_DIR}"`, { stdio: 'ignore' });
+    try {
+      execSync(`git worktree remove -f "${WORKTREE_DIR}"`, { stdio: 'ignore' });
+    } catch (_) {}
     await fs.remove(WORKTREE_DIR);
   }
 })();
