@@ -1202,3 +1202,40 @@ document.addEventListener('visibilitychange', () => {
 document.getElementById('btn-back').addEventListener('click', () => { ParentVoice.stopGuidedRecording(); stopTtsPlayback(); stopReadAlong(); recordedAudioEl.pause(); viewReader.classList.remove('active'); viewList.classList.add('active'); });
 
 init();
+
+
+function enableDesktopDragScroll(el) {
+  if (!el || el.dataset.dragReady) return;
+  el.dataset.dragReady = '1';
+  let isDown = false, startX = 0, scrollLeft = 0, moved = false;
+
+  el.addEventListener('mousedown', (e) => {
+    isDown = true;
+    moved = false;
+    startX = e.pageX - el.offsetLeft;
+    scrollLeft = el.scrollLeft;
+  });
+  window.addEventListener('mouseup', () => { isDown = false; });
+  el.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    const x = e.pageX - el.offsetLeft;
+    const walk = x - startX;
+    if (Math.abs(walk) > 5) moved = true;
+    el.scrollLeft = scrollLeft - walk;
+  });
+  // 若剛才進行了拖拽動作，攔截隨後的按鈕 click 避免誤觸
+  el.addEventListener('click', (e) => {
+    if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; }
+  }, true);
+  // 滑鼠滾輪直接轉為橫向滾動
+  el.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      el.scrollLeft += e.deltaY;
+      e.preventDefault();
+    }
+  }, { passive: false });
+}
+
+['manager-filter-bar', 'family-bar', 'level-tabs'].forEach(id => {
+  enableDesktopDragScroll(document.getElementById(id));
+});

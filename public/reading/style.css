@@ -804,3 +804,12 @@ html, body {
 .btn-manager-bottom-close:active {
   background: #E2E8F0;
 }
+
+/* 桌面端滑鼠拖拽橫向滾動游標提示 */
+#manager-filter-bar, .family-bar, .level-tabs {
+  cursor: grab;
+  user-select: none;
+}
+#manager-filter-bar:active, .family-bar:active, .level-tabs:active {
+  cursor: grabbing;
+}
