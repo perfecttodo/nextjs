@@ -39,7 +39,7 @@ const IGNORE_ITEMS = new Set([
     if (await fs.pathExists(mainPkgPath)) {
       const pkg = await fs.readJson(mainPkgPath);
       if (pkg.scripts) {
-        pkg.scripts.build = 'next build --webpack';
+        pkg.scripts.build = 'next build';
         delete pkg.scripts.deploy;
       }
       await fs.writeJson(mainPkgPath, pkg, { spaces: 2 });
