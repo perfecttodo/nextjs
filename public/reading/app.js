@@ -146,7 +146,8 @@ btnParentRec.addEventListener('click', () => {
       previewAudio.src = previewUrl;
       renderQuickTutorTags();
       const curTutor = FamilyManager.getActiveMember();
-      previewLabelInput.value = VOICE_PREFS.at(voiceIdx).id === 'en' ? `${curTutor.avatar} ${curTutor.name}'s Voice` : `${curTutor.avatar} ${curTutor.name}的聲音`;
+      const fallbackTutorLabel = VOICE_PREFS.at(voiceIdx).id === 'en' ? `${curTutor.avatar} ${curTutor.name}'s Voice` : `${curTutor.avatar} ${curTutor.name}的聲音`;
+      previewLabelInput.value = localStorage.getItem('reading_lastTutorRecLabel') || fallbackTutorLabel;
       modalPreview.classList.remove('hidden');
     },
     onCancel: () => { setRecordingLock('none'); releaseWakeLock(); clearHighlight(); }
@@ -161,6 +162,7 @@ document.getElementById('btn-discard-rec').addEventListener('click', () => {
 
 document.getElementById('btn-confirm-save').addEventListener('click', async () => {
   previewAudio.pause();
+  if (previewLabelInput.value.trim()) localStorage.setItem('reading_lastTutorRecLabel', previewLabelInput.value.trim());
   const saved = await ParentVoice.confirmSavePending(previewLabelInput.value);
   modalPreview.classList.add('hidden');
   if (saved) {
@@ -1013,10 +1015,22 @@ function stopReadAlong() {
 
 document.getElementById('btn-save-kid-db').addEventListener('click', async () => {
   if (!lastKidBlob || !currentStory) return;
+  const isEn = VOICE_PREFS.at(voiceIdx).id === 'en';
   const curReader = FamilyManager.getActiveMember();
-  const defaultKidLabel = VOICE_PREFS.at(voiceIdx).id === 'en' ? `${curReader.avatar} ${curReader.name}'s Reading` : `${curReader.avatar} ${curReader.name}的朗讀`;
-  const customName = await CustomUI.showPrompt({ title: '💾 保存朗讀錄音', desc: '請輸入錄音名稱，方便在錄音庫查看：', defaultValue: defaultKidLabel, okText: '✅ 保存' });
-  if (customName === null) return; // 用戶按取消
+  const fallbackKidLabel = isEn ? `${curReader.avatar} ${curReader.name}'s Reading` : `${curReader.avatar} ${curReader.name}的朗讀`;
+  const defaultKidLabel = localStorage.getItem('reading_lastKidRecLabel') || fallbackKidLabel;
+  const memberLabels = FamilyManager.getMembers().map(m => isEn ? `${m.avatar} ${m.name}'s Reading` : `${m.avatar} ${m.name}的朗讀`);
+  const historyLabels = (await ParentVoice.getAllRecordings()).map(r => r.label);
+  const suggestions = Array.from(new Set([defaultKidLabel, ...memberLabels, ...historyLabels]));
+  const customName = await CustomUI.showPrompt({
+    title: '💾 保存朗讀錄音',
+    desc: '可直接點選已有名稱，或在下方輸入自定義名稱：',
+    defaultValue: defaultKidLabel,
+    okText: '✅ 保存',
+    suggestions
+  });
+  if (customName === null) return;
+  if (customName.trim()) localStorage.setItem('reading_lastKidRecLabel', customName.trim());
   const vPref = VOICE_PREFS.at(voiceIdx);
   await ParentVoice.saveDirectRecording({
     storyId: currentStory.id,

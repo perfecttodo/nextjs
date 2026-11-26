@@ -46,7 +46,7 @@ const CustomUI = (() => {
     });
   }
 
-  function showPrompt({ title = '請輸入', desc = '', defaultValue = '', placeholder = '', okText = '確定' }) {
+  function showPrompt({ title = '請輸入', desc = '', defaultValue = '', placeholder = '', okText = '確定', suggestions = [] }) {
     return new Promise((resolve) => {
       const modal = document.getElementById('modal-dialog');
       const dlgTitle = document.getElementById('dlg-title');
@@ -59,7 +59,16 @@ const CustomUI = (() => {
 
       dlgTitle.textContent = title;
       dlgDesc.textContent = desc;
-      dlgExtra.innerHTML = '';
+      if (Array.isArray(suggestions) && suggestions.length > 0) {
+        dlgExtra.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:12px;">` +
+          suggestions.map(s => `<button type="button" class="btn-mini quick-sug-btn" style="background:#FEF3C7;color:#92400E;border:1px solid #F59E0B;">${s}</button>`).join('') +
+          `</div>`;
+        dlgExtra.querySelectorAll('.quick-sug-btn').forEach(btn => {
+          btn.onclick = () => { dlgInput.value = btn.textContent; };
+        });
+      } else {
+        dlgExtra.innerHTML = '';
+      }
       dlgInput.classList.remove('hidden');
       dlgInput.value = defaultValue;
       dlgInput.placeholder = placeholder;
