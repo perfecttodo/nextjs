@@ -1,195 +1,54 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tayino · 快樂小讀者 Happy Reader — 多語互動點讀繪本</title>
-    <meta name="description" content="Tayino 快樂小讀者（Happy Reader）：專為多孩家庭設計的互動式多語點讀繪本，支援粵語、國語、普通話、英語四語發音與可選 Google Drive 家庭錄音備份。">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://w3.org viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
-    <style>
-        :root {
-            --bg: #FAF8F5;
-            --text: #1C1917;
-            --sub: #57534E;
-            --muted: #A8A29E;
-            --accent: #EA580C;
-            --pill-bg: #F1ECE6;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "PingFang SC", "Microsoft JhengHei", sans-serif;
-            background-color: var(--bg);
-            background-image: radial-gradient(circle at 50% 0%, rgba(254, 215, 170, 0.28) 0%, transparent 60%);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 32px 24px 68px;
-            text-align: center;
-        }
-        .wrap {
-            max-width: 540px;
-            width: 100%;
-        }
-        .brand {
-            display: inline-block;
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            color: var(--accent);
-            background: rgba(234, 88, 12, 0.08);
-            padding: 5px 14px;
-            border-radius: 999px;
-            margin-bottom: 20px;
-        }
-        .icon {
-            font-size: 64px;
-            margin-bottom: 14px;
-            display: block;
-            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.06));
-        }
-        h1 {
-            font-size: 38px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            margin-bottom: 8px;
-        }
-        .tagline {
-            font-size: 17px;
-            color: var(--sub);
-            font-weight: 500;
-            margin-bottom: 28px;
-        }
-
-        /* 純 CSS 三語切換器（靜態爬蟲 100% 可讀） */
-        input[type="radio"] { display: none; }
-        .lang-tabs {
-            display: inline-flex;
-            background: var(--pill-bg);
-            padding: 5px;
-            border-radius: 999px;
-            margin-bottom: 24px;
-        }
-        .lang-tabs label {
-            font-size: 14.5px;
-            font-weight: 600;
-            color: var(--sub);
-            padding: 7px 20px;
-            border-radius: 999px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            user-select: none;
-        }
-        #l-tc:checked ~ .lang-tabs label[for="l-tc"],
-        #l-sc:checked ~ .lang-tabs label[for="l-sc"],
-        #l-en:checked ~ .lang-tabs label[for="l-en"] {
-            background: #FFFFFF;
-            color: var(--text);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-        }
-        .desc {
-            font-size: 17px;
-            line-height: 1.8;
-            color: var(--sub);
-            margin-bottom: 36px;
-            min-height: 145px;
-        }
-        .desc p { display: none; }
-        #l-tc:checked ~ .desc .tc { display: block; }
-        #l-sc:checked ~ .desc .sc { display: block; }
-        #l-en:checked ~ .desc .en { display: block; }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            max-width: 280px;
-            background: linear-gradient(180deg, #292524 0%, #1C1917 100%);
-            color: #FFFFFF;
-            font-size: 18px;
-            font-weight: 600;
-            padding: 17px 32px;
-            border-radius: 18px;
-            text-decoration: none;
-            box-shadow: 0 10px 20px -6px rgba(28, 25, 23, 0.28);
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 14px 24px -6px rgba(28, 25, 23, 0.35);
-        }
-        .sub-note {
-            margin-top: 18px;
-            font-size: 14px;
-            color: var(--muted);
-        }
-        .legal {
-            position: fixed;
-            bottom: 14px;
-            right: 18px;
-            font-size: 13px;
-            color: var(--muted);
-        }
-        .legal a {
-            color: var(--muted);
-            text-decoration: none;
-        }
-        .legal a:hover {
-            color: var(--sub);
-            text-decoration: underline;
-        }
-        @media (max-width: 480px) {
-            h1 { font-size: 32px; }
-            .desc { font-size: 16px; min-height: 160px; }
-        }
-    </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tayino · 快樂小讀者 Happy Reader</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://w3.org viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+<style>
+:root{--bg:#FAF8F5;--text:#1C1917;--sub:#57534E;--muted:#A8A29E;--accent:#EA580C;--pill:#F1ECE6}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang TC","PingFang SC",sans-serif;background:var(--bg);background-image:radial-gradient(circle at 50% 0%,rgba(251,146,60,.22) 0%,transparent 65%);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px 68px;text-align:center}
+.wrap{max-width:540px;width:100%}
+.brand{display:inline-block;font-size:13px;font-weight:700;letter-spacing:1.5px;color:var(--accent);background:rgba(234,88,12,.08);padding:5px 14px;border-radius:999px;margin-bottom:18px}
+.icon{font-size:68px;display:inline-block;cursor:pointer;margin-bottom:12px;animation:flt 3.2s ease-in-out infinite;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+.icon.boing{animation:boing .55s cubic-bezier(.34,1.56,.64,1)}
+@keyframes flt{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes boing{0%{transform:scale(1)}30%{transform:scale(1.25,.78)}50%{transform:scale(.85,1.18)}70%{transform:scale(1.08,.94)}100%{transform:scale(1)}}
+h1{font-size:38px;font-weight:800;margin-bottom:6px}
+.tag{font-size:17px;color:var(--sub);margin-bottom:26px}
+input[type=radio]{display:none}
+.tabs{display:inline-flex;background:var(--pill);padding:5px;border-radius:999px;margin-bottom:22px}
+.tabs label{font-size:14.5px;font-weight:600;color:var(--sub);padding:7px 20px;border-radius:999px;cursor:pointer;transition:all .25s}
+#l-tc:checked~.tabs label[for=l-tc],#l-sc:checked~.tabs label[for=l-sc],#l-en:checked~.tabs label[for=l-en]{background:#fff;color:var(--text);box-shadow:0 3px 8px rgba(0,0,0,.08)}
+.desc{font-size:17px;line-height:1.8;color:var(--sub);margin-bottom:36px;min-height:145px}
+.desc p{display:none;animation:sw .35s ease}
+@keyframes sw{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+#l-tc:checked~.desc .tc,#l-sc:checked~.desc .sc,#l-en:checked~.desc .en{display:block}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:280px;background:linear-gradient(135deg,#F97316,#EA580C);color:#fff;font-size:18px;font-weight:700;padding:17px 32px;border-radius:18px;text-decoration:none;box-shadow:0 12px 24px -6px rgba(234,88,12,.42);transition:transform .2s}
+.btn:hover{transform:translateY(-3px) scale(1.02)}
+.note{margin-top:18px;font-size:14px;color:var(--muted)}
+.legal{position:fixed;bottom:14px;right:18px;font-size:13px;color:var(--muted)}
+.legal a{color:var(--muted);text-decoration:none}
+</style>
 </head>
 <body>
-    <main class="wrap">
-        <div class="brand">TAYINO · HAPPY READER</div>
-        <span class="icon">📚</span>
-        <h1>快樂小讀者</h1>
-        <div class="tagline">Interactive Multilingual Story Reader</div>
-
-        <input type="radio" name="lang" id="l-tc" checked>
-        <input type="radio" name="lang" id="l-sc">
-        <input type="radio" name="lang" id="l-en">
-
-        <div class="lang-tabs">
-            <label for="l-tc">繁體</label>
-            <label for="l-sc">简体</label>
-            <label for="l-en">English</label>
-        </div>
-
-        <div class="desc">
-            <p class="tc">專為多孩家庭設計的多語互動點讀繪本。免註冊登入、全本機隱私保存，支援粵語、國語、普通話、英語四語切換與繁簡顯示。孩子可透過「點哪讀哪」、慢速調節與逐詞高亮輕鬆認字；父母與兄姊更可錄製專屬陪讀音頻，並可選透過 Google Drive 跨設備備份家庭錄音。</p>
-            <p class="sc">专为多孩家庭设计的多语互动点读绘本。免注册登录、全本地隐私保存，支持粤语、国语、普通话、英语四语切换与繁简显示。孩子可通过“点哪读哪”、慢速调节与逐词高亮轻松认字；父母与兄姐更可录制专属陪读音频，并可选通过 Google Drive 跨设备备份家庭录音。</p>
-            <p class="en">Interactive multilingual story reader by Tayino for families. No sign-up required with 100% local privacy storage. Supports Cantonese, Taiwanese Mandarin, Putonghua, and English with instant script switching, Tap-to-Read, slow speeds, custom family read-along recordings, and optional Google Drive backup.</p>
-        </div>
-
-        <a href="/reading" class="btn">開始進入 · Enter &rarr;</a>
-        <div class="sub-note">粵 · 國 · 普 · 英 ｜ 免註冊本機保存</div>
-    </main>
-
-    <footer class="legal">
-        <a href="https://tayino.com">Privacy</a>
-        <span> · </span>
-        <a href="https://tayino.com">Terms</a>
-    </footer>
-
-    <script>
-        (function() {
-            var lang = (navigator.language || "").toLowerCase();
-            if (lang.startsWith("en")) {
-                document.getElementById("l-en").checked = true;
-            } else if (lang === "zh-cn" || lang === "zh-sg" || lang.includes("hans")) {
-                document.getElementById("l-sc").checked = true;
-            }
-        })();
-    </script>
-</body>
-</html>
+<main class="wrap">
+<div class="brand">TAYINO · HAPPY READER</div>
+<div><span class="icon" id="bk">📚</span></div>
+<h1>快樂小讀者</h1>
+<div class="tag">Interactive Multilingual Story Reader</div>
+<input type="radio" name="l" id="l-tc" checked><input type="radio" name="l" id="l-sc"><input type="radio" name="l" id="l-en">
+<div class="tabs"><label for="l-tc" data-s="1">繁體</label><label for="l-sc" data-s="1">简体</label><label for="l-en" data-s="1">English</label></div>
+<div class="desc">
+<p class="tc">專為多孩家庭設計的多語互動點讀繪本。免註冊登入、全本機隱私保存，支援粵語、國語、普通話、英語四語切換與繁簡顯示。孩子可透過「點哪讀哪」、慢速調節與逐詞高亮輕鬆認字；父母與兄姊更可錄製專屬陪讀音頻，並可選透過 Google Drive 跨設備備份家庭錄音。</p>
+<p class="sc">专为多孩家庭设计的多语互动点读绘本。免注册登录、全本地隐私保存，支持粤语、国语、普通话、英语四语切换与繁简显示。孩子可通过“点哪读哪”、慢速调节与逐词高亮轻松认字；父母与兄姐更可录制专属陪读音频，并可选通过 Google Drive 跨设备备份家庭录音。</p>
+<p class="en">Interactive multilingual story reader by Tayino for families. No sign-up required with 100% local privacy storage. Supports Cantonese, Taiwanese Mandarin, Putonghua, and English with instant script switching, Tap-to-Read, slow speeds, custom family read-along recordings, and optional Google Drive backup.</p>
+</div>
+<a href="/reading" class="btn" id="go">開始進入 · Enter &rarr;</a>
+<div class="note">粵 · 國 · 普 · 英 ｜ 免註冊本機保存</div>
+</main>
+<footer class="legal"><a href="https://tayino.com">Privacy</a> · <a href="https://tayino.com">Terms</a></footer>
+<script>
+(function(){var l=(navigator.language||"").toLowerCase();if(l.startsWith("en"))document.getElementById("l-en").checked=true;else if(l==="zh-cn"||l==="zh-sg"||l.includes("hans"))document.getElementById("l-sc").checked=true})();
+(function(){var A=window.AudioContext||window.webkitAudioContext,c=null;function g(){if(!c&&A)c=new A;if(c&&c.state==="suspended")c.resume();return c}function t(f,y,d,w,v){var a=g();if(!a)return;var n=a.currentTime+(w||0),o=a.createOscillator(),u=a.createGain();o.type=y||"sine";o.frequency.setValueAtTime(f,n);u.gain.setValueAtTime(.001,n);u.gain.exponentialRampToValueAtTime(v||.12,n+.015);u.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(u);u.connect(a.destination);o.start(n);o.stop(n+d+.02)}document.querySelectorAll("[data-s]").forEach(function(e){e.addEventListener("click",function(){t(587.33,"sine",.12,0,.1);t(880,"sine",.16,.045,.08)})});var b=document.getElementById("bk");if(b)b.addEventListener("click",function(){[523.25,659.25,783.99,1046.5].forEach(function(f,i){t(f,"triangle",.24,i*.06,.11)});b.classList.remove("boing");void b.offsetWidth;b.classList.add("boing")});var e=document.getElementById("go");if(e)e.addEventListener("click",function(v){v.preventDefault();[523.25,659.25,783.99,1046.5].forEach(function(f,i){t(f,i===3?"triangle":"sine",.4,i*.03,.1)});setTimeout(function(){window.location.href=e.getAttribute("href")},180)})})();
+</script></body></html>
