@@ -21,7 +21,7 @@ input[type=radio]{display:none}
 .tabs label{font-size:14.5px;font-weight:600;color:var(--sub);padding:7px 20px;border-radius:999px;cursor:pointer;transition:all .25s}
 #l-tc:checked~.tabs label[for=l-tc],#l-sc:checked~.tabs label[for=l-sc],#l-en:checked~.tabs label[for=l-en]{background:#fff;color:var(--text);box-shadow:0 3px 8px rgba(0,0,0,.08)}
 .desc{font-size:17px;line-height:1.8;color:var(--sub);margin-bottom:36px;min-height:145px}
-.desc p{display:none;animation:sw .35s ease}
+.desc p{margin-bottom:14px;animation:sw .35s ease}
 @keyframes sw{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 #l-tc:checked~.desc .tc,#l-sc:checked~.desc .sc,#l-en:checked~.desc .en{display:block}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:280px;background:linear-gradient(135deg,#F97316,#EA580C);color:#fff;font-size:18px;font-weight:700;padding:17px 32px;border-radius:18px;text-decoration:none;box-shadow:0 12px 24px -6px rgba(234,88,12,.42);transition:transform .2s}
@@ -39,10 +39,10 @@ input[type=radio]{display:none}
 <h1>Tayino - Happy Reader</h1>
 <div class="tag">專為多孩家庭設計的多語互動點讀繪本</div>
 <input type="radio" name="l" id="l-tc" checked><input type="radio" name="l" id="l-sc"><input type="radio" name="l" id="l-en">
-<div class="tabs"><label for="l-tc" data-s="1">繁體</label><label for="l-sc" data-s="1">简体</label><label for="l-en" data-s="1">English</label></div>
+<div class="tabs" style="display:none"><label for="l-tc" data-s="1">繁體</label><label for="l-sc" data-s="1">简体</label><label for="l-en" data-s="1">English</label></div>
 <div class="desc">
 <p class="tc">Tayino - Happy Reader 專為多孩家庭設計，免註冊登入即可直接閱讀，全本機隱私保存，支援粵語、國語、普通話、英語四語切換與繁簡顯示。孩子可透過「點哪讀哪」、慢速調節與逐詞高亮輕鬆認字；父母與兄姊更可錄製專屬陪讀音頻，並可選透過 Google Drive 跨設備備份家庭錄音。</p>
-<p class="sc">Tayino - Happy Reader 专为多孩家庭设计，免注册登录即可直接阅读，全本地隐私保存，支持粤语、国语、普通话、英语四语切换与繁简显示。孩子可通过“点哪读哪”、慢速调节与逐词高亮轻松认字；父母与兄姐更可录制专属陪读音频，并可选通过 Google Drive 跨设备备份家庭录音。</p>
+<p class="sc" style="display:none">Tayino - Happy Reader 专为多孩家庭设计，免注册登录即可直接阅读，全本地隐私保存，支持粤语、国语、普通话、英语四语切换与繁简显示。孩子可通过“点哪读哪”、慢速调节与逐词高亮轻松认字；父母与兄姐更可录制专属陪读音频，并可选通过 Google Drive 跨设备备份家庭录音。</p>
 <p class="en">Tayino - Happy Reader is a free, no-login-required interactive multilingual story reader for families. Supports Cantonese, Taiwanese Mandarin, Putonghua, and English with instant script switching, Tap-to-Read, slow speeds, local family read-along recordings, and optional Google Drive backup.</p>
 </div>
 <a href="/reading" class="btn" id="go">開始進入 · Enter &rarr;</a>
