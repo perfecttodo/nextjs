@@ -1264,3 +1264,22 @@ function enableDesktopDragScroll(el) {
   enableDesktopDragScroll(document.getElementById(id));
 });
 document.getElementById('btn-open-guide')?.addEventListener('click',()=>document.getElementById('modal-guide')?.classList.remove('hidden'));
+
+
+(function autoAdjustStoryPaddingForBanner() {
+  const banner = document.getElementById('parent-rec-banner');
+  const content = document.getElementById('story-content');
+  if (!banner || !content) return;
+
+  const syncPad = () => {
+    const isVisible = banner.style.display !== 'none' && banner.offsetHeight > 0;
+    const topOffset = isVisible ? (62 + banner.offsetHeight + 22) : 82;
+    content.style.setProperty('padding-top', topOffset + 'px', 'important');
+  };
+
+  if (window.ResizeObserver) {
+    new ResizeObserver(syncPad).observe(banner);
+  }
+  new MutationObserver(syncPad).observe(banner, { attributes: true, attributeFilter: ['style'] });
+  window.addEventListener('resize', syncPad);
+})();
