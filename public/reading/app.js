@@ -390,7 +390,24 @@ function getRecEstimatedDuration(rec) {
   return '';
 }
 
+
+function syncSoundFxUI() {
+  const btn = document.getElementById('btn-sound-fx');
+  const lbl = document.getElementById('lbl-sound-fx');
+  if (lbl) lbl.textContent = tUI('lblSoundFx');
+  if (!btn || typeof SoundFX === 'undefined') return;
+  const on = SoundFX.isEnabled();
+  btn.textContent = on ? tUI('sfxOn') : tUI('sfxOff');
+  btn.style.background = on ? '#0284C7' : '#F1F5F9';
+  btn.style.color = on ? '#FFF' : '#64748B';
+}
+document.getElementById('btn-sound-fx')?.addEventListener('click', () => {
+  if (typeof SoundFX !== 'undefined') SoundFX.toggle();
+  syncSoundFxUI();
+});
+
 function applyUiLanguage() {
+  if (typeof syncSoundFxUI === 'function') syncSoundFxUI();
   const setTxt = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt; };
   setTxt('#view-list .top-bar h1', tUI('appTitle'));
   setTxt('#btn-open-guide', tUI('guideBtn')); setTxt('#modal-guide h3', tUI('guideTitle')); setTxt('#modal-guide .btn-manager-bottom-close', tUI('guideBtnStart')); setTxt('#btn-open-manager', tUI('recLibrary'));
@@ -404,7 +421,7 @@ function applyUiLanguage() {
   setTxt('#modal-settings h3', tUI('settingsTitle'));
   setTxt('#btn-close-settings', tUI('done'));
   const rows = document.querySelectorAll('#modal-settings .setting-row label');
-  const lblKeys = ['lblVoice', 'lblScript', 'lblFontSize', 'lblSpeed', 'lblMode', 'lblRepeat', 'lblReadMode', 'lblParentPlay', 'lblParentRec'];
+  const lblKeys = ['lblVoice', 'lblScript', 'lblFontSize', 'lblSpeed', 'lblMode', 'lblRepeat', 'lblReadMode', 'lblSoundFx', 'lblParentPlay', 'lblParentRec'];
   rows.forEach((lbl, idx) => { if (lblKeys.at(idx)) lbl.textContent = tUI(lblKeys.at(idx)); });
 
   setTxt('#btn-mode', playMode === 'exact' ? tUI('modeExact') : tUI('modeFluent'));
@@ -879,6 +896,7 @@ function stopTtsPlayback() { ttsAudioEl.pause(); cancelAnimationFrame(rafId); bt
 
 
 function triggerStarCelebration() {
+  if (typeof SoundFX !== "undefined") SoundFX.play("celebrate");
   // 移除舊的未結束動畫層
   const old = document.querySelector('.star-celebration-layer');
   if (old) old.remove();
