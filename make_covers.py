@@ -1,3 +1,5 @@
+import sys
+force_cov = '--force' in sys.argv
 import json, os
 from PIL import Image, ImageDraw
 
@@ -13,6 +15,8 @@ LEVEL_PALETTE = {
 }
 
 for s in stories:
+    if not force_cov and os.path.exists(f"public/reading/stories/{s['id']}/cover.png"):
+        continue
     sid = s["id"]
     lvl = s.get("level", 1)
     title = s["titles"]["hk"]
