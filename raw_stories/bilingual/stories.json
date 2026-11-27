@@ -1,110 +1,194 @@
 [
   {
-    "id": "story_001", "level": 1,
-    "title_zh": "小兔子|找|朋友", "title_en": "The Little Rabbit Makes Friends",
+    "id": "story_001",
+    "level": 1,
+    "title_zh": "小兔子|找|朋友",
+    "title_en": "The Little Rabbit Makes Friends",
     "zh": "從前，有|一隻|好可愛|的|小兔子，牠|有|一對|長長|的|耳朵。\n每天|早上，牠|都會|去|森林|裡面|找|不同|的|小動物|一起|玩。\n大家|都很|喜歡|和|小兔子|做|朋友，整個|森林|都|充滿了|笑聲。",
     "en": "Once upon a time, there was a cute little rabbit with long ears.\nEvery morning, she went into the forest to play with different little animals.\nEveryone loved being friends with the little rabbit, and the forest was full of laughter."
   },
   {
-    "id": "story_002", "level": 1,
-    "title_zh": "小鴨子|學|游泳", "title_en": "Little Duck Learns to Swim",
+    "id": "story_002",
+    "level": 1,
+    "title_zh": "小鴨子|學|游泳",
+    "title_en": "Little Duck Learns to Swim",
     "zh": "晴朗|的|早上，鴨媽媽|帶著|黃色|的|小鴨子|來到|小河邊。\n小鴨子|撲通|一聲|跳進|水裡，拍拍|翅膀，學會了|游泳。\n河裡|的|小魚|游過來，開心|地|和|小鴨子|一起|轉圈圈。",
     "en": "On a sunny morning, Mother Duck took her yellow duckling to the river.\nWith a splash, the little duck jumped into the water, flapped his wings, and learned to swim.\nLittle fish swam over and happily spun in circles with the duckling."
   },
   {
-    "id": "story_003", "level": 1,
-    "title_zh": "彩虹|顏色歌", "title_en": "Colors of the Rainbow",
+    "id": "story_003",
+    "level": 1,
+    "title_zh": "彩虹|顏色歌",
+    "title_en": "Colors of the Rainbow",
     "zh": "下雨|過後，太陽公公|出來了，天空|中|出現了|一道|美麗|的|彩虹。\n紅色|的|蘋果，橙色|的|橘子，黃色|的|香蕉，綠色|的|樹葉。\n還有|藍色|的|天空|和|紫色|的|葡萄，世界|真是|五彩繽紛！",
     "en": "After the rain, the sun came out and a beautiful rainbow appeared in the sky.\nRed apples, orange tangerines, yellow bananas, and green leaves.\nPlus the blue sky and purple grapes, the world is so colorful!"
   },
   {
-    "id": "story_004", "level": 1,
-    "title_zh": "刷牙|小英雄", "title_en": "Little Brushing Hero",
+    "id": "story_004",
+    "level": 1,
+    "title_zh": "刷牙|小英雄",
+    "title_en": "Little Brushing Hero",
     "zh": "每天|晚上|睡覺前，寶寶|都會|拿起|小牙刷，擠上|香香|的|牙膏。\n上|刷刷，下|刷刷，左邊|右邊|都要|刷乾淨，把|蛀牙蟲|全部|趕跑。\n漱漱口，照照|鏡子，牙齒|變得|又白|又亮，像|珍珠|一樣！",
     "en": "Every night before bed, the baby picks up a little toothbrush and squeezes sweet toothpaste.\nBrush up, brush down, clean left and right, chasing all the sugar bugs away.\nRinse with water and look in the mirror, the teeth are white and shiny like pearls!"
   },
   {
-    "id": "story_005", "level": 2,
-    "title_zh": "龜兔|賽跑", "title_en": "The Tortoise and the Hare",
+    "id": "story_005",
+    "level": 2,
+    "title_zh": "龜兔|賽跑",
+    "title_en": "The Tortoise and the Hare",
     "zh": "有|一天，驕傲|的|兔子|先生|和|烏龜|先生|比賽|跑步。\n兔子|跑得|非常|快，他|看見|烏龜|走得|這麼|慢，就|在|大樹|下面|睡著了。\n烏龜|一步|一步|地|向前|走，最後|竟然|贏得了|比賽！",
     "en": "One day, a proud hare and a tortoise had a running race.\nThe hare ran very fast. Seeing the tortoise walking so slowly, he fell asleep under a big tree.\nThe tortoise walked forward step by step and finally won the race!"
   },
   {
-    "id": "story_006", "level": 2,
-    "title_zh": "三隻|小豬", "title_en": "The Three Little Pigs",
+    "id": "story_006",
+    "level": 2,
+    "title_zh": "三隻|小豬",
+    "title_en": "The Three Little Pigs",
     "zh": "森林|裡|住著|三隻|小豬，牠們|決定|各自|蓋|一間|堅固|的|新房子。\n豬大哥|用|稻草|蓋|房子，豬二哥|用|木頭|蓋|房子，只有|豬小弟|用|磚頭|慢慢|蓋。\n大野狼|來了，吹倒了|稻草屋|和|木頭屋，最後|三隻|小豬|都|躲進了|安全|的|磚頭屋。",
     "en": "Three little pigs lived in the forest, and they decided to build their own strong new houses.\nThe first pig built a house of straw, the second built one of wood, and only the youngest built slowly with bricks.\nThe big bad wolf came and blew down the straw and wood houses, so all three pigs hid safely in the brick house."
   },
   {
-    "id": "story_007", "level": 2,
-    "title_zh": "小熊|種|果樹", "title_en": "Little Bear Plants an Apple Tree",
+    "id": "story_007",
+    "level": 2,
+    "title_zh": "小熊|種|果樹",
+    "title_en": "Little Bear Plants an Apple Tree",
     "zh": "春天|到了，小熊|在|院子|裡|種下了|一顆|小小|的|蘋果|樹苗。\n牠|每天|給|小樹|澆水、曬太陽，小樹苗|慢慢|長高了。\n到了|秋天，樹上|結滿了|又大|又紅|的|甜蘋果，小熊|請|大家|一起|分享。",
     "en": "Spring arrived, and Little Bear planted a tiny apple sapling in the yard.\nHe watered the little tree and gave it sunshine every day, and the sapling slowly grew tall.\nIn autumn, the tree was full of big red sweet apples, and Little Bear shared them with everyone."
   },
   {
-    "id": "story_008", "level": 2,
-    "title_zh": "愛|分享|的|小松鼠", "title_en": "The Sharing Little Squirrel",
+    "id": "story_008",
+    "level": 2,
+    "title_zh": "愛|分享|的|小松鼠",
+    "title_en": "The Sharing Little Squirrel",
     "zh": "秋天|森林|裡|落滿了|香脆|的|松果，小松鼠|撿了|滿滿|一籃子。\n回家|的|路上，牠|遇見了|肚子餓|的|小刺蝟|和|小老鼠。\n小松鼠|大方|地|把|松果|分給|大家，三個|好朋友|一起|度過了|溫暖|的|冬天。",
     "en": "In autumn, the forest was full of crunchy pinecones, and Little Squirrel gathered a full basket.\nOn the way home, he met a hungry little hedgehog and a little mouse.\nLittle Squirrel generously shared the pinecones, and the three friends spent a warm winter together."
   },
   {
-    "id": "story_009", "level": 3,
-    "title_zh": "司馬光|砸缸", "title_en": "Sima Guang Breaks the Vat",
+    "id": "story_009",
+    "level": 3,
+    "title_zh": "司馬光|砸缸",
+    "title_en": "Sima Guang Breaks the Vat",
     "zh": "古時候，司馬光|和|一群|小朋友|在|花園|裡|玩|捉迷藏。\n有個|小朋友|不小心|爬上|假山，掉進了|裝滿|水|的|大水缸|裡，大家|都|嚇哭了。\n司馬光|非常|冷靜，他|抱起|一塊|大石頭|用力|砸破|水缸，水流|出來，小朋友|得救了。",
     "en": "In ancient times, Sima Guang and his friends were playing hide and seek in a garden.\nOne child accidentally climbed a rockery and fell into a giant water vat, and everyone cried in fear.\nSima Guang stayed calm, picked up a heavy stone to break the vat, letting the water flow out and saving his friend."
   },
   {
-    "id": "story_010", "level": 3,
-    "title_zh": "孔融|讓梨", "title_en": "Kong Rong Shares Pears",
+    "id": "story_010",
+    "level": 3,
+    "title_zh": "孔融|讓梨",
+    "title_en": "Kong Rong Shares Pears",
     "zh": "漢朝|時候|有個|聰明|的|孩子|叫|孔融，他|有|五個|哥哥|和|一個|弟弟。\n有|一天，家裡|買了|一籃|香甜|的|梨子，孔融|主動|挑了|一個|最小|的|梨子|留給|自己。\n爸爸|問|他|為什麼，孔融|說|哥哥|年紀|大|應該|吃|大|的，弟弟|年紀|小|也要|照顧，大家|都|誇|他|懂|禮貌。",
     "en": "During the Han Dynasty, a smart boy named Kong Rong had five older brothers and one younger brother.\nOne day, his family bought a basket of sweet pears, and Kong Rong picked the smallest one for himself.\nWhen his father asked why, Kong Rong said older brothers deserve bigger ones and the younger brother needs care, earning praise for his courtesy."
   },
   {
-    "id": "story_011", "level": 3,
-    "title_zh": "小水滴|的|旅行", "title_en": "Journey of a Little Water Drop",
+    "id": "story_011",
+    "level": 3,
+    "title_zh": "小水滴|的|旅行",
+    "title_en": "Journey of a Little Water Drop",
     "zh": "大海|裡|住著|一滴|快樂|的|小水滴，太陽公公|照得|暖洋洋，牠|變成了|輕飄飄|的|水蒸氣|飛上|天空。\n在|寒冷|的|高空|裡，小水滴|和|夥伴們|聚|在|一起，變成了|潔白|的|大雲朵。\n當|雲朵|越來越|重，小水滴|就|化作|雨點|落回|大地，滋潤|花草|後|又|流回了|大海。",
     "en": "A happy little water drop lived in the ocean. Warmed by the sun, it turned into light vapor and floated up to the sky.\nHigh up in the cold air, the water drop gathered with friends to form a fluffy white cloud.\nWhen the cloud grew heavy, it fell back to earth as rain, watering plants before flowing back to the sea."
   },
   {
-    "id": "story_012", "level": 3,
-    "title_zh": "月亮|為什麼|會|變形", "title_en": "Why Does the Moon Change Shape",
+    "id": "story_012",
+    "level": 3,
+    "title_zh": "月亮|為什麼|會|變形",
+    "title_en": "Why Does the Moon Change Shape",
     "zh": "晚上|抬頭|看|天空，有時候|月亮|像|彎彎|的|小船，有時候|又|像|圓圓|的|大玉盤。\n其實|月亮|本身|不會|發光，也|不會|真的|改變|形狀，它|只是|反射了|太陽|的|光芒。\n隨著|月亮|繞著|地球|轉動，我們|看到|被|陽光|照亮|的|部分|不同，就|出現了|月圓|和|月缺。",
     "en": "Looking up at the night sky, sometimes the moon looks like a curved boat, and sometimes like a round jade plate.\nActually, the moon neither shines on its own nor changes shape; it simply reflects sunlight.\nAs the moon orbits the Earth, we see different lit portions, creating crescent and full moons."
   },
   {
-    "id": "story_013", "level": 1,
-    "title_zh": "小螞蟻|儲糧|過冬", "title_en": "Little Ant Saves Food for Winter",
+    "id": "story_013",
+    "level": 1,
+    "title_zh": "小螞蟻|儲糧|過冬",
+    "title_en": "Little Ant Saves Food for Winter",
     "zh": "夏天|太陽|暖洋洋，小螞蟻|每天|勤勞|地|把|麥粒|搬回家，放進|倉庫|存起來。\n旁邊|的|小蚱蜢|整天|唱歌|跳舞，笑|小螞蟻|太|辛苦。\n冬天|大雪|紛飛|時，小螞蟻|家裡|有|滿滿|的|食物，小蚱蜢|也|明白了|儲蓄|的|重要。",
     "en": "In the warm summer sun, Little Ant worked hard every day carrying wheat grains home to save.\nLittle Grasshopper sang and danced all day, laughing at Little Ant.\nWhen winter snow fell, Little Ant had plenty of food, and Grasshopper learned why saving matters."
   },
   {
-    "id": "story_014", "level": 1,
-    "title_zh": "小豬|的|三個|撲滿", "title_en": "Little Pig's Three Piggy Banks",
+    "id": "story_014",
+    "level": 1,
+    "title_zh": "小豬|的|三個|撲滿",
+    "title_en": "Little Pig's Three Piggy Banks",
     "zh": "豬媽媽|送給|小豬|三個|彩色|的|撲滿，上面|分別|寫著「花費」、「儲蓄」和「分享」。\n每次|收到|零用錢，小豬|都會|把|硬幣|平均|放進|三個|罐子|裡。\n小豬|既|買到了|心愛|的|貼紙，存下了|買|單車|的|錢，還|能|買|禮物|送給|好朋友。",
     "en": "Mother Pig gave Little Pig three colorful jars labeled Spend, Save, and Share.\nWhenever he got pocket money, Little Pig put coins into all three jars.\nHe bought stickers, saved for a bicycle, and even bought a gift for his best friend."
   },
   {
-    "id": "story_015", "level": 2,
-    "title_zh": "需要|還是|想要", "title_en": "Needs vs Wants",
+    "id": "story_015",
+    "level": 2,
+    "title_zh": "需要|還是|想要",
+    "title_en": "Needs vs Wants",
     "zh": "小猴子|拿著|存了|很久|的|零用錢|去|逛|熱鬧|的|森林|市集。\n他|看見|會|發光|的|泡泡槍|好想|買，但|又|想起|繪畫課|需要|的|彩色|畫筆|用完了。\n小猴子|想了想，決定|先|買|學習「需要」的|畫筆，把「想要」的|玩具|寫進|願望|清單|慢慢|存錢。",
     "en": "Little Monkey took his saved pocket money to the busy forest market.\nHe wanted a glowing bubble gun, but remembered he needed new paintbrushes for art class.\nHe chose to buy the brushes he needed first, and put the toy on his wish list to save for later."
   },
   {
-    "id": "story_016", "level": 2,
-    "title_zh": "小熊|的|檸檬水攤", "title_en": "Little Bear's Lemonade Stand",
+    "id": "story_016",
+    "level": 2,
+    "title_zh": "小熊|的|檸檬水攤",
+    "title_en": "Little Bear's Lemonade Stand",
     "zh": "週末|早上，小熊|想|買|一本|百科全書，於是|決定|自己|動手|賺|零用錢。\n他|採摘|新鮮|檸檬，洗乾淨|榨成|酸甜|的|檸檬汁，在|樹下|擺起|小水攤。\n森林|裡|的|動物們|紛紛|來|買，小熊|擦擦|汗水，發現|靠|自己|勞動|賺來|的|錢|特別|珍貴。",
     "en": "On a weekend morning, Little Bear wanted an encyclopedia and decided to earn money himself.\nHe picked fresh lemons, made sweet lemonade, and set up a small stand under a tree.\nForest animals came to buy drinks, and Little Bear learned how precious earned money is."
   },
   {
-    "id": "story_017", "level": 3,
-    "title_zh": "兩顆|魔法|糖果", "title_en": "Two Magic Candies",
+    "id": "story_017",
+    "level": 3,
+    "title_zh": "兩顆|魔法|糖果",
+    "title_en": "Two Magic Candies",
     "zh": "貓頭鷹|爺爺|給了|小兔|一顆|魔法|糖果，說|如果|忍住|今天|不|吃，明天|早上|就|會|變成|兩顆。\n小兔|看著|香甜|的|糖果|吞了吞|口水，還是|決定|耐心|等一等。\n過了|三天，一顆|糖果|真的|變成了|八顆，小兔|懂得了|耐心|等待|會|帶來|更大|的|收穫。",
     "en": "Grandpa Owl gave Little Rabbit a magic candy, saying if she waited until tomorrow, it would become two.\nLittle Rabbit swallowed hard looking at the sweet treat, but decided to be patient.\nAfter three days, one candy turned into eight, teaching her that patience brings bigger rewards."
   },
   {
-    "id": "story_018", "level": 3,
-    "title_zh": "小裁縫|的|記帳本", "title_en": "The Little Tailor's Ledger",
+    "id": "story_018",
+    "level": 3,
+    "title_zh": "小裁縫|的|記帳本",
+    "title_en": "The Little Tailor's Ledger",
     "zh": "小松鼠|開了|一間|小小|裁縫店，但|每個月|月底|總是|不清楚|錢|花到|哪裡|去了。\n後來|他|準備了|一本|記帳本，把|每一筆|收入|和|買|紐扣、花邊|的|支出|都|記下來。\n看清|花費|後，小松鼠|減少了|不必要|的|浪費，很快|就|存夠|錢|買了|新|縫紉機。",
     "en": "Little Squirrel opened a tiny tailor shop, but never knew where his money went each month.\nHe started writing down every coin earned and spent on buttons and ribbons in a ledger.\nBy tracking his spending, he cut waste and soon saved enough for a new sewing machine."
+  },
+  {
+    "id": "story_019",
+    "level": 1,
+    "title_zh": "紅燈|停、綠燈|行",
+    "title_en": "Red Light Stop, Green Light Go",
+    "zh": "馬路|上|車子|多，過|馬路|時|要|牽好|爸爸|媽媽|的|手。\n看見|紅燈|亮起來，我們|停下|腳步|耐心|等一等。\n等到|綠燈|亮起來，先|看看|左邊|和|右邊，再|安全|走過|斑馬線。",
+    "en": "There are many cars on the road, so hold Mom or Dad's hand when crossing.\nWhen the red light shines, we stop our feet and wait patiently.\nWhen the green light turns on, look left and right, then walk safely across the zebra crossing."
+  },
+  {
+    "id": "story_020",
+    "level": 1,
+    "title_zh": "情緒|小怪獸",
+    "title_en": "The Little Emotion Monster",
+    "zh": "心裡|住著|情緒|小怪獸，開心|時候|是|溫暖|的|黃色。\n積木|倒了|好|生氣，小怪獸|就|變成了|噴火|的|紅色。\n慢慢|吸氣、吐氣|三秒鐘，小怪獸|又|變回|平靜|快樂|的|綠色。",
+    "en": "A little emotion monster lives inside our heart, turning warm yellow when we are happy.\nWhen blocks fall down and we feel mad, the monster turns fiery red.\nBreathe in and out slowly for three seconds, and the monster turns back into calm, happy green."
+  },
+  {
+    "id": "story_021",
+    "level": 2,
+    "title_zh": "迷路|了|不|慌張",
+    "title_en": "Stay Calm When Lost",
+    "zh": "週末|商場|人|好多，小熊|看|玩具|看得|太|入迷，一|轉身|找不到|媽媽|了。\n小熊|記住|安全|口訣，不|亂跑、不|跟|陌生人|走，留|在|原地|等一等。\n他|找到|穿|制服|的|服務員|阿姨|幫忙|廣播，很快|就|回到|媽媽|懷抱。",
+    "en": "The mall was crowded on the weekend, and Little Bear looked at toys until he lost sight of Mom.\nHe remembered the safety rule: stay put and never follow strangers.\nHe asked a uniformed staff member to make an announcement and was soon back in Mom's arms."
+  },
+  {
+    "id": "story_022",
+    "level": 2,
+    "title_zh": "維多利亞港|的|渡輪",
+    "title_en": "Ferry Across Victoria Harbour",
+    "zh": "天氣|晴朗|的|下午，哥哥|帶著|妹妹|坐上|綠白|相間|的|天星|小輪。\n渡輪|鳴起|汽笛|聲，海風|輕輕|吹過|臉龐，海鷗|在|藍天|下|自由|飛翔。\n看著|兩岸|高高|的|大廈|和|古老|鐘樓，妹妹|開心地|拍手|歡呼。",
+    "en": "On a sunny afternoon, Brother took Sister onto the green-and-white Star Ferry.\nThe ferry blew its horn, sea breeze brushed their faces, and seagulls flew under the blue sky.\nLooking at the tall skyscrapers and historic clock tower, Sister clapped her hands in joy."
+  },
+  {
+    "id": "story_023",
+    "level": 3,
+    "title_zh": "端午節|賽龍舟",
+    "title_en": "Dragon Boat Race",
+    "zh": "農曆|五月|初五|是|端午節，海邊|傳來|陣陣|響亮|的|鑼鼓聲。\n一艘艘|彩繪|龍舟|像|離弦|的|箭，選手們|喊著|口號|齊心|向前|划。\n岸邊|的|觀眾|一邊|吃著|香噴噴|的|糉子，一邊|大聲|加油，展現了|團結|合作|的|力量。",
+    "en": "The fifth day of the fifth lunar month is the Dragon Boat Festival, filled with loud drums by the sea.\nPainted dragon boats dart like arrows as paddlers row together in unison.\nSpectators eat fragrant rice dumplings and cheer loudly, celebrating the power of teamwork."
+  },
+  {
+    "id": "story_024",
+    "level": 3,
+    "title_zh": "茶餐廳|的|美味|早餐",
+    "title_en": "Yummy Cha Chaan Teng Breakfast",
+    "zh": "星期天|早上，全家人|一起|走進|熱鬧|的|港式|茶餐廳|吃|早餐。\n剛|出爐|的|菠蘿油|外皮|金黃|酥脆，配上|熱騰騰|的|火腿|通心粉，香氣|撲鼻。\n爸爸|提醒|大家|按|食量|點餐，把|盤子|裡|的|食物|吃光光，做|個|珍惜|糧食|的|好孩子。",
+    "en": "On Sunday morning, the whole family visited a lively Hong Kong cafe for breakfast.\nFreshly baked pineapple buns with crispy golden crusts and hot macaroni soup smelled delicious.\nDad reminded everyone to order just enough and finish their plates to avoid wasting food."
   }
 ]
