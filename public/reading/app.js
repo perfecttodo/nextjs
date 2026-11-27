@@ -393,7 +393,7 @@ function getRecEstimatedDuration(rec) {
 function applyUiLanguage() {
   const setTxt = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt; };
   setTxt('#view-list .top-bar h1', tUI('appTitle'));
-  setTxt('#btn-open-manager', tUI('recLibrary'));
+  setTxt('#btn-open-guide', tUI('guideBtn')); setTxt('#modal-guide h3', tUI('guideTitle')); setTxt('#modal-guide .btn-manager-bottom-close', tUI('guideBtnStart')); setTxt('#btn-open-manager', tUI('recLibrary'));
   setTxt('#btn-back', tUI('back'));
   setTxt('#btn-open-settings', tUI('settings'));
   const isTapOn = typeof tapToJump !== 'undefined' ? tapToJump : (localStorage.getItem('reading_tapToJump') === 'true');
@@ -1245,3 +1245,4 @@ function enableDesktopDragScroll(el) {
 ['manager-filter-bar', 'family-bar', 'level-tabs'].forEach(id => {
   enableDesktopDragScroll(document.getElementById(id));
 });
+document.getElementById('btn-open-guide')?.addEventListener('click',()=>document.getElementById('modal-guide')?.classList.remove('hidden'));

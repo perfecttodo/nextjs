@@ -1,7 +1,7 @@
 const I18N_DICT = {
   zh_hant: {
     appTitle: '📚 快樂小讀者',
-    recLibrary: '🗂️ 錄音庫',
+    guideBtn: '❓ 指南', guideTitle: '📚 關於快樂小讀者', guideBtnStart: '✅ 開始閱讀', recLibrary: '🗂️ 錄音庫',
     back: '⬅️ 返回',
     settings: '⚙️ 設定',
     tapJumpOff: '👆 點哪讀哪',
@@ -50,7 +50,7 @@ const I18N_DICT = {
   },
   zh_hans: {
     appTitle: '📚 快乐小读者',
-    recLibrary: '🗂️ 录音库',
+    guideBtn: '❓ 指南', guideTitle: '📚 关于快乐小读者', guideBtnStart: '✅ 开始阅读', recLibrary: '🗂️ 录音库',
     back: '⬅️ 返回',
     settings: '⚙️ 设置',
     tapJumpOff: '👆 点哪读哪',
@@ -99,7 +99,7 @@ const I18N_DICT = {
   },
   en: {
     appTitle: '📚 Happy Reader',
-    recLibrary: '🗂️ Recordings',
+    guideBtn: '❓ Guide', guideTitle: '📚 About Happy Reader', guideBtnStart: '✅ Start Reading', recLibrary: '🗂️ Recordings',
     back: '⬅️ Back',
     settings: '⚙️ Settings',
     tapJumpOff: '👆 Tap to Read',

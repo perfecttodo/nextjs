@@ -14,6 +14,7 @@
     <header class="top-bar" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
       <h1 style="font-size:22px;">📚 快樂小讀者</h1>
       <div class="pref-bar" style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="btn-open-guide" class="btn-speed" style="border-color:#0EA5E9;background:#F0F9FF;color:#0369A1;">❓ 指南</button>
         <button id="btn-open-manager" class="btn-speed" style="border-color:#F43F5E;background:#FFF1F2;color:#BE123C;">🗂️ 錄音庫</button>
         <button id="btn-pref-voice" class="btn-speed">🗣️ 粵語</button>
         <button id="btn-pref-script" class="btn-speed">🔤 港澳繁</button>
@@ -75,6 +76,7 @@
     </footer>
   </main>
 
+  <div id="modal-guide" class="modal-backdrop hidden" onclick="if(event.target===this)this.classList.add('hidden')"><div class="modal-card" style="max-width:480px;text-align:left;line-height:1.6;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><h3 style="margin:0;">📚 關於快樂小讀者</h3><button class="btn-close-circle" onclick="document.getElementById('modal-guide').classList.add('hidden')">✕</button></div><p style="font-size:15px;color:#334155;">專為多孩家庭打造的<b>免登入多語點讀故事 App</b>，支援粵語、國語、普通話與英語發音及繁簡切換。</p><ul style="padding-left:20px;font-size:14px;color:#475569;margin:10px 0;"><li><b>👆 點哪讀哪</b>：開啟後點擊任意字詞即可從該處無縫連播。</li><li><b>👨‍👩‍👧 家庭成員與陪讀</b>：父母、哥哥、姊姊可錄製陪讀示範音頻，弟弟妹妹可選擇「聽媽媽/哥哥講故事」。</li><li><b>🎤 自己讀</b>：提供「提詞跟讀」與「識別跟讀」雙模式，錄音自動保存於本機並支援 Google Drive 備份。</li></ul><button class="btn-manager-bottom-close" onclick="document.getElementById('modal-guide').classList.add('hidden')">✅ 開始閱讀</button></div></div>
   <div id="modal-settings" class="modal-backdrop hidden">
     <div class="modal-card" style="max-width:440px;max-height:88vh;overflow-y:auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
