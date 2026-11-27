@@ -9,10 +9,9 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return {
       beforeFiles: [
-        {
-          source: "/",
-          destination: "/index.html",
-        },
+        { source: "/", destination: "/index.html" },
+        { source: "/privacy", destination: "/privacy.html" },
+        { source: "/terms", destination: "/terms.html" },
       ],
       fallback: [
         {
