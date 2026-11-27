@@ -26,41 +26,41 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 28px 24px 64px;
+            padding: 32px 24px 68px;
             text-align: center;
         }
         .wrap {
-            max-width: 480px;
+            max-width: 540px;
             width: 100%;
         }
         .brand {
             display: inline-block;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 700;
             letter-spacing: 1.5px;
             color: var(--accent);
             background: rgba(234, 88, 12, 0.08);
-            padding: 4px 12px;
+            padding: 5px 14px;
             border-radius: 999px;
-            margin-bottom: 18px;
+            margin-bottom: 20px;
         }
         .icon {
-            font-size: 54px;
-            margin-bottom: 12px;
+            font-size: 64px;
+            margin-bottom: 14px;
             display: block;
             filter: drop-shadow(0 6px 12px rgba(0,0,0,0.06));
         }
         h1 {
-            font-size: 32px;
+            font-size: 38px;
             font-weight: 800;
             letter-spacing: -0.5px;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
         .tagline {
-            font-size: 15.5px;
+            font-size: 17px;
             color: var(--sub);
             font-weight: 500;
-            margin-bottom: 26px;
+            margin-bottom: 28px;
         }
 
         /* 純 CSS 三語切換器（靜態爬蟲 100% 可讀） */
@@ -68,15 +68,15 @@
         .lang-tabs {
             display: inline-flex;
             background: var(--pill-bg);
-            padding: 4px;
+            padding: 5px;
             border-radius: 999px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
         .lang-tabs label {
-            font-size: 13px;
+            font-size: 14.5px;
             font-weight: 600;
             color: var(--sub);
-            padding: 6px 16px;
+            padding: 7px 20px;
             border-radius: 999px;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -90,11 +90,11 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
         .desc {
-            font-size: 15.5px;
-            line-height: 1.75;
+            font-size: 17px;
+            line-height: 1.8;
             color: var(--sub);
-            margin-bottom: 32px;
-            min-height: 118px;
+            margin-bottom: 36px;
+            min-height: 145px;
         }
         .desc p { display: none; }
         #l-tc:checked ~ .desc .tc { display: block; }
@@ -107,13 +107,13 @@
             justify-content: center;
             gap: 8px;
             width: 100%;
-            max-width: 260px;
+            max-width: 280px;
             background: linear-gradient(180deg, #292524 0%, #1C1917 100%);
             color: #FFFFFF;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
-            padding: 15px 28px;
-            border-radius: 16px;
+            padding: 17px 32px;
+            border-radius: 18px;
             text-decoration: none;
             box-shadow: 0 10px 20px -6px rgba(28, 25, 23, 0.28);
             transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -123,15 +123,15 @@
             box-shadow: 0 14px 24px -6px rgba(28, 25, 23, 0.35);
         }
         .sub-note {
-            margin-top: 16px;
-            font-size: 12.5px;
+            margin-top: 18px;
+            font-size: 14px;
             color: var(--muted);
         }
         .legal {
             position: fixed;
             bottom: 14px;
             right: 18px;
-            font-size: 12px;
+            font-size: 13px;
             color: var(--muted);
         }
         .legal a {
@@ -141,6 +141,10 @@
         .legal a:hover {
             color: var(--sub);
             text-decoration: underline;
+        }
+        @media (max-width: 480px) {
+            h1 { font-size: 32px; }
+            .desc { font-size: 16px; min-height: 160px; }
         }
     </style>
 </head>
@@ -178,7 +182,6 @@
     </footer>
 
     <script>
-        // 根據訪客瀏覽器語言自動切換預設展示語言（不影響爬蟲讀取全部靜態 HTML）
         (function() {
             var lang = (navigator.language || "").toLowerCase();
             if (lang.startsWith("en")) {
