@@ -285,12 +285,12 @@ function clientMount(items) {
   qIn.addEventListener("click", function (e) { e.stopPropagation(); });
   qClr.addEventListener("click", function (e) { e.stopPropagation(); qIn.value = ""; renderGrid(); qIn.focus(); });
 
-
   function syncTheme() {
     function parseRgb(str) {
       var m = (str || "").match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
       if (!m) return null;
-      return (m !== undefined && parseFloat(m) === 0) ? null : { r: +m, g: +m, b: +m };
+      if (m[4] !== undefined && parseFloat(m[4]) === 0) return null;
+      return { r: +m[1], g: +m[2], b: +m[3] };
     }
     var bg = parseRgb(getComputedStyle(document.body).backgroundColor) || parseRgb(getComputedStyle(document.documentElement).backgroundColor);
     var isDark = bg ? (0.299 * bg.r + 0.587 * bg.g + 0.114 * bg.b) / 255 < 0.48 : (document.documentElement.classList.contains("dark") || document.documentElement.getAttribute("data-theme") === "dark" || matchMedia("(prefers-color-scheme: dark)").matches);
@@ -346,8 +346,9 @@ function clientMount(items) {
   window.addEventListener("keydown", function (e) { if (e.altKey && (e.key === "m" || e.key === "M")) { e.preventDefault(); var w = !wrap.classList.contains("hidden"); setHidden(w, true); } });
 
   var dg = 0, mv = 0, sx = 0, sy = 0, ox = 0, oy = 0;
-  function dn(e) { var t = e.touches ? e.touches : e, rc = host.getBoundingClientRect(); dg = 1; mv = 0; sx = t.clientX; sy = t.clientY; ox = rc.left; oy = rc.top; }
-  function mm(e) { if (!dg) return; var t = e.touches ? e.touches : e, dx = t.clientX - sx, dy = t.clientY - sy; if (Math.abs(dx) > 4 || Math.abs(dy) > 4) mv = 1; if (mv) { e.preventDefault(); setP(ox + dx, oy + dy); } }
+  function getPt(e) { return (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e; }
+  function dn(e) { var t = getPt(e), rc = host.getBoundingClientRect(); dg = 1; mv = 0; sx = t.clientX; sy = t.clientY; ox = rc.left; oy = rc.top; }
+  function mm(e) { if (!dg) return; var t = getPt(e), dx = t.clientX - sx, dy = t.clientY - sy; if (Math.abs(dx) > 4 || Math.abs(dy) > 4) mv = 1; if (mv) { e.preventDefault(); setP(ox + dx, oy + dy); } }
   function up() { if (!dg) return; dg = 0; if (mv) { var rc = host.getBoundingClientRect(); try { localStorage.setItem(K, JSON.stringify({ x: rc.left, y: rc.top })); } catch (e) {} } }
   btn.addEventListener("mousedown", dn); window.addEventListener("mousemove", mm); window.addEventListener("mouseup", up);
   btn.addEventListener("touchstart", dn, { passive: true }); window.addEventListener("touchmove", mm, { passive: false }); window.addEventListener("touchend", up);
@@ -381,8 +382,16 @@ function clientMount(items) {
 
 function buildSnippet() {
   const menuList = getMenu();
-  const fnCode = "(" + clientMount.toString() + ")(" + JSON.stringify(menuList) + ");";
-  return ["", M_START, '<script async src="https://googletagmanager.com' + GTM_ID + '"></script>', '<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","' + GA_ID + '");</script>', '<div id="__nav_host" style="position:fixed;z-index:2147483647;right:22px;bottom:22px;touch-action:none;"></div>', '<script>' + fnCode + '</script>', M_END].join("\n");
+  const fnCode = ("(" + clientMount.toString() + ")(" + JSON.stringify(menuList) + ");").replace(/<\/script/gi, "<\\/script");
+  return [
+    "",
+    M_START,
+    '<script async src="https://www.googletagmanager.com/gtm.js?id=' + GTM_ID + '"></script>',
+    '<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","' + GA_ID + '");</script>',
+    '<div id="__nav_host" style="position:fixed;z-index:2147483647;right:22px;bottom:22px;touch-action:none;"></div>',
+    '<script>' + fnCode + '</script>',
+    M_END
+  ].join("\n");
 }
 
 function run(dir, snippet) {
