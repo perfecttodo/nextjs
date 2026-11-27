@@ -1361,3 +1361,16 @@ document.getElementById('btn-batch-delete-recs')?.addEventListener('click', asyn
   CustomUI.showToast(`🗑️ 已成功刪除 ${ids.length} 筆錄音`);
   await renderManagerList();
 });
+
+
+// 全域音頻互斥鎖：任何一個 <audio> 開始播放時，自動暫停其他所有正在播放的音頻，徹底防止多音軌重疊
+document.addEventListener('play', (e) => {
+  const current = e.target;
+  if (!current || current.tagName !== 'AUDIO') return;
+  document.querySelectorAll('audio').forEach(a => {
+    if (a !== current && !a.paused) a.pause();
+  });
+  if (typeof ttsAudioEl !== 'undefined' && ttsAudioEl && ttsAudioEl !== current && !ttsAudioEl.paused) {
+    stopTtsPlayback();
+  }
+}, true);
