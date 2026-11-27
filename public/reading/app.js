@@ -892,7 +892,8 @@ btnPlayTts.addEventListener('click', () => {
   else { stopReadAlong(); requestWakeLock(); applyCurrentPlaybackRate(); ttsAudioEl.play(); btnPlayTts.querySelector('.label').textContent = tUI('pause'); syncHighlightLoop(); }
 });
 
-function stopTtsPlayback() { ttsAudioEl.pause(); cancelAnimationFrame(rafId); btnPlayTts.querySelector('.label').textContent = getListenButtonLabel(); }
+function stopTtsPlayback() {
+  clearTimeout(window._autoNextStoryTimer); ttsAudioEl.pause(); cancelAnimationFrame(rafId); btnPlayTts.querySelector('.label').textContent = getListenButtonLabel(); }
 
 
 function triggerStarCelebration() {
@@ -929,22 +930,55 @@ function handleStoryEnded() {
   triggerStarCelebration();
   clearHighlight();
   const mode = REPEAT_MODES[repeatIdx].id;
+  const playLbl = btnPlayTts.querySelector('.label');
+  const isEn = VOICE_PREFS.at(voiceIdx).id === 'en';
+  const sId = SCRIPT_PREFS.at(scriptIdx).id;
+
+  // 1. 單篇循環 (single)：停頓 2.2 秒後重播本篇
   if (mode === 'single') {
     ttsAudioEl.currentTime = 0;
-    ttsAudioEl.play();
-    syncHighlightLoop();
-  } else if (mode === 'list' && allStories.length > 0) {
-    const curIdx = allStories.findIndex(s => s.id === currentStory.id);
-    const nextStory = allStories[(curIdx + 1) % allStories.length];
-    openStory(nextStory.id, true);
-  } else if (mode === 'random' && allStories.length > 0) {
-    const candidates = allStories.length > 1 ? allStories.filter(s => s.id !== currentStory.id) : allStories;
-    const nextStory = candidates[Math.floor(Math.random() * candidates.length)];
-    openStory(nextStory.id, true);
-  } else {
-    releaseWakeLock();
-    btnPlayTts.querySelector('.label').textContent = getListenButtonLabel();
+    if (playLbl) playLbl.textContent = isEn ? '⏳ Replaying...' : (sId === 'cn' ? '⏳ 即将重播...' : '⏳ 即將重播...');
+    clearTimeout(window._autoNextStoryTimer);
+    window._autoNextStoryTimer = setTimeout(() => {
+      if (!viewReader.classList.contains('active')) return;
+      ttsAudioEl.play().then(() => {
+        if (playLbl) playLbl.textContent = tUI('pause');
+        syncHighlightLoop();
+      }).catch(() => {});
+    }, 2200);
+    return;
   }
+
+  // 2. 連續循環 (list) 或 隨機循環 (random)：先翻頁顯示新故事標題，停頓 2.8 秒再溫和開讀
+  if ((mode === 'list' || mode === 'random') && allStories.length > 0) {
+    let nextIdx = 0;
+    if (mode === 'random' && allStories.length > 1) {
+      const curIdx = allStories.findIndex(s => s.id === currentStory.id);
+      do { nextIdx = Math.floor(Math.random() * allStories.length); } while (nextIdx === curIdx);
+    } else {
+      const curIdx = allStories.findIndex(s => s.id === currentStory.id);
+      nextIdx = (curIdx + 1) % allStories.length;
+    }
+    const nextStory = allStories[nextIdx];
+    openStory(nextStory.id, false).then(() => {
+      const lbl = btnPlayTts.querySelector('.label');
+      if (lbl) lbl.textContent = isEn ? '⏳ Next story...' : (sId === 'cn' ? '⏳ 即将开始...' : '⏳ 即將開始...');
+      clearTimeout(window._autoNextStoryTimer);
+      window._autoNextStoryTimer = setTimeout(() => {
+        if (!viewReader.classList.contains('active') || !currentStory || currentStory.id !== nextStory.id) return;
+        requestWakeLock();
+        ttsAudioEl.play().then(() => {
+          if (lbl) lbl.textContent = tUI('pause');
+          syncHighlightLoop();
+        }).catch(() => {});
+      }, 2800);
+    });
+    return;
+  }
+
+  // 3. 單篇不循環：停留在結尾並恢復按鈕
+  if (playLbl) playLbl.textContent = getListenButtonLabel();
+  releaseWakeLock();
 }
 
 function syncHighlightLoop() {
