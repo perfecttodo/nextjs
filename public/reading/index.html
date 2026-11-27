@@ -121,6 +121,13 @@
       </div>
       <div id="gdrive-plugin-slot"></div>
       <div id="manager-filter-bar"></div>
+      <div id="manager-batch-bar" style="display:flex;justify-content:space-between;align-items:center;padding:6px 4px;margin-bottom:6px;gap:8px;flex-shrink:0;">
+        <label style="display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:bold;color:#475569;cursor:pointer;user-select:none;">
+          <input type="checkbox" id="chk-select-all-recs" style="width:18px;height:18px;accent-color:#F59E0B;" />
+          <span id="lbl-select-all-recs">全選目前列表</span>
+        </label>
+        <button type="button" id="btn-batch-delete-recs" class="btn-mini" style="background:#FEE2E2;color:#B91C1C;padding:6px 12px;opacity:0.5;" disabled>🗑️ 批量刪除 (0)</button>
+      </div>
       <div id="manager-list" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px;padding:4px;"></div>
       <button id="btn-close-manager-bottom" class="btn-manager-bottom-close">✅ 完成並關閉</button>
     </div>

@@ -211,6 +211,8 @@ async function renderManagerList() {
     managerList.innerHTML = '<p style="color:#64748B;padding:24px 0;">目前還沒有保存任何錄音喔！<br>打開任一故事點擊「🎤 自己讀」或「🎙️ 開始錄製」即可保存。</p>';
     return;
   }
+  const batchBar = document.getElementById('manager-batch-bar');
+  if (batchBar) batchBar.style.display = list.length > 0 ? 'flex' : 'none';
   managerList.innerHTML = list.map((rec, idx) => {
     const url = URL.createObjectURL(rec.blob);
     const dateStr = new Date(rec.createdAt).toLocaleString('zh-HK', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
@@ -218,7 +220,7 @@ async function renderManagerList() {
     return `
       <div class="rec-item">
         <div class="rec-item-header">
-          <div class="rec-item-title" style="display:flex;align-items:center;gap:8px;">${(typeof GDriveSync !== "undefined" && GDriveSync.isEnabled()) ? `<input type="checkbox" class="gdrive-rec-chk" value="${rec.id}" style="width:18px;height:18px;accent-color:#0284C7;flex-shrink:0;" checked />` : ""}<span>#${list.length - idx} 📖 ${rec.storyTitle} · <span style="color:#D97706;">${rec.label}</span></span></div>
+          <label class="rec-item-title" style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" class="rec-batch-chk" value="${rec.id}" onchange="syncBatchDeleteUI()" style="width:19px;height:19px;accent-color:#F59E0B;flex-shrink:0;" /><span>#${list.length - idx} 📖 ${rec.storyTitle} · <span style="color:#D97706;">${rec.label}</span></span></label>
           <div class="rec-item-meta">語言：${rec.langLabel} ｜ 時長：<span id="dur-${rec.id}">${getRecEstimatedDuration(rec) || '--:--'}</span> ｜ ${dateStr}</div>
         </div>
         <audio controls playsinline src="${url}" style="width:100%;height:40px;" onloadedmetadata="if(isFinite(this.duration)){const el=document.getElementById('dur-${rec.id}');if(el)el.textContent=formatSecMMSS(this.duration);}"></audio>
@@ -230,6 +232,7 @@ async function renderManagerList() {
         </div>
       </div>`;
   }).join('');
+  if (typeof syncBatchDeleteUI === 'function') syncBatchDeleteUI();
 }
 
 window.setManagerFilter = async (lbl) => {
@@ -666,6 +669,7 @@ function renderStoryList(stories) {
       </div>
     </div>`;
   }).join('');
+  if (typeof syncBatchDeleteUI === 'function') syncBatchDeleteUI();
 }
 
 async function openStory(id, autoPlay = false) {
@@ -1317,3 +1321,43 @@ document.getElementById('btn-open-guide')?.addEventListener('click',()=>document
   new MutationObserver(syncPad).observe(banner, { attributes: true, attributeFilter: ['style'] });
   window.addEventListener('resize', syncPad);
 })();
+
+
+window.syncBatchDeleteUI = () => {
+  const allChks = Array.from(document.querySelectorAll('.rec-batch-chk'));
+  const checked = allChks.filter(c => c.checked);
+  const selAll = document.getElementById('chk-select-all-recs');
+  const delBtn = document.getElementById('btn-batch-delete-recs');
+  if (selAll) {
+    selAll.checked = allChks.length > 0 && checked.length === allChks.length;
+    selAll.indeterminate = checked.length > 0 && checked.length < allChks.length;
+  }
+  if (delBtn) {
+    delBtn.textContent = `🗑️ 批量刪除 (${checked.length})`;
+    delBtn.disabled = checked.length === 0;
+    delBtn.style.opacity = checked.length === 0 ? '0.5' : '1';
+  }
+};
+
+document.getElementById('chk-select-all-recs')?.addEventListener('change', (e) => {
+  document.querySelectorAll('.rec-batch-chk').forEach(c => { c.checked = e.target.checked; });
+  syncBatchDeleteUI();
+});
+
+document.getElementById('btn-batch-delete-recs')?.addEventListener('click', async () => {
+  const ids = Array.from(document.querySelectorAll('.rec-batch-chk:checked')).map(c => c.value);
+  if (ids.length === 0) return;
+  const ok = await CustomUI.showConfirm({
+    title: '🗑️ 批量刪除錄音',
+    desc: `確定要永久刪除已選中的 ${ids.length} 筆錄音嗎？刪除後無法恢復喔。`,
+    okText: `刪除 ${ids.length} 筆`,
+    isDanger: true
+  });
+  if (!ok) return;
+  for (const id of ids) {
+    await ParentVoice.deleteRecording(id);
+  }
+  if (typeof SoundFX !== 'undefined') SoundFX.play('back', true);
+  CustomUI.showToast(`🗑️ 已成功刪除 ${ids.length} 筆錄音`);
+  await renderManagerList();
+});

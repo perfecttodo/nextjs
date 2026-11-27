@@ -193,7 +193,7 @@ const GDriveSync = (() => {
   }
 
   async function uploadSelected() {
-    const ids = Array.from(document.querySelectorAll(".gdrive-rec-chk:checked")).map((el) => el.value);
+    const ids = Array.from(document.querySelectorAll(".rec-batch-chk:checked")).map((el) => el.value);
     if (!ids.length) {
       notify("⚠️ 請先勾選要上傳的錄音");
       return;
