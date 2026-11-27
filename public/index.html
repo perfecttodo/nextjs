@@ -3,108 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tayino - 快樂小讀者 Happy Reader | Interactive Multilingual Story Reader</title>
+    <title>快樂小讀者 Happy Reader | Tayino 多語互動點讀繪本</title>
     <style>
+        :root {
+            --bg: #FDFBF7;
+            --card: #FFFFFF;
+            --text-main: #292524;
+            --text-sub: #57534E;
+            --text-muted: #A8A29E;
+            --accent: #F97316;
+            --accent-hover: #EA580C;
+            --accent-soft: #FFF7ED;
+            --border: #F3EFEA;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "PingFang SC", "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(circle at 15% 15%, rgba(254, 215, 170, 0.35) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(186, 230, 253, 0.35) 0%, transparent 45%);
+            color: var(--text-main);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 32px 20px 60px;
-            box-sizing: border-box;
-            background-color: #fafafa;
-            color: #111;
+            padding: 32px 20px 64px;
             text-align: center;
         }
-        .badge {
-            font-size: 12px;
-            font-weight: 600;
-            color: #2563eb;
-            background: #eff6ff;
-            padding: 4px 12px;
-            border-radius: 999px;
-            margin-bottom: 12px;
-            letter-spacing: 0.8px;
-        }
-        h1 { font-size: 26px; margin: 0 0 20px; letter-spacing: -0.5px; }
-        .lang-cards {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            max-width: 560px;
+        .container {
+            max-width: 580px;
             width: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: 28px;
+            padding: 40px 32px;
+            box-shadow: 0 20px 40px -15px rgba(120, 113, 108, 0.08), 0 0 0 1px rgba(231, 229, 228, 0.6);
+        }
+        .brand-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--accent);
+            background: var(--accent-soft);
+            padding: 5px 14px;
+            border-radius: 999px;
+            margin-bottom: 18px;
+        }
+        .hero-icon {
+            font-size: 48px;
+            line-height: 1;
+            margin-bottom: 12px;
+            display: inline-block;
+            animation: float 3.5s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+        h1 {
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+        .subtitle-en {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+        .desc-box {
+            text-align: left;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 18px 20px;
+            margin-bottom: 24px;
+        }
+        .desc-item {
+            font-size: 13.5px;
+            line-height: 1.65;
+            color: var(--text-sub);
+        }
+        .desc-item + .desc-item {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #E7E5E4;
+        }
+        .desc-item.en {
+            font-size: 13px;
+            color: #78716C;
+        }
+        .pills {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
             margin-bottom: 28px;
+        }
+        @media (max-width: 480px) {
+            .pills { grid-template-columns: 1fr; }
+            .container { padding: 32px 20px; }
+        }
+        .pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-main);
             text-align: left;
         }
-        .card {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 16px 18px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-        }
-        .card-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #111;
-            margin: 0 0 6px;
-        }
-        .card-desc {
-            font-size: 13.5px;
-            color: #555;
-            line-height: 1.65;
-            margin: 0;
-        }
-        .btn {
-            background-color: #111;
-            color: #fff;
-            padding: 13px 36px;
-            border-radius: 10px;
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            max-width: 280px;
+            background: linear-gradient(135deg, #FB923C 0%, #F97316 100%);
+            color: #FFFFFF;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 15px 32px;
+            border-radius: 16px;
             text-decoration: none;
-            font-size: 15px;
-            font-weight: 500;
-            transition: opacity 0.2s;
+            box-shadow: 0 10px 20px -6px rgba(249, 115, 22, 0.45);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .btn:hover { opacity: 0.85; }
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 24px -6px rgba(249, 115, 22, 0.55);
+        }
+        .trust-note {
+            margin-top: 14px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
         .legal {
             position: fixed;
             bottom: 12px;
             right: 16px;
             font-size: 12px;
-            color: #999;
-            background: rgba(250, 250, 250, 0.85);
-            padding: 2px 6px;
-            border-radius: 4px;
+            color: var(--text-muted);
         }
-        .legal a { color: #888; text-decoration: none; }
-        .legal a:hover { text-decoration: underline; }
+        .legal a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .legal a:hover {
+            color: var(--text-sub);
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-    <div class="badge">TAYINO</div>
-    <h1>快樂小讀者 · Happy Reader</h1>
+    <main class="container">
+        <div class="brand-pill">TAYINO · 親子共讀</div>
+        <div class="hero-icon">📚</div>
+        <h1>快樂小讀者 · Happy Reader</h1>
+        <div class="subtitle-en">Interactive Multilingual Story Reader for Families</div>
 
-    <div class="lang-cards">
-        <div class="card">
-            <div class="card-title">📚 快樂小讀者（Happy Reader）—— 專為多孩家庭設計的多語互動點讀繪本</div>
-            <p class="card-desc">免註冊登入、全本機隱私保存，支援 粵語、國語、普通話、英語 四語切換與繁簡字形顯示。孩子可透過「點哪讀哪」、多檔慢速調節與逐詞高亮輕鬆認字；父母、哥哥與姊姊更可錄製專屬「陪讀示範音頻」，陪伴弟弟妹妹一起跟讀成長，並可選透過 Google Drive 跨設備備份家庭珍貴錄音。</p>
+        <div class="pills">
+            <div class="pill"><span>🗣️</span><span>粵 / 國 / 普 / 英 四語發音</span></div>
+            <div class="pill"><span>🎯</span><span>點哪讀哪 · 逐詞同步高亮</span></div>
+            <div class="pill"><span>👨‍👩‍👧‍👦</span><span>多孩與兄姊陪讀示範錄音</span></div>
+            <div class="pill"><span>☁️</span><span>免註冊 · 可選 Google Drive 備份</span></div>
         </div>
 
-        <div class="card">
-            <div class="card-title">📚 快乐小读者（Happy Reader）—— 专为多孩家庭设计的多语互动点读绘本</div>
-            <p class="card-desc">免注册登录、全本地隐私保存，支持 粤语、国语、普通话、英语 四语切换与繁简字形显示。孩子可通过“点哪读哪”、多档慢速调节与逐词高亮轻松认字；父母、哥哥与姐姐更可录制专属“陪读示范音频”，陪伴弟弟妹妹一起跟读成长，并可选通过 Google Drive 跨设备备份家庭珍贵录音。</p>
+        <div class="desc-box">
+            <p class="desc-item"><strong>繁體：</strong>專為多孩家庭設計的多語互動點讀繪本，免註冊登入、全本機隱私保存，支援粵語、國語、普通話、英語四語切換與繁簡字形顯示。孩子可透過「點哪讀哪」、多檔慢速調節與逐詞高亮輕鬆認字；父母與兄姊更可錄製專屬陪讀音頻，並可選透過 Google Drive 跨設備備份家庭珍貴錄音。</p>
+            <p class="desc-item"><strong>简体：</strong>专为多孩家庭设计的多语互动点读绘本，免注册登录、全本地隐私保存，支持粤语、国语、普通话、英语四语切换与繁简字形显示。孩子可通过“点哪读哪”、多档慢速调节与逐词高亮轻松认字；父母与兄姐更可录制专属陪读音频，并可选通过 Google Drive 跨设备备份家庭珍贵录音。</p>
+            <p class="desc-item en"><strong>English:</strong> No sign-up required with 100% local privacy storage. Supports Cantonese, Taiwanese Mandarin, Putonghua, and English with instant Traditional/Simplified script switching. Kids learn to read with Tap-to-Read, adjustable slow speeds (0.5x–1.2x), and word-by-word highlighting, while parents and older siblings can record custom read-along voices with optional Google Drive backup.</p>
         </div>
 
-        <div class="card">
-            <div class="card-title">📚 Happy Reader — Interactive Multilingual Story Reader for Families</div>
-            <p class="card-desc">No sign-up required with 100% local privacy storage. Supports Cantonese, Taiwanese Mandarin, Putonghua, and English with instant Traditional/Simplified script switching. Kids can learn to read with Tap-to-Read, adjustable slow speeds (0.5x–1.2x), and word-by-word highlighting, while parents and older siblings can record custom read-along voices with optional Google Drive backup.</p>
-        </div>
-    </div>
-
-    <a href="/reading" class="btn">開始閱讀 / Start Reading &rarr;</a>
+        <a href="/reading" class="cta-btn">開始閱讀 · Start Reading &rarr;</a>
+        <div class="trust-note">無需註冊 · 所有錄音預設保存於本機</div>
+    </main>
 
     <footer class="legal">
         <a href="https://tayino.com">Privacy</a>
