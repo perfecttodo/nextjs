@@ -52,4 +52,6 @@ input[type=radio]{display:none}
 <script>
 (function(){var l=(navigator.language||"").toLowerCase();if(l.startsWith("en"))document.getElementById("l-en").checked=true;else if(l==="zh-cn"||l==="zh-sg"||l.includes("hans"))document.getElementById("l-sc").checked=true})();
 (function(){var A=window.AudioContext||window.webkitAudioContext,c=null;function g(){if(!c&&A)c=new A;if(c&&c.state==="suspended")c.resume();return c}function t(f,y,d,w,v){var a=g();if(!a)return;var n=a.currentTime+(w||0),o=a.createOscillator(),u=a.createGain();o.type=y||"sine";o.frequency.setValueAtTime(f,n);u.gain.setValueAtTime(.001,n);u.gain.exponentialRampToValueAtTime(v||.12,n+.015);u.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(u);u.connect(a.destination);o.start(n);o.stop(n+d+.02)}document.querySelectorAll("[data-s]").forEach(function(e){e.addEventListener("click",function(){t(587.33,"sine",.12,0,.1);t(880,"sine",.16,.045,.08)})});var b=document.getElementById("bk");if(b)b.addEventListener("click",function(){[523.25,659.25,783.99,1046.5].forEach(function(f,i){t(f,"triangle",.24,i*.06,.11)});b.classList.remove("boing");void b.offsetWidth;b.classList.add("boing")});var e=document.getElementById("go");if(e)e.addEventListener("click",function(v){v.preventDefault();[523.25,659.25,783.99,1046.5].forEach(function(f,i){t(f,i===3?"triangle":"sine",.4,i*.03,.1)});setTimeout(function(){window.location.href=e.getAttribute("href")},180)})})();
-</script></body></html>
+</script>
+</body>
+</html>
