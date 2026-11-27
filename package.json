@@ -10,7 +10,9 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
-    "deploy": "node deploy.js"
+    "deploy": "node deploy.js",
+    "predev2": "node scripts/inject-all.mjs",
+    "prebuild": "node scripts/inject-all.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.864.0",
