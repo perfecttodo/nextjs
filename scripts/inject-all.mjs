@@ -391,6 +391,7 @@ function run(dir, snippet) {
     const p = path.join(dir, e.name);
     if (e.isDirectory()) run(p, snippet);
     else if (e.isFile() && e.name.endsWith(".html")) {
+      if (dir === PUBLIC_DIR && ["index.html", "privacy.html", "terms.html"].includes(e.name.toLowerCase())) continue;
       const raw = fs.readFileSync(p, "utf8");
       const sIdx = raw.indexOf(M_START), eIdx = raw.indexOf(M_END);
       const clean = (sIdx !== -1 && eIdx !== -1) ? raw.slice(0, sIdx).trimEnd() + "\n" + raw.slice(eIdx + M_END.length).trimStart() : raw;
