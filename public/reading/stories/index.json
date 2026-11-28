@@ -262,5 +262,71 @@
       "en": "Yummy Cha Chaan Teng Breakfast"
     },
     "cover": "/reading/assets/covers/story_024.png?v=2"
+  },
+  {
+    "id": "story_025",
+    "level": 1,
+    "titles": {
+      "hk": "小烏鴉喝水的新方法",
+      "tw": "小烏鴉喝水的新方法",
+      "cn": "小乌鸦喝水的新方法",
+      "en": "Little Crow's New Way to Drink"
+    },
+    "cover": "/reading/assets/covers/story_025.png?v=2"
+  },
+  {
+    "id": "story_026",
+    "level": 1,
+    "titles": {
+      "hk": "整理玩具的分類魔法",
+      "tw": "整理玩具的分類魔法",
+      "cn": "整理玩具的分类魔法",
+      "en": "The Magic of Sorting Toys"
+    },
+    "cover": "/reading/assets/covers/story_026.png?v=2"
+  },
+  {
+    "id": "story_027",
+    "level": 2,
+    "titles": {
+      "hk": "專心二十分鐘小火箭",
+      "tw": "專心二十分鐘小火箭",
+      "cn": "专心二十分钟小火箭",
+      "en": "The Twenty-Minute Focus Rocket"
+    },
+    "cover": "/reading/assets/covers/story_027.png?v=2"
+  },
+  {
+    "id": "story_028",
+    "level": 2,
+    "titles": {
+      "hk": "曹沖稱象的聰明辦法",
+      "tw": "曹沖稱象的聰明辦法",
+      "cn": "曹冲称象的聪明办法",
+      "en": "Cao Chong Weighs the Elephant"
+    },
+    "cover": "/reading/assets/covers/story_028.png?v=2"
+  },
+  {
+    "id": "story_029",
+    "level": 2,
+    "titles": {
+      "hk": "森林接力賽的排兵布陣",
+      "tw": "森林接力賽的排兵布陣",
+      "cn": "森林接力赛的排兵布阵",
+      "en": "Smart Teamwork in the Forest Relay"
+    },
+    "cover": "/reading/assets/covers/story_029.png?v=2"
+  },
+  {
+    "id": "story_030",
+    "level": 3,
+    "titles": {
+      "hk": "偵探小狐狸的排除法",
+      "tw": "偵探小狐狸的排除法",
+      "cn": "侦探小狐狸的排除法",
+      "en": "Detective Fox's Elimination Method"
+    },
+    "cover": "/reading/assets/covers/story_030.png?v=2"
   }
 ]
