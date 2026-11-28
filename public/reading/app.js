@@ -1405,40 +1405,98 @@ async function switchRelativeStory(delta) {
   }
 }
 
-function openQuickStorySwitcher() {
-  const modal = document.getElementById('modal-story-switcher');
+let switcherFilterLv = 'ALL';
+
+window.setSwitcherLv = (lv) => {
+  switcherFilterLv = lv;
+  renderQuickStoryList();
+};
+
+window.renderQuickStoryList = () => {
   const listEl = document.getElementById('quick-story-list');
-  const titleEl = document.getElementById('switcher-title');
-  if (!modal || !listEl) return;
+  const tabsEl = document.getElementById('switcher-level-tabs');
+  const searchEl = document.getElementById('switcher-search-input');
+  if (!listEl) return;
 
   const isEn = VOICE_PREFS.at(voiceIdx).id === 'en';
   const sId = SCRIPT_PREFS.at(scriptIdx).id;
-  if (titleEl) {
-    titleEl.textContent = isEn ? '📚 Switch Story' : (sId === 'cn' ? '📚 快速切换故事' : '📚 快速切換故事');
+  const titleKey = isEn ? 'en' : sId;
+  const kw = (searchEl ? searchEl.value : '').trim().toLowerCase();
+
+  if (tabsEl) {
+    const tabDefs = [
+      { id: 'ALL', label: isEn ? 'All' : '全部' },
+      { id: '1', label: '🌱 Lv.1' },
+      { id: '2', label: '🌿 Lv.2' },
+      { id: '3', label: '🌳 Lv.3' }
+    ];
+    tabsEl.innerHTML = tabDefs.map(t => {
+      const act = String(switcherFilterLv) === t.id;
+      return `<button type="button" class="btn-mini" style="flex-shrink:0;padding:6px 12px;border-radius:14px;background:${act ? '#F59E0B' : '#F1F5F9'};color:${act ? '#FFF' : '#475569'};" onclick="setSwitcherLv('${t.id}')">${t.label}</button>`;
+    }).join('');
   }
 
-  const titleKey = isEn ? 'en' : sId;
   const lvlColors = { 1: '#10B981', 2: '#F59E0B', 3: '#8B5CF6' };
-  listEl.innerHTML = allStories.map((st, idx) => {
+  const indexedStories = allStories.map((st, idx) => ({ st, num: idx + 1 }));
+  const filtered = indexedStories.filter(({ st, num }) => {
+    if (switcherFilterLv !== 'ALL' && String(st.level || 1) !== String(switcherFilterLv)) return false;
+    if (!kw) return true;
+    const allTitles = Object.values(st.titles || {}).join(' ').toLowerCase();
+    return allTitles.includes(kw) || String(num) === kw || (`#${num}`).includes(kw);
+  });
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = `<p style="color:#64748B;text-align:center;padding:24px 0;">${isEn ? 'No matching stories found' : '找不到符合的故事喔'}</p>`;
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(({ st, num }) => {
     const active = currentStory && st.id === currentStory.id;
     const tText = (st.titles && st.titles[titleKey]) || (st.titles && st.titles.hk) || st.id;
     const lv = st.level || 1;
     return `
       <div class="quick-story-item ${active ? 'active' : ''}" onclick="selectQuickStory('${st.id}')">
-        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-          <span style="background:${lvlColors[lv] || '#10B981'};color:#fff;font-size:12px;font-weight:bold;padding:3px 8px;border-radius:10px;flex-shrink:0;">Lv.${lv}</span>
-          <span style="font-size:16px;font-weight:800;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${idx + 1}. ${tText}</span>
+        <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+          <span style="background:${lvlColors[lv] || '#10B981'};color:#fff;font-size:11px;font-weight:bold;padding:3px 7px;border-radius:9px;flex-shrink:0;">Lv.${lv}</span>
+          <span style="font-size:15px;font-weight:800;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${num}. ${tText}</span>
         </div>
-        <span style="font-size:16px;flex-shrink:0;">${active ? '📖' : '👉'}</span>
+        <span style="font-size:15px;flex-shrink:0;">${active ? '📖' : '👉'}</span>
       </div>`;
   }).join('');
+};
 
+function openQuickStorySwitcher() {
+  const modal = document.getElementById('modal-story-switcher');
+  const titleEl = document.getElementById('switcher-title');
+  const searchEl = document.getElementById('switcher-search-input');
+  const rndBtn = document.getElementById('btn-switcher-random');
+  if (!modal) return;
+
+  const isEn = VOICE_PREFS.at(voiceIdx).id === 'en';
+  const sId = SCRIPT_PREFS.at(scriptIdx).id;
+  if (titleEl) titleEl.textContent = isEn ? '📚 Switch Story' : (sId === 'cn' ? '📚 快速切换故事' : '📚 快速切換故事');
+  if (searchEl) {
+    searchEl.value = '';
+    searchEl.placeholder = isEn ? '🔍 Search title or number...' : (sId === 'cn' ? '🔍 输入故事名称或编号...' : '🔍 輸入故事名稱或編號...');
+  }
+  if (rndBtn) rndBtn.textContent = isEn ? '🎲 Random Story' : (sId === 'cn' ? '🎲 随机挑一篇故事' : '🎲 隨機挑一篇故事');
+
+  switcherFilterLv = 'ALL';
+  renderQuickStoryList();
   modal.classList.remove('hidden');
+
   setTimeout(() => {
-    const activeItem = listEl.querySelector('.quick-story-item.active');
+    const activeItem = document.querySelector('#quick-story-list .quick-story-item.active');
     if (activeItem) activeItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, 50);
 }
+
+document.getElementById('btn-switcher-random')?.addEventListener('click', () => {
+  if (!allStories || allStories.length === 0) return;
+  const pool = allStories.length > 1 ? allStories.filter(s => !currentStory || s.id !== currentStory.id) : allStories;
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  if (pick) selectQuickStory(pick.id);
+});
 
 window.selectQuickStory = async (storyId) => {
   document.getElementById('modal-story-switcher')?.classList.add('hidden');
