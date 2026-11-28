@@ -1587,6 +1587,7 @@ viewReader?.addEventListener('touchend', (e) => {
 }, { passive: true });
 
 
+
 (function injectWatermarkSettingRow() {
   const rows = document.querySelectorAll('#modal-settings .setting-row');
   const lastRow = rows.length ? rows[rows.length - 1] : null;

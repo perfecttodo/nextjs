@@ -925,3 +925,31 @@ span.token.active::after {
   transition: none !important;
   will-change: transform, color;
 }
+
+/* 保持 #modal-settings 原有外觀與原生滾動條，僅用 sticky 固定頂部標題與底部「完成」按鈕 */
+#modal-settings .modal-card {
+  max-height: 84vh !important;
+  overflow-y: auto !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+#modal-settings .modal-card > :first-child {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 20 !important;
+  background: #FFFFFF !important;
+  padding-top: 18px !important;
+  padding-bottom: 10px !important;
+  margin-top: 0 !important;
+  border-bottom: 1px solid #F1F5F9 !important;
+}
+
+#modal-settings #btn-close-settings {
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 20 !important;
+  margin-top: 10px !important;
+  margin-bottom: 16px !important;
+  box-shadow: 0 -8px 16px rgba(255, 255, 255, 0.95) !important;
+}
