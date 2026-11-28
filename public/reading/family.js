@@ -7,6 +7,34 @@ const FamilyManager = (() => {
     { id: 'm_mom', name: '媽媽', avatar: '👩', canTutor: true, level: 0, voiceIdx: 0, scriptIdx: 0, isDefault: true }
   ];
 
+  const DEFAULT_NAME_MAP = {
+    '爸爸': { hk: '爸爸', tw: '爸爸', cn: '爸爸', en: 'Dad' },
+    '媽媽': { hk: '媽媽', tw: '媽媽', cn: '妈妈', en: 'Mom' },
+    '妈妈': { hk: '媽媽', tw: '媽媽', cn: '妈妈', en: 'Mom' },
+    'Dad':  { hk: '爸爸', tw: '爸爸', cn: '爸爸', en: 'Dad' },
+    'Mom':  { hk: '媽媽', tw: '媽媽', cn: '妈妈', en: 'Mom' },
+    '哥哥': { hk: '哥哥', tw: '哥哥', cn: '哥哥', en: 'Brother' },
+    'Brother': { hk: '哥哥', tw: '哥哥', cn: '哥哥', en: 'Brother' },
+    '姊姊': { hk: '姊姊', tw: '姊姊', cn: '姐姐', en: 'Sister' },
+    '姐姐': { hk: '姊姊', tw: '姊姊', cn: '姐姐', en: 'Sister' },
+    'Sister': { hk: '姊姊', tw: '姊姊', cn: '姐姐', en: 'Sister' },
+    '弟弟': { hk: '弟弟', tw: '弟弟', cn: '弟弟', en: 'Little Bro' },
+    '妹妹': { hk: '妹妹', tw: '妹妹', cn: '妹妹', en: 'Little Sis' },
+    '寶寶': { hk: '寶寶', tw: '寶寶', cn: '宝宝', en: 'Baby' },
+    '宝宝': { hk: '寶寶', tw: '寶寶', cn: '宝宝', en: 'Baby' },
+    'Baby': { hk: '寶寶', tw: '寶寶', cn: '宝宝', en: 'Baby' }
+  };
+
+  function getDisplayName(member, langKey) {
+    if (!member || !member.name) return '';
+    const entry = DEFAULT_NAME_MAP[member.name.trim()];
+    if (!entry) return member.name;
+    const key = langKey || (typeof VOICE_PREFS !== 'undefined' && typeof voiceIdx !== 'undefined' && VOICE_PREFS.at(voiceIdx)?.id === 'en'
+      ? 'en'
+      : (typeof SCRIPT_PREFS !== 'undefined' && typeof scriptIdx !== 'undefined' ? SCRIPT_PREFS.at(scriptIdx)?.id : 'hk'));
+    return entry[key] || member.name;
+  }
+
   function getMembers() {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -87,7 +115,7 @@ const FamilyManager = (() => {
     return null;
   }
 
-  return {
+  return { getDisplayName, 
     getMembers,
     getActiveMember,
     setActiveMember,

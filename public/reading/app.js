@@ -147,7 +147,7 @@ btnParentRec.addEventListener('click', () => {
       previewAudio.src = previewUrl;
       renderQuickTutorTags();
       const curTutor = FamilyManager.getActiveMember();
-      const fallbackTutorLabel = VOICE_PREFS.at(voiceIdx).id === 'en' ? `${curTutor.avatar} ${curTutor.name}'s Voice` : `${curTutor.avatar} ${curTutor.name}的聲音`;
+      const fallbackTutorLabel = VOICE_PREFS.at(voiceIdx).id === 'en' ? `${curTutor.avatar} ${FamilyManager.getDisplayName(curTutor)}'s Voice` : `${curTutor.avatar} ${FamilyManager.getDisplayName(curTutor)}的聲音`;
       previewLabelInput.value = localStorage.getItem('reading_lastTutorRecLabel') || fallbackTutorLabel;
       modalPreview.classList.remove('hidden');
     },
@@ -414,7 +414,11 @@ function applyUiLanguage() {
   const setTxt = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt; };
   setTxt('#view-list .top-bar h1', tUI('appTitle'));
   setTxt('#btn-open-guide', tUI('guideBtn')); setTxt('#modal-guide h3', tUI('guideTitle')); setTxt('#modal-guide .btn-manager-bottom-close', tUI('guideBtnStart')); setTxt('#btn-open-manager', tUI('recLibrary'));
+  if (typeof renderFamilyBar === 'function') renderFamilyBar();
+  if (typeof updateHeaderStatusPill === 'function') updateHeaderStatusPill();
   setTxt('#btn-back', tUI('back'));
+  const catBtn = document.getElementById('btn-open-catalog');
+  if (catBtn) { const vId = VOICE_PREFS.at(voiceIdx).id; const sId = SCRIPT_PREFS.at(scriptIdx).id; catBtn.textContent = vId === 'en' ? '📚 List' : (sId === 'cn' ? '📚 目录' : '📚 目錄'); }
   setTxt('#btn-open-settings', tUI('settings'));
   const isTapOn = typeof tapToJump !== 'undefined' ? tapToJump : (localStorage.getItem('reading_tapToJump') === 'true');
   setTxt('#btn-tap-jump', isTapOn ? tUI('tapJumpOn') : tUI('tapJumpOff'));
@@ -451,6 +455,13 @@ function applyUiLanguage() {
 }
 
 function syncPrefButtons() {
+  const isEnVoice = VOICE_PREFS.at(voiceIdx).id === 'en';
+  const scriptBtnEl = document.getElementById('btn-pref-script');
+  if (scriptBtnEl) {
+    scriptBtnEl.style.display = isEnVoice ? 'none' : '';
+    const scriptRow = scriptBtnEl.closest('.setting-row');
+    if (scriptRow) scriptRow.style.display = isEnVoice ? 'none' : '';
+  }
   document.getElementById('btn-pref-voice').textContent = VOICE_PREFS[voiceIdx].label;
   document.getElementById('btn-pref-script').textContent = SCRIPT_PREFS[scriptIdx].fullLabel;
   document.getElementById('btn-reader-voice').textContent = VOICE_PREFS[voiceIdx].label;
@@ -550,7 +561,7 @@ function renderFamilyBar() {
 
   bar.innerHTML = members.map(m => `
     <button class="member-chip ${m.id === active.id ? 'active' : ''}" onclick="switchFamilyMember('${m.id}')">
-      <span>${m.avatar} ${m.name}</span>
+      <span>${m.avatar} ${FamilyManager.getDisplayName(m)}</span>
       ${m.canTutor ? `<span class="role-tag">${tutorTag}</span>` : ''}
     </button>
   `).join('') + `
@@ -590,8 +601,8 @@ function renderQuickTutorTags() {
   const isEn = VOICE_PREFS.at(voiceIdx).id === 'en';
   const tutors = FamilyManager.getMembers().filter(m => m.canTutor);
   box.innerHTML = tutors.map(m => {
-    const tagTxt = isEn ? `${m.avatar} ${m.name}'s Voice` : `${m.avatar} ${m.name}的聲音`;
-    return `<button type="button" class="btn-mini" style="background:#FEF3C7;color:#92400E;border:1px solid #F59E0B;" onclick="document.getElementById('preview-label-input').value='${tagTxt.replace(/'/g, "\'")}'">${m.avatar} ${m.name}</button>`;
+    const tagTxt = isEn ? `${m.avatar} ${FamilyManager.getDisplayName(m)}'s Voice` : `${m.avatar} ${FamilyManager.getDisplayName(m)}的聲音`;
+    return `<button type="button" class="btn-mini" style="background:#FEF3C7;color:#92400E;border:1px solid #F59E0B;" onclick="document.getElementById('preview-label-input').value='${tagTxt.replace(/'/g, "\'")}'">${m.avatar} ${FamilyManager.getDisplayName(m)}</button>`;
   }).join('') + `<button type="button" class="btn-mini" style="background:#F1F5F9;color:#334155;border:1px solid #CBD5E1;" onclick="const inp=document.getElementById('preview-label-input');inp.value='';inp.focus();">✏️ 自定義</button>`;
 }
 
@@ -1191,9 +1202,9 @@ document.getElementById('btn-save-kid-db').addEventListener('click', async () =>
   if (!lastKidBlob || !currentStory) return;
   const isEn = VOICE_PREFS.at(voiceIdx).id === 'en';
   const curReader = FamilyManager.getActiveMember();
-  const fallbackKidLabel = isEn ? `${curReader.avatar} ${curReader.name}'s Reading` : `${curReader.avatar} ${curReader.name}的朗讀`;
+  const fallbackKidLabel = isEn ? `${curReader.avatar} ${FamilyManager.getDisplayName(curReader)}'s Reading` : `${curReader.avatar} ${FamilyManager.getDisplayName(curReader)}的朗讀`;
   const defaultKidLabel = localStorage.getItem('reading_lastKidRecLabel') || fallbackKidLabel;
-  const memberLabels = FamilyManager.getMembers().map(m => isEn ? `${m.avatar} ${m.name}'s Reading` : `${m.avatar} ${m.name}的朗讀`);
+  const memberLabels = FamilyManager.getMembers().map(m => isEn ? `${m.avatar} ${FamilyManager.getDisplayName(m)}'s Reading` : `${m.avatar} ${FamilyManager.getDisplayName(m)}的朗讀`);
   const historyLabels = (await ParentVoice.getAllRecordings()).map(r => r.label);
   const suggestions = Array.from(new Set([defaultKidLabel, ...memberLabels, ...historyLabels]));
   const customName = await CustomUI.showPrompt({
@@ -1374,3 +1385,91 @@ document.addEventListener('play', (e) => {
     stopTtsPlayback();
   }
 }, true);
+
+
+// 閱讀器內快捷切換故事（上一篇 / 下一篇 / 快速選書抽屜 / 左右滑動翻書）
+async function switchRelativeStory(delta) {
+  if (!allStories || allStories.length === 0 || !currentStory) return;
+  const curIdx = allStories.findIndex(s => s.id === currentStory.id);
+  const nextIdx = (curIdx + delta + allStories.length) % allStories.length;
+  const target = allStories[nextIdx];
+  const wasPlaying = !ttsAudioEl.paused;
+  await openStory(target.id, false);
+  if (wasPlaying) {
+    requestWakeLock();
+    ttsAudioEl.play().then(() => {
+      const lbl = btnPlayTts.querySelector('.label');
+      if (lbl) lbl.textContent = tUI('pause');
+      syncHighlightLoop();
+    }).catch(() => {});
+  }
+}
+
+function openQuickStorySwitcher() {
+  const modal = document.getElementById('modal-story-switcher');
+  const listEl = document.getElementById('quick-story-list');
+  const titleEl = document.getElementById('switcher-title');
+  if (!modal || !listEl) return;
+
+  const isEn = VOICE_PREFS.at(voiceIdx).id === 'en';
+  const sId = SCRIPT_PREFS.at(scriptIdx).id;
+  if (titleEl) {
+    titleEl.textContent = isEn ? '📚 Switch Story' : (sId === 'cn' ? '📚 快速切换故事' : '📚 快速切換故事');
+  }
+
+  const titleKey = isEn ? 'en' : sId;
+  const lvlColors = { 1: '#10B981', 2: '#F59E0B', 3: '#8B5CF6' };
+  listEl.innerHTML = allStories.map((st, idx) => {
+    const active = currentStory && st.id === currentStory.id;
+    const tText = (st.titles && st.titles[titleKey]) || (st.titles && st.titles.hk) || st.id;
+    const lv = st.level || 1;
+    return `
+      <div class="quick-story-item ${active ? 'active' : ''}" onclick="selectQuickStory('${st.id}')">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+          <span style="background:${lvlColors[lv] || '#10B981'};color:#fff;font-size:12px;font-weight:bold;padding:3px 8px;border-radius:10px;flex-shrink:0;">Lv.${lv}</span>
+          <span style="font-size:16px;font-weight:800;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${idx + 1}. ${tText}</span>
+        </div>
+        <span style="font-size:16px;flex-shrink:0;">${active ? '📖' : '👉'}</span>
+      </div>`;
+  }).join('');
+
+  modal.classList.remove('hidden');
+  setTimeout(() => {
+    const activeItem = listEl.querySelector('.quick-story-item.active');
+    if (activeItem) activeItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, 50);
+}
+
+window.selectQuickStory = async (storyId) => {
+  document.getElementById('modal-story-switcher')?.classList.add('hidden');
+  if (typeof SoundFX !== 'undefined') SoundFX.play('open_story', true);
+  await openStory(storyId, false);
+};
+
+document.getElementById('btn-prev-story')?.addEventListener('click', () => switchRelativeStory(-1));
+document.getElementById('btn-next-story')?.addEventListener('click', () => switchRelativeStory(1));
+
+// 點擊頂部專屬「📚 目錄」按鈕開啟快速選書抽屜
+document.getElementById('btn-open-catalog')?.addEventListener('click', () => {
+  openQuickStorySwitcher();
+});
+
+// 支援手機/iPad 左右滑動手勢切換上下篇故事
+let touchStartX = 0, touchStartY = 0;
+viewReader?.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 1) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }
+}, { passive: true });
+
+viewReader?.addEventListener('touchend', (e) => {
+  if (e.changedTouches.length !== 1) return;
+  if (isReadingAlong || (typeof ParentVoice !== 'undefined' && ParentVoice.isRecording && ParentVoice.isRecording())) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > 75 && Math.abs(dx) > Math.abs(dy) * 1.8) {
+    if (typeof SoundFX !== 'undefined') SoundFX.play('pop', true);
+    switchRelativeStory(dx < 0 ? 1 : -1);
+  }
+}, { passive: true });

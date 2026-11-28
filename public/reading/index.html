@@ -33,7 +33,7 @@
 
   <main id="view-reader" class="view">
     <header class="reader-header">
-      <button id="btn-back" class="btn-back" style="padding:8px 12px;font-size:16px;">⬅️ 返回</button>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;"><button id="btn-back" class="btn-back" style="padding:8px 12px;font-size:16px;">⬅️ 返回</button><button id="btn-open-catalog" class="btn-speed quick-btn" style="border-color:#F59E0B;background:#FFFBEB;color:#B45309;padding:7px 9px;">📚 目錄</button></div>
       <span id="header-status-pill" class="header-status-pill">粵語 · 1.0x</span>
       <div class="header-right" style="gap:6px;">
         <div class="quick-tools">
@@ -78,6 +78,16 @@
   </main>
 
   <div id="modal-guide" class="modal-backdrop hidden" onclick="if(event.target===this)this.classList.add('hidden')"><div class="modal-card" style="max-width:480px;text-align:left;line-height:1.6;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><h3 style="margin:0;">📚 關於快樂小讀者</h3><button class="btn-close-circle" onclick="document.getElementById('modal-guide').classList.add('hidden')">✕</button></div><p style="font-size:15px;color:#334155;">專為多孩家庭打造的<b>免登入多語點讀故事 App</b>，支援粵語、國語、普通話與英語發音及繁簡切換。</p><ul style="padding-left:20px;font-size:14px;color:#475569;margin:10px 0;"><li><b>👆 點哪讀哪</b>：開啟後點擊任意字詞即可從該處無縫連播。</li><li><b>👨‍👩‍👧 家庭成員與陪讀</b>：父母、哥哥、姊姊可錄製陪讀示範音頻，弟弟妹妹可選擇「聽媽媽/哥哥講故事」。</li><li><b>🎤 自己讀</b>：提供「提詞跟讀」與「識別跟讀」雙模式，錄音自動保存於本機並支援 Google Drive 備份。</li></ul><button class="btn-manager-bottom-close" onclick="document.getElementById('modal-guide').classList.add('hidden')">✅ 開始閱讀</button></div></div>
+    <div id="modal-story-switcher" class="modal-backdrop hidden" onclick="if(event.target===this)this.classList.add('hidden')">
+    <div class="modal-card" style="max-width:520px;max-height:84vh;display:flex;flex-direction:column;">
+      <div class="manager-header-bar">
+        <h3 id="switcher-title">📚 快速切換故事</h3>
+        <button class="btn-close-circle" onclick="document.getElementById('modal-story-switcher').classList.add('hidden')">✕</button>
+      </div>
+      <div id="quick-story-list" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px;padding:4px;"></div>
+    </div>
+  </div>
+
   <div id="modal-settings" class="modal-backdrop hidden">
     <div class="modal-card" style="max-width:440px;max-height:88vh;overflow-y:auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -158,7 +168,7 @@
 
   <script src="./sound_fx.js?v=4"></script>
   <script src="./ui_dialog.js"></script>
-  <script src="./family.js"></script>
+  <script src="./family.js?v=2"></script>
   <script src="./i18n.js"></script>
   <script src="./parent_voice.js"></script>
   <script src="./app.js?v=3"></script>

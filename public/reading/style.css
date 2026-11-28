@@ -813,3 +813,49 @@ html, body {
 #manager-filter-bar:active, .family-bar:active, .level-tabs:active {
   cursor: grabbing;
 }
+
+/* 閱讀器底部上下篇按鈕與快速選書抽屜樣式 */
+.btn-nav-story {
+  width: 52px !important;
+  min-width: 52px !important;
+  height: 56px !important;
+  border-radius: 18px !important;
+  border: 2px solid #E2E8F0 !important;
+  background: #F8FAFC !important;
+  color: #334155 !important;
+  font-size: 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer;
+  flex-shrink: 0 !important;
+}
+.btn-nav-story:active {
+  transform: scale(0.93);
+  background: #FEF3C7 !important;
+  border-color: #F59E0B !important;
+}
+
+.story-title-heading {
+  cursor: pointer;
+}
+
+.quick-story-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #F8FAFC;
+  border: 2px solid #E2E8F0;
+  cursor: pointer;
+  text-align: left;
+}
+.quick-story-item.active {
+  background: #FEF3C7;
+  border-color: #F59E0B;
+}
+.quick-story-item:active {
+  transform: scale(0.98);
+}
