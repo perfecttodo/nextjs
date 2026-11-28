@@ -7,6 +7,90 @@ const GA_ID = "G-ML143PPJZH";
 const M_START = "<!-- GLOBAL_INJECT_START -->";
 const M_END = "<!-- GLOBAL_INJECT_END -->";
 
+const BANNER_CONFIG = {
+  ENABLED: true,
+  DIRS: ["resume"], // 設定需要顯示頂部橫幅的目錄名稱（可填多個，如 ["resume", "reading"]）
+  WELCOME_TEXT: "👋 歡迎來到 Alex 的個人履歷與作品空間！",
+  BTN_TEXT: "🏠 返回主頁探索更多",
+  HOME_URL: "/",
+};
+
+function buildTopBanner(relFilePath) {
+  if (!BANNER_CONFIG.ENABLED) return "";
+  const topDir = relFilePath.split("/")[0];
+  if (!BANNER_CONFIG.DIRS.includes(topDir)) return "";
+
+  const mountFn = function (cfg, dirKey) {
+    if (document.getElementById("__top_banner_host")) return;
+
+    // 1. 將原頁面 body 內除懸浮按鈕外的所有節點安全包裹進獨立滾動容器（不銷毀任何 DOM 或事件）
+    var scrollBox = document.createElement("div");
+    scrollBox.id = "__page_scroll_box";
+    scrollBox.style.cssText = "flex:1;width:100%;overflow-y:auto;overflow-x:hidden;position:relative;transform:translateZ(0);-webkit-overflow-scrolling:touch;";
+
+    var navHost = document.getElementById("__nav_host");
+    var children = Array.prototype.slice.call(document.body.childNodes);
+    children.forEach(function (node) {
+      if (node !== navHost && node.tagName !== "SCRIPT") {
+        scrollBox.appendChild(node);
+      }
+    });
+
+    // 2. 創建獨立頂部橫幅 __top_banner_host
+    var host = document.createElement("div");
+    host.id = "__top_banner_host";
+    host.style.cssText = "flex-shrink:0;width:100%;z-index:2147483646;position:relative;";
+
+    document.documentElement.style.cssText += ";height:100%;overflow:hidden;";
+    document.body.style.cssText += ";height:100%;margin:0;padding:0;overflow:hidden;display:flex;flex-direction:column;";
+    document.body.insertBefore(scrollBox, document.body.firstChild);
+    document.body.insertBefore(host, scrollBox);
+
+    var s = host.attachShadow({ mode: "open" });
+    var isDark = document.documentElement.classList.contains("dark") ||
+      document.documentElement.getAttribute("data-theme") === "dark" ||
+      matchMedia("(prefers-color-scheme: dark)").matches;
+
+    s.innerHTML = [
+      "<style>",
+      "*{box-sizing:border-box;font:13px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}",
+      ".bar{width:100%;display:flex;align-items:center;justify-content:center;gap:14px;padding:8px 42px 8px 16px;background:" + (isDark ? "#0f172a" : "#1e293b") + ";color:#f8fafc;border-bottom:2px solid #3b82f6;box-shadow:0 4px 16px rgba(0,0,0,.18);position:relative;overflow:hidden;max-height:60px;transition:max-height .3s ease,padding .3s ease,border-width .3s ease}",
+      ".bar.hide{max-height:0;padding-top:0;padding-bottom:0;border-bottom-width:0}",
+      ".badge{padding:2px 7px;border-radius:5px;background:rgba(59,130,246,.25);border:1px solid rgba(96,165,250,.4);color:#93c5fd;font-size:11px;font-weight:700;letter-spacing:.5px;white-space:nowrap}",
+      ".msg{font-weight:500;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
+      ".btn{display:inline-flex;align-items:center;gap:4px;padding:4px 13px;border-radius:999px;background:#3b82f6;color:#fff;text-decoration:none;font-size:12px;font-weight:600;white-space:nowrap;box-shadow:0 2px 8px rgba(59,130,246,.4);transition:transform .2s,background .2s}",
+      ".btn:hover{background:#2563eb;transform:translateY(-1px)}",
+      ".cls{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#cbd5e1;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .15s}",
+      ".cls:hover{background:#ef4444;border-color:#ef4444;color:#fff}",
+      ".tab{position:fixed;top:0;left:50%;transform:translate(-50%,-100%);padding:4px 14px 5px;border-radius:0 0 10px 10px;background:#1e293b;color:#f8fafc;border:1px solid rgba(59,130,246,.5);border-top:none;box-shadow:0 4px 14px rgba(0,0,0,.22);font-size:11.5px;font-weight:600;cursor:pointer;opacity:0;z-index:2147483646;transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .25s ease}",
+      ".tab.show{transform:translate(-50%,0);opacity:.92}.tab:hover{opacity:1;background:#2563eb}",
+      "@media(max-width:540px){.badge{display:none}.bar{justify-content:space-between}.msg{font-size:12px}}",
+      "</style>",
+      '<div class="bar" id="b"><span class="badge">PORTAL</span><span class="msg">' + cfg.WELCOME_TEXT + '</span><a class="btn" href="' + cfg.HOME_URL + '">' + cfg.BTN_TEXT + '</a><button class="cls" id="c" title="收起頂欄">✕</button></div>',
+      '<button class="tab" id="t" title="展開頂部導航條">' + cfg.BTN_TEXT + ' ▾</button>'
+    ].join("");
+
+    var barEl = s.getElementById("b"), tabEl = s.getElementById("t");
+    var isClosed = false;
+    try { isClosed = sessionStorage.getItem("__tb_closed_" + dirKey) === "1"; } catch (e) {}
+    if (isClosed) {
+      barEl.classList.add("hide");
+      tabEl.classList.add("show");
+    }
+
+    function setClosed(closed) {
+      barEl.classList.toggle("hide", closed);
+      tabEl.classList.toggle("show", closed);
+      try { sessionStorage.setItem("__tb_closed_" + dirKey, closed ? "1" : "0"); } catch (e) {}
+    }
+    s.getElementById("c").onclick = function () { setClosed(true); };
+    tabEl.onclick = function () { setClosed(false); };
+  };
+
+  return '<!-- TOP_BANNER_START --><script>(' +
+    mountFn.toString() + ')(' + JSON.stringify(BANNER_CONFIG) + ',' + JSON.stringify(topDir) + ');</script><!-- TOP_BANNER_END -->';
+}
+
 const MENU_CONFIG = {
   PRINT_MENU: false,
   INCLUDE_DIRS: [],
@@ -394,21 +478,28 @@ function buildSnippet() {
   ].join("\n");
 }
 
-function run(dir, snippet) {
+function run(dir) {
   if (!fs.existsSync(dir)) return;
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name);
-    if (e.isDirectory()) run(p, snippet);
+    if (e.isDirectory()) run(p);
     else if (e.isFile() && e.name.endsWith(".html")) {
-      if (dir === PUBLIC_DIR && ["index.html", "privacy.html", "terms.html"].includes(e.name.toLowerCase())) continue;
+      const rel = path.relative(PUBLIC_DIR, p).replace(/\\/g, "/");
       const raw = fs.readFileSync(p, "utf8");
-      const sIdx = raw.indexOf(M_START), eIdx = raw.indexOf(M_END);
-      const clean = (sIdx !== -1 && eIdx !== -1) ? raw.slice(0, sIdx).trimEnd() + "\n" + raw.slice(eIdx + M_END.length).trimStart() : raw;
-      const next = /<\/body>/i.test(clean) ? clean.replace(/<\/body>/i, snippet + "\n</body>") : clean.trimEnd() + "\n" + snippet + "\n";
+      let clean = raw.replace(/<!-- TOP_BANNER_START -->[\s\S]*?<!-- TOP_BANNER_END -->\s*/g, "");
+      const sIdx = clean.indexOf(M_START), eIdx = clean.indexOf(M_END);
+      if (sIdx !== -1 && eIdx !== -1) {
+        clean = clean.slice(0, sIdx).trimEnd() + "\n" + clean.slice(eIdx + M_END.length).trimStart();
+      }
+      const topBanner = buildTopBanner(rel);
+      const bottomSnippet = buildSnippet() + (topBanner ? "\n" + topBanner : "");
+      const next = /<\/body>/i.test(clean)
+        ? clean.replace(/<\/body>/i, bottomSnippet + "\n</body>")
+        : clean.trimEnd() + "\n" + bottomSnippet + "\n";
       fs.writeFileSync(p, next, "utf8");
-      console.log("✔ 已注入:", path.relative(process.cwd(), p));
+      console.log("✔ 已注入:", path.relative(process.cwd(), p), topBanner ? "[含頂部歡迎欄]" : "");
     }
   }
 }
 
-run(PUBLIC_DIR, buildSnippet());
+run(PUBLIC_DIR);
