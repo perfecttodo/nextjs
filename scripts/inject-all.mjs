@@ -17,34 +17,20 @@ const BANNER_CONFIG = {
 
 function buildTopBanner(relFilePath) {
   if (!BANNER_CONFIG.ENABLED) return "";
-  const topDir = relFilePath.split("/")[0];
+  const topDir = relFilePath.split("/").shift();
   if (!BANNER_CONFIG.DIRS.includes(topDir)) return "";
 
   const mountFn = function (cfg, dirKey) {
     if (document.getElementById("__top_banner_host")) return;
 
-    // 1. 將原頁面 body 內除懸浮按鈕外的所有節點安全包裹進獨立滾動容器（不銷毀任何 DOM 或事件）
-    var scrollBox = document.createElement("div");
-    scrollBox.id = "__page_scroll_box";
-    scrollBox.style.cssText = "flex:1;width:100%;overflow-y:auto;overflow-x:hidden;position:relative;transform:translateZ(0);-webkit-overflow-scrolling:touch;";
-
-    var navHost = document.getElementById("__nav_host");
-    var children = Array.prototype.slice.call(document.body.childNodes);
-    children.forEach(function (node) {
-      if (node !== navHost && node.tagName !== "SCRIPT") {
-        scrollBox.appendChild(node);
-      }
-    });
-
-    // 2. 創建獨立頂部橫幅 __top_banner_host
     var host = document.createElement("div");
     host.id = "__top_banner_host";
-    host.style.cssText = "flex-shrink:0;width:100%;z-index:2147483646;position:relative;";
+    host.style.cssText = "position:fixed;top:0;left:0;width:100%;z-index:2147483646;pointer-events:none;";
+    document.body.insertBefore(host, document.body.firstChild);
 
-    document.documentElement.style.cssText += ";height:100%;overflow:hidden;";
-    document.body.style.cssText += ";height:100%;margin:0;padding:0;overflow:hidden;display:flex;flex-direction:column;";
-    document.body.insertBefore(scrollBox, document.body.firstChild);
-    document.body.insertBefore(host, scrollBox);
+    var pageStyle = document.createElement("style");
+    pageStyle.id = "__top_banner_page_css";
+    document.head.appendChild(pageStyle);
 
     var s = host.attachShadow({ mode: "open" });
     var isDark = document.documentElement.classList.contains("dark") ||
@@ -54,7 +40,7 @@ function buildTopBanner(relFilePath) {
     s.innerHTML = [
       "<style>",
       "*{box-sizing:border-box;font:13px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}",
-      ".bar{width:100%;display:flex;align-items:center;justify-content:center;gap:14px;padding:8px 42px 8px 16px;background:" + (isDark ? "#0f172a" : "#1e293b") + ";color:#f8fafc;border-bottom:2px solid #3b82f6;box-shadow:0 4px 16px rgba(0,0,0,.18);position:relative;overflow:hidden;max-height:60px;transition:max-height .3s ease,padding .3s ease,border-width .3s ease}",
+      ".bar{pointer-events:auto;width:100%;display:flex;align-items:center;justify-content:center;gap:14px;padding:8px 42px 8px 16px;background:" + (isDark ? "#0f172a" : "#1e293b") + ";color:#f8fafc;border-bottom:2px solid #3b82f6;box-shadow:0 4px 16px rgba(0,0,0,.18);position:relative;overflow:hidden;max-height:60px;transition:max-height .3s ease,padding .3s ease,border-width .3s ease}",
       ".bar.hide{max-height:0;padding-top:0;padding-bottom:0;border-bottom-width:0}",
       ".badge{padding:2px 7px;border-radius:5px;background:rgba(59,130,246,.25);border:1px solid rgba(96,165,250,.4);color:#93c5fd;font-size:11px;font-weight:700;letter-spacing:.5px;white-space:nowrap}",
       ".msg{font-weight:500;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
@@ -62,7 +48,7 @@ function buildTopBanner(relFilePath) {
       ".btn:hover{background:#2563eb;transform:translateY(-1px)}",
       ".cls{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#cbd5e1;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .15s}",
       ".cls:hover{background:#ef4444;border-color:#ef4444;color:#fff}",
-      ".tab{position:fixed;top:0;left:50%;transform:translate(-50%,-100%);padding:4px 14px 5px;border-radius:0 0 10px 10px;background:#1e293b;color:#f8fafc;border:1px solid rgba(59,130,246,.5);border-top:none;box-shadow:0 4px 14px rgba(0,0,0,.22);font-size:11.5px;font-weight:600;cursor:pointer;opacity:0;z-index:2147483646;transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .25s ease}",
+      ".tab{pointer-events:auto;position:fixed;top:0;left:50%;transform:translate(-50%,-100%);padding:4px 14px 5px;border-radius:0 0 10px 10px;background:#1e293b;color:#f8fafc;border:1px solid rgba(59,130,246,.5);border-top:none;box-shadow:0 4px 14px rgba(0,0,0,.22);font-size:11.5px;font-weight:600;cursor:pointer;opacity:0;z-index:2147483646;transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .25s ease}",
       ".tab.show{transform:translate(-50%,0);opacity:.92}.tab:hover{opacity:1;background:#2563eb}",
       "@media(max-width:540px){.badge{display:none}.bar{justify-content:space-between}.msg{font-size:12px}}",
       "</style>",
@@ -71,18 +57,54 @@ function buildTopBanner(relFilePath) {
     ].join("");
 
     var barEl = s.getElementById("b"), tabEl = s.getElementById("t");
+    var origPadTop = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
+    var trackedHeaders = [];
+
+    function scanHeaders() {
+      document.querySelectorAll("header, nav, [class*='nav'], [class*='header']").forEach(function (el) {
+        if (el === host || trackedHeaders.some(function (t) { return t.el === el; })) return;
+        var cs = getComputedStyle(el);
+        if (cs.position === "fixed") {
+          var topVal = parseFloat(cs.top);
+          if (!isNaN(topVal) && topVal <= 20) {
+            trackedHeaders.push({ el: el, origTop: el.style.top, baseTop: topVal });
+          }
+        }
+      });
+    }
+
+    function applyBannerHeight(h) {
+      document.body.style.paddingTop = h > 0 ? (origPadTop + h) + "px" : (origPadTop ? origPadTop + "px" : "");
+      document.documentElement.style.scrollPaddingTop = h + "px";
+      pageStyle.textContent = h > 0 ? "html::-webkit-scrollbar-track{margin-top:" + h + "px;}" : "";
+      if (h > 0) scanHeaders();
+      trackedHeaders.forEach(function (item) {
+        item.el.style.top = h > 0 ? (item.baseTop + h) + "px" : item.origTop;
+      });
+    }
+
+    if (window.ResizeObserver) {
+      new ResizeObserver(function () { applyBannerHeight(host.offsetHeight); }).observe(host);
+    }
+
     var isClosed = false;
     try { isClosed = sessionStorage.getItem("__tb_closed_" + dirKey) === "1"; } catch (e) {}
     if (isClosed) {
       barEl.classList.add("hide");
       tabEl.classList.add("show");
+      applyBannerHeight(0);
+    } else {
+      requestAnimationFrame(function () { applyBannerHeight(host.offsetHeight || 40); });
     }
 
     function setClosed(closed) {
       barEl.classList.toggle("hide", closed);
       tabEl.classList.toggle("show", closed);
+      if (closed) applyBannerHeight(0);
+      else setTimeout(function () { applyBannerHeight(host.offsetHeight || 40); }, 320);
       try { sessionStorage.setItem("__tb_closed_" + dirKey, closed ? "1" : "0"); } catch (e) {}
     }
+
     s.getElementById("c").onclick = function () { setClosed(true); };
     tabEl.onclick = function () { setClosed(false); };
   };
