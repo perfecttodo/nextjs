@@ -190,5 +190,53 @@
     "title_en": "Yummy Cha Chaan Teng Breakfast",
     "zh": "星期天|早上，全家人|一起|走進|熱鬧|的|港式|茶餐廳|吃|早餐。\n剛|出爐|的|菠蘿油|外皮|金黃|酥脆，配上|熱騰騰|的|火腿|通心粉，香氣|撲鼻。\n爸爸|提醒|大家|按|食量|點餐，把|盤子|裡|的|食物|吃光光，做|個|珍惜|糧食|的|好孩子。",
     "en": "On Sunday morning, the whole family visited a lively Hong Kong cafe for breakfast.\nFreshly baked pineapple buns with crispy golden crusts and hot macaroni soup smelled delicious.\nDad reminded everyone to order just enough and finish their plates to avoid wasting food."
+  },
+  {
+    "id": "story_025",
+    "level": 1,
+    "title_zh": "小烏鴉|喝水|的|新|方法",
+    "title_en": "Little Crow's New Way to Drink",
+    "zh": "天氣|好熱，小烏鴉|找到|一個|高高|的|水瓶，可是|水面|太低|喝不到。\n旁邊|只有|幾顆|小石子，一顆顆|放進去|實在|太慢|了。\n小烏鴉|動動|腦筋，找來|一根|空心|蘆葦管|當|吸管，輕輕鬆鬆|就|喝到了|清涼|的|水。",
+    "en": "It was a hot day, and Little Crow found a tall bottle, but the water was too low to reach.\nThere were only a few pebbles nearby, and dropping them one by one was too slow.\nLittle Crow thought smartly and used a hollow reed as a straw to drink the cool water easily."
+  },
+  {
+    "id": "story_026",
+    "level": 1,
+    "title_zh": "整理|玩具|的|分類|魔法",
+    "title_en": "The Magic of Sorting Toys",
+    "zh": "房間|裡|積木、繪本|和|小汽車|散落|一地，看起來|好亂|呀。\n媽媽|教|樂樂|使用|分類|魔法，先|把|相同|種類|的|玩具|放在|一起。\n積木|回|藍色|盒子，圖書|排上|書架，不到|五分鐘，房間|就|變得|整整齊齊。",
+    "en": "Blocks, picture books, and toy cars were scattered all over the floor in a big mess.\nMom taught Leo the magic of sorting by grouping the same kinds of toys together first.\nBlocks went into the blue box and books onto the shelf, making the room tidy in five minutes."
+  },
+  {
+    "id": "story_027",
+    "level": 2,
+    "title_zh": "專心|二十分鐘|小火箭",
+    "title_en": "The Twenty-Minute Focus Rocket",
+    "zh": "小熊|畫畫|時|總想|看|動畫片，畫了|好久|還|沒|塗完|顏色。\n爸爸|拿出|小沙漏，約定|先|專心|畫|二十分鐘，再|開心|休息|五分鐘。\n有了|明確|的|小目標，小熊|像|小火箭|一樣|專注，很快|就|畫出了|漂亮|的|彩虹。",
+    "en": "Little Bear kept wanting to watch cartoons while drawing and barely finished coloring.\nDad set a small timer for twenty minutes of pure focus followed by a five-minute break.\nWith a clear short goal, Little Bear focused like a rocket and soon finished a bright rainbow."
+  },
+  {
+    "id": "story_028",
+    "level": 2,
+    "title_zh": "曹沖|稱象|的|聰明|辦法",
+    "title_en": "Cao Chong Weighs the Elephant",
+    "zh": "古時候|有人|送來|一頭|大象，大家|都|發愁|沒有|這麼大|的|秤。\n聰明|的|小曹沖|把|大象|牽上|大船，在|船身|水面|畫下|一條|記號線。\n接著|把|大象|牽下船，改裝|石頭|直到|船|沉到|記號線，稱出|石頭|重量|就|知道|大象|多重|了。",
+    "en": "Long ago, someone brought a huge elephant, and everyone wondered how to weigh it without a giant scale.\nClever young Cao Chong led the elephant onto a boat and marked the waterline on the hull.\nAfter leading the elephant off, he loaded stones until the boat reached the mark, weighing the stones to find the answer."
+  },
+  {
+    "id": "story_029",
+    "level": 2,
+    "title_zh": "森林|接力賽|的|排兵布陣",
+    "title_en": "Smart Teamwork in the Forest Relay",
+    "zh": "森林|運動會|要|舉行|水陸空|接力賽，小動物們|一起|商量|致勝|策略。\n小兔子|在|草地|跑得|最快|負責|第一棒，小猴子|爬樹|摘果|負責|第二棒。\n最後|小烏龜|穩穩|游過|小河|衝過|終點，大家|發揮|各自|長處|贏得了|金牌。",
+    "en": "For the forest relay race across land, trees, and water, the animals planned a winning strategy.\nFast Rabbit ran the grassy first leg, and agile Monkey climbed the trees for the second leg.\nFinally, steady Turtle swam across the river to the finish line, winning gold through smart teamwork."
+  },
+  {
+    "id": "story_030",
+    "level": 3,
+    "title_zh": "偵探|小狐狸|的|排除法",
+    "title_en": "Detective Fox's Elimination Method",
+    "zh": "廚房|盤子|裡|的|曲奇|餅乾|不見了，偵探|小狐狸|決定|用|排除法|找|線索。\n小鳥|整天|都在|樹枝|上|唱歌，小魚|離不開|水缸，首先|排除|牠們。\n接著|順著|地板|上|小小|的|麵粉|腳印，小狐狸|在|沙發|後面|找到了|偷吃|餅乾|的|小老鼠。",
+    "en": "Cookies vanished from the kitchen plate, so Detective Fox used elimination to solve the mystery.\nLittle Bird sang in the tree all day and Little Fish stayed in the bowl, so both were ruled out first.\nFollowing tiny flour footprints across the floor, Fox found Little Mouse nibbling cookies behind the sofa."
   }
 ]
