@@ -394,6 +394,46 @@ function getRecEstimatedDuration(rec) {
 }
 
 
+
+let watermarkEnabled = localStorage.getItem('reading_watermark') === 'true';
+
+function ensureWatermarkLoaded(enable) {
+  if (enable) {
+    if (typeof WatermarkPlugin !== 'undefined') {
+      WatermarkPlugin.mount();
+      return;
+    }
+    if (!document.querySelector('script[data-wm-plugin]')) {
+      const s = document.createElement('script');
+      s.src = './watermark_plugin.js?v=2';
+      s.dataset.wmPlugin = '1';
+      document.head.appendChild(s);
+    }
+  } else if (typeof WatermarkPlugin !== 'undefined') {
+    WatermarkPlugin.unmount();
+  }
+}
+
+function syncWatermarkUI() {
+  const btn = document.getElementById('btn-watermark');
+  const lbl = document.getElementById('lbl-watermark');
+  if (lbl) lbl.textContent = tUI('lblWatermark');
+  if (!btn) return;
+  btn.textContent = watermarkEnabled ? tUI('sfxOn').replace('🔊 ', '') : tUI('sfxOff').replace('🔇 ', '');
+  btn.style.background = watermarkEnabled ? '#0284C7' : '#F1F5F9';
+  btn.style.color = watermarkEnabled ? '#FFF' : '#64748B';
+}
+
+document.getElementById('btn-watermark')?.addEventListener('click', () => {
+  watermarkEnabled = !watermarkEnabled;
+  localStorage.setItem('reading_watermark', watermarkEnabled);
+  ensureWatermarkLoaded(watermarkEnabled);
+  syncWatermarkUI();
+});
+
+// 頁面初始化時，僅當使用者先前已開啟浮水印才載入檔案
+if (watermarkEnabled) ensureWatermarkLoaded(true);
+
 function syncSoundFxUI() {
   const btn = document.getElementById('btn-sound-fx');
   const lbl = document.getElementById('lbl-sound-fx');
@@ -411,6 +451,7 @@ document.getElementById('btn-sound-fx')?.addEventListener('click', () => {
 
 function applyUiLanguage() {
   if (typeof syncSoundFxUI === 'function') syncSoundFxUI();
+  if (typeof syncWatermarkUI === 'function') syncWatermarkUI();
   const setTxt = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt; };
   setTxt('#view-list .top-bar h1', tUI('appTitle'));
   setTxt('#btn-open-guide', tUI('guideBtn')); setTxt('#modal-guide h3', tUI('guideTitle')); setTxt('#modal-guide .btn-manager-bottom-close', tUI('guideBtnStart')); setTxt('#btn-open-manager', tUI('recLibrary'));
@@ -1544,3 +1585,23 @@ viewReader?.addEventListener('touchend', (e) => {
     switchRelativeStory(dx < 0 ? 1 : -1);
   }
 }, { passive: true });
+
+
+(function injectWatermarkSettingRow() {
+  const rows = document.querySelectorAll('#modal-settings .setting-row');
+  const lastRow = rows.length ? rows[rows.length - 1] : null;
+  if (!lastRow || document.getElementById('btn-watermark')) return;
+
+  const row = document.createElement('div');
+  row.className = 'setting-row';
+  row.innerHTML = '<label id="lbl-watermark">🏷️ 來源浮水印</label><button type="button" id="btn-watermark" class="btn-speed" style="border-color:#CBD5E1;background:#F1F5F9;color:#64748B;">關閉</button>';
+  lastRow.after(row);
+
+  document.getElementById('btn-watermark').addEventListener('click', () => {
+    watermarkEnabled = !watermarkEnabled;
+    localStorage.setItem('reading_watermark', watermarkEnabled);
+    ensureWatermarkLoaded(watermarkEnabled);
+    if (typeof syncWatermarkUI === 'function') syncWatermarkUI();
+  });
+  if (typeof syncWatermarkUI === 'function') syncWatermarkUI();
+})();
