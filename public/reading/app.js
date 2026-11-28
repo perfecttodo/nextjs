@@ -1263,7 +1263,20 @@ function highlightToken(idx) {
   const target = storyContent.querySelector(`.token[data-idx="${idx}"]`);
   if (target) { target.classList.add('active'); target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
 }
-function clearHighlight() { storyContent.querySelectorAll('.token').forEach(el => el.classList.remove('active', 'sentence-active')); }
+
+let _lastHighlightedIdx = -1;
+function ensureTokenInView(el) {
+  if (!el || useParentVoice) return;
+  const rect = el.getBoundingClientRect();
+  const topSafe = 110;
+  const bottomSafe = window.innerHeight - 130;
+  if (rect.top < topSafe || rect.bottom > bottomSafe) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+function clearHighlight() {
+  _lastHighlightedIdx = -1; storyContent.querySelectorAll('.token').forEach(el => el.classList.remove('active', 'sentence-active')); }
 async function requestWakeLock() { try { if ('wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); document.getElementById('wake-badge').style.display = 'inline-block'; } } catch (e) {} }
 function releaseWakeLock() { if (wakeLock) { wakeLock.release(); wakeLock = null; } document.getElementById('wake-badge').style.display = 'none'; }
 document.addEventListener('visibilitychange', () => {
